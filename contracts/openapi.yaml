@@ -1,0 +1,100 @@
+openapi: 3.1.0
+info:
+  title: PLUG API
+  version: 0.1.0
+  description: Phase 0 contract shared by the PLUG iOS app and modular-monolith backend.
+servers:
+  - url: http://localhost:8080
+    description: Local
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Report API health and environment
+      responses:
+        '200':
+          description: Service is available
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthResponse' }
+  /v1/requests:
+    post:
+      operationId: createRequest
+      summary: Accept a customer request for asynchronous processing
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: false
+          schema: { type: string, maxLength: 255 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RequestCreate' }
+      responses:
+        '202':
+          description: Request accepted
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RequestResponse' }
+        '400':
+          description: Validation failure
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required: [status, service, environment]
+      properties:
+        status: { type: string, const: ok }
+        service: { type: string, const: plug-api }
+        environment: { type: string, examples: [local, staging] }
+    RequestCreate:
+      type: object
+      additionalProperties: false
+      required: [query, location]
+      properties:
+        query: { type: string, minLength: 1, maxLength: 1000 }
+        location: { $ref: '#/components/schemas/Location' }
+    Location:
+      type: object
+      additionalProperties: false
+      required: [latitude, longitude]
+      properties:
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
+    RequestResponse:
+      type: object
+      additionalProperties: false
+      required: [request_id, status, next_action]
+      properties:
+        request_id: { type: string, pattern: '^req_[A-Za-z0-9-]+$' }
+        status: { $ref: '#/components/schemas/RequestStatus' }
+        next_action: { $ref: '#/components/schemas/NextAction' }
+    RequestStatus:
+      type: string
+      enum: [RECEIVED]
+    NextAction:
+      type: string
+      enum: [PROCESSING]
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [code, message, correlation_id, timestamp, path, details]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        correlation_id: { type: string }
+        timestamp: { type: string, format: date-time }
+        path: { type: string }
+        details:
+          type: array
+          items:
+            type: object
+            required: [field, message]
+            properties:
+              field: { type: string }
+              message: { type: string }

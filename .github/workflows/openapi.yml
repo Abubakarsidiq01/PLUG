@@ -1,0 +1,17 @@
+name: OpenAPI
+on:
+  pull_request:
+    paths: ["contracts/**", ".github/workflows/openapi.yml"]
+  push:
+    branches: [main]
+    paths: ["contracts/**", ".github/workflows/openapi.yml"]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: stoplightio/spectral-action@latest
+        with:
+          file_glob: contracts/openapi.yaml

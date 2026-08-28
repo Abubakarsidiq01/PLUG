@@ -1,0 +1,1 @@
+{"code":"validation_error","message":"The request was invalid.","correlation_id":"corr_123","timestamp":"2026-08-28T12:00:00Z","path":"/v1/requests","details":[{"field":"query","message":"must not be blank"}]}

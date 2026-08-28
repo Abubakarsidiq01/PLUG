@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: plug-api
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+plug:
+  environment: ${PLUG_ENVIRONMENT:local}
