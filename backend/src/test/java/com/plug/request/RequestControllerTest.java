@@ -27,9 +27,21 @@ class RequestControllerTest {
     }
 
     @Test
+    void malformedJsonReturnsStructuredErrorWithMatchingCorrelationId() throws Exception {
+        var result = mockMvc.perform(post("/v1/requests").contentType(MediaType.APPLICATION_JSON).content("{bad"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("validation_error")).andReturn();
+        var body = new com.fasterxml.jackson.databind.ObjectMapper().readTree(result.getResponse().getContentAsString());
+        org.junit.jupiter.api.Assertions.assertEquals(result.getResponse().getHeader("X-Correlation-ID"),
+                body.get("correlation_id").asText());
+    }
+
+    @Test
     void returnsStructuredValidationError() throws Exception {
         mockMvc.perform(post("/v1/requests").contentType(MediaType.APPLICATION_JSON)
-                .content("""{"query":"","location":{"latitude":200,"longitude":-92.7140}}"""))
+                .content("""
+                        {"query":"","location":{"latitude":200,"longitude":-92.7140}}
+                        """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value("validation_error"))
                 .andExpect(jsonPath("$.correlation_id").exists());

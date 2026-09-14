@@ -22,8 +22,8 @@ See [docs/OWNERSHIP.md](docs/OWNERSHIP.md) before changing shared contracts.
 
 ## First setup
 
-1. Install Java 21, Gradle 8.10+, and Xcode 16+.
-2. Run the backend with `cd backend && gradle bootRun`.
+1. Install Java 21. Gradle 8.14.3 is managed by the checked-in wrapper; a separate Gradle installation is not needed. Xcode 16+ is needed only for iOS work.
+2. Run the backend with `cd backend && ./dev bootRun` (the helper uses project-local Java when installed).
 3. Verify `curl -i http://localhost:8080/health`.
 4. Open `ios/Plug.xcodeproj` and run the `Plug` scheme.
 5. Select the local environment in the app and confirm the API status renders.
@@ -48,8 +48,8 @@ Detailed instructions: [backend](backend/README.md), [iOS](ios/README.md), [cont
 
 ```bash
 cd backend
-gradle test
-gradle bootRun
+./dev test
+./dev bootRun
 ```
 
 ```bash

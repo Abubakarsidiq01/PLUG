@@ -5,6 +5,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ public class RequestController {
                 "req_" + UUID.randomUUID(), RequestStatus.RECEIVED, NextAction.PROCESSING));
     }
 
-    public record RequestCreate(@NotBlank String query, @NotNull @Valid Location location) {}
+    public record RequestCreate(@NotBlank @Size(max = 1000) String query, @NotNull @Valid Location location) {}
     public record Location(
             @NotNull @DecimalMin("-90") @DecimalMax("90") Double latitude,
             @NotNull @DecimalMin("-180") @DecimalMax("180") Double longitude) {}

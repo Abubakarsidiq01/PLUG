@@ -8,9 +8,9 @@
 
 ## Backend lane
 
-1. Install Java 21 and Gradle 8.10+.
-2. Run `cd backend && gradle test`.
-3. Run `gradle bootRun`.
+1. Install Java 21 and set `JAVA_HOME` (or use the project-local installation in `.tools`). Gradle is provided by the wrapper.
+2. Run `cd backend && ./dev test`.
+3. Run `./dev bootRun`.
 4. Verify `GET http://localhost:8080/health` and the sample request in the root README.
 
 ## iOS lane
