@@ -1,0 +1,22 @@
+services:
+  postgres:
+    # Official image is amd64-only; pin the platform so Apple Silicon can pull via emulation.
+    image: postgis/postgis:16-3.5
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: plug
+      POSTGRES_USER: plug
+      POSTGRES_PASSWORD: ${PLUG_DATABASE_PASSWORD:?Set a local database password first}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - plug-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U plug -d plug"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+volumes:
+  plug-postgres:

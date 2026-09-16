@@ -26,7 +26,9 @@ See [docs/OWNERSHIP.md](docs/OWNERSHIP.md) before changing shared contracts.
 2. Run the backend with `cd backend && ./dev bootRun` (the helper uses project-local Java when installed).
 3. Verify `curl -i http://localhost:8080/health`.
 4. Open `ios/Plug.xcodeproj` and run the `Plug` scheme.
-5. Select the local environment in the app and confirm the API status renders.
+5. Open the Engineering tab and confirm the API status renders. Debug builds default to the local backend; set `PLUG_API_URL` in the scheme for staging.
+
+Backend hardening and verification: `cd backend && ./dev check bootJar`. Real database checks: `./dev databaseTest` after starting PostgreSQL/PostGIS. See `docs/runbooks/staging-deployment.md` for required account/network/identity settings before the physical-device checkpoint.
 
 Detailed instructions: [backend](backend/README.md), [iOS](ios/README.md), [contracts](contracts/README.md), and [onboarding](docs/runbooks/local-onboarding.md).
 

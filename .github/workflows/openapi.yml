@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: stoplightio/spectral-action@latest
+      - uses: actions/setup-node@v4
         with:
-          file_glob: contracts/openapi.yaml
+          node-version: "22"
+      - run: npx --yes @stoplight/spectral-cli@6.15.0 lint contracts/openapi.yaml --fail-severity warn

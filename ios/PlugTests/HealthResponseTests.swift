@@ -3,7 +3,9 @@ import XCTest
 
 final class HealthResponseTests: XCTestCase {
     func testDecodesSharedFixtureShape() throws {
-        let data = Data(#"{"status":"ok","service":"plug-api","environment":"local"}"#.utf8)
+        let bundle = Bundle(for: Self.self)
+        let url = try XCTUnwrap(bundle.url(forResource: "health-response", withExtension: "json"))
+        let data = try Data(contentsOf: url)
         let response = try JSONDecoder().decode(HealthResponse.self, from: data)
         XCTAssertEqual(response, HealthResponse(status: "ok", service: "plug-api", environment: "local"))
     }

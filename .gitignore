@@ -10,6 +10,7 @@
 **/build/
 out/
 DerivedData/
+.xcode-derived-data*/
 *.xcuserstate
 xcuserdata/
 *.xccheckout
@@ -18,7 +19,6 @@ xcuserdata/
 *.tfstate
 *.tfstate.*
 *.tfplan
-.terraform.lock.hcl
 secrets/
 backend/src/main/resources/application-local.yml
 ios/Plug/Resources/Local.xcconfig

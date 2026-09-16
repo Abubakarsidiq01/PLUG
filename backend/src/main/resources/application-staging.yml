@@ -1,0 +1,15 @@
+spring:
+  config:
+    import: classpath:application-db.yml
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${PLUG_JWT_ISSUER}
+  flyway:
+    url: ${PLUG_MIGRATION_DATABASE_URL}
+    user: ${PLUG_MIGRATION_DATABASE_USER}
+    password: ${PLUG_MIGRATION_DATABASE_PASSWORD}
+plug:
+  environment: staging
+  jwt-audience: ${PLUG_JWT_AUDIENCE}

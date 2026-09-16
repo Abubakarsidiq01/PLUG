@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.1.0
+  version: 0.2.0
   description: Phase 0 contract shared by the PLUG iOS app and modular-monolith backend.
 servers:
   - url: http://localhost:8080
@@ -21,6 +21,9 @@ paths:
     post:
       operationId: createRequest
       summary: Accept a customer request for asynchronous processing
+      description: Phase 0 validation stub. No supplier outreach or persistence occurs. Staging requires a signed access token with the write scope; local loopback development does not.
+      security:
+        - stagingJwt: []
       parameters:
         - in: header
           name: Idempotency-Key
@@ -42,7 +45,55 @@ paths:
           content:
             application/json:
               schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '413':
+          $ref: '#/components/responses/TooLarge'
+        '415':
+          $ref: '#/components/responses/UnsupportedType'
+        '429':
+          description: Rate limit reached; Retry-After contains seconds until retry
+          headers:
+            Retry-After:
+              schema: { type: string }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '500':
+          description: Unexpected internal failure; no internal details are exposed
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ErrorResponse' }
 components:
+  securitySchemes:
+    stagingJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Staging issuer, audience, expiry and plug.requests.write scope are validated. Local loopback development is exempt.
+  responses:
+    Unauthorized:
+      description: Missing or invalid staging access token
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    Forbidden:
+      description: Access token lacks the required write scope
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    TooLarge:
+      description: Body exceeds 16384 bytes
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
+    UnsupportedType:
+      description: Request body must use application/json
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ErrorResponse' }
   schemas:
     HealthResponse:
       type: object
@@ -94,6 +145,7 @@ components:
           type: array
           items:
             type: object
+            additionalProperties: false
             required: [field, message]
             properties:
               field: { type: string }

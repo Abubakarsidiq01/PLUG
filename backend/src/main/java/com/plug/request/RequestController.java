@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class RequestController {
     @PostMapping
     ResponseEntity<RequestResponse> create(
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+            @RequestHeader(value = "Idempotency-Key", required = false) @Size(max = 255) String idempotencyKey,
             @Valid @RequestBody RequestCreate request) {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(new RequestResponse(
                 "req_" + UUID.randomUUID(), RequestStatus.RECEIVED, NextAction.PROCESSING));
