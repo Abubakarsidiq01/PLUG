@@ -1,10 +1,10 @@
 name: iOS
 on:
   pull_request:
-    paths: ["ios/**", ".github/workflows/ios.yml"]
+    paths: ["ios/**", "contracts/**", ".swiftlint.yml", ".github/workflows/ios.yml"]
   push:
     branches: [main]
-    paths: ["ios/**", ".github/workflows/ios.yml"]
+    paths: ["ios/**", "contracts/**", ".swiftlint.yml", ".github/workflows/ios.yml"]
 permissions:
   contents: read
 jobs:
@@ -12,4 +12,8 @@ jobs:
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
-      - run: xcodebuild -project ios/Plug.xcodeproj -scheme Plug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 16' CODE_SIGNING_ALLOWED=NO test
+      - run: brew install swiftlint && swiftlint lint --strict
+      - name: Build and test on an available iPhone simulator
+        run: |
+          device_id=$(xcrun simctl list devices available -j | ruby -rjson -e 'devices=JSON.parse(STDIN.read)["devices"].values.flatten; device=devices.find { |d| d["name"].start_with?("iPhone") }; abort "No iPhone simulator is available" unless device; puts device["udid"]')
+          xcodebuild -project ios/Plug.xcodeproj -scheme Plug -sdk iphonesimulator -destination "platform=iOS Simulator,id=$device_id" CODE_SIGNING_ALLOWED=NO test

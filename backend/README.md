@@ -7,6 +7,7 @@ Person One owns this Java 21 / Spring Boot 3 modular monolith. V1 deploys as one
 ```bash
 ./dev bootRun
 ./dev test
+./dev check bootJar
 ```
 
 The service defaults to port `8080` and environment `local`. Override with `PLUG_ENVIRONMENT`.
@@ -23,4 +24,12 @@ Responses include an `X-Correlation-ID` header. Backend request logs include tha
 - `health` — readiness/health contract
 - `request` — customer request intake
 
-Future domains should be peers inside `com.plug`, not separate deployable services. PostgreSQL, Flyway, messaging, and external integrations are intentionally deferred until their phase requires them.
+Future domains should be peers inside `com.plug`, not separate deployable services. PostgreSQL/PostGIS and Flyway are enabled with the `db` or `staging` profile. Supplier messaging and other product integrations remain out of Phase 0.
+
+## Database and staging checks
+
+Start local PostgreSQL/PostGIS using `infra/compose.yml`, export `PLUG_DATABASE_PASSWORD`, and run `./dev databaseTest`. This check fails if the database is missing; it is not silently skipped.
+
+Staging must activate the `staging` profile and provide an HTTPS JWT issuer, audience, and separate runtime/migration database credentials. See `docs/runbooks/staging-deployment.md`. The runtime role must not own the database.
+
+Local requests are limited to 60 per minute per peer, 16 KiB per body, and 1000 query characters. Unknown/duplicate fields, trailing JSON, and string coordinates are rejected. Pool, queue, and connection limits are starting bounds, not proven throughput targets. Tune them only after representative load tests.

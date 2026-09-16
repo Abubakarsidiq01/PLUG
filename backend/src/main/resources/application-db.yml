@@ -1,0 +1,15 @@
+spring:
+  autoconfigure:
+    exclude: []
+  datasource:
+    url: ${PLUG_DATABASE_URL:jdbc:postgresql://127.0.0.1:5432/plug}
+    username: ${PLUG_DATABASE_USER:plug}
+    password: ${PLUG_DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 3000
+      validation-timeout: 1000
+  flyway:
+    clean-disabled: true
+    validate-on-migrate: true

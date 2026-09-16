@@ -1,0 +1,1 @@
+{"code":"unauthorized","message":"Authentication is required.","correlation_id":"corr_example","timestamp":"2026-09-14T00:00:00Z","path":"/v1/requests","details":[]}
