@@ -1,0 +1,35 @@
+meta {
+  name: POST /v1/requests — validation error
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/v1/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "query": "",
+    "location": { "latitude": 200, "longitude": -92.7140 }
+  }
+}
+
+assert {
+  res.status: eq 400
+  res.body.error.code: eq validation_failed
+}
+
+tests {
+  test("error envelope matches manual.docx §18.2", function () {
+    const body = res.getBody();
+    expect(body.error).to.have.property("request_id");
+    expect(body.error.details).to.be.an("array").that.is.not.empty;
+  });
+}

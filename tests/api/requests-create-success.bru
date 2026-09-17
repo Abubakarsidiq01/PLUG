@@ -1,0 +1,36 @@
+meta {
+  name: POST /v1/requests — success
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/v1/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Idempotency-Key: bruno-phase0-success
+}
+
+body:json {
+  {
+    "query": "Barber under $35 in the next hour",
+    "location": { "latitude": 32.5277, "longitude": -92.7140 }
+  }
+}
+
+assert {
+  res.status: eq 202
+  res.body.status: eq RECEIVED
+  res.body.next_action: eq PROCESSING
+}
+
+tests {
+  test("request_id follows the frozen shape", function () {
+    const body = res.getBody();
+    expect(body.request_id).to.match(/^req_[A-Za-z0-9-]+$/);
+  });
+}

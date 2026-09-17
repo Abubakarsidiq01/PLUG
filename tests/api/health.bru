@@ -1,0 +1,26 @@
+meta {
+  name: GET /health
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/health
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.status: eq UP
+  res.body.environment: isUndefined
+}
+
+tests {
+  test("does not leak configuration", function () {
+    const body = res.getBody();
+    expect(body).to.not.have.property("environment");
+    expect(body).to.not.have.property("service");
+    expect(body).to.have.property("version");
+  });
+}
