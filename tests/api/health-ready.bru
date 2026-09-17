@@ -1,0 +1,24 @@
+meta {
+  name: GET /health/ready
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/health/ready
+  body: none
+  auth: none
+}
+
+assert {
+  res.body.status: isDefined
+  res.body.checks: isDefined
+}
+
+tests {
+  test("readiness and liveness are separate endpoints", function () {
+    const body = res.getBody();
+    expect(["UP", "DOWN"]).to.include(body.status);
+    expect(body.checks).to.be.an("object");
+  });
+}

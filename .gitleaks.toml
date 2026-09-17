@@ -1,0 +1,13 @@
+title = "PLUG gitleaks config"
+
+# Extend, don't replace, gitleaks' default ruleset.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Deterministic test fixtures — never real credentials (manual.docx §18.1: every contract has committed fixtures)."
+paths = [
+  '''tests/api/.*\.bru$''',
+  '''fixtures/.*\.json$''',
+  '''contracts/examples/.*\.json$''',
+]

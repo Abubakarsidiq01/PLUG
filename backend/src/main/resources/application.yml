@@ -7,6 +7,7 @@ spring:
     name: plug-api
   jackson:
     property-naming-strategy: SNAKE_CASE
+    default-property-inclusion: non_null
     deserialization:
       fail-on-unknown-properties: true
       fail-on-trailing-tokens: true

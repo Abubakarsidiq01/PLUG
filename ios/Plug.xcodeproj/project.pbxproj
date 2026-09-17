@@ -1,93 +1,388 @@
 // !$*UTF8*$!
 {
 	archiveVersion = 1;
-	classes = {};
+	classes = {
+	};
 	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		000000000000000000041009 = {isa = PBXBuildFile; fileRef = 000000000000000000042011; };
-		000000000000000000041001 /* PlugApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042001; };
-		000000000000000000041002 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042002; };
-		000000000000000000041003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042003; };
-		000000000000000000041004 /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042004; };
-		000000000000000000041005 /* HealthResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042005; };
-		000000000000000000041006 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 000000000000000000042008; };
-		000000000000000000041007 = {isa = PBXBuildFile; fileRef = 000000000000000000042009; };
-		000000000000000000041008 = {isa = PBXBuildFile; fileRef = 00000000000000000004200A; };
+		000000000000000000041001 /* PlugApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042001 /* PlugApp.swift */; };
+		000000000000000000041002 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042002 /* AppEnvironment.swift */; };
+		000000000000000000041003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042003 /* APIClient.swift */; };
+		000000000000000000041004 /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042004 /* HealthView.swift */; };
+		000000000000000000041005 /* HealthResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042005 /* HealthResponseTests.swift */; };
+		000000000000000000041006 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 000000000000000000042008 /* XCTest.framework */; };
+		000000000000000000041007 /* health-response.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042009 /* health-response.json */; };
+		000000000000000000041008 /* PlugTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000004200A /* PlugTokens.swift */; };
+		000000000000000000041009 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042011 /* APIClientTests.swift */; };
+		2E857CDF393AE466C187ED01 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */; };
+		E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */ = {isa = PBXBuildFile; fileRef = 7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		000000000000000000043001 = {isa = PBXContainerItemProxy; containerPortal = 000000000000000000050001; proxyType = 1; remoteGlobalIDString = 000000000000000000054001; remoteInfo = Plug; };
+		000000000000000000043001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000050001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000000054001;
+			remoteInfo = Plug;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		000000000000000000042011 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
-		000000000000000000042001 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlugApp.swift; sourceTree = "<group>"; };
-		000000000000000000042002 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
-		000000000000000000042003 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
-		000000000000000000042004 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
-		000000000000000000042005 = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthResponseTests.swift; sourceTree = "<group>"; };
-		000000000000000000042009 = {isa = PBXFileReference; lastKnownFileType = text.json; path = "../../contracts/examples/health-response.json"; sourceTree = "<group>"; };
-		00000000000000000004200A = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/DesignSystem/PlugTokens.swift"; sourceTree = "<group>"; };
-		000000000000000000042006 = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Plug.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		000000000000000000042007 = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		000000000000000000042008 = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		000000000000000000042001 /* PlugApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlugApp.swift; sourceTree = "<group>"; };
+		000000000000000000042002 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
+		000000000000000000042003 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
+		000000000000000000042004 /* HealthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthView.swift; sourceTree = "<group>"; };
+		000000000000000000042005 /* HealthResponseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthResponseTests.swift; sourceTree = "<group>"; };
+		000000000000000000042006 /* Plug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Plug.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000042007 /* PlugTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		000000000000000000042008 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
+		000000000000000000042009 /* health-response.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "../../contracts/examples/health-response.json"; sourceTree = "<group>"; };
+		00000000000000000004200A /* PlugTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/DesignSystem/PlugTokens.swift; sourceTree = "<group>"; };
+		000000000000000000042011 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
+		6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Color+Hex.swift"; path = "Core/DesignSystem/Color+Hex.swift"; sourceTree = "<group>"; };
+		7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Tokens.swift (generated)"; path = ../../design/generated/Tokens.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		000000000000000000046001 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		000000000000000000046002 = {isa = PBXFrameworksBuildPhase; buildActionMask = 2147483647; files = (000000000000000000041006,); runOnlyForDeploymentPostprocessing = 0; };
+		000000000000000000046001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		000000000000000000046002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000041006 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		000000000000000000047001 = {isa = PBXGroup; children = (000000000000000000047002, 000000000000000000047003, 000000000000000000047004, 000000000000000000047005,); sourceTree = "<group>"; };
-		000000000000000000047002 = {isa = PBXGroup; path = Plug; sourceTree = "<group>"; children = (000000000000000000047006, 000000000000000000047007, 000000000000000000047008, 00000000000000000004200A,); };
-		000000000000000000047003 = {isa = PBXGroup; path = PlugTests; sourceTree = "<group>"; children = (000000000000000000042005, 000000000000000000042009, 000000000000000000042011,); };
-		000000000000000000047004 = {isa = PBXGroup; name = Products; sourceTree = "<group>"; children = (000000000000000000042006, 000000000000000000042007,); };
-		000000000000000000047005 = {isa = PBXGroup; name = Frameworks; sourceTree = "<group>"; children = (000000000000000000042008,); };
-		000000000000000000047006 = {isa = PBXGroup; path = App; sourceTree = "<group>"; children = (000000000000000000042001, 000000000000000000042002,); };
-		000000000000000000047007 = {isa = PBXGroup; path = Core/Networking; sourceTree = "<group>"; children = (000000000000000000042003,); };
-		000000000000000000047008 = {isa = PBXGroup; path = Features/Engineering; sourceTree = "<group>"; children = (000000000000000000042004,); };
+		000000000000000000047001 = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000047002 /* Plug */,
+				000000000000000000047003 /* PlugTests */,
+				000000000000000000047004 /* Products */,
+				000000000000000000047005 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		000000000000000000047002 /* Plug */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000047006 /* App */,
+				000000000000000000047007 /* Networking */,
+				000000000000000000047008 /* Engineering */,
+				00000000000000000004200A /* PlugTokens.swift */,
+				6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */,
+				7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */,
+			);
+			path = Plug;
+			sourceTree = "<group>";
+		};
+		000000000000000000047003 /* PlugTests */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000042005 /* HealthResponseTests.swift */,
+				000000000000000000042009 /* health-response.json */,
+				000000000000000000042011 /* APIClientTests.swift */,
+			);
+			path = PlugTests;
+			sourceTree = "<group>";
+		};
+		000000000000000000047004 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000042006 /* Plug.app */,
+				000000000000000000042007 /* PlugTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		000000000000000000047005 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000042008 /* XCTest.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		000000000000000000047006 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000042001 /* PlugApp.swift */,
+				000000000000000000042002 /* AppEnvironment.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		000000000000000000047007 /* Networking */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000042003 /* APIClient.swift */,
+			);
+			path = Core/Networking;
+			sourceTree = "<group>";
+		};
+		000000000000000000047008 /* Engineering */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000042004 /* HealthView.swift */,
+			);
+			path = Features/Engineering;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		000000000000000000054001 = {isa = PBXNativeTarget; buildConfigurationList = 00000000000000000004C002; buildPhases = (000000000000000000053001, 000000000000000000046001, 000000000000000000052001,); buildRules = (); dependencies = (); name = Plug; productName = Plug; productReference = 000000000000000000042006; productType = "com.apple.product-type.application"; };
-		000000000000000000054002 = {isa = PBXNativeTarget; buildConfigurationList = 00000000000000000004C003; buildPhases = (000000000000000000053002, 000000000000000000046002, 000000000000000000052002,); buildRules = (); dependencies = (000000000000000000044001,); name = PlugTests; productName = PlugTests; productReference = 000000000000000000042007; productType = "com.apple.product-type.bundle.unit-test"; };
+		000000000000000000054001 /* Plug */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00000000000000000004C002 /* Build configuration list for PBXNativeTarget "Plug" */;
+			buildPhases = (
+				000000000000000000053001 /* Sources */,
+				000000000000000000046001 /* Frameworks */,
+				000000000000000000052001 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Plug;
+			productName = Plug;
+			productReference = 000000000000000000042006 /* Plug.app */;
+			productType = "com.apple.product-type.application";
+		};
+		000000000000000000054002 /* PlugTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 00000000000000000004C003 /* Build configuration list for PBXNativeTarget "PlugTests" */;
+			buildPhases = (
+				000000000000000000053002 /* Sources */,
+				000000000000000000046002 /* Frameworks */,
+				000000000000000000052002 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				000000000000000000044001 /* PBXTargetDependency */,
+			);
+			name = PlugTests;
+			productName = PlugTests;
+			productReference = 000000000000000000042007 /* PlugTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		000000000000000000050001 = {isa = PBXProject; attributes = {BuildIndependentTargetsInParallel = 1; LastSwiftUpdateCheck = 1600; LastUpgradeCheck = 1600; TargetAttributes = {000000000000000000054001 = {CreatedOnToolsVersion = 16.0;}; 000000000000000000054002 = {CreatedOnToolsVersion = 16.0; TestTargetID = 000000000000000000054001;};};}; buildConfigurationList = 00000000000000000004C001; compatibilityVersion = "Xcode 15.0"; developmentRegion = en; knownRegions = (en, Base,); mainGroup = 000000000000000000047001; productRefGroup = 000000000000000000047004; projectDirPath = ""; projectRoot = ""; targets = (000000000000000000054001, 000000000000000000054002,); };
+		000000000000000000050001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1600;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					000000000000000000054001 = {
+						CreatedOnToolsVersion = 16.0;
+					};
+					000000000000000000054002 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 000000000000000000054001;
+					};
+				};
+			};
+			buildConfigurationList = 00000000000000000004C001 /* Build configuration list for PBXProject "Plug" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 000000000000000000047001;
+			productRefGroup = 000000000000000000047004 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				000000000000000000054001 /* Plug */,
+				000000000000000000054002 /* PlugTests */,
+			);
+		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		000000000000000000052001 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
-		000000000000000000052002 = {isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = (000000000000000000041007,); runOnlyForDeploymentPostprocessing = 0; };
+		000000000000000000052001 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		000000000000000000052002 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000041007 /* health-response.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		000000000000000000053001 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (000000000000000000041001, 000000000000000000041002, 000000000000000000041003, 000000000000000000041004, 000000000000000000041008,); runOnlyForDeploymentPostprocessing = 0; };
-		000000000000000000053002 = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (000000000000000000041005, 000000000000000000041009,); runOnlyForDeploymentPostprocessing = 0; };
+		000000000000000000053001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000041001 /* PlugApp.swift in Sources */,
+				000000000000000000041002 /* AppEnvironment.swift in Sources */,
+				000000000000000000041003 /* APIClient.swift in Sources */,
+				000000000000000000041004 /* HealthView.swift in Sources */,
+				000000000000000000041008 /* PlugTokens.swift in Sources */,
+				2E857CDF393AE466C187ED01 /* Color+Hex.swift in Sources */,
+				E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		000000000000000000053002 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000041005 /* HealthResponseTests.swift in Sources */,
+				000000000000000000041009 /* APIClientTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		000000000000000000044001 = {isa = PBXTargetDependency; target = 000000000000000000054001; targetProxy = 000000000000000000043001; };
+		000000000000000000044001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000000054001 /* Plug */;
+			targetProxy = 000000000000000000043001 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		000000000000000000043065 = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; SWIFT_VERSION = 5.0;}; name = Debug; };
-		000000000000000000043066 = {isa = XCBuildConfiguration; buildSettings = {ALWAYS_SEARCH_USER_PATHS = NO; CLANG_ENABLE_MODULES = YES; SDKROOT = iphoneos; SWIFT_VERSION = 5.0;}; name = Release; };
-		0000000000000000000430C9 = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; DEVELOPMENT_TEAM = ""; ENABLE_TESTABILITY = YES; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_FILE = Plug/Resources/Debug-Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = com.plug.app; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG; SWIFT_EMIT_LOC_STRINGS = YES; TARGETED_DEVICE_FAMILY = "1,2";}; name = Debug; };
-		0000000000000000000430CA = {isa = XCBuildConfiguration; buildSettings = {CODE_SIGN_STYLE = Automatic; CURRENT_PROJECT_VERSION = 1; DEVELOPMENT_TEAM = ""; ENABLE_TESTABILITY = NO; GENERATE_INFOPLIST_FILE = YES; INFOPLIST_FILE = Plug/Resources/Release-Info.plist; IPHONEOS_DEPLOYMENT_TARGET = 17.0; MARKETING_VERSION = 0.1.0; PRODUCT_BUNDLE_IDENTIFIER = com.plug.app; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_COMPILATION_MODE = wholemodule; TARGETED_DEVICE_FAMILY = "1,2";}; name = Release; };
-		00000000000000000004312D = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; PRODUCT_BUNDLE_IDENTIFIER = com.plug.app.tests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Plug.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Plug";}; name = Debug; };
-		00000000000000000004312E = {isa = XCBuildConfiguration; buildSettings = {BUNDLE_LOADER = "$(TEST_HOST)"; GENERATE_INFOPLIST_FILE = YES; IPHONEOS_DEPLOYMENT_TARGET = 17.0; PRODUCT_BUNDLE_IDENTIFIER = com.plug.app.tests; PRODUCT_NAME = "$(TARGET_NAME)"; SWIFT_VERSION = 5.0; TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Plug.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Plug";}; name = Release; };
+		000000000000000000043065 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		000000000000000000043066 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ENABLE_MODULES = YES;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		0000000000000000000430C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_TESTABILITY = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Plug/Resources/Debug-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.plug.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0000000000000000000430CA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_TESTABILITY = NO;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Plug/Resources/Release-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.plug.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		00000000000000000004312D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.plug.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Plug.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Plug";
+			};
+			name = Debug;
+		};
+		00000000000000000004312E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.plug.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Plug.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Plug";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		00000000000000000004C001 = {isa = XCConfigurationList; buildConfigurations = (000000000000000000043065, 000000000000000000043066,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		00000000000000000004C002 = {isa = XCConfigurationList; buildConfigurations = (0000000000000000000430C9, 0000000000000000000430CA,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
-		00000000000000000004C003 = {isa = XCConfigurationList; buildConfigurations = (00000000000000000004312D, 00000000000000000004312E,); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
+		00000000000000000004C001 /* Build configuration list for PBXProject "Plug" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000043065 /* Debug */,
+				000000000000000000043066 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00000000000000000004C002 /* Build configuration list for PBXNativeTarget "Plug" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0000000000000000000430C9 /* Debug */,
+				0000000000000000000430CA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		00000000000000000004C003 /* Build configuration list for PBXNativeTarget "PlugTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				00000000000000000004312D /* Debug */,
+				00000000000000000004312E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 	};
-	rootObject = 000000000000000000050001;
+	rootObject = 000000000000000000050001 /* Project object */;
 }

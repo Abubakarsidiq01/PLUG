@@ -20,12 +20,12 @@ final class APIClientTests: XCTestCase {
             let url = try XCTUnwrap(request.url)
             XCTAssertEqual(url.path, "/health")
             let response = try XCTUnwrap(HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil,
-                headerFields: ["Content-Type": "application/json", "X-Correlation-ID": "corr_fixture-123"]))
+                headerFields: ["Content-Type": "application/json", "X-Request-Id": "req_fixture-123"]))
             return (response, fixture)
         }
         let result = try await client().health()
-        XCTAssertEqual(result.response.status, "ok")
-        XCTAssertEqual(result.correlationID, "corr_fixture-123")
+        XCTAssertEqual(result.response.status, "UP")
+        XCTAssertEqual(result.correlationID, "req_fixture-123")
     }
 
     func testMalformedResponseDoesNotCountAsConnected() async throws {

@@ -1,0 +1,35 @@
+name: Web
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node design/generate-tokens.mjs
+      - run: pnpm --filter @plug/web lint
+      # No standalone `tsc --noEmit` step: Next's typed-routes globals (LayoutProps<...>)
+      # are generated into .next/types/ by the build itself, so tsc run first sees
+      # them as undefined. `next build` already runs a full type check and fails the
+      # build on a type error (typescript.ignoreBuildErrors is not set) — a separate
+      # tsc step would be redundant even run after build, not just wrongly ordered before it.
+      - run: pnpm --filter @plug/web build
+      - run: pnpm --filter @plug/web exec playwright install --with-deps chromium webkit
+      - run: pnpm --filter @plug/web test:e2e
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: web/playwright-report/
