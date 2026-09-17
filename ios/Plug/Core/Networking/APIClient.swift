@@ -3,8 +3,8 @@ import OSLog
 
 struct HealthResponse: Decodable, Equatable {
     let status: String
-    let service: String
-    let environment: String
+    let version: String
+    let commit: String?
 }
 
 struct APIClient {
@@ -30,16 +30,16 @@ struct APIClient {
         }
         guard data.count <= 16_384 else { throw URLError(.dataLengthExceedsMaximum) }
         let health = try JSONDecoder().decode(HealthResponse.self, from: data)
-        guard health.status == "ok", health.service == "plug-api", !health.environment.isEmpty else {
+        guard health.status == "UP", !health.version.isEmpty else {
             throw URLError(.cannotParseResponse)
         }
-        let suppliedID = http.value(forHTTPHeaderField: "X-Correlation-ID")
+        let suppliedID = http.value(forHTTPHeaderField: "X-Request-Id")
         let correlationID = suppliedID.flatMap { value in
-            value.count <= 80 && value.range(of: "^corr_[A-Za-z0-9-]+$", options: .regularExpression) != nil ? value : nil
+            value.count <= 64 && value.range(of: "^[A-Za-z0-9_-]+$", options: .regularExpression) != nil ? value : nil
         }
         if let correlationID {
-            Logger(subsystem: "com.plug.app", category: "Networking")
-                .info("health_check correlation_id=\(correlationID, privacy: .public)")
+            Logger(subsystem: "app.plug", category: "Networking")
+                .info("health_check request_id=\(correlationID, privacy: .public)")
         }
         return HealthCheck(response: health, correlationID: correlationID)
     }

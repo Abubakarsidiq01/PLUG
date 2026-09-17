@@ -16,8 +16,10 @@ struct HealthView: View {
                 } else if let check {
                     Label("Connected", systemImage: "checkmark.circle.fill")
                         .foregroundStyle(.green)
-                    LabeledContent("Environment", value: check.response.environment)
-                    LabeledContent("Service", value: check.response.service)
+                    LabeledContent("Version", value: check.response.version)
+                    if let commit = check.response.commit {
+                        LabeledContent("Commit", value: commit)
+                    }
                     if let id = check.correlationID {
                         LabeledContent("Request ID", value: id).font(.caption).textSelection(.enabled)
                     }
