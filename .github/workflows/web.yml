@@ -20,7 +20,11 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: node design/generate-tokens.mjs
       - run: pnpm --filter @plug/web lint
-      - run: pnpm --filter @plug/web exec tsc --noEmit
+      # No standalone `tsc --noEmit` step: Next's typed-routes globals (LayoutProps<...>)
+      # are generated into .next/types/ by the build itself, so tsc run first sees
+      # them as undefined. `next build` already runs a full type check and fails the
+      # build on a type error (typescript.ignoreBuildErrors is not set) — a separate
+      # tsc step would be redundant even run after build, not just wrongly ordered before it.
       - run: pnpm --filter @plug/web build
       - run: pnpm --filter @plug/web exec playwright install --with-deps chromium webkit
       - run: pnpm --filter @plug/web test:e2e
