@@ -1,10 +1,10 @@
 name: iOS
 on:
   pull_request:
-    paths: ["ios/**", "contracts/**", ".swiftlint.yml", ".github/workflows/ios.yml"]
   push:
     branches: [main]
-    paths: ["ios/**", "contracts/**", ".swiftlint.yml", ".github/workflows/ios.yml"]
+# No path filter: a required status check that never starts on a given PR blocks
+# that PR forever under branch protection. Simpler to always run at this repo size.
 permissions:
   contents: read
 jobs:

@@ -1,10 +1,10 @@
 name: OpenAPI
 on:
   pull_request:
-    paths: ["contracts/**", ".github/workflows/openapi.yml"]
   push:
     branches: [main]
-    paths: ["contracts/**", ".github/workflows/openapi.yml"]
+# No path filter: a required status check that never starts on a given PR blocks
+# that PR forever under branch protection. Simpler to always run at this repo size.
 permissions:
   contents: read
 jobs:

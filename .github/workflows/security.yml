@@ -8,6 +8,22 @@ on:
 permissions:
   contents: read
 jobs:
+  secrets:
+    # manual.docx P0.S9 / gate G0: "CI runs at least dependency, secret, and
+    # build-and-test checks." Dependabot covers dependency scanning; this is
+    # the secret-scanning check. GitHub's own secret scanning + push protection
+    # is a repository setting (Settings > Code security), not a workflow — this
+    # step is the part that's actually expressible as code.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   codeql:
     runs-on: ubuntu-latest
     permissions:
