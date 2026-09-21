@@ -8,9 +8,10 @@ It verified installation, web production build, 15 browser regressions, backend
 startup, the local Bruno collection (4 requests, 4 script tests, 11 assertions)
 and readable project state. Backend and Bruno logs are attached to that run.
 
-The subsequent accessibility change expands browser coverage to 21 cases. Both
-Web and Windows workflows execute it and attach screenshots and axe results in
-their Playwright reports. The final PR checks must pass on that later revision.
+The expanded 21-case suite subsequently passed on `aff4688` in both Web and
+[Windows run 35558977515](https://github.com/Abubakarsidiq01/PLUG/actions/runs/35558977515).
+All six workflows passed on that code revision. Subsequent evidence-only commits
+retain the same application and test source; check PR #10 for their CI status.
 
 This is hosted Windows verification. Person Two did not personally run it.
 Her interactive Windows/Docker/WSL setup and own-machine public API run are
@@ -37,7 +38,18 @@ are not a claim of a complete manual web accessibility audit or future screens.
 [`logs/device-hardening-checkpoint-2026-09-20.log`](logs/device-hardening-checkpoint-2026-09-20.log)
 records the iPhone 13 Pro Max/iOS 26.6 success, matching phone/Xcode/backend
 request ID, and Person One's reported offline recovery, largest-text and
-VoiceOver results. Phone success/failure screenshots are still pending.
+VoiceOver results. The supplied screenshots are now recorded:
+
+- [Offline error and Retry](ios/iphone-offline-2026-09-20.png) — source `IMG_4100.HEIC`.
+- [Connected at enlarged text size](ios/iphone-connected-large-text-2026-09-20.png) — source `IMG_4101.HEIC`.
+- [Scrolled request ID and Retry](ios/iphone-large-text-retry-2026-09-20.png) — source `IMG_4102.HEIC`.
+
+These are full-resolution PNG conversions of the supplied HEIC files, with no
+cropping or content edits. The last screenshot shows
+`req_8f002dc8-d721-49b2-94bd-326714d7a76f`, matching a backend HTTP 200 at
+22:38:34 America/Chicago. The Connected screenshot shows Wi-Fi; cellular
+recovery and VoiceOver activation remain operator-reported checks.
+
 The earlier device log and screenshot are preserved as historical evidence.
 
 The current temporary tunnel also passed three public Bruno cases from the Mac

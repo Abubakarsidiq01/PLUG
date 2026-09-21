@@ -24,7 +24,7 @@ Verified separately from Person One's Mac against the same tunnel:
 
 Person One reported that the offline failure and cellular recovery both worked
 after following the steps to disable both Wi-Fi and cellular data, retry, restore
-cellular data and retry again. Screenshots are pending.
+cellular data and retry again. The later supplied screenshots are indexed below.
 
 Person One also reported both accessibility checks passed:
 - Largest accessibility text size: status/version readable, content scrollable,
@@ -32,11 +32,21 @@ Person One also reported both accessibility checks passed:
 - VoiceOver: status and Retry identifiable; Retry could be activated.
 These are the device operator's reported results, not an automated accessibility scan.
 
-Still pending at this recording:
-- Physical-phone screenshots.
-- Offline failure/recovery screenshots.
-- Person Two's clean Windows setup and joint public Bruno run.
-- Full gate evidence review and actual two-person sign-off.
+Screenshot evidence supplied after the live checks (full-resolution PNG conversion):
+- ../ios/iphone-offline-2026-09-20.png (IMG_4100.HEIC): Not connected and Retry.
+- ../ios/iphone-connected-large-text-2026-09-20.png (IMG_4101.HEIC): Connected, version and commit at enlarged text size.
+- ../ios/iphone-large-text-retry-2026-09-20.png (IMG_4102.HEIC): scrolled request ID and reachable Retry.
+The Connected screenshot shows Wi-Fi; it does not independently demonstrate
+cellular recovery or VoiceOver operation. Those checks remain operator-reported.
+
+Request ID visible in IMG_4102 and matching backend log:
+2026-09-20T22:38:34.059-05:00  INFO 99385 --- [plug-api] [.1-18080-exec-2] app.plug.foundation.CorrelationFilter    : http_request request_id=req_8f002dc8-d721-49b2-94bd-326714d7a76f method=GET path=/health status=200
+No Xcode log for this second request was supplied; the earlier c900b992 request
+has the separate phone/Xcode/backend match recorded above.
+
+Remaining: actual gate/contract approvals and independent PR review.
+Person Two's own Windows setup and public API run are deferred to Phase 1
+by Person One under ADR-005; no participation or signature is claimed for her.
 
 This records a physical-phone success, not a completed joint checkpoint or G0.
 The tunnel does not prove database readiness, JWT staging or durable cloud staging.

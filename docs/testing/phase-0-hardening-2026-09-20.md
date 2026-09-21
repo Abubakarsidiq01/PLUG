@@ -38,7 +38,7 @@ revision was `ea13fd7`; results below concern the local working changes.
   commit/file/rule/line fingerprint; fixture directories remain scanned.
 - CI jobs have distinct names so each required check can be selected without
   the earlier duplicate `validate` and `build-and-test` names. The live main
-  ruleset still needs its empty required-check list populated by an admin.
+  ruleset now requires six checks; an admin still needs to add Windows onboarding.
 
 ## Verification
 
@@ -82,7 +82,9 @@ All 21 local production-build browser cases pass; six axe scans have zero
 violations and zero incomplete checks. Screenshots and full scan results are
 under `evidence/P0/web` and `evidence/P0/a11y`. The pnpm audit reports zero
 vulnerabilities across 404 dependencies. CI also retains the Windows browser
-report, and the expanded suite must pass on the final pushed revision.
+report. All six workflows passed on code revision `aff4688`, including the
+expanded Windows suite in [run 35558977515](https://github.com/Abubakarsidiq01/PLUG/actions/runs/35558977515).
+Check PR #10 for CI on subsequent evidence-only commits.
 
 Person One then verified the hardened source on an iPhone 13 Pro Max with iOS
 26.6. Request `req_c900b992-5bc0-4835-bbc3-5ece6de3705a` matches the phone screen,
@@ -91,7 +93,10 @@ largest-text usability and VoiceOver. The new tunnel passed the three public
 Bruno requests from the Mac, and public readiness returned 401. See
 [the device record](../../evidence/P0/logs/device-hardening-checkpoint-2026-09-20.log).
 
-Phone screenshots remain pending. Person One explicitly deferred Person Two's
+The three supplied phone screenshots are linked in
+[the evidence index](../../evidence/P0/README.md). The scrolled screenshot request
+`req_8f002dc8-d721-49b2-94bd-326714d7a76f` also matches a backend HTTP 200.
+Person One explicitly deferred Person Two's
 personal Windows setup and own-machine public API run to her Phase 1 onboarding
 under ADR-005. Hosted Windows verification is complete; no personal participation
 or signature is claimed. The earlier device evidence is preserved. No cloud

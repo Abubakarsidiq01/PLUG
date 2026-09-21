@@ -10,7 +10,7 @@ Person One subsequently accepted hosted Windows verification and Person Two's
 personal onboarding at Phase 1 under ADR-005. This replaces waiting for her
 live Phase 0 participation; it does not record an approval on her behalf.
 
-- [x] Backend unit tests pass locally; CI results still need verification after push.
+- [x] Backend unit tests pass locally and in CI on code revision `aff4688`.
 - [x] OpenAPI validates locally, including shared examples and provider-response schema tests.
 - [x] iOS shared-fixture decoding test passes.
 - [x] Temporary HTTPS tunnel `GET /health` succeeds from a physical iPhone.
@@ -18,13 +18,14 @@ live Phase 0 participation; it does not record an approval on her behalf.
 - [x] Network failure renders an honest retry state; Person One confirmed recovery.
 - [x] Invalid response fails safely in automated iOS tests; no physical malformed-response demo is claimed.
 - [x] The same correlation/request ID is located in app and backend logs.
-- [ ] Screenshot/video, logs, test run, date, build, and known limitations are linked.
+- [x] Screenshots, logs, test run, date, source revision, and known limitations are linked.
 
 Record evidence in the tracker/PR; do not commit user data or secrets here.
 The latest physical-device record is
 [`device-hardening-checkpoint-2026-09-20.log`](../../evidence/P0/logs/device-hardening-checkpoint-2026-09-20.log).
 Person One also confirmed largest-text and VoiceOver checks on iPhone 13 Pro Max,
-iOS 26.6. Phone screenshots remain pending. Hosted Windows evidence and the
+iOS 26.6. Offline, Connected and scrolled large-text screenshots are linked in
+[`evidence/P0/README.md`](../../evidence/P0/README.md). Hosted Windows evidence and the
 accepted personal-onboarding deferral are recorded in `evidence/P0/README.md`.
 
 ## Remaining completion gates

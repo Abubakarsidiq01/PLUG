@@ -1,11 +1,11 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-21T03:50:38Z",
+  "updated_at": "2026-09-21T18:39:34Z",
   "updated_by": "person_one",
   "current_phase": "P0",
   "current_step": "P0-pr-review",
-  "current_step_title": "Prepare PR #10 for independent review and merge: real Windows CI and physical iPhone verification completed; final expanded browser suite must pass CI. Person Two joins at Phase 1 under ADR-005. G0 is not signed.",
+  "current_step_title": "Prepare PR #10 for independent review and merge: all six workflows passed on code revision aff4688; physical iPhone screenshots and matching logs recorded. Person Two joins at Phase 1 under ADR-005. G0 is not signed.",
   "manual_section": "27.1",
   "readme": "docs/phases/P0-ONE.md",
   "owner": "person_one",
@@ -30,7 +30,7 @@
     {
       "id": "P0-evidence-close",
       "owner": "person_one",
-      "task": "Attach the physical-phone screenshots, review the recorded evidence and ADR-005 deferral, and record actual gate/contract approvals. Do not add a signature for Person Two.",
+      "task": "Review the recorded phone screenshots, logs, automated evidence and ADR-005 deferral, and record actual gate/contract approvals. Do not add a signature for Person Two.",
       "manual_section": "27.1",
       "acceptance": "Evidence and state accurately distinguish verified checks, accepted deferrals, and actual human approvals."
     },
