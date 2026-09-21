@@ -99,7 +99,7 @@ jobs:
           Get-Content PROJECT_STATE.json | ConvertFrom-Json |
             Select-Object current_phase, current_step, owner
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: windows-backend-log
@@ -108,7 +108,7 @@ jobs:
             bootrun-err.log
             bruno-results.json
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: windows-playwright-report
