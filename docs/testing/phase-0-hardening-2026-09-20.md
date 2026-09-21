@@ -69,13 +69,22 @@ MDC path exposure, migration-readiness exception, invalid header constraint
 code, missing JWT audience crash, framework request-data logging and both admin
 routing bypasses before fixes.
 
-## Remaining verification
+## Live follow-up and remaining verification
 
-The corrected workflow has not been run on GitHub from these local changes.
-Person Two still needs to complete the interactive Windows setup, and both
-people still need the live checkpoint using the public-only Bruno command in
-ADR-004. Physical-device and large-text/VoiceOver checks for this revision
-remain part of that checkpoint. The existing earlier device evidence is
-preserved. No cloud resources were provisioned and no gate was signed.
+Backend, Web, iOS, OpenAPI and Security workflows passed on the hardening source.
+Windows exposed a second failure: the backend answered its startup probe but
+disappeared before the next step ran Bruno. The combined PowerShell step is now
+being verified on GitHub; do not mark Windows passed until that run succeeds.
+
+Person One then verified the hardened source on an iPhone 13 Pro Max with iOS
+26.6. Request `req_c900b992-5bc0-4835-bbc3-5ece6de3705a` matches the phone screen,
+Xcode networking log and backend log. Person One confirmed offline recovery,
+largest-text usability and VoiceOver. The new tunnel passed the three public
+Bruno requests from the Mac, and public readiness returned 401. See
+[the device record](../../evidence/P0/logs/device-hardening-checkpoint-2026-09-20.log).
+
+Screenshots, Person Two's clean Windows setup and her live public Bruno run
+remain pending. The existing earlier device evidence is preserved. No cloud
+resources were provisioned and no gate was signed.
 Follow [the joint-checkpoint walkthrough](phase-0-joint-checkpoint.md) for the
 remaining steps and evidence to add to PR #10.

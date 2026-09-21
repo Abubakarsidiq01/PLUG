@@ -1,0 +1,42 @@
+Phase 0 physical-device success — hardening revision
+
+Observed: 2026-09-20 22:25:22 America/Chicago (2026-09-21 03:25:22 UTC)
+App/backend source revision: 05f2b6c5c40b9ef769a942f2229d8b2025238ab7
+Later PR commits at this point change Windows CI, Bruno environment and docs,
+not the app/backend source used for this request.
+Environment: ADR-004 temporary HTTPS tunnel to the local validation stub
+Backend: fresh bootRun process, loopback port 18080, default/no-database profile
+Connected physical device: iPhone 13 Pro Max, iOS 26.6 (CoreDevice metadata)
+
+Person One supplied this exact request ID from the physical iPhone screen:
+req_c900b992-5bc0-4835-bbc3-5ece6de3705a
+
+Matching Xcode networking log supplied by Person One:
+health_check request_id=req_c900b992-5bc0-4835-bbc3-5ece6de3705a
+
+Matching backend log:
+2026-09-20T22:25:22.636-05:00  INFO 99385 --- [plug-api] [.1-18080-exec-4] app.plug.foundation.CorrelationFilter    : http_request request_id=req_c900b992-5bc0-4835-bbc3-5ece6de3705a method=GET path=/health status=200
+
+Verified separately from Person One's Mac against the same tunnel:
+- Public Bruno: 3 requests, 3 script tests, 8 assertions passed (200/202/400).
+- Public /health/ready: HTTP 401, operational probe remains private.
+- Direct local full Bruno collection: 4 requests, 4 script tests, 11 assertions passed.
+
+Person One reported that the offline failure and cellular recovery both worked
+after following the steps to disable both Wi-Fi and cellular data, retry, restore
+cellular data and retry again. Screenshots are pending.
+
+Person One also reported both accessibility checks passed:
+- Largest accessibility text size: status/version readable, content scrollable,
+  Retry reachable and usable.
+- VoiceOver: status and Retry identifiable; Retry could be activated.
+These are the device operator's reported results, not an automated accessibility scan.
+
+Still pending at this recording:
+- Physical-phone screenshots.
+- Offline failure/recovery screenshots.
+- Person Two's clean Windows setup and joint public Bruno run.
+- Full gate evidence review and actual two-person sign-off.
+
+This records a physical-phone success, not a completed joint checkpoint or G0.
+The tunnel does not prove database readiness, JWT staging or durable cloud staging.
