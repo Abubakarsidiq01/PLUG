@@ -39,8 +39,10 @@ jobs:
           pnpm --filter @plug/web build
 
       - name: Playwright (step 5)
+        # web/playwright.config.ts's mobile/tablet projects use device presets
+        # backed by webkit, not chromium — both are needed, matching web.yml.
         run: |
-          pnpm --filter @plug/web exec playwright install --with-deps chromium
+          pnpm --filter @plug/web exec playwright install --with-deps chromium webkit
           pnpm --filter @plug/web test:e2e
 
       - name: Local Postgres (step 6)
