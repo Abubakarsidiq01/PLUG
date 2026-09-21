@@ -13,8 +13,8 @@
 		000000000000000000041004 /* HealthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042004 /* HealthView.swift */; };
 		000000000000000000041005 /* HealthResponseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042005 /* HealthResponseTests.swift */; };
 		000000000000000000041006 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 000000000000000000042008 /* XCTest.framework */; };
-		000000000000000000041007 /* health-response.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042009 /* health-response.json */; };
-		000000000000000000041008 /* PlugTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000004200A /* PlugTokens.swift */; };
+		000000000000000000041007 /* ../../contracts/examples/health-response.json in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042009 /* ../../contracts/examples/health-response.json */; };
+		000000000000000000041008 /* Core/DesignSystem/PlugTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000004200A /* Core/DesignSystem/PlugTokens.swift */; };
 		000000000000000000041009 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042011 /* APIClientTests.swift */; };
 		2E857CDF393AE466C187ED01 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */; };
 		E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */ = {isa = PBXBuildFile; fileRef = 7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */; };
@@ -39,8 +39,8 @@
 		000000000000000000042006 /* Plug.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Plug.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000042007 /* PlugTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		000000000000000000042008 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Platforms/iPhoneOS.platform/Developer/Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
-		000000000000000000042009 /* health-response.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "../../contracts/examples/health-response.json"; sourceTree = "<group>"; };
-		00000000000000000004200A /* PlugTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/DesignSystem/PlugTokens.swift; sourceTree = "<group>"; };
+		000000000000000000042009 /* ../../contracts/examples/health-response.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = "../../contracts/examples/health-response.json"; sourceTree = "<group>"; };
+		00000000000000000004200A /* Core/DesignSystem/PlugTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/DesignSystem/PlugTokens.swift; sourceTree = "<group>"; };
 		000000000000000000042011 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Color+Hex.swift"; path = "Core/DesignSystem/Color+Hex.swift"; sourceTree = "<group>"; };
 		7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Tokens.swift (generated)"; path = ../../design/generated/Tokens.swift; sourceTree = "<group>"; };
@@ -79,9 +79,9 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000047006 /* App */,
-				000000000000000000047007 /* Networking */,
-				000000000000000000047008 /* Engineering */,
-				00000000000000000004200A /* PlugTokens.swift */,
+				000000000000000000047007 /* Core/Networking */,
+				000000000000000000047008 /* Features/Engineering */,
+				00000000000000000004200A /* Core/DesignSystem/PlugTokens.swift */,
 				6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */,
 				7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */,
 			);
@@ -92,7 +92,7 @@
 			isa = PBXGroup;
 			children = (
 				000000000000000000042005 /* HealthResponseTests.swift */,
-				000000000000000000042009 /* health-response.json */,
+				000000000000000000042009 /* ../../contracts/examples/health-response.json */,
 				000000000000000000042011 /* APIClientTests.swift */,
 			);
 			path = PlugTests;
@@ -124,7 +124,7 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		000000000000000000047007 /* Networking */ = {
+		000000000000000000047007 /* Core/Networking */ = {
 			isa = PBXGroup;
 			children = (
 				000000000000000000042003 /* APIClient.swift */,
@@ -132,7 +132,7 @@
 			path = Core/Networking;
 			sourceTree = "<group>";
 		};
-		000000000000000000047008 /* Engineering */ = {
+		000000000000000000047008 /* Features/Engineering */ = {
 			isa = PBXGroup;
 			children = (
 				000000000000000000042004 /* HealthView.swift */,
@@ -200,6 +200,7 @@
 			buildConfigurationList = 00000000000000000004C001 /* Build configuration list for PBXProject "Plug" */;
 			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
+			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
@@ -227,7 +228,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				000000000000000000041007 /* health-response.json in Resources */,
+				000000000000000000041007 /* ../../contracts/examples/health-response.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -242,7 +243,7 @@
 				000000000000000000041002 /* AppEnvironment.swift in Sources */,
 				000000000000000000041003 /* APIClient.swift in Sources */,
 				000000000000000000041004 /* HealthView.swift in Sources */,
-				000000000000000000041008 /* PlugTokens.swift in Sources */,
+				000000000000000000041008 /* Core/DesignSystem/PlugTokens.swift in Sources */,
 				2E857CDF393AE466C187ED01 /* Color+Hex.swift in Sources */,
 				E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */,
 			);
@@ -294,13 +295,13 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = W5A7U9W369;
 				ENABLE_TESTABILITY = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Plug/Resources/Debug-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.plug.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -313,13 +314,13 @@
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = W5A7U9W369;
 				ENABLE_TESTABILITY = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Plug/Resources/Release-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.plug.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				TARGETED_DEVICE_FAMILY = "1,2";

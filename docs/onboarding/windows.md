@@ -6,38 +6,48 @@ it has been assigned wrongly — raise it rather than working around it.
 If any command here fails on a clean machine, fixing this file is part of the work.
 
 ```powershell
-# 1. Toolchain (first three lines as Administrator)
+# 1. Toolchain (first line as Administrator; winget may prompt for a restart
+# after Docker Desktop — finish it before continuing)
 winget install --id Git.Git -e
 winget install --id OpenJS.NodeJS.LTS -e
 winget install --id Microsoft.VisualStudioCode -e
 winget install --id Docker.DockerDesktop -e
 winget install --id EclipseAdoptium.Temurin.21.JDK -e
 winget install --id GitHub.cli -e
-winget install --id Bruno.Bruno -e
-npm install -g pnpm
+winget install --id Bruno.Bruno -e   # the GUI app — optional, for browsing requests
+npm install -g pnpm@9.15.9
+npm install -g @usebruno/cli         # the `bru` command used below; the GUI app above is separate
 
 # 2. WSL2 — required by Docker Desktop, and a better shell for this repo
 wsl --install -d Ubuntu
+# Open Docker Desktop once and wait for "Docker Desktop is running" before step 7.
 
 # 3. Repository
-gh repo clone <org>/plug
-cd plug
+gh repo clone Abubakarsidiq01/PLUG
+cd PLUG
 Copy-Item .env.example .env.local     # never commit this
+# Open .env.local and set PLUG_DATABASE_PASSWORD to any local-only value.
 
 # 4. Web
 pnpm install
-pnpm --filter @plug/web dev            # http://localhost:3000
+pnpm --filter @plug/web dev            # http://localhost:3000 — Ctrl+C when done looking
 
 # 5. Browser tests
 pnpm --filter @plug/web exec playwright install
 pnpm --filter @plug/web test:e2e
 
-# 6. API collections — no Mac needed, runs against staging
-bru run tests/api/health --env staging
+# 6. Local data services + backend (no Mac needed to run or read this)
+$env:PLUG_DATABASE_PASSWORD = "<the value you put in .env.local>"
+docker compose -f infra/compose.yml up -d --wait
+cd backend
+.\gradlew.bat bootRun --args="--spring.profiles.active=db"
+# Leave this running in its own terminal; open a new one for step 7.
 
-# 7. Local data services, when you want the backend running locally
-docker compose up -d postgres redis
-.\gradlew.bat :backend:bootRun         # reading and running it is fine
+# 7. API collections — from the repository root, in a new terminal
+cd ..
+bru run tests/api --env local
+# "--env staging" instead of "--env local" once a real or tunnel staging URL exists
+# (see tests/api/environments/staging.bru) — ask Person One for the current URL.
 
 # 8. Confirm where you are
 Get-Content PROJECT_STATE.json | ConvertFrom-Json |

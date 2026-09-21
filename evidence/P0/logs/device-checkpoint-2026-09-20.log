@@ -7,3 +7,4 @@
 2026-09-17T18:15:30.849-05:00  INFO 67736 --- [plug-api] [0.1-8080-exec-4] app.plug.foundation.CorrelationFilter    : http_request request_id=req_0ace11ca-2814-4a7e-b4b3-783fb831ef74 method=GET path=/health/ready status=200
 2026-09-17T18:15:30.998-05:00  INFO 67736 --- [plug-api] [0.1-8080-exec-5] app.plug.foundation.CorrelationFilter    : http_request request_id=req_2524f959-dc7d-480f-89ca-abd45c1cace8 method=POST path=/v1/requests status=202
 2026-09-17T18:15:31.228-05:00  INFO 67736 --- [plug-api] [0.1-8080-exec-1] app.plug.foundation.CorrelationFilter    : http_request request_id=req_a21c602b-5c65-4f9b-9698-ee090b8b177d method=POST path=/v1/requests status=400
+2026-09-20T20:01:14.066-05:00  INFO 79601 --- [plug-api] [0.1-8080-exec-5] app.plug.foundation.CorrelationFilter    : http_request request_id=req_f4cb683a-38a6-4764-8657-4829a2c87e3a method=GET path=/health status=200

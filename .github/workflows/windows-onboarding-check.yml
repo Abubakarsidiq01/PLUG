@@ -1,0 +1,81 @@
+name: Windows onboarding check
+# Runs the literal commands from docs/onboarding/windows.md on a real Windows
+# runner, so Person Two's setup is caught and fixed here rather than being the
+# first place it's discovered. Not a substitute for her actually running
+# through it once herself (manual.docx P0.S1-two) — this validates the
+# commands work on real Windows infrastructure, not the interactive parts
+# (Docker Desktop's install wizard, WSL2 setup, trusting prompts).
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: windows-latest
+    env:
+      PLUG_DATABASE_PASSWORD: ci-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install the bru CLI (docs/onboarding/windows.md step 1)
+        run: npm install -g @usebruno/cli
+
+      - name: Web install + build (steps 4-5)
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter @plug/web build
+
+      - name: Playwright (step 5)
+        run: |
+          pnpm --filter @plug/web exec playwright install --with-deps chromium
+          pnpm --filter @plug/web test:e2e
+
+      - name: Local Postgres (step 6)
+        run: docker compose -f infra/compose.yml up -d --wait
+
+      - name: Start the backend in the background (step 6)
+        working-directory: backend
+        run: |
+          Start-Process -FilePath ".\gradlew.bat" `
+            -ArgumentList "bootRun","--args=--spring.profiles.active=db" `
+            -RedirectStandardOutput "..\bootrun.log" `
+            -RedirectStandardError "..\bootrun-err.log"
+          $deadline = (Get-Date).AddSeconds(120)
+          do {
+            Start-Sleep -Seconds 3
+            try { $r = Invoke-WebRequest -Uri http://localhost:8080/health -UseBasicParsing -TimeoutSec 3 } catch { $r = $null }
+          } until ($r.StatusCode -eq 200 -or (Get-Date) -gt $deadline)
+          if ($r.StatusCode -ne 200) {
+            Write-Host "--- bootrun.log ---"; Get-Content ..\bootrun.log
+            Write-Host "--- bootrun-err.log ---"; Get-Content ..\bootrun-err.log
+            throw "Backend did not become healthy within 120s"
+          }
+
+      - name: Bruno collection against the local backend (step 7)
+        run: bru run tests/api --env local
+
+      - name: Confirm PROJECT_STATE.json is readable (step 8)
+        run: |
+          Get-Content PROJECT_STATE.json | ConvertFrom-Json |
+            Select-Object current_phase, current_step, owner
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-backend-log
+          path: |
+            bootrun.log
+            bootrun-err.log
