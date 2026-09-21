@@ -66,7 +66,7 @@ jobs:
           $deadline = (Get-Date).AddSeconds(120)
           do {
             Start-Sleep -Seconds 3
-            try { $r = Invoke-WebRequest -Uri http://localhost:8080/health -UseBasicParsing -TimeoutSec 3 } catch { $r = $null }
+            try { $r = Invoke-WebRequest -Uri http://127.0.0.1:8080/health -UseBasicParsing -TimeoutSec 3 } catch { $r = $null }
           } until ($r.StatusCode -eq 200 -or (Get-Date) -gt $deadline)
           if ($r.StatusCode -ne 200) {
             Write-Host "--- bootrun.log ---"; Get-Content ..\bootrun.log
@@ -76,7 +76,15 @@ jobs:
 
       - name: Bruno collection against the local backend (step 7)
         working-directory: tests/api
-        run: bru run --env local
+        # Match the backend's explicit IPv4 loopback bind on every platform.
+        # Retain a report and backend output if the runner loses connectivity.
+        run: bru run --env local --reporter-json ../../bruno-results.json
+
+      - name: Show backend diagnostics after a failure
+        if: failure()
+        run: |
+          Get-Content bootrun.log, bootrun-err.log -ErrorAction SilentlyContinue
+          Get-Content bruno-results.json -ErrorAction SilentlyContinue
 
       - name: Confirm PROJECT_STATE.json is readable (step 8)
         run: |
@@ -90,3 +98,4 @@ jobs:
           path: |
             bootrun.log
             bootrun-err.log
+            bruno-results.json
