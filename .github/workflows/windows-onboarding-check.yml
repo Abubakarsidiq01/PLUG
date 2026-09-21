@@ -15,8 +15,6 @@ permissions:
 jobs:
   validate:
     runs-on: windows-latest
-    env:
-      PLUG_DATABASE_PASSWORD: ci-only-password
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -45,14 +43,23 @@ jobs:
           pnpm --filter @plug/web exec playwright install --with-deps chromium webkit
           pnpm --filter @plug/web test:e2e
 
-      - name: Local Postgres (step 6)
-        run: docker compose -f infra/compose.yml up -d --wait
-
-      - name: Start the backend in the background (step 6)
+      # No Docker/Postgres step here: GitHub's hosted windows-latest runners run
+      # Docker in Windows-container mode with no WSL2/Hyper-V Linux VM backend,
+      # so a Linux image like postgis/postgis cannot be pulled at all here
+      # ("no matching manifest for linux/amd64" — confirmed on a real run, not
+      # a config mistake). This is a hosted-CI-only limitation: on Person Two's
+      # actual machine, real Docker Desktop uses WSL2 and this works fine — see
+      # docs/onboarding/windows.md step 6, which she still needs to prove
+      # herself for exactly this reason (P0.S1-two's real acceptance criterion).
+      #
+      # The backend itself needs no database to start — DataSourceAutoConfiguration
+      # is excluded outside the db Spring profile — so gradlew.bat, bootRun and
+      # the Bruno collection can still be validated here without Docker.
+      - name: Start the backend in the background, no database profile
         working-directory: backend
         run: |
           Start-Process -FilePath ".\gradlew.bat" `
-            -ArgumentList "bootRun","--args=--spring.profiles.active=db" `
+            -ArgumentList "bootRun" `
             -RedirectStandardOutput "..\bootrun.log" `
             -RedirectStandardError "..\bootrun-err.log"
           $deadline = (Get-Date).AddSeconds(120)
