@@ -3,8 +3,8 @@ import OSLog
 
 struct HealthResponse: Decodable, Equatable {
     let status: String
-    let service: String
-    let environment: String
+    let version: String
+    let commit: String?
 }
 
 struct APIClient {
@@ -24,22 +24,33 @@ struct APIClient {
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.assumesHTTP3Capable = false
         request.setValue("application/json", forHTTPHeaderField: "Accept")
-        let (data, response) = try await session.data(for: request)
+        // Bound the download while it arrives; checking Data.count after data(for:)
+        // has already buffered an arbitrarily large response is too late.
+        let (bytes, response) = try await session.bytes(for: request)
+        defer { bytes.task.cancel() }
         guard let http = response as? HTTPURLResponse, http.statusCode == 200, Self.isJSON(http) else {
             throw URLError(.badServerResponse)
         }
-        guard data.count <= 16_384 else { throw URLError(.dataLengthExceedsMaximum) }
+        let maximumBytes = 16_384
+        guard response.expectedContentLength <= Int64(maximumBytes) else {
+            throw URLError(.dataLengthExceedsMaximum)
+        }
+        var data = Data()
+        for try await byte in bytes {
+            guard data.count < maximumBytes else { throw URLError(.dataLengthExceedsMaximum) }
+            data.append(byte)
+        }
         let health = try JSONDecoder().decode(HealthResponse.self, from: data)
-        guard health.status == "ok", health.service == "plug-api", !health.environment.isEmpty else {
+        guard health.status == "UP", !health.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             throw URLError(.cannotParseResponse)
         }
-        let suppliedID = http.value(forHTTPHeaderField: "X-Correlation-ID")
+        let suppliedID = http.value(forHTTPHeaderField: "X-Request-Id")
         let correlationID = suppliedID.flatMap { value in
-            value.count <= 80 && value.range(of: "^corr_[A-Za-z0-9-]+$", options: .regularExpression) != nil ? value : nil
+            value.count <= 64 && value.range(of: "\\A[A-Za-z0-9_-]+\\z", options: .regularExpression) != nil ? value : nil
         }
         if let correlationID {
-            Logger(subsystem: "com.plug.app", category: "Networking")
-                .info("health_check correlation_id=\(correlationID, privacy: .public)")
+            Logger(subsystem: "app.plug", category: "Networking")
+                .info("health_check request_id=\(correlationID, privacy: .public)")
         }
         return HealthCheck(response: health, correlationID: correlationID)
     }

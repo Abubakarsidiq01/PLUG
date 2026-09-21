@@ -1,0 +1,9 @@
+title = "PLUG gitleaks config"
+
+# Extend, don't replace, gitleaks' default ruleset.
+[extend]
+useDefault = true
+
+# API collections and fixtures must be scanned too: credentials accidentally
+# pasted into those files are still leaks. Add only verified, narrowly scoped
+# false-positive exceptions instead of excluding entire directories.

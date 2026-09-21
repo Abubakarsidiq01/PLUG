@@ -13,3 +13,11 @@ spring:
   flyway:
     clean-disabled: true
     validate-on-migrate: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate # Flyway owns the schema; Hibernate only ever validates against it.
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC

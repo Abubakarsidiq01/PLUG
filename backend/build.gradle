@@ -5,7 +5,7 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.7'
 }
 
-group = 'com.plug'
+group = 'app.plug'
 version = '0.0.1-SNAPSHOT'
 
 java {
@@ -14,12 +14,22 @@ java {
 
 repositories { mavenCentral() }
 
+springBoot {
+    buildInfo {
+        properties {
+            // GET /health reports this so the connected checkpoint can tell staging apart
+            // from local without leaking configuration. CI sets GIT_COMMIT; local defaults to "dev".
+            additional = ['commit': (providers.environmentVariable('GIT_COMMIT').getOrElse('dev'))]
+        }
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
-    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-database-postgresql'
     runtimeOnly 'org.postgresql:postgresql'

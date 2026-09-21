@@ -1,0 +1,15 @@
+# Root-level compose file so `docker compose up -d postgres redis` works exactly as
+# documented in docs/onboarding/{mac,windows}.md and manual.docx §17.1/§17.2, run from
+# the repository root on a clean clone. Postgres itself is defined once in
+# infra/compose.yml (Person One-owned, includes the PostGIS/security hardening) and
+# included here rather than duplicated.
+include:
+  - infra/compose.yml
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: redis-server --save "" --appendonly no
+    security_opt:
+      - no-new-privileges:true

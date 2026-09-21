@@ -1,14 +1,15 @@
 name: Backend
 on:
   pull_request:
-    paths: ["backend/**", "contracts/**", ".github/workflows/backend.yml"]
   push:
     branches: [main]
-    paths: ["backend/**", "contracts/**", ".github/workflows/backend.yml"]
+# No path filter: a required status check that never starts on a given PR blocks
+# that PR forever under branch protection. Simpler to always run at this repo size.
 permissions:
   contents: read
 jobs:
   test:
+    name: Backend tests
     runs-on: ubuntu-latest
     services:
       postgres:

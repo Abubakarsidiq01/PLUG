@@ -1,8 +1,22 @@
-# Replace/add the second engineer's GitHub username as soon as it is known.
-* @Abubakarsidiq01
-/backend/ @Abubakarsidiq01
-/infra/ @Abubakarsidiq01
-/ios/ @Abubakarsidiq01
-/contracts/ @Abubakarsidiq01
-/fixtures/ @Abubakarsidiq01
-/docs/ @Abubakarsidiq01
+# Nothing merges into a lane without its owner's review (manual.docx §17.4, §5).
+
+/.github/CODEOWNERS              @Abubakarsidiq01 @uzom-a
+
+/backend/                       @Abubakarsidiq01
+/ios/                           @Abubakarsidiq01
+/infra/                         @Abubakarsidiq01
+/.github/workflows/backend.yml  @Abubakarsidiq01
+/.github/workflows/ios.yml      @Abubakarsidiq01
+
+/web/                            @uzom-a
+/tests/                          @uzom-a
+/fixtures/                       @uzom-a
+/design/                         @uzom-a
+/.github/workflows/web.yml       @uzom-a
+/.github/workflows/windows-onboarding-check.yml  @uzom-a
+/docs/onboarding/windows.md      @uzom-a
+
+# The contract and the state file belong to both. These two lines are the most
+# important rules in the repository.
+/contracts/                      @Abubakarsidiq01 @uzom-a
+/PROJECT_STATE.json              @Abubakarsidiq01 @uzom-a

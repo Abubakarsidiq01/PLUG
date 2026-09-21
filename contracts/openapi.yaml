@@ -1,30 +1,55 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.2.0
-  description: Phase 0 contract shared by the PLUG iOS app and modular-monolith backend.
+  version: 0.1.0
+  description: >
+    Phase 0 contract shared by the PLUG iOS app and the modular-monolith backend.
+    Source of truth for method, route, auth, request, response, enums and errors
+    (manual.docx §18.1). Changes require one pull request in /contracts with BOTH
+    approvals, updated fixtures and an entry in CHANGELOG.md.
 servers:
   - url: http://localhost:8080
     description: Local
+  - url: https://api-staging.plug.app
+    description: Staging
 paths:
   /health:
     get:
       operationId: getHealth
-      summary: Report API health and environment
+      summary: Liveness. Public. Deliberately says almost nothing.
       responses:
         '200':
-          description: Service is available
+          description: The service is running.
           content:
             application/json:
               schema: { $ref: '#/components/schemas/HealthResponse' }
+  /health/ready:
+    get:
+      operationId: getHealthReady
+      summary: Readiness. Not public — kept off the internet at the infra/WAF layer. Used by the load balancer.
+      responses:
+        '200':
+          description: Ready to receive traffic.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReadinessResponse' }
+        '503':
+          description: Not ready. A dependency is unavailable.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ReadinessResponse' }
   /v1/requests:
     post:
       operationId: createRequest
       summary: Accept a customer request for asynchronous processing
-      description: Phase 0 validation stub. No supplier outreach or persistence occurs. Staging requires a signed access token with the write scope; local loopback development does not.
+      description: >
+        Phase 0 validation stub. No supplier outreach or persistence occurs.
+        Staging requires a signed access token with the write scope; local
+        loopback development does not.
       security:
         - stagingJwt: []
       parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
         - in: header
           name: Idempotency-Key
           required: false
@@ -37,35 +62,18 @@ paths:
       responses:
         '202':
           description: Request accepted
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
           content:
             application/json:
               schema: { $ref: '#/components/schemas/RequestResponse' }
-        '400':
-          description: Validation failure
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '413':
-          $ref: '#/components/responses/TooLarge'
-        '415':
-          $ref: '#/components/responses/UnsupportedType'
-        '429':
-          description: Rate limit reached; Retry-After contains seconds until retry
-          headers:
-            Retry-After:
-              schema: { type: string }
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
-        '500':
-          description: Unexpected internal failure; no internal details are exposed
-          content:
-            application/json:
-              schema: { $ref: '#/components/schemas/ErrorResponse' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
+        '415': { $ref: '#/components/responses/ValidationFailed' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
 components:
   securitySchemes:
     stagingJwt:
@@ -73,36 +81,60 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: Staging issuer, audience, expiry and plug.requests.write scope are validated. Local loopback development is exempt.
+  parameters:
+    RequestIdHeader:
+      in: header
+      name: X-Request-Id
+      required: false
+      schema: { type: string, maxLength: 64, pattern: '^[A-Za-z0-9_-]+$' }
+      description: >
+        Client-generated correlation ID. Echoed back on the response and carried into
+        both lanes' structured logs so the connected checkpoint can find one request
+        in both places. The server generates one if absent or invalid (manual.docx §19.2).
+  headers:
+    RequestIdResponseHeader:
+      description: The correlation ID for this request — either the caller's or a server-generated one.
+      schema: { type: string }
   responses:
-    Unauthorized:
+    ValidationFailed:
+      description: The request was malformed or out of range.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Unauthenticated:
       description: Missing or invalid staging access token
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     Forbidden:
       description: Access token lacks the required write scope
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-    TooLarge:
-      description: Body exceeds 16384 bytes
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
-    UnsupportedType:
-      description: Request body must use application/json
-      content:
-        application/json:
-          schema: { $ref: '#/components/schemas/ErrorResponse' }
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    RateLimited:
+      description: Too many requests; retry_after_seconds names the wait
+      headers:
+        Retry-After:
+          schema: { type: string }
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    InternalError:
+      description: Unexpected internal failure; no internal details are exposed
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
   schemas:
     HealthResponse:
       type: object
       additionalProperties: false
-      required: [status, service, environment]
+      required: [status, version]
       properties:
-        status: { type: string, const: ok }
-        service: { type: string, const: plug-api }
-        environment: { type: string, examples: [local, staging] }
+        status: { type: string, const: UP }
+        version: { type: string, example: "0.1.0" }
+        commit: { type: string, example: "a91f3c2" }
+    ReadinessResponse:
+      type: object
+      additionalProperties: false
+      required: [status, checks]
+      properties:
+        status: { type: string, enum: [UP, DOWN] }
+        checks:
+          type: object
+          additionalProperties: false
+          properties:
+            database: { type: string, enum: [UP, DOWN, DISABLED] }
+            migrations: { type: string, enum: [UP, DOWN, DISABLED] }
     RequestCreate:
       type: object
       additionalProperties: false
@@ -131,22 +163,37 @@ components:
     NextAction:
       type: string
       enum: [PROCESSING]
-    ErrorResponse:
+    Error:
+      description: The error envelope. Every non-2xx response has exactly this shape (manual.docx §18.2).
       type: object
       additionalProperties: false
-      required: [code, message, correlation_id, timestamp, path, details]
+      required: [error]
       properties:
-        code: { type: string }
-        message: { type: string }
-        correlation_id: { type: string }
-        timestamp: { type: string, format: date-time }
-        path: { type: string }
-        details:
-          type: array
-          items:
-            type: object
-            additionalProperties: false
-            required: [field, message]
-            properties:
-              field: { type: string }
-              message: { type: string }
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message, request_id]
+          properties:
+            code:
+              type: string
+              description: Stable and machine-readable. Clients branch on this, never on the message.
+              enum: [validation_failed, unauthenticated, forbidden, not_found, conflict,
+                     rate_limited, restricted_intent, dependency_unavailable, internal_error]
+            message:
+              type: string
+              description: Human-readable and safe to display. Never contains internal identifiers, stack traces, SQL or provider error text.
+            request_id: { type: string, example: req_01H8XK4Q7N }
+            details:
+              type: array
+              description: Field-level problems. validation_failed only.
+              items:
+                type: object
+                additionalProperties: false
+                required: [field, code]
+                properties:
+                  field: { type: string }
+                  code: { type: string }
+                  message: { type: string }
+            retry_after_seconds:
+              type: integer
+              description: Present on rate_limited and dependency_unavailable.
