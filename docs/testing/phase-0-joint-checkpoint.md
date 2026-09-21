@@ -30,10 +30,18 @@ status-check list**. Finish this setting in GitHub:
    tests**, **Web build and tests**, **OpenAPI validation**, **Windows
    onboarding**, **Secret scan**, and **CodeQL analysis**. Select GitHub Actions
    as their source where offered. Keep the branch-up-to-date requirement.
-4. Enable **Require review from Code Owners** and save. Confirm `@uzom-a` has
-   the repository access needed for her CODEOWNERS entry and approval.
+4. Save the required checks now. Confirm `@uzom-a` has write access and obtains
+   her own independent review of this PR. The existing one-approval requirement
+   remains in force.
 5. Save the [ruleset link](https://github.com/Abubakarsidiq01/PLUG/rules/23628998)
    and a screenshot showing the populated checks in the evidence record.
+
+Enable **Require review from Code Owners** after the updated `.github/CODEOWNERS`
+has reached `main` through the reviewed PR. At this inspection, `main` still
+named only the PR author, while PR #10 adds Person Two. GitHub uses the ownership
+file on the base branch, so the proposed file is not yet the active ownership
+map for this PR. See [GitHub's CODEOWNERS documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners).
+Record the post-merge ruleset check separately; do not claim it has already run.
 
 The connected GitHub integration can read this ruleset but does not have
 administration access to change it. This setting must be completed by a
