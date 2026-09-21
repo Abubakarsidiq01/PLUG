@@ -56,29 +56,37 @@ jobs:
       # The backend itself needs no database to start — DataSourceAutoConfiguration
       # is excluded outside the db Spring profile — so gradlew.bat, bootRun and
       # the Bruno collection can still be validated here without Docker.
-      - name: Start the backend in the background, no database profile
+      - name: Start backend and run Bruno (steps 6-7, no database profile)
         working-directory: backend
+        # Keep Gradle's parent shell alive until Bruno finishes. Across separate
+        # Windows steps the backend answered the startup probe, then disappeared
+        # before Bruno connected. Match the explicit IPv4 bind as well.
         run: |
-          Start-Process -FilePath ".\gradlew.bat" `
-            -ArgumentList "bootRun" `
+          $backendProcess = Start-Process -FilePath ".\gradlew.bat" `
+            -ArgumentList "bootRun", "--console=plain" `
             -RedirectStandardOutput "..\bootrun.log" `
-            -RedirectStandardError "..\bootrun-err.log"
-          $deadline = (Get-Date).AddSeconds(120)
-          do {
-            Start-Sleep -Seconds 3
-            try { $r = Invoke-WebRequest -Uri http://127.0.0.1:8080/health -UseBasicParsing -TimeoutSec 3 } catch { $r = $null }
-          } until ($r.StatusCode -eq 200 -or (Get-Date) -gt $deadline)
-          if ($r.StatusCode -ne 200) {
-            Write-Host "--- bootrun.log ---"; Get-Content ..\bootrun.log
-            Write-Host "--- bootrun-err.log ---"; Get-Content ..\bootrun-err.log
-            throw "Backend did not become healthy within 120s"
+            -RedirectStandardError "..\bootrun-err.log" `
+            -PassThru
+          try {
+            $deadline = (Get-Date).AddSeconds(120)
+            do {
+              if ($backendProcess.HasExited) { throw "Backend process exited before becoming healthy" }
+              Start-Sleep -Seconds 3
+              try { $r = Invoke-WebRequest -Uri http://127.0.0.1:8080/health -UseBasicParsing -TimeoutSec 3 } catch { $r = $null }
+            } until ($r.StatusCode -eq 200 -or (Get-Date) -gt $deadline)
+            if ($r.StatusCode -ne 200) { throw "Backend did not become healthy within 120s" }
+            Push-Location ..\tests\api
+            try {
+              bru run --env local --reporter-json ../../bruno-results.json
+              if ($LASTEXITCODE -ne 0) { throw "Bruno collection failed with exit code $LASTEXITCODE" }
+            } finally {
+              Pop-Location
+            }
+          } finally {
+            if (-not $backendProcess.HasExited) {
+              & taskkill.exe /PID $backendProcess.Id /T /F | Out-Null
+            }
           }
-
-      - name: Bruno collection against the local backend (step 7)
-        working-directory: tests/api
-        # Match the backend's explicit IPv4 loopback bind on every platform.
-        # Retain a report and backend output if the runner loses connectivity.
-        run: bru run --env local --reporter-json ../../bruno-results.json
 
       - name: Show backend diagnostics after a failure
         if: failure()

@@ -14,6 +14,8 @@ revision was `ea13fd7`; results below concern the local working changes.
   Bruno's local environment and the CI startup probe now use `127.0.0.1`,
   matching the backend's explicit IPv4 bind. Windows CI retains Bruno results
   and prints backend diagnostics when a request fails.
+  Backend startup and Bruno run in one PowerShell step: the runner previously
+  lost the background backend between the startup probe and API tests.
 - Encoded spellings such as `/v1/%72equests` now receive the same body-size and
   rate limits as `/v1/requests`. A regression test exercises a real HTTP server.
 - JSON numbers and booleans cannot be silently converted into a string query.
