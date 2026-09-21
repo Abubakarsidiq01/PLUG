@@ -59,6 +59,11 @@ bru run tests/api --env staging
 pnpm --filter @plug/web test:e2e
 ```
 
+`--env staging` points at `https://api-staging.plug.app`, which does not exist while
+staging is deferred (ADR-004). Until a real environment URL is agreed, run
+`bru run --env local` from `tests/api` with the backend running, or pass
+`--env-var baseUrl=<current tunnel URL>` for the public-only cases.
+
 If any of those commands fails on a clean machine, that is a bug in
 `docs/onboarding/windows.md`, and fixing the
 documentation is part of the work.

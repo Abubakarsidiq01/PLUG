@@ -16,6 +16,8 @@ winget install --id Docker.DockerDesktop -e
 winget install --id EclipseAdoptium.Temurin.21.JDK -e
 winget install --id GitHub.cli -e
 winget install --id Bruno.Bruno -e   # the GUI app — optional, for browsing requests
+# Close and reopen the terminal after the tool installations so PATH refreshes.
+# Confirm node --version shows v22.x and java -version shows JDK 21, then:
 npm install -g pnpm@9.15.9
 
 # 2. WSL2 — required by Docker Desktop, and a better shell for this repo
@@ -40,6 +42,9 @@ pnpm --filter @plug/web test:e2e
 # 6. Local data services + backend (no Mac needed to run or read this)
 $env:PLUG_DATABASE_PASSWORD = "<the value you put in .env.local>"
 docker compose -f infra/compose.yml up -d --wait
+# Person Two observed a TLS error on the first image pull; one retry succeeded.
+# Root cause is unconfirmed. If it repeats, check Docker Desktop network/proxy
+# settings and collect the error; do not disable TLS verification.
 cd backend
 .\gradlew.bat bootRun --args="--spring.profiles.active=db"
 # Leave this running in its own terminal; open a new one for step 7.
@@ -48,6 +53,7 @@ cd backend
 Push-Location tests/api
 & "../../tools/bruno/node_modules/.bin/bru.cmd" run --env local
 Pop-Location
+# There is no standing staging URL while ADR-004 is in effect.
 # For the live tunnel, follow ADR-004's public-only collection command; readiness
 # is private. A tunnel uses the local validation stub, not the JWT staging profile.
 

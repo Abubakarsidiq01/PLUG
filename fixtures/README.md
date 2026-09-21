@@ -14,4 +14,5 @@ iOS decoding tests build against.
 | `success.json` | 202 — request accepted |
 | `validation-error.json` | 400 — `validation_failed` |
 | `auth-error.json` | 401 — `unauthenticated` |
+| `rate-limited.json` | 429 — `rate_limited` |
 | `transient-error.json` | 500 — `internal_error` |
