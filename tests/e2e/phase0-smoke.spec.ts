@@ -23,3 +23,17 @@ test("/admin/login itself does not redirect", async ({ page }) => {
   expect(response?.status()).toBe(200);
   await expect(page).toHaveURL(/\/admin\/login$/);
 });
+
+test("a forged session cookie cannot unlock the admin shell", async ({ page, context, baseURL }) => {
+  await context.addCookies([
+    { name: "plug_admin_session", value: "forged", url: baseURL! },
+  ]);
+  await page.goto("/admin");
+  await expect(page).toHaveURL(/\/admin\/login\?from=%2Fadmin/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sign-in not implemented yet");
+});
+
+test("login-prefixed paths are still protected", async ({ page }) => {
+  await page.goto("/admin/login-bypass");
+  await expect(page).toHaveURL(/\/admin\/login\?from=%2Fadmin%2Flogin-bypass/);
+});

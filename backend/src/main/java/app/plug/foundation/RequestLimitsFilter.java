@@ -16,6 +16,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.UrlPathHelper;
 
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 20)
@@ -33,7 +34,9 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
-        if (!request.getRequestURI().equals("/v1/requests")) {
+        // Match the decoded application path, as the controller does. Comparing the
+        // raw URI lets /v1/%72equests reach the same controller without these limits.
+        if (!UrlPathHelper.defaultInstance.getPathWithinApplication(request).equals("/v1/requests")) {
             chain.doFilter(request, response);
             return;
         }

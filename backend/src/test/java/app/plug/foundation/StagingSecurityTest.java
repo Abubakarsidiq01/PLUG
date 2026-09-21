@@ -4,6 +4,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,13 +35,15 @@ class StagingSecurityTest {
     @Test
     void anonymousWritesAreDenied() throws Exception {
         mvc.perform(post("/v1/requests").contentType(MediaType.APPLICATION_JSON).content(INPUT))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error.code").value("unauthenticated"));
     }
 
     @Test
     void validTokenStillRequiresTheWriteScope() throws Exception {
         mvc.perform(post("/v1/requests").with(jwt()).contentType(MediaType.APPLICATION_JSON).content(INPUT))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.error.code").value("forbidden"));
         mvc.perform(post("/v1/requests").with(jwt().authorities(new SimpleGrantedAuthority("SCOPE_plug.requests.write")))
                 .contentType(MediaType.APPLICATION_JSON).content(INPUT)).andExpect(status().isAccepted());
     }

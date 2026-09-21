@@ -49,7 +49,9 @@ stop and open a contract pull request instead.
 docker compose up -d postgres redis
 pnpm install
 pnpm --filter @plug/web dev          # http://localhost:3000
-bru run tests/api --env staging
+Push-Location tests/api
+bru run --env local
+Pop-Location
 pnpm --filter @plug/web test:e2e
 ```
 
@@ -102,14 +104,18 @@ verbal description.
 Verify with:
 
 ```powershell
-pnpm --filter @plug/web typecheck
 pnpm --filter @plug/web lint
-pnpm --filter @plug/web test:unit
+pnpm --filter @plug/web build          # includes TypeScript checking
 pnpm --filter @plug/web test:e2e
-bru run tests/api --env staging
-bru run tests/api/abuse --env staging
-curl.exe -sI https://staging.plug.app | Sort-Object    # security headers
+Push-Location tests/api
+bru run --env local
+Pop-Location
 ```
+
+Bruno must run inside `tests/api`. The temporary public checkpoint uses the
+public-only command in ADR-004, with Person One's current tunnel URL; readiness
+remains a direct local check. There is no `test:unit` script or `tests/api/abuse`
+folder yet; required abuse evidence still needs actual cases and results.
 
 ---
 

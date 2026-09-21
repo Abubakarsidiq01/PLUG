@@ -26,10 +26,21 @@ public class RequestController {
                 "req_" + UUID.randomUUID(), RequestStatus.RECEIVED, NextAction.PROCESSING));
     }
 
-    public record RequestCreate(@NotBlank @Size(max = 1000) String query, @NotNull @Valid Location location) {}
+    public record RequestCreate(@NotBlank @Size(max = 1000) String query, @NotNull @Valid Location location) {
+        @Override
+        public String toString() {
+            // Spring MVC may log a decoded request through toString at DEBUG level.
+            return "RequestCreate[redacted]";
+        }
+    }
     public record Location(
             @NotNull @DecimalMin("-90") @DecimalMax("90") Double latitude,
-            @NotNull @DecimalMin("-180") @DecimalMax("180") Double longitude) {}
+            @NotNull @DecimalMin("-180") @DecimalMax("180") Double longitude) {
+        @Override
+        public String toString() {
+            return "Location[redacted]";
+        }
+    }
     public record RequestResponse(String requestId, RequestStatus status, NextAction nextAction) {}
     public enum RequestStatus { RECEIVED }
     public enum NextAction { PROCESSING }

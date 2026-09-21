@@ -11,6 +11,7 @@ get {
 }
 
 assert {
+  res.status: eq 200
   res.body.status: isDefined
   res.body.checks: isDefined
 }
@@ -18,7 +19,7 @@ assert {
 tests {
   test("readiness and liveness are separate endpoints", function () {
     const body = res.getBody();
-    expect(["UP", "DOWN"]).to.include(body.status);
+    expect(body.status).to.equal("UP");
     expect(body.checks).to.be.an("object");
   });
 }

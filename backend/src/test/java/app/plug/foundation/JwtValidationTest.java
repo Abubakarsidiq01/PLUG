@@ -43,6 +43,7 @@ class JwtValidationTest {
         assertEquals("test-user", decoder.decode(token(key, "https://issuer.example", "plug-api", future)).getSubject());
         assertThrows(JwtException.class, () -> decoder.decode(token(key, "https://other.example", "plug-api", future)));
         assertThrows(JwtException.class, () -> decoder.decode(token(key, "https://issuer.example", "other-api", future)));
+        assertThrows(JwtException.class, () -> decoder.decode(token(key, "https://issuer.example", null, future)));
         assertThrows(JwtException.class, () -> decoder.decode(token(key, "https://issuer.example", "plug-api", Instant.now().minusSeconds(300))));
         assertThrows(JwtException.class, () -> decoder.decode(token(key(), "https://issuer.example", "plug-api", future)));
         assertThrows(JwtException.class, () -> decoder.decode(token(key, "https://issuer.example", "plug-api", null)));

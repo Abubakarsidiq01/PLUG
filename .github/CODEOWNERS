@@ -1,5 +1,7 @@
 # Nothing merges into a lane without its owner's review (manual.docx §17.4, §5).
 
+/.github/CODEOWNERS              @Abubakarsidiq01 @uzom-a
+
 /backend/                       @Abubakarsidiq01
 /ios/                           @Abubakarsidiq01
 /infra/                         @Abubakarsidiq01

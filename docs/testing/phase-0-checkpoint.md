@@ -2,11 +2,16 @@
 
 Phase 0 is not complete until every item is recorded:
 
+The current checkpoint uses the temporary tunnel accepted in
+`docs/decisions/ADR-004-defer-aws-use-tunnel.md`. Its public-only Bruno command
+runs from `tests/api`; check readiness directly on the host. Cloud deployment
+and signed-token staging checks below remain deferred, not passed by the tunnel.
+
 - [x] Backend unit tests pass locally; CI results still need verification after push.
 - [x] OpenAPI validates locally, including shared examples and provider-response schema tests.
 - [ ] iOS shared-fixture decoding test passes.
 - [ ] Staging `GET /health` succeeds from a physical iPhone.
-- [ ] The app renders service and environment.
+- [ ] The app renders status/version and the request ID without exposing configuration.
 - [ ] Network failure renders an honest retry state.
 - [ ] Invalid response fails safely.
 - [ ] The same correlation/request ID is located in app and backend logs.

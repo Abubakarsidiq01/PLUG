@@ -1,5 +1,5 @@
-// Every route under here is gated by src/middleware.ts. This layout renders
-// only after middleware has already confirmed a session cookie is present.
+// src/proxy.ts allows only the login placeholder during Phase 0. This layout
+// is also used by that public login page; it is not an authorization boundary.
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
   return <div className="admin-shell">{children}</div>;
 }

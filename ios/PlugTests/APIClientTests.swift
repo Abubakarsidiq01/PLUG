@@ -49,7 +49,49 @@ final class APIClientTests: XCTestCase {
         do {
             _ = try await client().health()
             XCTFail("An offline request must not report a connection.")
-        } catch { }
+        } catch let error as URLError {
+            XCTAssertEqual(error.code, .notConnectedToInternet)
+        }
+    }
+
+    func testOversizedResponseWithoutContentLengthIsRejected() async throws {
+        TestTransport.handler = { request in
+            let response = try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 200,
+                httpVersion: nil, headerFields: ["Content-Type": "application/json"]))
+            return (response, Data(String(repeating: " ", count: 16_385).utf8))
+        }
+        do {
+            _ = try await client().health()
+            XCTFail("Oversized responses must be stopped before decoding.")
+        } catch let error as URLError {
+            XCTAssertEqual(error.code, .dataLengthExceedsMaximum)
+        }
+    }
+
+    func testInvalidHealthResponsesDoNotCountAsConnected() async throws {
+        let cases: [(Int, String, String)] = [
+            (503, "application/json", "{\"status\":\"UP\",\"version\":\"0.1.0\"}"),
+            (200, "text/html", "{\"status\":\"UP\",\"version\":\"0.1.0\"}"),
+            (200, "application/json", "{\"status\":\"DOWN\",\"version\":\"0.1.0\"}"),
+            (200, "application/json", "{\"status\":\"UP\",\"version\":\"   \"}")
+        ]
+        for (status, contentType, body) in cases {
+            TestTransport.handler = { request in
+                let response = try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: status,
+                    httpVersion: nil, headerFields: ["Content-Type": contentType]))
+                return (response, Data(body.utf8))
+            }
+            do {
+                _ = try await client().health()
+                XCTFail("An invalid health response must not report Connected.")
+            } catch { }
+        }
+    }
+
+    func testFailureMessagesDoNotExposeUnderlyingDiagnostics() {
+        let error = NSError(domain: NSURLErrorDomain, code: URLError.cannotConnectToHost.rawValue,
+                            userInfo: [NSLocalizedDescriptionKey: "sensitive internal URL and token"])
+        XCTAssertEqual(HealthFailure.message(for: error), "The server could not be reached. Please try again.")
     }
 }
 

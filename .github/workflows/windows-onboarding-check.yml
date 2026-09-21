@@ -74,7 +74,8 @@ jobs:
           }
 
       - name: Bruno collection against the local backend (step 7)
-        run: bru run tests/api --env local
+        working-directory: tests/api
+        run: bru run --env local
 
       - name: Confirm PROJECT_STATE.json is readable (step 8)
         run: |

@@ -1,5 +1,13 @@
 **PLUG Phase 0 completion guide**
 
+Current checkpoint override: the later accepted [ADR-004](../decisions/ADR-004-defer-aws-use-tunnel.md)
+defers AWS and uses a temporary Cloudflare tunnel. Follow that ADR's public-only
+Bruno command for the present checkpoint. Steps 6–7 below describe the deferred
+AWS path; signed-token staging tests apply when that environment is introduced.
+This original 16 September guide is not the current project-state snapshot.
+For the current PR and remaining hands-on steps, start with
+[the joint-checkpoint walkthrough](phase-0-joint-checkpoint.md).
+
 Prepared from the production manual §27.1, its two Phase 0 appendices, the pasted work history, and the files in this checkout on 16 September 2026. This is a set of instructions, not evidence that deployment or testing has happened.
 
 The current state is `P0`, step `P0.S1-two`, owned by `person_two`. Staging is recorded as `not-yet-provisioned`; the three contracts are `draft`; `gate_log` is empty. Much of the foundation code exists, but G0 has not passed.

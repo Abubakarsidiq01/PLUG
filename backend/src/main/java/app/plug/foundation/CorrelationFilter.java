@@ -33,7 +33,7 @@ public class CorrelationFilter extends OncePerRequestFilter {
         String requestId = isValid(incoming) ? incoming : "req_" + UUID.randomUUID();
         request.setAttribute(REQUEST_ATTRIBUTE, requestId);
         MDC.put("request_id", requestId);
-        MDC.put("route", request.getMethod() + " " + request.getRequestURI());
+        MDC.put("route", request.getMethod() + " " + safePath(request.getRequestURI()));
         response.setHeader(HEADER, requestId);
         response.setHeader("Cache-Control", "no-store");
         response.setHeader("X-Content-Type-Options", "nosniff");

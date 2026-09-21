@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.sql.DataSource;
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +59,7 @@ public class HealthController {
 
         Flyway migrations = flyway.getIfAvailable();
         if (migrations != null) {
-            boolean upToDate = migrations.info().pending().length == 0;
+            boolean upToDate = migrationsAreCurrent(migrations);
             checks.put("migrations", upToDate ? "UP" : "DOWN");
             healthy = healthy && upToDate;
         } else {
@@ -73,6 +74,16 @@ public class HealthController {
         try (Connection connection = source.getConnection()) {
             return connection.isValid(2);
         } catch (SQLException exception) {
+            return false;
+        }
+    }
+
+    private boolean migrationsAreCurrent(Flyway migrations) {
+        try {
+            return migrations.info().pending().length == 0;
+        } catch (FlywayException exception) {
+            // An unavailable database is a failed readiness check, not an unexpected
+            // controller error. Keep the 503 readiness contract and omit driver details.
             return false;
         }
     }

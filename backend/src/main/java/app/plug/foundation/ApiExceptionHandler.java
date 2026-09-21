@@ -75,7 +75,9 @@ public class ApiExceptionHandler {
     }
 
     private String firstCode(String[] codes) {
-        return codes == null || codes.length == 0 ? null : codes[0].replaceAll(".*\\.", "");
+        // Spring starts with e.g. Size.requestController#create.idempotencyKey.
+        // The constraint is the first segment; the final segment is a parameter name.
+        return codes == null || codes.length == 0 ? null : codes[0].split("\\.", 2)[0];
     }
 
     public record ErrorEnvelope(ErrorBody error) {}

@@ -1,7 +1,7 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-20T20:10:00+01:00",
+  "updated_at": "2026-09-21T03:08:41Z",
   "updated_by": "person_one",
   "current_phase": "P0",
   "current_step": "P0-connected-checkpoint",
@@ -20,9 +20,12 @@
   },
   "feature_flags": {},
   "next_actions": [
+    { "id": "P0-ci-reverify", "owner": "person_one",
+      "task": "Review the Phase 0 hardening fixes in PR #10 and confirm the Windows onboarding and other required GitHub checks pass on its latest revision; follow docs/testing/phase-0-joint-checkpoint.md for the remaining hands-on steps",
+      "manual_section": "27.1", "acceptance": "The Windows Bruno step runs from tests/api and all required checks pass on the reviewed revision." },
     { "id": "P0.S1-two", "owner": "person_two",
       "task": "Clone on Windows and prove docs/onboarding/windows.md works end to end from a clean machine; once proven, run the Bruno collection against a live tunnel URL Person One shares",
-      "manual_section": "27.1", "acceptance": "Every documented command runs without an undocumented prerequisite; bru run tests/api passes against the shared tunnel URL." },
+      "manual_section": "27.1", "acceptance": "Every documented command runs without an undocumented prerequisite; the public-only Bruno command in ADR-004 passes against the shared tunnel URL from tests/api." },
     { "id": "P0-connected-checkpoint", "owner": "person_one",
       "task": "With Person Two live: Person One's iPhone hits the tunnel, Person Two runs Bruno against the same tunnel URL from Windows at the same time, compare the request ID in the iOS log against the backend terminal log, commit evidence, then append the signed G0 gate_log entry",
       "manual_section": "27.1", "acceptance": "G0 signed in PROJECT_STATE.json with both signatures and an evidence path." }
@@ -30,7 +33,7 @@
   "do_not_touch": ["/ios/**", "/infra/**", "/backend/src/main/java/app/plug/security/**"],
   "open_risks": [
     "GET /health, GET /health/ready and POST /v1/requests are implemented and tested but not yet frozen through a joint two-person contract PR review — mark frozen@0.1.0 once both engineers have signed off. Contract version was 0.3.0 vs CHANGELOG.md's 0.1.0 (a real inconsistency, since fixed to 0.1.0 on both sides).",
-    "GET /health/ready is permitAll at the Spring Security layer, matching the manual's own reference implementation; it still needs to be kept off the public internet at the infra/WAF layer before staging is exposed (see docs/security/threat-model.md).",
+    "Operational health routes now reject requests carrying tunnel/proxy forwarding headers. Keep forward-headers-strategy=none and the local bind on loopback; future durable staging still needs private ingress/network rules. A real tunnel recheck is part of the next connected checkpoint.",
     "AWS staging is deferred (ADR-004) — no budget available right now, even for the near-$0/month minimal design in docs/runbooks/aws-staging-setup.md. The Phase 0 connected checkpoint uses a cloudflared Quick Tunnel instead; revisit AWS no later than Phase 3, when Twilio needs a stable (non-rotating) webhook URL a Quick Tunnel can't provide.",
     "Backend has no Redis dependency or Redis readiness check, even though infra/compose.yml and docker-compose.yml provision Redis. Either wire it in when something actually needs it, or drop it from Compose — don't let 'provisioned but unused' stand as if it were tested.",
     "PRODUCT_BUNDLE_IDENTIFIER changed to com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account) and committed to project.pbxproj.",

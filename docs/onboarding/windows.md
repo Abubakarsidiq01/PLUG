@@ -20,7 +20,7 @@ npm install -g @usebruno/cli         # the `bru` command used below; the GUI app
 
 # 2. WSL2 — required by Docker Desktop, and a better shell for this repo
 wsl --install -d Ubuntu
-# Open Docker Desktop once and wait for "Docker Desktop is running" before step 7.
+# Open Docker Desktop once and wait for "Docker Desktop is running" before step 6.
 
 # 3. Repository
 gh repo clone Abubakarsidiq01/PLUG
@@ -43,11 +43,12 @@ cd backend
 .\gradlew.bat bootRun --args="--spring.profiles.active=db"
 # Leave this running in its own terminal; open a new one for step 7.
 
-# 7. API collections — from the repository root, in a new terminal
-cd ..
-bru run tests/api --env local
-# "--env staging" instead of "--env local" once a real or tunnel staging URL exists
-# (see tests/api/environments/staging.bru) — ask Person One for the current URL.
+# 7. API collections — open a new terminal at the PLUG repository root
+Push-Location tests/api
+bru run --env local
+Pop-Location
+# For the live tunnel, follow ADR-004's public-only collection command; readiness
+# is private. A tunnel uses the local validation stub, not the JWT staging profile.
 
 # 8. Confirm where you are
 Get-Content PROJECT_STATE.json | ConvertFrom-Json |

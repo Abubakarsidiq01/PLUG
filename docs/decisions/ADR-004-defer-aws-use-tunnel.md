@@ -28,3 +28,31 @@ account signup.
   changes every time it restarts).
 - G0 sign-off should note this as a known limitation: the checkpoint proves
   the communication path works, not that a durable staging environment exists.
+
+## Checkpoint safety and API tests
+
+Use synthetic request data only. The tunnel forwards the local Phase 0
+validation stub; it does not activate the `staging` Spring profile or prove
+JWT authentication, cloud isolation, or durable staging. Do not use this
+unauthenticated mode for future persistent writes or provider integrations.
+
+Keep the backend bound to `127.0.0.1` and stop the tunnel when the session ends.
+The backend denies forwarded access to `/health/ready` and Actuator probes;
+check readiness directly from Person One's machine. Forwarded headers are
+only a denial signal, not trusted client identity. Keep
+`server.forward-headers-strategy=none`; cloud ingress still needs private
+network/probe rules when it is introduced.
+
+From the repository root, both machines can use these commands (substitute
+the current tunnel URL; do not commit a temporary URL):
+
+```text
+cd tests/api
+bru run health.bru requests-create-success.bru requests-create-validation-error.bru --env local --env-var baseUrl=https://YOUR-CURRENT-TUNNEL.trycloudflare.com
+```
+
+Run the full collection locally with `bru run --env local` from `tests/api`.
+`health-ready.bru` belongs to that direct local check, not the public tunnel
+run. Public access to `/health/ready` must be rejected. The signed-token
+`staging` profile remains separate and still requires its configured issuer,
+audience and write scope.

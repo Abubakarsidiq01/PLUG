@@ -4,10 +4,6 @@ title = "PLUG gitleaks config"
 [extend]
 useDefault = true
 
-[allowlist]
-description = "Deterministic test fixtures — never real credentials (manual.docx §18.1: every contract has committed fixtures)."
-paths = [
-  '''tests/api/.*\.bru$''',
-  '''fixtures/.*\.json$''',
-  '''contracts/examples/.*\.json$''',
-]
+# API collections and fixtures must be scanned too: credentials accidentally
+# pasted into those files are still leaks. Add only verified, narrowly scoped
+# false-positive exceptions instead of excluding entire directories.
