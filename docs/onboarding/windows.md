@@ -9,14 +9,14 @@ If any command here fails on a clean machine, fixing this file is part of the wo
 # 1. Toolchain (first line as Administrator; winget may prompt for a restart
 # after Docker Desktop — finish it before continuing)
 winget install --id Git.Git -e
-winget install --id OpenJS.NodeJS.LTS -e
+# Install Node.js 22.x (22.13 or newer) from https://nodejs.org/en/download
+# to match CI. Do not select a different major just because it is the latest LTS.
 winget install --id Microsoft.VisualStudioCode -e
 winget install --id Docker.DockerDesktop -e
 winget install --id EclipseAdoptium.Temurin.21.JDK -e
 winget install --id GitHub.cli -e
 winget install --id Bruno.Bruno -e   # the GUI app — optional, for browsing requests
 npm install -g pnpm@9.15.9
-npm install -g @usebruno/cli         # the `bru` command used below; the GUI app above is separate
 
 # 2. WSL2 — required by Docker Desktop, and a better shell for this repo
 wsl --install -d Ubuntu
@@ -25,6 +25,7 @@ wsl --install -d Ubuntu
 # 3. Repository
 gh repo clone Abubakarsidiq01/PLUG
 cd PLUG
+npm ci --prefix tools/bruno --ignore-scripts --no-audit --no-fund
 Copy-Item .env.example .env.local     # never commit this
 # Open .env.local and set PLUG_DATABASE_PASSWORD to any local-only value.
 
@@ -45,7 +46,7 @@ cd backend
 
 # 7. API collections — open a new terminal at the PLUG repository root
 Push-Location tests/api
-bru run --env local
+& "../../tools/bruno/node_modules/.bin/bru.cmd" run --env local
 Pop-Location
 # For the live tunnel, follow ADR-004's public-only collection command; readiness
 # is private. A tunnel uses the local validation stub, not the JWT staging profile.

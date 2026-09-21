@@ -1,17 +1,42 @@
 version: 2
+
+# One scheduled maintenance PR across the application and CI toolchains.
+# Security alerts/updates stay enabled separately in repository settings.
+multi-ecosystem-groups:
+  maintenance:
+    schedule:
+      interval: weekly
+
 updates:
   - package-ecosystem: gradle
     directory: /backend
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
+    patterns: ["*"]
+    multi-ecosystem-group: maintenance
+    ignore:
+      # Boot 4 / validator 3 require the Jackson and contract-test migration
+      # tracked in docs/maintenance/dependency-updates.md. Keep compatible fixes.
+      - dependency-name: org.springframework.boot
+        versions: [">=4.0.0"]
+      - dependency-name: com.networknt:json-schema-validator
+        versions: [">=2.0.0"]
   - package-ecosystem: npm
     directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
+    patterns: ["*"]
+    multi-ecosystem-group: maintenance
+    ignore:
+      # Keep the current lint toolchain until its plugins support the new APIs.
+      - dependency-name: typescript
+        versions: [">=7.0.0"]
+      - dependency-name: eslint
+        versions: [">=10.0.0"]
+      # Match the Node 22 runtime used locally and in CI.
+      - dependency-name: "@types/node"
+        versions: [">=23.0.0"]
+  - package-ecosystem: npm
+    directory: /tools/bruno
+    patterns: ["*"]
+    multi-ecosystem-group: maintenance
   - package-ecosystem: github-actions
     directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 5
+    patterns: ["*"]
+    multi-ecosystem-group: maintenance
