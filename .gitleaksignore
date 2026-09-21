@@ -1,0 +1,4 @@
+# Verified false positive: the literal "bruno-phase0-success" is a synthetic
+# Idempotency-Key in the original Bruno fixture, not an authentication secret.
+# Ignore only this historical occurrence; continue scanning all API fixtures.
+2ad886d95d253b272deadc78b752985c5f7ee7b4:tests/api/requests-create-success.bru:generic-api-key:15

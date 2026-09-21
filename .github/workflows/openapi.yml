@@ -9,6 +9,7 @@ permissions:
   contents: read
 jobs:
   validate:
+    name: OpenAPI validation
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

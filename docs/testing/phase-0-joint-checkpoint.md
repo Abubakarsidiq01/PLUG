@@ -19,6 +19,27 @@ evidence, but repeat the joint check on the revision being reviewed.
 - Verify the existing `main` protection/ruleset requires review and the relevant
   checks. Keep the evidence or a settings link in the checkpoint record.
 
+The live ruleset inspection found **one required approval but an empty required
+status-check list**. Finish this setting in GitHub:
+
+1. Open **Settings → Rules → Rulesets → Protect Main Branch → Edit**.
+2. Keep enforcement **Active**, the default-branch target, one required
+   approval, stale-review dismissal and conversation resolution.
+3. Under **Require status checks to pass**, add all seven uniquely named checks
+   after the updated workflows have run: **Backend tests**, **iOS build and
+   tests**, **Web build and tests**, **OpenAPI validation**, **Windows
+   onboarding**, **Secret scan**, and **CodeQL analysis**. Select GitHub Actions
+   as their source where offered. Keep the branch-up-to-date requirement.
+4. Enable **Require review from Code Owners** and save. Confirm `@uzom-a` has
+   the repository access needed for her CODEOWNERS entry and approval.
+5. Save the [ruleset link](https://github.com/Abubakarsidiq01/PLUG/rules/23628998)
+   and a screenshot showing the populated checks in the evidence record.
+
+The connected GitHub integration can read this ruleset but does not have
+administration access to change it. This setting must be completed by a
+repository administrator. Do not count an enabled checkbox with no selected
+checks as enforcement.
+
 ## 2. Person Two: prove a clean Windows setup
 
 Follow [Windows onboarding](../onboarding/windows.md), including the actual

@@ -28,6 +28,12 @@ revision was `ea13fd7`; results below concern the local working changes.
   at larger text sizes and retry tasks are cancelled when leaving the view.
 - Gitleaks now scans API collections and fixtures instead of excluding them.
   Dependabot points at the root pnpm workspace and lockfile.
+- GitHub's history scan found a false positive in the original Bruno fixture:
+  its synthetic idempotency value. `.gitleaksignore` records only that exact
+  commit/file/rule/line fingerprint; fixture directories remain scanned.
+- CI jobs have distinct names so each required check can be selected without
+  the earlier duplicate `validate` and `build-and-test` names. The live main
+  ruleset still needs its empty required-check list populated by an admin.
 
 ## Verification
 
@@ -48,7 +54,10 @@ revision was `ea13fd7`; results below concern the local working changes.
 - OpenAPI: Spectral reports no warnings or errors; provider contract tests pass.
 - Generated design tokens reproduce the committed outputs without a diff.
 - Gitleaks: a read-only snapshot of the working source, including fixtures and
-  API collections, reports no leaks. This is not a new full-history scan.
+  API collections, reports no leaks. After GitHub exposed the historical
+  fixture false positive, Gitleaks 8.24.3 (the CI version) also passed the exact
+  PR commit range and all locally available Git history (21 commits), using
+  the single fingerprint exception above.
 
 The tests reproduced the encoded-path limit bypass, scalar-to-string coercion,
 MDC path exposure, migration-readiness exception, invalid header constraint

@@ -9,6 +9,7 @@ permissions:
   contents: read
 jobs:
   build-and-test:
+    name: iOS build and tests
     runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
