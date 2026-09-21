@@ -14,14 +14,16 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   webServer: {
-    command: "pnpm --filter @plug/web dev",
+    command: process.env.CI
+      ? "pnpm --filter @plug/web start"
+      : "pnpm --filter @plug/web dev",
     url: "http://127.0.0.1:3000",
     reuseExistingServer: !process.env.CI,
     cwd: "..",
   },
   projects: [
-    { name: "mobile", use: { ...devices["iPhone 14"] } },
-    { name: "tablet", use: { ...devices["iPad Mini"] } },
-    { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } } },
+    { name: "mobile", use: { ...devices["iPhone 14"], viewport: { width: 360, height: 800 } } },
+    { name: "tablet", use: { ...devices["iPad Mini"], viewport: { width: 768, height: 1024 } } },
+    { name: "desktop", use: { ...devices["Desktop Chrome"], viewport: { width: 1280, height: 900 } } },
   ],
 });

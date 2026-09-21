@@ -73,8 +73,16 @@ routing bypasses before fixes.
 
 Backend, Web, iOS, OpenAPI and Security workflows passed on the hardening source.
 Windows exposed a second failure: the backend answered its startup probe but
-disappeared before the next step ran Bruno. The combined PowerShell step is now
-being verified on GitHub; do not mark Windows passed until that run succeeds.
+disappeared before the next step ran Bruno. The combined PowerShell step passed
+on `16b9c57` in [run 35558025459](https://github.com/Abubakarsidiq01/PLUG/actions/runs/35558025459):
+4 Bruno requests, 4 script tests and 11 assertions passed.
+
+The Windows/web follow-up adds axe 4.13.0 and exact 360/768/1280 px viewports.
+All 21 local production-build browser cases pass; six axe scans have zero
+violations and zero incomplete checks. Screenshots and full scan results are
+under `evidence/P0/web` and `evidence/P0/a11y`. The pnpm audit reports zero
+vulnerabilities across 404 dependencies. CI also retains the Windows browser
+report, and the expanded suite must pass on the final pushed revision.
 
 Person One then verified the hardened source on an iPhone 13 Pro Max with iOS
 26.6. Request `req_c900b992-5bc0-4835-bbc3-5ece6de3705a` matches the phone screen,
@@ -83,8 +91,10 @@ largest-text usability and VoiceOver. The new tunnel passed the three public
 Bruno requests from the Mac, and public readiness returned 401. See
 [the device record](../../evidence/P0/logs/device-hardening-checkpoint-2026-09-20.log).
 
-Screenshots, Person Two's clean Windows setup and her live public Bruno run
-remain pending. The existing earlier device evidence is preserved. No cloud
+Phone screenshots remain pending. Person One explicitly deferred Person Two's
+personal Windows setup and own-machine public API run to her Phase 1 onboarding
+under ADR-005. Hosted Windows verification is complete; no personal participation
+or signature is claimed. The earlier device evidence is preserved. No cloud
 resources were provisioned and no gate was signed.
 Follow [the joint-checkpoint walkthrough](phase-0-joint-checkpoint.md) for the
 remaining steps and evidence to add to PR #10.

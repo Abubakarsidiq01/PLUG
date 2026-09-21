@@ -1,5 +1,11 @@
 # Finish Phase 0 on PR #10
 
+**Updated decision:** Person One subsequently requested automated Windows
+verification and Person Two's personal onboarding at Phase 1. Follow
+[ADR-005](../decisions/ADR-005-phase0-windows-automation-handoff.md) and the
+[Phase 1 handoff](../onboarding/person-two-phase1-handoff.md). The two-person
+steps below remain a reproducible procedure, not a claim that she participated.
+
 Use this checklist with [PR #10](https://github.com/Abubakarsidiq01/PLUG/pull/10),
 the [hardening test report](phase-0-hardening-2026-09-20.md), and
 `PROJECT_STATE.json`. The code is ready for independent verification; G0 is

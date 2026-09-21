@@ -1,5 +1,10 @@
 # P1 · Person Two (Windows) — Identity and consent
 
+**Joining after automated Phase 0 verification:** begin with the
+[personal setup and evidence handoff](../onboarding/person-two-phase1-handoff.md).
+Your interactive Windows/Docker/WSL setup was deferred to this first session
+by Person One under ADR-005; hosted CI did not perform it on your computer.
+
 > **Before you start:** read `PROJECT_STATE.json` at the repository root.
 > If `current_phase` is not `P1`, you are in the wrong file.
 > If `owner` is not `person_two`, check `next_actions` — there may

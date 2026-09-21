@@ -6,6 +6,9 @@ The current checkpoint uses the temporary tunnel accepted in
 `docs/decisions/ADR-004-defer-aws-use-tunnel.md`. Its public-only Bruno command
 runs from `tests/api`; check readiness directly on the host. Cloud deployment
 and signed-token staging checks below remain deferred, not passed by the tunnel.
+Person One subsequently accepted hosted Windows verification and Person Two's
+personal onboarding at Phase 1 under ADR-005. This replaces waiting for her
+live Phase 0 participation; it does not record an approval on her behalf.
 
 - [x] Backend unit tests pass locally; CI results still need verification after push.
 - [x] OpenAPI validates locally, including shared examples and provider-response schema tests.
@@ -21,7 +24,8 @@ Record evidence in the tracker/PR; do not commit user data or secrets here.
 The latest physical-device record is
 [`device-hardening-checkpoint-2026-09-20.log`](../../evidence/P0/logs/device-hardening-checkpoint-2026-09-20.log).
 Person One also confirmed largest-text and VoiceOver checks on iPhone 13 Pro Max,
-iOS 26.6. Screenshots and Person Two's Windows/joint-checkpoint evidence are pending.
+iOS 26.6. Phone screenshots remain pending. Hosted Windows evidence and the
+accepted personal-onboarding deferral are recorded in `evidence/P0/README.md`.
 
 ## Remaining completion gates
 

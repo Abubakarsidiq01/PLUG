@@ -107,3 +107,9 @@ jobs:
             bootrun.log
             bootrun-err.log
             bruno-results.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-playwright-report
+          path: web/playwright-report/
