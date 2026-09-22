@@ -13,7 +13,7 @@ This repository is the V1 monorepo for two engineers. The backend is a Java 21 /
 | Person One, new to the repo | `docs/onboarding/mac.md` |
 | Person Two, new to the repo | `docs/onboarding/windows.md` |
 | Resuming work | `PROJECT_STATE.json`, then the file in its `readme` field |
-| An AI assistant | `docs/AI_START_HERE.md` — read it before anything else |
+| Any contributor | `docs/CONTRIBUTOR_WORKFLOW.md` |
 
 ## Phase 0 goal
 
@@ -38,7 +38,7 @@ See [docs/OWNERSHIP.md](docs/OWNERSHIP.md) and `.github/CODEOWNERS` before chang
 
 ## First setup
 
-1. Install Java 21. Gradle 8.14.3 is managed by the checked-in wrapper; a separate Gradle installation is not needed. Xcode 16+ is needed only for iOS work.
+1. Install Java 21. Gradle 9.7.1 is managed by the checked-in wrapper; a separate Gradle installation is not needed. Xcode 16+ is needed only for iOS work.
 2. Run the backend with `cd backend && ./dev bootRun` (the helper uses project-local Java when installed).
 3. Verify `curl -i http://localhost:8080/health` and `curl -i http://localhost:8080/health/ready`.
 4. Open `ios/Plug.xcodeproj` and run the `Plug` scheme.

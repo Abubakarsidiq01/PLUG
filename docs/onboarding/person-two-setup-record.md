@@ -8,10 +8,13 @@ Windows 11 computer.
   (PR #10).
 - **Toolchain:** Git, Node, GitHub CLI, Docker Desktop 29.8.0 and WSL2 (Ubuntu,
   version 2) were already present. pnpm 9.15.9, Bruno CLI 4.1.0 and Temurin JDK
-  21.0.12 were installed during this session.
-- **Web browser tests:** 21 of 21 passed. On the first cold run two accessibility
-  cases (`public-shell`, `admin-login`, desktop) hit the 30 s timeout; a rerun of
-  the accessibility spec passed 6 of 6.
+  21.0.12 were installed during this session. The exact Node version was not
+  recorded; Person Two must supply `node --version`.
+- **Web browser tests (operator-reported):** two desktop accessibility cases
+  (`public-shell`, `admin-login`) timed out on the first cold run; a targeted
+  accessibility rerun passed 6 of 6. The original report also stated 21/21, but
+  did not establish whether that was a separate complete run. A clean full-suite
+  result and its report still need confirmation.
 - **Backend:** `docker compose -f infra/compose.yml up -d --wait` started a
   healthy Postgres; `bootRun` with the `db` profile started in about 6 s and
   `/actuator/health` returned 200.
@@ -26,8 +29,15 @@ Windows 11 computer.
 3. `--env staging` cannot resolve while staging is deferred (ADR-004).
 4. `fixtures/README.md` omitted `rate-limited.json`.
 
+These are Person Two's reported results on the recorded checkout. Sanitized
+local logs/reports have not yet been attached to this record. They do not prove
+the later dependency revision or substitute for the pending public API run.
+
 ## Still pending
 
+- Record the exact Node version, command/date/checkout for a full browser-suite
+  run, and sanitized Playwright/Bruno summaries under `evidence/P0/`. Keep the
+  observed timeout and rerun history; do not silently overwrite it.
 - Public API run from this machine; needs a fresh tunnel URL from Person One
   (ADR-005). Do not reuse an old Quick Tunnel hostname.
 - Person Two's own review of the Phase 0 evidence and contracts, and any

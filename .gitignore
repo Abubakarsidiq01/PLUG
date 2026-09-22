@@ -27,3 +27,8 @@ node_modules/
 playwright-report/
 test-results/
 evidence/**/*.mov
+
+# Local planning source and generated editor guidance (not shared artifacts).
+/PLUG_Production_Master_Manual*.docx
+/web/AGENTS.md
+/web/CLAUDE.md

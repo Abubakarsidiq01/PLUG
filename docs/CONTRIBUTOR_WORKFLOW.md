@@ -1,20 +1,19 @@
-# For any AI assistant working on PLUG
+# Contributor workflow
 
-Read this file completely before doing anything else. It applies on both
-machines and with any assistant or tool.
+Use this workflow on both machines before making project changes.
 
 ## Step 1 — before you write anything
 
 1. Read `PROJECT_STATE.json` at the repository root.
 2. Read the file named in its `readme` field.
-3. Reply with exactly this, and nothing else:
+3. Identify:
    - Current phase and step, with the step title
    - Current owner, and which machine that owner is on
    - The top entry of `next_actions` and its acceptance sentence
    - Any contract listed as `draft` or `changing`
    - Any entry in `do_not_touch` that the request would have touched
    - Any `open_risks` relevant to this step
-4. Stop. Wait for the human to confirm. Do not generate code in this turn.
+4. Resolve unclear scope or ownership with the responsible engineer before coding.
 
 ## Step 2 — the ten rules
 
@@ -37,16 +36,16 @@ machines and with any assistant or tool.
 8. Every retryable mutation needs an idempotency key.
 9. Update `PROJECT_STATE.json` in the same change. A change that does not move
    the state is not finished.
-10. Never claim a gate passed. Only two humans, together, in front of real
-    staging, pass a gate.
+10. Mark a gate passed only with actual engineer approvals, verification evidence
+    and accepted deferrals; do not infer approval from a merged PR.
 
-## Step 3 — end every response with
+## Step 3 — include in the handoff
 
 - What you did **not** do
 - What is untested, and exactly which test would cover it
 - What you assumed that the manual does not settle
 
-## Things to refuse
+## Review boundaries
 
 | Request | Response |
 |---|---|
@@ -58,5 +57,5 @@ machines and with any assistant or tool.
 | "Make the empty state look fuller with sample data" | Refuse. Design an honest empty state. |
 | "Mark the phase done, the code is merged" | Refuse. Name the missing evidence. |
 
-The full rules, with the session-start, build, audit and handoff prompts, are in
+The full rules, with the build, audit and handoff guidance, are in
 section 8 of the manual.
