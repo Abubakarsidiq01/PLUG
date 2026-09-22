@@ -51,13 +51,47 @@ stop and open a contract pull request instead.
 
 ## 1. Environment
 
+Complete [Windows onboarding](../onboarding/windows.md) first, using Node 22,
+JDK 21 and the locked repository-local Bruno CLI. These commands assume you
+are at the repository root and have set your local-only database password.
+
 ```powershell
-docker compose up -d postgres redis
-pnpm install
-pnpm --filter @plug/web dev          # http://localhost:3000
-bru run tests/api --env staging
-pnpm --filter @plug/web test:e2e
+# Terminal 1: database-enabled local backend
+$env:PLUG_DATABASE_PASSWORD = "<your local-only database password>"
+docker compose -f infra/compose.yml up -d --wait
+Push-Location backend
+.\gradlew.bat bootRun --args="--spring.profiles.active=db"
+# Leave running. Open Terminal 2 at the repository root.
 ```
+
+```powershell
+# Terminal 2: install and verify the current web/API baseline
+pnpm install --frozen-lockfile
+npm ci --prefix tools/bruno --ignore-scripts --no-audit --no-fund
+pnpm --filter @plug/web exec playwright install
+pnpm --filter @plug/web lint
+pnpm --filter @plug/web build
+pnpm --filter @plug/web test:e2e
+Push-Location tests/api
+& "../../tools/bruno/node_modules/.bin/bru.cmd" run --env local
+Pop-Location
+# Optional interactive web session (runs until Ctrl+C):
+pnpm --filter @plug/web dev
+```
+
+There is no standing staging URL under ADR-004. When Person One supplies a
+fresh HTTPS tunnel, run only the public Phase 0 cases from a new terminal:
+
+```powershell
+Push-Location tests/api
+& "../../tools/bruno/node_modules/.bin/bru.cmd" run health.bru requests-create-success.bru requests-create-validation-error.bru --env local --env-var baseUrl=https://YOUR-CURRENT-TUNNEL.trycloudflare.com
+Pop-Location
+curl.exe -i https://YOUR-CURRENT-TUNNEL.trycloudflare.com/health/ready
+```
+
+Expect the three public cases to pass and public readiness to return 401.
+The full collection includes private readiness and belongs on the local
+backend. This tunnel checks the Phase 0 stub, not authenticated Phase 1 staging.
 
 If any of those commands fails on a clean machine, that is a bug in
 `docs/onboarding/windows.md`, and fixing the
@@ -103,17 +137,15 @@ verbal description.
 - [ ] BOLA test across user, supplier and admin resource IDs.
 - [ ] Log inspection confirms no access token, refresh token, OTP secret or authorization header is emitted.
 
-Verify with:
+Current baseline checks are the lint/build/browser/local-API commands above.
+`next build` includes the TypeScript check. The current web package does not
+have separate `typecheck` or `test:unit` scripts, and `tests/api/abuse` does not
+yet exist. Add the Phase 1 auth and abuse tests with the approved contract,
+then document their actual commands here. Do not treat the baseline suite as
+proof that the Phase 1 security cases above have passed.
 
-```powershell
-pnpm --filter @plug/web typecheck
-pnpm --filter @plug/web lint
-pnpm --filter @plug/web test:unit
-pnpm --filter @plug/web test:e2e
-bru run tests/api --env staging
-bru run tests/api/abuse --env staging
-curl.exe -sI https://staging.plug.app | Sort-Object    # security headers
-```
+Run the Phase 1 auth/security-header checks against the agreed authenticated
+staging environment when it exists; do not use an old placeholder hostname.
 
 ---
 
@@ -167,12 +199,10 @@ Store everything under `evidence/P1/`:
 
 ---
 
-## 9. If you are an AI assistant reading this file
+## 9. Contributor handoff
 
-Do not begin work from this file alone. Read `PROJECT_STATE.json` first, restate
-the current phase, step, owner and top `next_actions` entry to the human, and
-wait for confirmation. Work only on that one step. Never edit a path listed in
-`do_not_touch`. Never add a field, endpoint, enum value or error code that is not
-in `/contracts/openapi.yaml` — produce a contract pull request instead. End every
-response with what you did not do, what is untested, and what you assumed.
-The full rules are in §8 of the manual.
+Read `PROJECT_STATE.json` and confirm the current phase, step, owner and next
+accepted task before making changes. Coordinate changes to another engineer's
+paths. Propose contract changes before adding fields, endpoints, enums or error
+codes. Record verification, outstanding work and assumptions in the PR.
+Follow [the contributor workflow](../CONTRIBUTOR_WORKFLOW.md).

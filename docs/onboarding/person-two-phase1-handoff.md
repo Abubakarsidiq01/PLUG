@@ -19,11 +19,10 @@ are recorded in [ADR-005](../decisions/ADR-005-phase0-windows-automation-handoff
 
 ## Your first session
 
-1. Read `PROJECT_STATE.json`, PR #10, ADR-004, ADR-005 and the evidence under
-   `evidence/P0/`. Confirm whether the PR has merged; do not assume it has.
+1. Read `PROJECT_STATE.json`, PR #21, ADR-004, ADR-005 and the evidence under
+   `evidence/P0/`. G0 is signed and the joint public checkpoint is complete.
 2. Follow [Windows onboarding](windows.md) on your computer, including Docker
-   Desktop and WSL2. If PR #10 is still open, use
-   `p0-one-manual-v3-reconciliation`; after it merges, use `main`. Record the
+   Desktop and WSL2. Use the latest merged `main`. Record the
    checkout SHA and any setup correction.
 3. Run the full local Bruno collection from `tests/api`, with your own backend
    running in another terminal. Complete the documented browser test command.
@@ -33,7 +32,8 @@ are recorded in [ADR-005](../decisions/ADR-005-phase0-windows-automation-handoff
    and the Phase 1 contract is agreed. The existing login placeholder must not
    become a client-only authorization check.
 
-If public API testing is needed, obtain the current environment URL from Person
+The public API checkpoint was completed on 2026-09-22; it need not be repeated
+for G0. If another public API test is needed, obtain the current URL from Person
 One. Do not reuse an old Quick Tunnel hostname from a past checkpoint. Signed
 authentication is a Phase 1 contract concern; the Phase 0 tunnel is only the
 synthetic validation stub described in ADR-004.
