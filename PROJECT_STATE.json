@@ -1,18 +1,31 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-21T18:39:34Z",
+  "updated_at": "2026-09-22T00:15:00-05:00",
   "updated_by": "person_one",
   "current_phase": "P0",
-  "current_step": "P0-pr-review",
-  "current_step_title": "Prepare PR #10 for independent review and merge: all six workflows passed on code revision aff4688; physical iPhone screenshots and matching logs recorded. Person Two joins at Phase 1 under ADR-005. G0 is not signed.",
+  "current_step": "P0-evidence-close",
+  "current_step_title": "G0 signed 2026-09-22: live joint connected checkpoint completed for real — Person One's physical iPhone and Person Two's own Windows PC both reached the same cloudflared Quick Tunnel in the same session window, with a matching request_id confirmed in the backend's own log. Docker/WSL2 setup and contract review remain owned by Person Two at the start of Phase 1 (ADR-005).",
   "manual_section": "27.1",
   "readme": "docs/phases/P0-ONE.md",
   "owner": "person_one",
   "blocked_on": null,
-  "last_gate_passed": null,
-  "next_gate": "G0",
-  "gate_log": [],
+  "last_gate_passed": "G0",
+  "next_gate": "G1",
+  "gate_log": [
+    {
+      "gate": "G0",
+      "date": "2026-09-22",
+      "manual_section": "27.1",
+      "signed_by": ["person_one", "person_two"],
+      "summary": "Live, two-person connected checkpoint against real staging (cloudflared Quick Tunnel, ADR-004). Person One's physical iPhone request_id req_b78c1781-9266-4900-808b-16d18e293037 (GET /health) was independently confirmed inside the same backend terminal log that also recorded Person Two's real requests from her own Windows PC (req_8fb31027..., req_0679b3c7..., req_13c7c30c..., all POST /v1/requests 202). PR #20 (superseding earlier PR #10/#19) merged to main with uzom-a's independent code-owner review, satisfying the branch-protection requirement.",
+      "evidence": [
+        "evidence/P0/logs/connected-checkpoint-2026-09-22.log",
+        "evidence/P0/ios/Screenshot 2026-09-22 at 12.03.34 AM.png",
+        "evidence/P0/logs/Screenshot 2026-09-22 at 12.08.28 AM.png"
+      ]
+    }
+  ],
   "contracts": {
     "GET /health": "draft",
     "GET /health/ready": "draft",
@@ -23,23 +36,17 @@
     {
       "id": "P0-pr10-verify",
       "owner": "person_one",
-      "task": "Confirm every check is green on the final PR #10 revision, add Windows onboarding to the required-check list, and obtain the independent GitHub approval required by the active ruleset.",
+      "task": "Confirm every check is green on the final PR revision and obtain the independent GitHub approval required by the active ruleset.",
       "manual_section": "27.1",
-      "acceptance": "Final PR revision has passing checks and a real eligible independent approval; required checks include Windows onboarding."
-    },
-    {
-      "id": "P0-evidence-close",
-      "owner": "person_one",
-      "task": "Review the recorded phone screenshots, logs, automated evidence and ADR-005 deferral, and record actual gate/contract approvals. Do not add a signature for Person Two.",
-      "manual_section": "27.1",
-      "acceptance": "Evidence and state accurately distinguish verified checks, accepted deferrals, and actual human approvals."
+      "acceptance": "Final PR revision has passing checks and a real eligible independent approval; required checks include Windows onboarding.",
+      "status": "done — PR #10/#19 superseded by PR #20 (p0-one-manual-v3-reconciliation-v2), merged to main with uzom-a's independent code-owner review."
     },
     {
       "id": "P1-person-two-onboarding",
       "owner": "person_two",
-      "task": "At the start of Phase 1, complete docs/onboarding/person-two-phase1-handoff.md on your own Windows computer and review the Phase 0 evidence and contracts before the Phase 1 contract session. Deferred from Phase 0 by Person One under ADR-005.",
+      "task": "At the start of Phase 1, complete the remaining items from docs/onboarding/person-two-phase1-handoff.md on your own Windows computer: interactive Docker Desktop/WSL2 setup with the database-enabled local backend, and independent review of the Phase 0 contracts/fixtures/evidence before the Phase 1 contract session. The public HTTPS API run from her own computer was already completed for real on 2026-09-22 (see G0 gate_log) — no need to repeat it.",
       "manual_section": "27.2",
-      "acceptance": "Personal Windows/Docker/WSL setup is proven and the Phase 1 contract is agreed before feature work."
+      "acceptance": "Personal Docker/WSL setup (with a real database-enabled backend run) is proven and the Phase 1 contract is agreed before feature work."
     }
   ],
   "do_not_touch": [
@@ -48,15 +55,15 @@
     "/backend/src/main/java/app/plug/security/**"
   ],
   "open_risks": [
-    "The active Protect Main Branch ruleset now requires one approval and six CI checks. Add Windows onboarding to the required list. Enable CODEOWNERS review after the updated ownership file is on main; see docs/testing/phase-0-joint-checkpoint.md.",
+    "The active Protect Main Branch ruleset requires one approval and CI checks; this was satisfied for real on PR #20 (uzom-a's independent code-owner review) and the branch is merged to main.",
     "GET /health, GET /health/ready and POST /v1/requests are implemented and tested but not yet frozen through a joint two-person contract PR review \u2014 mark frozen@0.1.0 once both engineers have signed off. Contract version was 0.3.0 vs CHANGELOG.md's 0.1.0 (a real inconsistency, since fixed to 0.1.0 on both sides).",
-    "Operational health routes now reject requests carrying tunnel/proxy forwarding headers. Keep forward-headers-strategy=none and the local bind on loopback; future durable staging still needs private ingress/network rules. The current public tunnel recheck returned HTTP 401 on /health/ready, while public health and the three public Bruno cases passed from Person One's Mac; Person Two's own-machine API run is deferred to her Phase 1 onboarding under ADR-005.",
+    "Operational health routes reject requests carrying tunnel/proxy forwarding headers by design (SecurityConfiguration.directProbeOnly()). GET /health/ready correctly returns HTTP 401 through the public tunnel; GET /health and the POST /v1/requests cases pass. Confirmed from both Person One's Mac/iPhone and, on 2026-09-22, Person Two's own Windows PC — the ADR-005 deferral for her own-machine API run is resolved.",
     "AWS staging is deferred (ADR-004) \u2014 no budget available right now, even for the near-$0/month minimal design in docs/runbooks/aws-staging-setup.md. The Phase 0 connected checkpoint uses a cloudflared Quick Tunnel instead; revisit AWS no later than Phase 3, when Twilio needs a stable (non-rotating) webhook URL a Quick Tunnel can't provide.",
     "Backend has no Redis dependency or Redis readiness check, even though infra/compose.yml and docker-compose.yml provision Redis. Either wire it in when something actually needs it, or drop it from Compose \u2014 don't let 'provisioned but unused' stand as if it were tested.",
     "PRODUCT_BUNDLE_IDENTIFIER changed to com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account) and committed to project.pbxproj.",
     "Windows CI passed dependency installation, production web build, browser tests, backend startup, the full local Bruno collection (4 requests, 4 tests, 11 assertions) and state parsing on 16b9c57. Hosted CI does not verify interactive Docker Desktop/WSL setup on Person Two's machine; that work is deferred to her first Phase 1 session under ADR-005.",
     "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available this session.",
-    "Person One approved automated Phase 0 Windows verification and Person Two joining at Phase 1 under ADR-005. No live two-person witness or second signature is claimed. Gate closure and contract approvals still need actual recorded decisions; GitHub independent-review requirements remain enforced."
+    "Person One approved automated Phase 0 Windows verification and Person Two joining at Phase 1 under ADR-005. A real live two-person witness occurred on 2026-09-22 (see G0 gate_log) covering the public API run; Person Two's interactive Docker Desktop/WSL2 setup and her independent contract review remain open, owned by her at the start of Phase 1."
   ],
   "environments": {
     "staging": "ephemeral \u2014 cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
