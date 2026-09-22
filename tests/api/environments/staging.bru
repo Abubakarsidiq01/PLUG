@@ -1,3 +1,8 @@
 vars {
-  baseUrl: https://api-staging.plug.app
+  baseUrl: https://replace-with-the-current-tunnel-url.trycloudflare.com
 }
+
+# This is a cloudflared Quick Tunnel URL (see ADR-004), not a standing staging
+# host — it changes every time Person One restarts the tunnel. Before a joint
+# checkpoint, Person One sends the current URL; replace the baseUrl above with
+# it, then run: bru run tests/api --env staging
