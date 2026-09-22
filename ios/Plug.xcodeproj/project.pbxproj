@@ -18,6 +18,23 @@
 		000000000000000000041009 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042011 /* APIClientTests.swift */; };
 		2E857CDF393AE466C187ED01 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */; };
 		E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */ = {isa = PBXBuildFile; fileRef = 7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */; };
+		A100000000000000000001F5 /* Core/Networking/Endpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* Core/Networking/Endpoint.swift */; };
+		A100000000000000000001F6 /* Core/Networking/APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* Core/Networking/APIError.swift */; };
+		A100000000000000000001F7 /* Core/Storage/KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* Core/Storage/KeychainStore.swift */; };
+		A100000000000000000001F8 /* Core/Storage/SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000004 /* Core/Storage/SessionStore.swift */; };
+		A100000000000000000001F9 /* Core/Models/Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* Core/Models/Session.swift */; };
+		A100000000000000000001FA /* Core/Utilities/SignInNonce.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* Core/Utilities/SignInNonce.swift */; };
+		A100000000000000000001FB /* Features/Authentication/AuthenticationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* Features/Authentication/AuthenticationState.swift */; };
+		A100000000000000000001FC /* Features/Authentication/AuthenticationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* Features/Authentication/AuthenticationModel.swift */; };
+		A100000000000000000001FD /* Features/Authentication/ConsentNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* Features/Authentication/ConsentNotice.swift */; };
+		A100000000000000000001FE /* Features/Authentication/CodeEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000A /* Features/Authentication/CodeEntryView.swift */; };
+		A100000000000000000001FF /* Features/Authentication/WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000B /* Features/Authentication/WelcomeView.swift */; };
+		A10000000000000000000258 /* TestTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000064 /* TestTransport.swift */; };
+		A10000000000000000000259 /* InMemoryCredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000065 /* InMemoryCredentialStore.swift */; };
+		A1000000000000000000025A /* KeychainStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000066 /* KeychainStoreTests.swift */; };
+		A1000000000000000000025B /* SessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000067 /* SessionStoreTests.swift */; };
+		A1000000000000000000025C /* AuthenticationModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000068 /* AuthenticationModelTests.swift */; };
+		A10000000000000000000D /* Core/Networking/PlugJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000C /* Core/Networking/PlugJSON.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +61,24 @@
 		000000000000000000042011 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Color+Hex.swift"; path = "Core/DesignSystem/Color+Hex.swift"; sourceTree = "<group>"; };
 		7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Tokens.swift (generated)"; path = ../../design/generated/Tokens.swift; sourceTree = "<group>"; };
+		A10000000000000000000001 /* Core/Networking/Endpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Networking/Endpoint.swift"; sourceTree = "<group>"; };
+		A10000000000000000000002 /* Core/Networking/APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Networking/APIError.swift"; sourceTree = "<group>"; };
+		A10000000000000000000003 /* Core/Storage/KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Storage/KeychainStore.swift"; sourceTree = "<group>"; };
+		A10000000000000000000004 /* Core/Storage/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Storage/SessionStore.swift"; sourceTree = "<group>"; };
+		A10000000000000000000005 /* Core/Models/Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Models/Session.swift"; sourceTree = "<group>"; };
+		A10000000000000000000006 /* Core/Utilities/SignInNonce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Utilities/SignInNonce.swift"; sourceTree = "<group>"; };
+		A10000000000000000000007 /* Features/Authentication/AuthenticationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/AuthenticationState.swift"; sourceTree = "<group>"; };
+		A10000000000000000000008 /* Features/Authentication/AuthenticationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/AuthenticationModel.swift"; sourceTree = "<group>"; };
+		A10000000000000000000009 /* Features/Authentication/ConsentNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/ConsentNotice.swift"; sourceTree = "<group>"; };
+		A1000000000000000000000A /* Features/Authentication/CodeEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/CodeEntryView.swift"; sourceTree = "<group>"; };
+		A1000000000000000000000B /* Features/Authentication/WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/WelcomeView.swift"; sourceTree = "<group>"; };
+		A10000000000000000000064 /* TestTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTransport.swift; sourceTree = "<group>"; };
+		A10000000000000000000065 /* InMemoryCredentialStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryCredentialStore.swift; sourceTree = "<group>"; };
+		A10000000000000000000066 /* KeychainStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000067 /* SessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStoreTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000068 /* AuthenticationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationModelTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000384 /* Resources/Plug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Resources/Plug.entitlements"; sourceTree = "<group>"; };
+		A10000000000000000000C /* Core/Networking/PlugJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Networking/PlugJSON.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -82,6 +117,19 @@
 				000000000000000000047007 /* Core/Networking */,
 				000000000000000000047008 /* Features/Engineering */,
 				00000000000000000004200A /* Core/DesignSystem/PlugTokens.swift */,
+				A10000000000000000000001 /* Core/Networking/Endpoint.swift */,
+				A10000000000000000000002 /* Core/Networking/APIError.swift */,
+				A10000000000000000000003 /* Core/Storage/KeychainStore.swift */,
+				A10000000000000000000004 /* Core/Storage/SessionStore.swift */,
+				A10000000000000000000005 /* Core/Models/Session.swift */,
+				A10000000000000000000006 /* Core/Utilities/SignInNonce.swift */,
+				A10000000000000000000007 /* Features/Authentication/AuthenticationState.swift */,
+				A10000000000000000000008 /* Features/Authentication/AuthenticationModel.swift */,
+				A10000000000000000000009 /* Features/Authentication/ConsentNotice.swift */,
+				A1000000000000000000000A /* Features/Authentication/CodeEntryView.swift */,
+				A1000000000000000000000B /* Features/Authentication/WelcomeView.swift */,
+				A10000000000000000000384 /* Resources/Plug.entitlements */,
+				A10000000000000000000C /* Core/Networking/PlugJSON.swift */,
 				6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */,
 				7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */,
 			);
@@ -94,6 +142,11 @@
 				000000000000000000042005 /* HealthResponseTests.swift */,
 				000000000000000000042009 /* ../../contracts/examples/health-response.json */,
 				000000000000000000042011 /* APIClientTests.swift */,
+				A10000000000000000000064 /* TestTransport.swift */,
+				A10000000000000000000065 /* InMemoryCredentialStore.swift */,
+				A10000000000000000000066 /* KeychainStoreTests.swift */,
+				A10000000000000000000067 /* SessionStoreTests.swift */,
+				A10000000000000000000068 /* AuthenticationModelTests.swift */,
 			);
 			path = PlugTests;
 			sourceTree = "<group>";
@@ -246,6 +299,18 @@
 				000000000000000000041008 /* Core/DesignSystem/PlugTokens.swift in Sources */,
 				2E857CDF393AE466C187ED01 /* Color+Hex.swift in Sources */,
 				E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */,
+				A10000000000000000000D /* Core/Networking/PlugJSON.swift in Sources */,
+				A100000000000000000001F5 /* Core/Networking/Endpoint.swift in Sources */,
+				A100000000000000000001F6 /* Core/Networking/APIError.swift in Sources */,
+				A100000000000000000001F7 /* Core/Storage/KeychainStore.swift in Sources */,
+				A100000000000000000001F8 /* Core/Storage/SessionStore.swift in Sources */,
+				A100000000000000000001F9 /* Core/Models/Session.swift in Sources */,
+				A100000000000000000001FA /* Core/Utilities/SignInNonce.swift in Sources */,
+				A100000000000000000001FB /* Features/Authentication/AuthenticationState.swift in Sources */,
+				A100000000000000000001FC /* Features/Authentication/AuthenticationModel.swift in Sources */,
+				A100000000000000000001FD /* Features/Authentication/ConsentNotice.swift in Sources */,
+				A100000000000000000001FE /* Features/Authentication/CodeEntryView.swift in Sources */,
+				A100000000000000000001FF /* Features/Authentication/WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,6 +320,11 @@
 			files = (
 				000000000000000000041005 /* HealthResponseTests.swift in Sources */,
 				000000000000000000041009 /* APIClientTests.swift in Sources */,
+				A10000000000000000000258 /* TestTransport.swift in Sources */,
+				A10000000000000000000259 /* InMemoryCredentialStore.swift in Sources */,
+				A1000000000000000000025A /* KeychainStoreTests.swift in Sources */,
+				A1000000000000000000025B /* SessionStoreTests.swift in Sources */,
+				A1000000000000000000025C /* AuthenticationModelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -293,6 +363,7 @@
 		0000000000000000000430C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Plug/Resources/Plug.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = W5A7U9W369;
@@ -312,6 +383,7 @@
 		0000000000000000000430CA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "Plug/Resources/Plug.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = W5A7U9W369;

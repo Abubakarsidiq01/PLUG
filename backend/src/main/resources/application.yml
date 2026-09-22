@@ -45,3 +45,25 @@ logging:
 plug:
   environment: ${PLUG_ENVIRONMENT:local}
   requests-per-minute: 60
+  identity:
+    # Off by default. The module needs a database, and turning it on is what the db and
+    # staging profiles do. With it off the auth routes are not registered at all, which is
+    # the rollback named in contracts/CHANGELOG.md.
+    enabled: false
+    # The publication date of the Terms and Privacy Policy the app displays. A sign-in that
+    # sends any other version is refused rather than recorded as agreement to unknown text.
+    consent-version: "2026-09-01"
+    pepper: ${PLUG_IDENTITY_PEPPER:}
+    # Decided here and written into the contract. Changing either after Phase 1 ripples
+    # through every screen that can be open when a session ends (manual.docx 27.2).
+    access-token-ttl: 15m
+    refresh-token-ttl: 30d
+    guest-refresh-token-ttl: 7d
+    phone-code-ttl: 10m
+    phone-code-attempts: 5
+    apple-client-id: ${PLUG_APPLE_CLIENT_ID:com.abubakarsidiq01.plug.app101}
+    apple-issuer: https://appleid.apple.com
+    apple-jwk-set-uri: https://appleid.apple.com/auth/keys
+    # none until Phase 3 connects the messaging provider. "development" writes codes to a
+    # file under build/ on a local machine only, and is refused anywhere else.
+    phone-delivery: none

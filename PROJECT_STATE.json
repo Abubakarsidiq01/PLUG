@@ -1,11 +1,11 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-22T09:15:00-05:00",
+  "updated_at": "2026-09-22T17:20:00-05:00",
   "updated_by": "person_one",
   "current_phase": "P1",
-  "current_step": "P1.S1",
-  "current_step_title": "Agree the Phase 1 identity and consent contract before feature implementation. G0 signed; Phase 0 contract 0.1.0 jointly agreed, as confirmed by Person One on 2026-09-22.",
+  "current_step": "P1.S12",
+  "current_step_title": "Person One's Phase 1 lane is implemented end to end: the auth contract (0.2.0, draft until the joint review), Apple verification with nonce and replay checks, phone verification with layered limits, guest identity and upgrade-in-place, the users / identities / sessions / consents migration, opaque short-lived access tokens with rotating revocable refresh sessions, server-side revocation, deny-by-default authorization with a resource-level test endpoint, the admin step-up rule, and the iOS welcome, sign-in, code-entry and consent screens with Keychain storage. Outstanding for G1: the joint contract review, the real-device evidence, and the connected checkpoint.",
   "manual_section": "27.2",
   "readme": "docs/phases/P1-ONE.md",
   "owner": "person_one",
@@ -33,16 +33,44 @@
   "contracts": {
     "GET /health": "frozen@0.1.0",
     "GET /health/ready": "frozen@0.1.0",
-    "POST /v1/requests": "frozen@0.1.0"
+    "POST /v1/requests": "frozen@0.1.0",
+    "POST /v1/auth/apple": "draft",
+    "POST /v1/auth/phone/start": "draft",
+    "POST /v1/auth/phone/verify": "draft",
+    "POST /v1/auth/guest": "draft",
+    "POST /v1/auth/refresh": "draft",
+    "POST /v1/auth/logout": "draft",
+    "GET /v1/me": "draft",
+    "POST /v1/me/consent": "draft",
+    "GET /v1/me/sessions": "draft",
+    "GET /v1/me/sessions/{session_id}": "draft",
+    "DELETE /v1/me/sessions/{session_id}": "draft"
   },
-  "feature_flags": {},
+  "feature_flags": {
+    "identity": "staging_only",
+    "phone_code_delivery": "off"
+  },
   "next_actions": [
     {
-      "id": "P1-auth-contract",
-      "owner": "person_one",
-      "task": "Together with Person Two, agree and merge the Phase 1 Apple, phone, guest, session/refresh/logout, errors and consent contract before implementing features.",
+      "id": "P1-auth-contract-review",
+      "owner": "person_two",
+      "task": "Review contracts/openapi.yaml 0.2.0 and contracts/CHANGELOG.md with Person One: token payload, the 15-minute access and rotating 30-day / 7-day refresh rules, every error code, the invalid/expired details tokens on a one-time code, the guest scope limit on /v1/me/sessions, and the consent version. The implementation is on p1.s1-one-identity-and-consent and follows the contract; if the review changes the contract, the implementation changes with it.",
       "manual_section": "27.2",
-      "acceptance": "Both engineers record agreement; contract, examples and fixtures are reviewed and merged."
+      "acceptance": "Both engineers approve the contract pull request and the eleven Phase 1 operations move from draft to frozen@0.2.0 in this file."
+    },
+    {
+      "id": "P1-device-evidence",
+      "owner": "person_one",
+      "task": "Capture evidence/P1/: one screenshot per required state from the manual.docx 12 matrix on a real iPhone at default and largest Dynamic Type, a VoiceOver walkthrough of sign-in, one recorded deliberate failure and its recovery, and the backend log line carrying the request id. Sign in with Apple on the physical device, force-quit, relaunch, and confirm the session is still there.",
+      "manual_section": "27.2",
+      "acceptance": "evidence/P1/ has one image per required cell, the relaunch is demonstrated on a real device, and no token appears in the captured logs."
+    },
+    {
+      "id": "P1-connected-checkpoint",
+      "owner": "person_one",
+      "task": "Run the G1 connected checkpoint with Person Two against real staging: Apple sign-in, guest upgrade, logout revocation, the BOLA and IDOR cases and the refresh-replay case, with one correlation id confirmed in both lanes' logs.",
+      "manual_section": "27.2",
+      "acceptance": "One request id appears in the iOS log and the backend log in the same session, and the abuse suite runs against staging with both engineers present."
     },
     {
       "id": "P1-person-two-evidence",
@@ -53,14 +81,22 @@
     }
   ],
   "do_not_touch": [
-    "/ios/**",
-    "/infra/**",
-    "/backend/src/main/java/app/plug/security/**"
+    "/web/**",
+    "/tests/**",
+    "/fixtures/**",
+    "/design/**"
   ],
   "open_risks": [
+    "The eleven Phase 1 auth operations are implemented and tested but not yet frozen: they need the joint contract review that manual.docx 27.2 puts before implementation. Person One built to the contract as written rather than waiting, so a change agreed at that review is a change to both the contract and the implementation, in one pull request.",
+    "PLUG's own access and refresh tokens are opaque and resolved against the sessions table on every request (ADR-006). That is one indexed read and one last_used_at write per authenticated call. It has not been load-tested; measure before assuming it holds.",
+    "Phone verification has no delivery channel until Phase 3 (ADR-007). POST /v1/auth/phone/start answers 503 dependency_unavailable in staging. The brute-force and rate-limit cases are proved by automated tests, not yet against real staging, and G1 should record that.",
+    "Sign in with Apple needs the capability enabled on App ID com.abubakarsidiq01.plug.app101 in the Apple Developer portal before a device build will sign. The entitlement file is committed; the portal side is a manual step nobody has taken yet.",
+    "PLUG_IDENTITY_PEPPER is now required by the db and staging profiles, including for local ./dev databaseTest runs. It keys the stored phone, Apple-subject and one-time-code hashes, so rotating it makes every existing identity unrecognisable. It has no secret-storage home yet beyond .env.local and the CI workflow.",
+    "No account type in Phase 1 can be granted the admin scope, so every route under /v1/admin is refused. AdminStepUpAuthorization is in place ahead of the first admin route, but nothing exercises the allow path yet — that arrives with the admin identity model in Phase 5.",
+    "The consent links point at PLUG_WEB_URL plus /terms and /privacy. Person Two owns those routes (P1-TWO), no production domain has been decided, and an unset value shows the labels as plain text rather than as links that go nowhere.",
     "Operational health routes reject requests carrying tunnel/proxy forwarding headers by design (SecurityConfiguration.directProbeOnly()). GET /health/ready correctly returns HTTP 401 through the public tunnel; GET /health and the POST /v1/requests cases pass. Confirmed from both Person One's Mac/iPhone and, on 2026-09-22, Person Two's own Windows PC — the ADR-005 deferral for her own-machine API run is resolved.",
     "AWS staging is deferred (ADR-004) — no budget available right now, even for the near-$0/month minimal design in docs/runbooks/aws-staging-setup.md. The Phase 0 connected checkpoint uses a cloudflared Quick Tunnel instead; revisit AWS no later than Phase 3, when Twilio needs a stable (non-rotating) webhook URL a Quick Tunnel can't provide.",
-    "Backend has no Redis dependency or Redis readiness check, even though infra/compose.yml and docker-compose.yml provision Redis. Either wire it in when something actually needs it, or drop it from Compose — don't let 'provisioned but unused' stand as if it were tested.",
+    "Backend has no Redis dependency or Redis readiness check, even though infra/compose.yml and docker-compose.yml provision Redis. The Phase 1 rate limits are counted in one process's memory through FixedWindowLimiter, which is correct for one instance and wrong the moment there are two. Wire Redis in before the backend is ever run as more than one process.",
     "PRODUCT_BUNDLE_IDENTIFIER changed to com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account) and committed to project.pbxproj.",
     "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file — no Figma access was available this session.",
     "ADR-005 personal setup evidence remains an explicit Phase 1 onboarding follow-up: Windows Docker/WSL/database and Bruno results are operator-reported, and local sanitized reports must still be attached. PR #23 reports a clean 21/21 browser run; hosted CI is separate evidence."

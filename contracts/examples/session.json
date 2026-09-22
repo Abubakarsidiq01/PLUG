@@ -1,0 +1,16 @@
+{
+  "access_token": "pat_3Rv6Qk1xWm9ZbT0sLuHc2JqEa7Nd4YfP",
+  "access_token_expires_at": "2026-09-22T15:15:00Z",
+  "refresh_token": "prt_8Hc2XyLa0Bn5TqWe6MvKd1Rz3JgU9sFo",
+  "refresh_token_expires_at": "2026-10-22T15:00:00Z",
+  "account": {
+    "user_id": "usr_0f5c9d2a-7b31-4a80-9c6e-2d1f8b4a3e77",
+    "type": "apple",
+    "scopes": ["member"]
+  },
+  "consent": {
+    "current_version": "2026-09-01",
+    "accepted_version": "2026-09-01",
+    "accepted_at": "2026-09-22T15:00:00Z"
+  }
+}

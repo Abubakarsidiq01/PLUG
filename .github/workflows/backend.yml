@@ -22,6 +22,9 @@ jobs:
         options: --health-cmd "pg_isready -U plug -d plug" --health-interval 5s --health-timeout 3s --health-retries 10
     env:
       PLUG_DATABASE_PASSWORD: ci-only-password
+      # The db profile runs the identity module, which refuses to start without a pepper.
+      # A CI-only value: it never leaves the runner and is not the one staging uses.
+      PLUG_IDENTITY_PEPPER: ci-only-identity-pepper-value-32chars
     defaults:
       run:
         working-directory: backend

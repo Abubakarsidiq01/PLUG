@@ -1,15 +1,9 @@
 package app.plug.foundation;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
@@ -25,36 +19,35 @@ class ContractTest {
     @Autowired MockMvc mvc;
     private final ObjectMapper json = new ObjectMapper();
 
-    private void validate(String schemaName, JsonNode body) throws Exception {
-        var document = new ObjectMapper(new YAMLFactory()).readTree(Path.of("../contracts/openapi.yaml").toFile());
-        ObjectNode schema = json.createObjectNode();
-        schema.put("$schema", "https://json-schema.org/draft/2020-12/schema");
-        schema.put("$ref", "#/components/schemas/" + schemaName);
-        schema.set("components", document.get("components"));
-        var errors = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V202012).getSchema(schema).validate(body);
-        assertTrue(errors.isEmpty(), errors.toString());
-    }
-
     @Test
     void sharedExamplesMatchTheirSchemas() throws Exception {
-        validate("HealthResponse", json.readTree(Path.of("../contracts/examples/health-response.json").toFile()));
-        validate("ReadinessResponse", json.readTree(Path.of("../contracts/examples/readiness-response.json").toFile()));
-        validate("RequestCreate", json.readTree(Path.of("../contracts/examples/request-create.json").toFile()));
-        validate("RequestResponse", json.readTree(Path.of("../contracts/examples/request-response.json").toFile()));
-        validate("Error", json.readTree(Path.of("../contracts/examples/validation-error.json").toFile()));
-        validate("Error", json.readTree(Path.of("../contracts/examples/authorization-error.json").toFile()));
-        validate("Error", json.readTree(Path.of("../contracts/examples/transient-error.json").toFile()));
-        validate("Error", json.readTree(Path.of("../contracts/examples/rate-limited.json").toFile()));
+        ContractSchemas.validateExample("HealthResponse", "health-response.json");
+        ContractSchemas.validateExample("ReadinessResponse", "readiness-response.json");
+        ContractSchemas.validateExample("RequestCreate", "request-create.json");
+        ContractSchemas.validateExample("RequestResponse", "request-response.json");
+        ContractSchemas.validateExample("Error", "validation-error.json");
+        ContractSchemas.validateExample("Error", "authorization-error.json");
+        ContractSchemas.validateExample("Error", "transient-error.json");
+        ContractSchemas.validateExample("Error", "rate-limited.json");
+        // Phase 1. Every example the two lanes build against is checked against the same
+        // schema the server answers with, so a hand-written example cannot drift.
+        ContractSchemas.validateExample("Session", "session.json");
+        ContractSchemas.validateExample("PhoneChallenge", "phone-challenge.json");
+        ContractSchemas.validateExample("Me", "me.json");
+        ContractSchemas.validateExample("SessionSummary", "session-summary.json");
+        ContractSchemas.validateExample("Error", "invalid-code-error.json");
+        ContractSchemas.validateExample("Error", "expired-code-error.json");
+        ContractSchemas.validateExample("Error", "account-link-conflict-error.json");
     }
 
     @Test
     void realProviderResponsesMatchTheContract() throws Exception {
-        validate("HealthResponse", json.readTree(mvc.perform(get("/health")).andReturn().getResponse().getContentAsString()));
-        validate("ReadinessResponse", json.readTree(mvc.perform(get("/health/ready")).andReturn().getResponse().getContentAsString()));
+        ContractSchemas.validate("HealthResponse", json.readTree(mvc.perform(get("/health")).andReturn().getResponse().getContentAsString()));
+        ContractSchemas.validate("ReadinessResponse", json.readTree(mvc.perform(get("/health/ready")).andReturn().getResponse().getContentAsString()));
         String input = Files.readString(Path.of("../contracts/examples/request-create.json"));
-        validate("RequestResponse", json.readTree(mvc.perform(post("/v1/requests")
+        ContractSchemas.validate("RequestResponse", json.readTree(mvc.perform(post("/v1/requests")
                 .contentType(MediaType.APPLICATION_JSON).content(input)).andReturn().getResponse().getContentAsString()));
-        validate("Error", json.readTree(mvc.perform(post("/v1/requests")
+        ContractSchemas.validate("Error", json.readTree(mvc.perform(post("/v1/requests")
                 .contentType(MediaType.APPLICATION_JSON).content("{bad")).andReturn().getResponse().getContentAsString()));
     }
 }

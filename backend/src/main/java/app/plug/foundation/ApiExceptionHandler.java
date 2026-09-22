@@ -35,6 +35,24 @@ public class ApiExceptionHandler {
                 details, null)));
     }
 
+    // Failures the caller is allowed to see. Declared before the catch-all below so a
+    // deliberate 401, 404 or 429 is never flattened into internal_error. A 401 carries the
+    // WWW-Authenticate header the HTTP specification requires, matching what the security
+    // filter chain already sends for an anonymous request.
+    @ExceptionHandler(ApiException.class)
+    ResponseEntity<ErrorEnvelope> expected(ApiException exception, HttpServletRequest request) {
+        var response = ResponseEntity.status(exception.status());
+        if (exception.status() == 401) {
+            response = response.header("WWW-Authenticate", "Bearer");
+        }
+        if (exception.retryAfterSeconds() != null) {
+            response = response.header("Retry-After", String.valueOf(exception.retryAfterSeconds()));
+        }
+        return response.body(new ErrorEnvelope(new ErrorBody(exception.code(), exception.getMessage(),
+                String.valueOf(request.getAttribute(CorrelationFilter.REQUEST_ATTRIBUTE)),
+                exception.details(), exception.retryAfterSeconds())));
+    }
+
     @ExceptionHandler(org.springframework.web.HttpMediaTypeNotSupportedException.class)
     ResponseEntity<ErrorEnvelope> contentType(HttpServletRequest request) {
         return build(request, 415, "validation_failed", "Send a JSON request body.");
