@@ -1,0 +1,65 @@
+P0-connected-checkpoint — joint live session, 2026-09-22
+
+Participants:
+  person_one (Abubakar) — physical iPhone, tethered build, via cloudflared Quick Tunnel
+  person_two (Uzoma)    — Windows PC, PowerShell, `bru` CLI + Invoke-RestMethod, via the
+                           same live tunnel URL, tests/api/environments/staging.bru
+
+Backend terminal (person_one's Mac, `./gradlew bootRun`, PID 30349), transcribed from
+evidence/P0/logs/Screenshot 2026-09-22 at 12.08.28 AM.png:
+
+2026-09-21T23:59:37.xxx-05:00  INFO 30349 --- [plug-api] app.plug.foundation.CorrelationFilter
+  : http_request request_id=req_cd0eea5f-c429-4300-8f59-3df0806?6d0a method=GET path=unmapped status=401
+2026-09-21T23:59:40.357-05:00  INFO 30349 --- [plug-api] app.plug.foundation.CorrelationFilter
+  : http_request request_id=req_3c30700e-3ab8-4cfd-8bf6-47526d0b9af3 method=POST path=/v1/requests status=400
+2026-09-21T23:59:43.968-05:00  INFO 30349 --- [plug-api] app.plug.foundation.CorrelationFilter
+  : http_request request_id=req_8fb31027-41ed-49f5-bbb5-18562047545f method=POST path=/v1/requests status=202
+2026-09-22T00:00:18.864-05:00  INFO 30349 --- [plug-api] app.plug.foundation.CorrelationFilter
+  : http_request request_id=req_0679b3c7-03e2-4adc-9b22-97afa316e6f2 method=POST path=/v1/requests status=202
+2026-09-22T00:02:34.591-05:00  INFO 30349 --- [plug-api] app.plug.foundation.CorrelationFilter
+  : http_request request_id=req_b78c1781-9266-4900-808b-16d18e293037 method=GET path=/health status=200
+2026-09-22T00:06:54.630-05:00  INFO 30349 --- [plug-api] app.plug.foundation.CorrelationFilter
+  : http_request request_id=req_13c7c30c-156e-4cca-ac20-9cacfe6ff9f0 method=POST path=/v1/requests status=202
+
+Matching evidence:
+  iPhone Engineering tab (evidence/P0/ios/Screenshot 2026-09-22 at 12.03.34 AM.png) shows:
+    API Status: Connected
+    Version:    0.0.1-SNAPSHOT
+    Commit:     dev
+    Request ID: req_b78c1781-9266-4900-808b-16d18e293037
+
+  That request_id is present verbatim in the backend log above (00:02:34, GET /health, 200) —
+  confirms the physical iPhone reached this exact live backend process.
+
+Person Two's Windows terminal output (as sent, PowerShell):
+
+  First attempt (curl.exe, PowerShell quoting mangled the JSON body — expected/harmless):
+    curl: (3) URL rejected: Port number was not a decimal number between 0 and 65535
+    curl: (6) Could not resolve host: under
+    ...
+    {"error":{"code":"validation_failed","message":"The JSON request body could not be read.",
+      "request_id":"req_3c30700e-3ab8-4cfd-8bf6-47526d0b9af3","details":[]}}
+    (matches backend log line at 23:59:40, status=400 — consistent, not a bug)
+
+  Second attempt (Invoke-RestMethod, correct PowerShell syntax):
+    request_id                               status   next_action
+    ----------                               ------   -----------
+    req_6e24a694-6d4a-418a-bb9c-2500fd65d224 RECEIVED PROCESSING
+
+  Bruno collection run (bru run health.bru requests-create-success.bru
+  requests-create-validation-error.bru --env local --env-var baseUrl=<tunnel-url>):
+    Requests: 3 (3 Passed) | Tests: 3/3 | Assertions: 8/8 | Status: PASS
+    (health-ready.bru intentionally excluded — SecurityConfiguration.directProbeOnly()
+    rejects forwarded requests to /health/ready by design; confirmed separately)
+
+  Third attempt (later re-run):
+    request_id                               status   next_action
+    ----------                               ------   -----------
+    req_3ff8dacd-e4d6-42fd-aff8-b09c09a9c5a7 RECEIVED PROCESSING
+
+Conclusion:
+  Both person_one (physical iPhone) and person_two (Windows PC, PowerShell + Bruno) reached
+  the same live backend process, at the same tunnel URL, within the same session window
+  (2026-09-21T23:59 to 2026-09-22T00:06 CDT/-05:00). The iPhone's displayed request_id was
+  independently confirmed inside the backend's own terminal log. This satisfies
+  PROJECT_STATE.json's P0-connected-checkpoint acceptance criterion.

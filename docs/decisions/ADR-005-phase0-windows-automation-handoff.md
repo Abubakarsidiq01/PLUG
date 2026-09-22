@@ -46,3 +46,19 @@ her behalf, bypass GitHub's required independent review, or sign G0. Record the
 actual evidence and this accepted deferral in the PR; retain accurate pending
 items until they are performed. The existing ADR-004 cloud-staging limitations
 continue to apply.
+
+## Update — 2026-09-22
+
+Deferred item 3 (a public HTTPS API run from Person Two's own computer) was
+completed for real, ahead of Phase 1, during a live joint session: Person One's
+physical iPhone and Person Two's own Windows PC (PowerShell, `bru` CLI and
+`Invoke-RestMethod`) both reached the same cloudflared Quick Tunnel within the
+same session window, and Person One's iPhone request_id was independently
+confirmed inside the backend's own terminal log. See
+`evidence/P0/logs/connected-checkpoint-2026-09-22.log` and the accompanying
+screenshots in `evidence/P0/ios/` and `evidence/P0/logs/`.
+
+Deferred items 1 (interactive Docker Desktop/WSL2 setup, database-enabled local
+backend on her own machine) and 2 (her independent reading of the Phase 0
+contracts before the Phase 1 identity/consent contract) remain open and are
+still owned by Person Two at the start of Phase 1.
