@@ -47,10 +47,16 @@ stop and open a contract pull request instead.
 ## 1. Environment
 
 ```bash
-docker compose up -d postgres redis
-./gradlew :backend:flywayMigrate
-./gradlew :backend:bootRun          # http://localhost:8080
-open ios/PLUG.xcodeproj             # scheme: PLUG-Staging
+# From the repository root, after completing docs/onboarding/mac.md:
+set -a
+source .env.local
+set +a
+docker compose --env-file .env.local up -d --wait postgres redis
+cd backend
+./dev bootRun --args='--spring.profiles.active=db'
+# Flyway migrations run at startup. Leave this terminal running.
+# In a second terminal at the repository root:
+open ios/Plug.xcodeproj             # scheme: Plug
 ```
 
 If any of those commands fails on a clean machine, that is a bug in
@@ -102,14 +108,21 @@ verbal description.
 - [ ] BOLA test across user, supplier and admin resource IDs.
 - [ ] Log inspection confirms no access token, refresh token, OTP secret or authorization header is emitted.
 
-Verify with:
+Verify the existing baseline with:
 
 ```bash
-./gradlew :backend:test :backend:contractTest
-./gradlew :backend:test --tests '*ArchitectureTest'
-xcodebuild test -scheme PLUG-Staging -destination 'platform=iOS Simulator,name=iPhone 15'
-# Then, on a REAL device, run this phase's primary flow before claiming it works.
+(cd backend && ./dev check)
+xcodebuild -showdestinations -project ios/Plug.xcodeproj -scheme Plug
+# Choose an installed simulator UUID from the output above:
+xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
+  -destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID'
 ```
+
+`ContractTest` runs in the normal backend test task; there is no separate
+`contractTest` task or `ArchitectureTest` class yet. Add the Phase 1 security
+tests with the approved implementation and document their commands here.
+Passing the baseline does not prove the Phase 1 cases above. Run the completed
+authentication flow on a real device before claiming G1.
 
 ---
 
