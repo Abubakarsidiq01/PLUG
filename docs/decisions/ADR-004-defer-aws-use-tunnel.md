@@ -43,15 +43,19 @@ only a denial signal, not trusted client identity. Keep
 `server.forward-headers-strategy=none`; cloud ingress still needs private
 network/probe rules when it is introduced.
 
-From the repository root, both machines can use these commands (substitute
-the current tunnel URL; do not commit a temporary URL):
+After installing the locked CLI from the onboarding guide, run this on macOS
+from the repository root (substitute the current tunnel URL):
 
 ```text
 cd tests/api
-bru run health.bru requests-create-success.bru requests-create-validation-error.bru --env local --env-var baseUrl=https://YOUR-CURRENT-TUNNEL.trycloudflare.com
+../../tools/bruno/node_modules/.bin/bru run health.bru requests-create-success.bru requests-create-validation-error.bru --env local --env-var baseUrl=https://YOUR-CURRENT-TUNNEL.trycloudflare.com
 ```
 
-Run the full collection locally with `bru run --env local` from `tests/api`.
+On Windows, use `& "../../tools/bruno/node_modules/.bin/bru.cmd"` in place of
+the executable above; the complete PowerShell command is in
+`docs/testing/phase-0-joint-checkpoint.md`.
+
+Run the full collection locally with `../../tools/bruno/node_modules/.bin/bru run --env local` from `tests/api`.
 `health-ready.bru` belongs to that direct local check, not the public tunnel
 run. Public access to `/health/ready` must be rejected. The signed-token
 `staging` profile remains separate and still requires its configured issuer,

@@ -17,7 +17,8 @@ cd PLUG
 cp .env.example .env.local        # never commit this
 # Set PLUG_DATABASE_PASSWORD to a local-only value in .env.local.
 # Add node@22's bin directory to PATH as directed by Homebrew, then:
-npm install -g pnpm@9.15.9 @usebruno/cli
+npm install -g pnpm@9.15.9
+npm ci --prefix tools/bruno --ignore-scripts --no-audit --no-fund
 
 # 3. Local data services
 set -a

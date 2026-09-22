@@ -138,7 +138,7 @@ tunnel base URL for `YOUR-CURRENT-TUNNEL`:
 
 ```powershell
 Push-Location tests/api
-bru run health.bru requests-create-success.bru requests-create-validation-error.bru --env local --env-var baseUrl=https://YOUR-CURRENT-TUNNEL.trycloudflare.com
+& "../../tools/bruno/node_modules/.bin/bru.cmd" run health.bru requests-create-success.bru requests-create-validation-error.bru --env local --env-var baseUrl=https://YOUR-CURRENT-TUNNEL.trycloudflare.com
 Pop-Location
 curl.exe -i https://YOUR-CURRENT-TUNNEL.trycloudflare.com/health/ready
 ```

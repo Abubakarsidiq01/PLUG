@@ -1,0 +1,17 @@
+{
+  "name": "plug-bruno-tooling",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Locked Bruno CLI for reproducible API checks",
+  "devDependencies": {
+    "@usebruno/cli": "4.1.0"
+  },
+  "overrides": {
+    "axios": "1.20.0",
+    "form-data": "4.0.6",
+    "nanoid": "3.3.19",
+    "@faker-js/faker": "10.6.0",
+    "csv-parse": "7.0.2",
+    "uuid": "11.1.1"
+  }
+}
