@@ -1,5 +1,25 @@
 # Phase 0 verification evidence
 
+## Current closeout — 22 September 2026
+
+G0 was signed in PR #21 after the real joint public checkpoint; PRs #22 and #23
+are merged. All seven workflow jobs passed on merged main `c855ca0`.
+The earlier records below retain their original scope and dates.
+
+- [Joint checkpoint](logs/connected-checkpoint-2026-09-22.log): actual phone and
+  Windows participation, superseding the earlier public-test deferral.
+- [Database resilience](logs/database-resilience-2026-09-22.md): real pool
+  exhaustion, slow-query cancellation and recovery tests added at closeout.
+- [Person Two setup record](../../docs/onboarding/person-two-setup-record.md):
+  Node version and the clean 21/21 local browser run reported in PR #23.
+- Person One confirmed on 22 September that both engineers agreed the existing
+  Phase 0 API contract at 0.1.0. This records that confirmation, not a new GitHub
+  review submitted on either person's behalf.
+
+AWS remains deferred under ADR-004. ADR-005's local setup report follow-up is
+carried into P1; the public checkpoint is complete. Phase 1 authentication has
+not been implemented or tested. See `PROJECT_STATE.json` for the current state.
+
 ## Windows
 
 The real Windows runner passed on source commit `16b9c57`:

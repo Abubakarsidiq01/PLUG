@@ -14,8 +14,10 @@ Windows 11 computer.
 - **Web browser tests (operator-reported):** two desktop accessibility cases
   (`public-shell`, `admin-login`) timed out on the first cold run; a targeted
   accessibility rerun passed 6 of 6. The original report also stated 21/21, but
-  did not establish whether that was a separate complete run. A clean full-suite
-  result and its report still need confirmation.
+  did not establish whether that was a separate complete run. This was resolved
+  in PR #23 (commit `fc7d235`): Person Two reports a clean `.next` cache, no prior
+  server, and 21/21 passing in one run with no retries after bounding the slow
+  accessibility test appropriately. Local lint and production build also passed.
 - **Backend:** `docker compose -f infra/compose.yml up -d --wait` started a
   healthy Postgres; `bootRun` with the `db` profile started in about 6 s and
   `/actuator/health` returned 200.
@@ -44,9 +46,9 @@ earlier public-test deferral; it does not prove the Phase 1 authentication flows
 
 ## Still pending
 
-- Record the command/date/checkout for a full browser-suite
-  run, and sanitized Playwright/Bruno summaries under `evidence/P0/`. Keep the
-  observed timeout and rerun history; do not silently overwrite it.
+- Attach the sanitized local Playwright report for PR #23 and Bruno summaries
+  under `evidence/P0/`. The full-suite result is now confirmed by Person Two's
+  commit record; keep the earlier timeout and rerun history above.
 - Attach sanitized local database/Bruno evidence for the operator-reported setup
   above before closing the remaining personal setup action in the tracker.
 - Complete the joint Phase 1 contract review before authentication feature work.

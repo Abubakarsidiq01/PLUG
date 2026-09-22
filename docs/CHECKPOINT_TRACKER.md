@@ -3,6 +3,27 @@
 One row per feature. `PROJECT_STATE.json` is the machine-readable summary of
 where this has reached.
 
+## Current closeout — 22 September 2026
+
+G0 is signed in PR #21. PR #22 brought the onboarding corrections into main;
+PR #23 records Person Two's clean local 21/21 browser run. All seven CI jobs
+passed on merged main `c855ca0`. The Phase 0 API is frozen at 0.1.0 following
+Person One's explicit confirmation that both engineers agreed it.
+
+The closeout adds real database pool-exhaustion, query-timeout and recovery
+tests; see [their evidence](../evidence/P0/logs/database-resilience-2026-09-22.md).
+`PROJECT_STATE.json` advances to P1.S1: joint identity/consent contract review.
+The closeout changes still require their own PR checks and independent approval.
+
+Accepted limitations remain: temporary HTTPS staging under ADR-004 and local
+Windows setup report attachments under ADR-005. The actual public Windows test
+is complete. No Phase 1 authentication implementation or G1 completion is claimed.
+
+## Historical implementation snapshot — 20 September 2026
+
+The rows and pending descriptions below are retained as the earlier snapshot;
+use the closeout above and `PROJECT_STATE.json` for current status.
+
 20 September hardening verification is recorded in
 [the test report](testing/phase-0-hardening-2026-09-20.md). The current checkpoint
 uses ADR-004's temporary tunnel. These checks do not sign G0. Windows verification passed on `16b9c57`;

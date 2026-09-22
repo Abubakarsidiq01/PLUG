@@ -10,6 +10,8 @@ spring:
       minimum-idle: 2
       connection-timeout: 3000
       validation-timeout: 1000
+      # Apply a server-side bound to every pooled connection, including JPA queries.
+      connection-init-sql: SET statement_timeout = 5000
   flyway:
     clean-disabled: true
     validate-on-migrate: true
