@@ -1,0 +1,47 @@
+=== 1. Guest sign-in ===
+  PASS  POST /v1/auth/guest                                        201
+  PASS  guest scopes                                               ['guest']
+=== 2. Guest reads its own account, is refused session management ===
+  PASS  GET /v1/me                                                 200
+  PASS  GET /v1/me/sessions (guest limit)                          403
+  PASS    error code                                               "forbidden"
+=== 3. Unauthenticated and bad tokens are refused ===
+  PASS  GET /v1/me anonymous                                       401
+  PASS  GET /v1/me garbage token                                   401
+  PASS  GET /v1/me forged jwt                                      401
+  PASS  GET /v1/admin/anything                                     401
+  PASS  GET /v1/admin with a real session                          403
+=== 4. Phone verification ===
+  PASS  POST /v1/auth/phone/start                                  202
+  PASS  wrong code -> validation_failed                            400
+  PASS    details[0].code                                          "invalid"
+  PASS    error code                                               "validation_failed"
+=== 5. Guest upgrades in place ===
+  PASS  POST /v1/auth/phone/verify with guest token                201
+  PASS  user_id preserved across upgrade                           usr_08a15983-574c-403e-b79e-c1823b6ccd3a
+  PASS  account type                                               "phone"
+  PASS  old guest token revoked                                    401
+  PASS  member may list sessions                                   200
+=== 6. Refresh rotation and replay ===
+  PASS  POST /v1/auth/refresh                                      200
+  PASS  rotated access token differs                               different
+  PASS  replaying the spent refresh token                          401
+  PASS    chain revoked: rotated token also dead                   401
+  PASS    chain revoked: rotated refresh also dead                 401
+=== 7. BOLA / IDOR on a resource that takes an id ===
+  PASS  B reads A's session -> 404 not 403                         404
+  PASS  B deletes A's session -> 404                               404
+  PASS  A's session still alive after the attempt                  200
+  PASS  A reads its own session                                    200
+=== 8. Consent ===
+  PASS  unpublished consent version refused                        400
+  PASS    field                                                    "consent_version"
+  PASS  POST /v1/me/consent                                        200
+=== 9. Logout revokes server-side ===
+  PASS  POST /v1/auth/logout                                       204
+  PASS  access token dead after logout                             401
+=== 10. Brute force is stopped ===
+  PASS  guessing runs out of attempts                              429
+  PASS  asking for codes repeatedly is limited                     429
+
+RESULT: 35 passed, 0 failed

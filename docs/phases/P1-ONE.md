@@ -129,9 +129,28 @@ xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
 ```
 
 `ContractTest` runs in the normal backend test task; there is no separate
-`contractTest` task or `ArchitectureTest` class yet. Passing all of the above
-does not pass the gate: the Apple path has to be run on a real physical device,
-force-quit and relaunched, before anyone claims the session survives a relaunch.
+`contractTest` task or `ArchitectureTest` class yet.
+
+With a backend running, two more things can be checked end to end:
+
+```bash
+# The whole auth surface, 35 assertions, against a real database
+sh tools/phase1-auth-walkthrough.sh
+
+# The sign-in screens, photographed at both text sizes. Run this against a real
+# iPhone before the gate: the same test, and then the output IS the §12.3 evidence.
+xcodebuild test -project ios/Plug.xcodeproj -scheme Plug -only-testing:PlugUITests \
+  -destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID' \
+  CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER=""
+```
+
+`LiveBackendTests` joins the normal run whenever a backend is answering on
+`127.0.0.1:8080`, and skips when one is not. It prints the correlation ids to
+search for in the backend log.
+
+Passing all of the above does not pass the gate. The Apple path has to be run on
+a real physical device, force-quit and relaunched, before anyone claims the
+session survives a relaunch — and two people have to see it.
 
 ---
 

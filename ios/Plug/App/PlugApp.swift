@@ -8,6 +8,7 @@ struct PlugApp: App {
     init() {
         let environment = AppEnvironment.configured
         let client = APIClient(environment: environment)
+        PlugApp.resetStoredSessionIfUITesting()
         self.environment = environment
         _authentication = StateObject(wrappedValue: AuthenticationModel(
             client: client, sessions: SessionStore(client: client)))
@@ -17,6 +18,16 @@ struct PlugApp: App {
         WindowGroup {
             RootView(model: authentication, environment: environment)
         }
+    }
+
+    /// Lets the screenshot tests start from a signed-out app every time, instead of from
+    /// whatever the previous run left in the Keychain. Debug-only and driven by a launch
+    /// argument, so there is no path to it in a shipping build.
+    private static func resetStoredSessionIfUITesting() {
+        #if DEBUG
+        guard CommandLine.arguments.contains("-plug-ui-test-reset") else { return }
+        try? KeychainStore().delete(account: SessionStore.account)
+        #endif
     }
 }
 
@@ -73,8 +84,8 @@ struct ProfileView: View {
         NavigationStack {
             List {
                 Section("Account") {
-                    LabeledContent("Signed in with", value: description(of: session.account.type))
-                    LabeledContent("Terms accepted", value: session.consent.acceptedVersion ?? "Not yet")
+                    detailRow("Signed in with", description(of: session.account.type))
+                    detailRow("Terms accepted", session.consent.acceptedVersion ?? "Not yet")
                 }
                 if session.account.isGuest {
                     Section("Guest account") {
@@ -94,6 +105,23 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
+        }
+    }
+
+    /// A label and its value, side by side while that fits and stacked when it does not.
+    /// At the largest Dynamic Type size a side-by-side row leaves too little width for
+    /// either half, and the value ends up clipped — which is the failure §20.3 means by
+    /// "no fixed heights on text containers": let the layout grow instead.
+    private func detailRow(_ label: String, _ value: String) -> some View {
+        ViewThatFits(in: .horizontal) {
+            LabeledContent(label, value: value)
+            VStack(alignment: .leading, spacing: PlugSpacing.small / 2) {
+                Text(label).foregroundStyle(.secondary)
+                Text(value)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityElement(children: .combine)
         }
     }
 

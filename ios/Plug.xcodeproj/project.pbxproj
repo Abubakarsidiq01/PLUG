@@ -35,10 +35,19 @@
 		A1000000000000000000025B /* SessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000067 /* SessionStoreTests.swift */; };
 		A1000000000000000000025C /* AuthenticationModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000068 /* AuthenticationModelTests.swift */; };
 		A10000000000000000000D /* Core/Networking/PlugJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000C /* Core/Networking/PlugJSON.swift */; };
+		A1000000000000000000E4 /* LiveBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000E3 /* LiveBackendTests.swift */; };
+		A1000000000000000000F8 /* SignInScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000F7 /* SignInScreenshotTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		000000000000000000043001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000050001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000000054001;
+			remoteInfo = Plug;
+		};
+		A1000000000000000000FD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 000000000000000000050001 /* Project object */;
 			proxyType = 1;
@@ -79,6 +88,9 @@
 		A10000000000000000000068 /* AuthenticationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationModelTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000384 /* Resources/Plug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Resources/Plug.entitlements"; sourceTree = "<group>"; };
 		A10000000000000000000C /* Core/Networking/PlugJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Networking/PlugJSON.swift"; sourceTree = "<group>"; };
+		A1000000000000000000E3 /* LiveBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBackendTests.swift; sourceTree = "<group>"; };
+		A1000000000000000000F7 /* SignInScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInScreenshotTests.swift; sourceTree = "<group>"; };
+		A1000000000000000000F2 /* PlugUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +109,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1000000000000000000F4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -105,6 +124,7 @@
 			children = (
 				000000000000000000047002 /* Plug */,
 				000000000000000000047003 /* PlugTests */,
+				A1000000000000000000F6 /* PlugUITests */,
 				000000000000000000047004 /* Products */,
 				000000000000000000047005 /* Frameworks */,
 			);
@@ -142,6 +162,7 @@
 				000000000000000000042005 /* HealthResponseTests.swift */,
 				000000000000000000042009 /* ../../contracts/examples/health-response.json */,
 				000000000000000000042011 /* APIClientTests.swift */,
+				A1000000000000000000E3 /* LiveBackendTests.swift */,
 				A10000000000000000000064 /* TestTransport.swift */,
 				A10000000000000000000065 /* InMemoryCredentialStore.swift */,
 				A10000000000000000000066 /* KeychainStoreTests.swift */,
@@ -156,6 +177,7 @@
 			children = (
 				000000000000000000042006 /* Plug.app */,
 				000000000000000000042007 /* PlugTests.xctest */,
+				A1000000000000000000F2 /* PlugUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -191,6 +213,14 @@
 				000000000000000000042004 /* HealthView.swift */,
 			);
 			path = Features/Engineering;
+			sourceTree = "<group>";
+		};
+		A1000000000000000000F6 /* PlugUITests */ = {
+			isa = PBXGroup;
+			children = (
+				A1000000000000000000F7 /* SignInScreenshotTests.swift */,
+			);
+			path = PlugUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -231,6 +261,24 @@
 			productReference = 000000000000000000042007 /* PlugTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		A1000000000000000000F1 /* PlugUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1000000000000000000F9 /* Build configuration list for PBXNativeTarget "PlugUITests" */;
+			buildPhases = (
+				A1000000000000000000F3 /* Sources */,
+				A1000000000000000000F4 /* Frameworks */,
+				A1000000000000000000F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1000000000000000000FC /* PBXTargetDependency */,
+			);
+			name = PlugUITests;
+			productName = PlugUITests;
+			productReference = A1000000000000000000F2 /* PlugUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -245,6 +293,10 @@
 						CreatedOnToolsVersion = 16.0;
 					};
 					000000000000000000054002 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 000000000000000000054001;
+					};
+					A1000000000000000000F1 = {
 						CreatedOnToolsVersion = 16.0;
 						TestTargetID = 000000000000000000054001;
 					};
@@ -265,6 +317,7 @@
 			targets = (
 				000000000000000000054001 /* Plug */,
 				000000000000000000054002 /* PlugTests */,
+				A1000000000000000000F1 /* PlugUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -282,6 +335,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000041007 /* ../../contracts/examples/health-response.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1000000000000000000F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -320,11 +380,20 @@
 			files = (
 				000000000000000000041005 /* HealthResponseTests.swift in Sources */,
 				000000000000000000041009 /* APIClientTests.swift in Sources */,
+				A1000000000000000000E4 /* LiveBackendTests.swift in Sources */,
 				A10000000000000000000258 /* TestTransport.swift in Sources */,
 				A10000000000000000000259 /* InMemoryCredentialStore.swift in Sources */,
 				A1000000000000000000025A /* KeychainStoreTests.swift in Sources */,
 				A1000000000000000000025B /* SessionStoreTests.swift in Sources */,
 				A1000000000000000000025C /* AuthenticationModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1000000000000000000F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000F8 /* SignInScreenshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -335,6 +404,11 @@
 			isa = PBXTargetDependency;
 			target = 000000000000000000054001 /* Plug */;
 			targetProxy = 000000000000000000043001 /* PBXContainerItemProxy */;
+		};
+		A1000000000000000000FC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000000054001 /* Plug */;
+			targetProxy = A1000000000000000000FD /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -425,6 +499,30 @@
 			};
 			name = Release;
 		};
+		A1000000000000000000FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Plug;
+			};
+			name = Debug;
+		};
+		A1000000000000000000FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Plug;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -451,6 +549,15 @@
 			buildConfigurations = (
 				00000000000000000004312D /* Debug */,
 				00000000000000000004312E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1000000000000000000F9 /* Build configuration list for PBXNativeTarget "PlugUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000000000000000000FA /* Debug */,
+				A1000000000000000000FB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1,26 +1,68 @@
 # Evidence — Phase 1, identity and consent
 
-Nothing here yet. This file exists so the gap is visible rather than discovered at
-the gate, and so nobody reads an empty folder as "no evidence was required".
+Two kinds of thing live here, and the difference matters.
 
-Gate G1 needs all of the following, and the reviewer checks this folder against the
-state matrix in manual.docx §12 before anything else.
+**What has been verified** is in `logs/` and `simulator/`. It was produced by running the
+real backend against a real PostgreSQL database and the real app in the Simulator, and it
+is reproducible with the commands below.
 
-| Folder | What goes in it | Accepted only if |
-|---|---|---|
-| `ios/` | One screenshot per required state on the welcome, sign-in and code-entry screens: loading, empty, error, offline, permission denied, expired, partial, success | Captured on a real iPhone, at default **and** at the largest Dynamic Type size |
-| `failures/` | At least one deliberate failure and its recovery | Recorded, not described — a wrong code, then the right one, or the tunnel dropped mid-sign-in |
-| `a11y/` | A VoiceOver walkthrough of Apple sign-in end to end | Every control is reachable and announced; 44pt minimum targets hold |
-| `logs/` | The backend log covering the connected checkpoint | Contains the request ID that also appears in the iOS log, and contains no token, code, phone number or authorization header |
+**What is still missing** is at the bottom of this file. None of what is here passes gate
+G1. A gate is passed by two people in front of real staging (manual.docx §8.1 rule 10),
+and no amount of automation substitutes for that.
 
-Beyond the folders, the gate also needs:
+---
 
-- Sign in with Apple completed on a physical device, the app force-quit, relaunched,
-  and the session still there. This is the sentence the phase is judged on and no
-  automated test can stand in for it.
-- The correlation ID from the connected checkpoint, quoted in
-  `docs/CHECKPOINT_TRACKER.md`.
-- Both signatures on the `G1` entry in `PROJECT_STATE.json`.
+## What is here
 
-The automated suites are not evidence for this gate. They are in the repository and
-they run in CI; the gate asks what two people saw against real staging.
+| File | What it shows |
+|---|---|
+| `logs/local-auth-walkthrough.txt` | 35 assertions over the whole auth surface against a running backend: guest sign-in, the guest scope limit, anonymous and forged-token refusals, admin denial, wrong and expired codes, guest upgrade-in-place, refresh rotation, replay revoking the chain, BOLA/IDOR answering 404, consent, logout revocation, and both brute-force limits. |
+| `logs/log-leak-inspection.txt` | The backend log from that run searched for every access token, refresh token, authorization header, phone number and one-time code it handled. Also records what the log *does* keep: correlation ids, route templates and audit actions. |
+| `logs/request-id-correlation.txt` | The same request id appearing in the app's log and in the backend's log — the mechanic the connected checkpoint depends on (manual.docx §7 step 5). |
+| `simulator/` | The sign-in screens, photographed by `PlugUITests/SignInScreenshotTests.swift`, at the default text size and at the largest one. |
+
+## Reproducing it
+
+```bash
+# 1. Database and backend
+docker compose --env-file .env.local up -d --wait postgres
+cd backend
+PLUG_DATABASE_PASSWORD=... PLUG_IDENTITY_PEPPER=... \
+  ./dev bootRun --args='--spring.profiles.active=db --plug.identity.phone-delivery=development'
+
+# 2. The auth surface, end to end
+sh tools/phase1-auth-walkthrough.sh
+
+# 3. The screens
+xcodebuild test -project ios/Plug.xcodeproj -scheme Plug -only-testing:PlugUITests \
+  -destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID' \
+  CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER=""
+```
+
+The rate limits are counted per caller address and live in the backend's memory, so a
+second walkthrough inside fifteen minutes is refused — correctly. Restart the backend
+between runs.
+
+---
+
+## What is still missing, and why nothing here replaces it
+
+| Missing | Why it cannot be produced here |
+|---|---|
+| `ios/` — real-device captures | §12.3 requires a real device. The captures in `simulator/` are from the Simulator and are labelled as such. Run the same UI test on a physical iPhone and the output *is* the evidence. |
+| Sign in with Apple, on a device | Apple's sign-in sheet needs a real Apple Account on real hardware, and the capability has to be enabled for the App ID in the developer portal first. The server side is covered by `AppleSignInTest` against a key the test controls; the client side is not exercised until somebody signs in. |
+| Relaunch after Apple sign-in | The sentence this phase is judged on. `SessionStoreTests` and `LiveBackendTests` prove a session is restored from storage, but "force-quit the app on a phone and it is still signed in" has to be seen. |
+| `a11y/` — VoiceOver walkthrough | Has to be driven and recorded by a person. |
+| `failures/` — a recorded failure and recovery | The walkthrough exercises failures and the screenshots show the states, but §12.3 asks for a recording. |
+| Staging | ADR-004: there is no standing staging environment. Everything here ran against a local backend, not against the tunnel. |
+| Two signatures on `G1` | Only two humans can do this. |
+
+## One finding worth carrying into the gate
+
+The largest Dynamic Type size broke the Profile screen's label/value rows — the value was
+clipped. It is fixed (`ViewThatFits` in `PlugApp.swift`), and the before and after are the
+reason these captures are taken at both sizes rather than only at the default.
+
+The tab bar's own labels still crowd each other at that size. The tab names come from the
+screen inventory in manual.docx §13, so renaming them is a product decision rather than
+Person One's to take alone — it is recorded in `open_risks` instead.

@@ -7,7 +7,7 @@ import Foundation
 /// revoke, then clear the Keychain, then clear memory. Clearing only the Keychain leaves a
 /// working session on the server, which is the bug that makes "I logged out" untrue.
 actor SessionStore {
-    private static let account = "session"
+    static let account = "session"
 
     private let credentials: CredentialStore
     private let client: APIClient
