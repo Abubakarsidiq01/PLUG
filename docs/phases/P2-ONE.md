@@ -26,6 +26,38 @@ You are the final technical authority on this phase. If something here conflicts
 
 ---
 
+## Carried in from Phase 1
+
+Written when Phase 1 closed, so the decisions that constrain this phase are here
+rather than in somebody's memory.
+
+- **One identity, for the life of the account.** Key everything to
+  `account.user_id` from `GET /v1/me`. A guest is a real account with a real
+  user id, and upgrading to Apple or a phone keeps that id — which is the whole
+  reason a request started as a guest survives sign-in. Do not introduce a
+  second client identity (manual.docx §27.2 handoff note).
+- **Authorization is deny-by-default.** A route that is not named in
+  `identityRules()` in `SecurityConfiguration` is refused. That is intended: a
+  new endpoint fails closed until somebody writes its rule. Add the rule in the
+  same change as the route.
+- **Ownership is checked per resource, and a denial is a 404.** Follow
+  `MeController` and `SessionService.requireOwned`: take the owner from the
+  authenticated principal, never from the request, and answer 404 rather than
+  403 so an identifier cannot be confirmed by probing.
+- **Add new routes to `CorrelationFilter.safePath()`**, or they log as
+  `unmapped`. Paths carrying an identifier are logged as their template — see
+  how `/v1/me/sessions/{session_id}` is handled — so the id stays out of the log.
+- **The error-code enum is frozen.** Branch clients on
+  `error.details[].code` tokens rather than adding a new top-level code. Phase 1
+  did this for invalid and expired one-time codes.
+- **The tab bar labels crowd each other at the largest Dynamic Type size.** Visible
+  in `evidence/P1/simulator/06-guest-profile-largest-text.png`. The names come from
+  the screen inventory in manual.docx §13, so renaming them is a joint product
+  decision. This phase is the first to touch the tab bar — settle it with Person
+  Two here rather than carrying it further.
+
+---
+
 ## 0. Before any code — the contract
 
 This phase does not start with code. It starts with a fifteen-minute session

@@ -190,6 +190,11 @@ Store everything under `evidence/P1/`:
 
 ## 8. Closing the phase
 
+> The step-by-step version of everything below, including what is still
+> outstanding and who has to be in the room for it, is
+> `docs/runbooks/p1-gate-completion.md`.
+
+
 1. Run the audit prompt from §8.4 of the manual against your surface.
 2. Fix or formally except every critical and high finding. An exception needs an
    owner, a mitigation and an expiry date.

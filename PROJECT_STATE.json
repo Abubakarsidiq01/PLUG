@@ -1,7 +1,7 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-22T20:20:00-05:00",
+  "updated_at": "2026-09-22T20:45:00-05:00",
   "updated_by": "person_one",
   "current_phase": "P1",
   "current_step": "P1.S12",
@@ -61,14 +61,14 @@
     {
       "id": "P1-device-evidence",
       "owner": "person_one",
-      "task": "Capture evidence/P1/ios/ on a real iPhone. PlugUITests/SignInScreenshotTests.swift already walks the states and photographs them — run it with -only-testing:PlugUITests against a device and the output is the evidence. Then do by hand what it cannot: Sign in with Apple, force-quit, relaunch and confirm the session is still there; a VoiceOver walkthrough into a11y/; and one recorded failure and recovery into failures/. Enable the Sign in with Apple capability on the App ID first or the device build will not sign.",
+      "task": "Capture evidence/P1/ios/ on a real iPhone. PlugUITests/SignInScreenshotTests.swift already walks the states and photographs them — run it with -only-testing:PlugUITests against a device and the output is the evidence. Then do by hand what it cannot: Sign in with Apple, force-quit, relaunch and confirm the session is still there; a VoiceOver walkthrough into a11y/; and one recorded failure and recovery into failures/. Enable the Sign in with Apple capability on the App ID first or the device build will not sign. Step-by-step: docs/runbooks/p1-gate-completion.md.",
       "manual_section": "27.2",
       "acceptance": "evidence/P1/ios/ has one capture per required cell at both text sizes from a real device, the Apple relaunch is demonstrated, and a11y/ and failures/ are populated."
     },
     {
       "id": "P1-connected-checkpoint",
       "owner": "person_one",
-      "task": "Run the G1 connected checkpoint with Person Two against real staging: Apple sign-in, guest upgrade, logout revocation, the BOLA and IDOR cases and the refresh-replay case, with one correlation id confirmed in both lanes' logs.",
+      "task": "Run the G1 connected checkpoint with Person Two against real staging: Apple sign-in, guest upgrade, logout revocation, the BOLA and IDOR cases and the refresh-replay case, with one correlation id confirmed in both lanes' logs. Step-by-step: docs/runbooks/p1-gate-completion.md.",
       "manual_section": "27.2",
       "acceptance": "One request id appears in the iOS log and the backend log in the same session, and the abuse suite runs against staging with both engineers present."
     },
