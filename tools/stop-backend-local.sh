@@ -42,10 +42,15 @@ else
     echo "backend   : nothing was listening on 8080 or 8081"
 fi
 
-# The Gradle daemon keeps a JVM alive after bootRun exits and will happily hold file locks.
+# Gradle daemons outlive bootRun and hold file locks. There are two possible homes for
+# them: ./dev pins GRADLE_USER_HOME under .tools, while a plain ./gradlew run uses the
+# default ~/.gradle. Stopping only one leaves the other's daemon running, so stop both.
+echo "gradle    : stopping daemons"
 if [ -x backend/dev ]; then
-    echo "gradle    : stopping daemons"
     ./backend/dev --stop >/dev/null 2>&1 || true
+fi
+if [ -x backend/gradlew ]; then
+    (cd backend && env -u GRADLE_USER_HOME ./gradlew --stop >/dev/null 2>&1) || true
 fi
 
 echo ""
