@@ -55,7 +55,7 @@
     {
       "id": "P1-auth-contract-review",
       "owner": "person_two",
-      "task": "Review contracts/openapi.yaml 0.2.0 and contracts/CHANGELOG.md with Person One: token payload, the 15-minute access and rotating 30-day / 7-day refresh rules, every error code, the invalid/expired details tokens on a one-time code, the guest scope limit on /v1/me/sessions, and the consent version. The implementation is on p1.s1-one-identity-and-consent and follows the contract; if the review changes the contract, the implementation changes with it.",
+      "task": "Review contracts/openapi.yaml 0.2.0 and contracts/CHANGELOG.md with Person One: token payload, the 15-minute access and rotating 30-day / 7-day refresh rules, every error code, the invalid/expired details tokens on a one-time code, the guest scope limit on /v1/me/sessions, and the consent version. The implementation is on p1.s1-one-identity-and-consent and follows the contract; if the review changes the contract, the implementation changes with it. 2026-09-26: the draft 0.2.0 fixtures and examples from PR #25 were replaced with ones that match this implementation (consent_version, 201 sign-in, cha_ challenges, absolute expiry, Google, sign_up/sign_in intent, 503 dependency_unavailable) and are checked against the live backend by FixtureBehaviourTest; auth routes make no Idempotency-Key replay promise. Person One still has to approve before the operations are frozen.",
       "manual_section": "27.2",
       "acceptance": "Both engineers approve the contract pull request and the eleven Phase 1 operations move from draft to frozen@0.2.0 in this file."
     },

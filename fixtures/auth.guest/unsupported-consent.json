@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "Please review the current Terms and Privacy Policy to continue.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "consent_version",
+        "code": "unsupported",
+        "message": "Please review the current Terms and Privacy Policy to continue."
+      }
+    ]
+  }
+}

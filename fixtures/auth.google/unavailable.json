@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "dependency_unavailable",
+    "message": "Google sign-in is not available yet. Choose another method.",
+    "request_id": "req_01H8XK4Q7N",
+    "retry_after_seconds": 60
+  }
+}

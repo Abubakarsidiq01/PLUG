@@ -1,0 +1,6 @@
+{
+  "identity_token": "<google-identity-token>",
+  "nonce": "n-0123456789abcdef",
+  "consent_version": "2026-09-01",
+  "intent": "sign_in"
+}

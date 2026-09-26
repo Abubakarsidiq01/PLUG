@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "dependency_unavailable",
+    "message": "We cannot send codes right now. Choose another sign-in method or continue as a guest.",
+    "request_id": "req_01H8XK4Q7N",
+    "retry_after_seconds": 60
+  }
+}

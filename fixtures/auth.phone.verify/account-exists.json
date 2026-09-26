@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "You already have a PLUG account. Sign in instead.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "intent",
+        "code": "account_exists",
+        "message": "You already have a PLUG account. Sign in instead."
+      }
+    ]
+  }
+}
