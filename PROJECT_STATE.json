@@ -83,7 +83,7 @@
     {
       "id": "P1-web-legal-review",
       "owner": "person_two",
-      "task": "Review the public route shells, consent/error/upgrade copy, the closed admin boundary, Bruno auth collection and September 23 browser evidence. Supply and approve actual Terms and Privacy content before publishing its consent version. Extend staging auth evidence after the joint contract review.",
+      "task": "Review the public route shells, consent/error/upgrade copy, the closed admin boundary, Bruno auth collection and September 23 browser evidence. Supply and approve actual Terms and Privacy content before publishing its consent version. Extend staging auth evidence after the joint contract review. 2026-09-26: PR #26 integrated on top of #27 and #25 \u2014 one shared LegalPage shell carrying #27's placeholder copy, #27's single site footer (the separate home-page link row was dropped), Terms of Service naming to match the iOS consent screen, and 44x44px link targets asserted in Playwright on all three viewports.",
       "manual_section": "27.2",
       "acceptance": "Approved legal content and consent version agree across web, iOS and backend; remaining design/staging review is recorded."
     }
