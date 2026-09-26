@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "code_expired",
+    "message": "That code has expired. Request a new one.",
+    "request_id": "req_01H8XK4Q7N"
+  }
+}

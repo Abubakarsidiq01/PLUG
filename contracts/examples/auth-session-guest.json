@@ -1,0 +1,9 @@
+{
+  "user_id": "usr_01H8XK4Q7N",
+  "account_type": "GUEST",
+  "access_token": "<access-jwt>",
+  "access_expires_in_seconds": 900,
+  "refresh_token": "<refresh-token>",
+  "refresh_expires_in_seconds": 2592000,
+  "restrictions": ["CANNOT_CONTACT_SUPPLIERS", "CANNOT_SAVE_HISTORY"]
+}
