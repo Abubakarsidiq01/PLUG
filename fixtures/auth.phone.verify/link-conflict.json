@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "account_link_conflict",
+    "message": "That sign-in method belongs to a different account.",
+    "request_id": "req_01H8XK4Q7N"
+  }
+}

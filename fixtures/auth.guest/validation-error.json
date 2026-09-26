@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "The request was invalid.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      { "field": "query", "code": "notblank", "message": "must not be blank" }
+    ]
+  }
+}

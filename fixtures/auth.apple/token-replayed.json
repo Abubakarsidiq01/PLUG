@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "token_replayed",
+    "message": "This sign-in was already used. Please sign in again.",
+    "request_id": "req_01H8XK4Q7N"
+  }
+}
