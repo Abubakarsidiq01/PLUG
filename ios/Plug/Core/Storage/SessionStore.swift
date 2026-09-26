@@ -24,6 +24,7 @@ actor SessionStore {
     /// Called once at launch. A stored session whose refresh window has closed is removed
     /// rather than shown as a signed-in state the first request would then contradict.
     func restore() -> Session? {
+        session = nil
         guard let data = try? credentials.read(account: Self.account),
               let stored = try? PlugJSON.decoder.decode(Session.self, from: data) else { return nil }
         guard stored.canRefresh(at: now()) else {
@@ -37,8 +38,8 @@ actor SessionStore {
     func current() -> Session? { session }
 
     func adopt(_ new: Session) throws {
-        session = new
         try credentials.save(try PlugJSON.encoder.encode(new), account: Self.account)
+        session = new
     }
 
     /// The token to put on the next request. Refreshing is deduplicated: two screens waking
@@ -59,18 +60,20 @@ actor SessionStore {
             let rotated: Session = try await client.send(
                 try Endpoint.post("v1/auth/refresh", body: RefreshRequest(refreshToken: current.refreshToken)),
                 as: Session.self)
+            try Task.checkCancellation()
+            guard session?.refreshToken == current.refreshToken else { throw APIError.signedOut() }
             try adopt(rotated)
             return rotated
         } catch let error as APIError where error.code == "unauthenticated" {
             // The server ended the session: expired, revoked, or a replay it detected. The
             // device agrees with the server rather than holding a credential it cannot use.
-            await forget()
+            if session?.refreshToken == current.refreshToken { await forget() }
             throw error
         }
     }
 
     func signOut() async {
-        if let accessToken = session?.accessToken {
+        if let accessToken = try? await validAccessToken() {
             // A failure here is not a reason to keep the tokens on the device. The server
             // is told first; if the network drops, the local copy still goes.
             try? await client.sendExpectingNoContent(Endpoint.post("v1/auth/logout", accessToken: accessToken))

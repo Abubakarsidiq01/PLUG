@@ -1,4 +1,5 @@
 import SwiftUI
+import GoogleSignIn
 
 @main
 struct PlugApp: App {
@@ -17,6 +18,7 @@ struct PlugApp: App {
     var body: some Scene {
         WindowGroup {
             RootView(model: authentication, environment: environment)
+                .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
         }
     }
 
@@ -35,6 +37,7 @@ struct PlugApp: App {
 /// person sees the welcome screen; a signed-in one sees the product. Keeping that decision
 /// in one place is what stops a screen from being reachable without a session later.
 struct RootView: View {
+    @State private var hasRestored = false
     @ObservedObject var model: AuthenticationModel
     let environment: AppEnvironment
 
@@ -47,7 +50,12 @@ struct RootView: View {
                 WelcomeView(model: model, environment: environment)
             }
         }
-        .task { await model.restore() }
+        .tint(PlugColor.brand)
+        .task {
+            guard !hasRestored else { return }
+            hasRestored = true
+            await model.restore()
+        }
     }
 
     private func signedIn(_ session: Session) -> some View {
@@ -68,8 +76,13 @@ struct RootView: View {
 
     private func foundationPage(_ title: String, detail: String) -> some View {
         NavigationStack {
-            Text(detail).foregroundStyle(.secondary).padding(PlugSpacing.large)
-                .navigationTitle(title)
+            ScrollView {
+                Text(detail)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(PlugSpacing.large)
+            }
+            .navigationTitle(title)
         }
     }
 }
@@ -89,11 +102,13 @@ struct ProfileView: View {
                 }
                 if session.account.isGuest {
                     Section("Guest account") {
-                        Text("You are browsing as a guest. Sign in with Apple or your phone number to keep "
-                             + "your requests if you change device — nothing you have started will be lost.")
+                        Text("Create an account to keep your guest requests. Signing in to an existing account switches "
+                             + "accounts; guest activity is not merged into that account.")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
+                        Button("Create account or sign in") { model.startOver() }
+                            .frame(minHeight: 44)
                     }
                 }
                 Section {
@@ -128,6 +143,7 @@ struct ProfileView: View {
     private func description(of type: Account.AccountType) -> String {
         switch type {
         case .apple: return "Apple"
+        case .google: return "Google"
         case .phone: return "Phone number"
         case .guest: return "Guest"
         }

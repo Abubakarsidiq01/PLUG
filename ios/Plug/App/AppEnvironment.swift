@@ -11,8 +11,16 @@ struct AppEnvironment {
                                       webBaseURL: URL(string: "http://localhost:3000"))
 
     static var configured: AppEnvironment {
-        let setting = ProcessInfo.processInfo.environment["PLUG_API_URL"]
-            ?? Bundle.main.object(forInfoDictionaryKey: "PlugAPIURL") as? String
+        let runtime = ProcessInfo.processInfo.environment["PLUG_API_URL"]
+        let bundled = Bundle.main.object(forInfoDictionaryKey: "PlugAPIURL") as? String
+        #if DEBUG && !targetEnvironment(simulator)
+        // A phone launched from the home screen has no scheme environment. A current
+        // embedded development address also supersedes a stale open Xcode scheme.
+        let development = Bundle.main.object(forInfoDictionaryKey: "PlugDevelopmentAPIURL") as? String
+        #else
+        let development: String? = nil
+        #endif
+        let setting = preferredAPISetting(development: development, runtime: runtime, bundled: bundled)
         #if DEBUG
         guard let setting, !setting.isEmpty else { return .local }
         #else
@@ -26,6 +34,13 @@ struct AppEnvironment {
         guard scheme == "https" else { return AppEnvironment(baseURL: nil, webBaseURL: nil) }
         #endif
         return AppEnvironment(baseURL: url, webBaseURL: configuredWebURL())
+    }
+
+    static func preferredAPISetting(development: String?, runtime: String?, bundled: String?) -> String? {
+        [development, runtime, bundled].compactMap { value -> String? in
+            guard let value, !value.isEmpty, !value.contains("$(") else { return nil }
+            return value
+        }.first
     }
 
     /// Held to the same rules as the API URL: no credentials, no query, no fragment, and

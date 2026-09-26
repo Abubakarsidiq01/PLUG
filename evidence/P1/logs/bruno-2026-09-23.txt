@@ -1,0 +1,105 @@
+auth/01-guest (201 ) - 22 ms
+Assertions
+   ✓ res.status: eq 201
+   ✓ res.body.account.type: eq guest
+auth/02-me (200 ) - 8 ms
+Assertions
+   ✓ res.status: eq 200
+   ✓ res.body.account.type: eq guest
+auth/03-guest-restricted (403 ) - 6 ms
+Assertions
+   ✓ res.status: eq 403
+   ✓ res.body.error.code: eq forbidden
+auth/04-admin-refused (403 ) - 5 ms
+Assertions
+   ✓ res.status: eq 403
+   ✓ res.body.error.code: eq forbidden
+auth/05-rotate (200 ) - 11 ms
+Assertions
+   ✓ res.status: eq 200
+   ✓ res.body.account.type: eq guest
+auth/06-replay (401 ) - 13 ms
+Assertions
+   ✓ res.status: eq 401
+   ✓ res.body.error.code: eq unauthenticated
+auth/07-replay-revokes-access (401 ) - 4 ms
+Assertions
+   ✓ res.status: eq 401
+   ✓ res.body.error.code: eq unauthenticated
+auth/08-replay-revokes-refresh (401 ) - 5 ms
+Assertions
+   ✓ res.status: eq 401
+   ✓ res.body.error.code: eq unauthenticated
+auth/09-logout-guest (201 ) - 13 ms
+Assertions
+   ✓ res.status: eq 201
+   ✓ res.body.account.type: eq guest
+auth/10-logout (204 ) - 11 ms
+Assertions
+   ✓ res.status: eq 204
+auth/11-logout-revokes-access (401 ) - 3 ms
+Assertions
+   ✓ res.status: eq 401
+   ✓ res.body.error.code: eq unauthenticated
+auth/12-logout-revokes-refresh (401 ) - 4 ms
+Assertions
+   ✓ res.status: eq 401
+   ✓ res.body.error.code: eq unauthenticated
+auth/13-anonymous (401 ) - 1 ms
+Assertions
+   ✓ res.status: eq 401
+   ✓ res.body.error.code: eq unauthenticated
+auth/14-invalid-apple (401 ) - 23 ms
+Assertions
+   ✓ res.status: eq 401
+   ✓ res.body.error.code: eq unauthenticated
+auth/15-unknown-challenge (400 ) - 5 ms
+Assertions
+   ✓ res.status: eq 400
+   ✓ res.body.error.details[0].code: eq expired
+auth/16-unknown-consent (400 ) - 2 ms
+Assertions
+   ✓ res.status: eq 400
+   ✓ res.body.error.details[0].field: eq consent_version
+health (200 ) - 3 ms
+Tests
+   ✓ does not leak configuration
+Assertions
+   ✓ res.status: eq 200
+   ✓ res.body.status: eq UP
+   ✓ res.body.environment: isUndefined
+health-ready (200 ) - 34 ms
+Tests
+   ✓ readiness and liveness are separate endpoints
+Assertions
+   ✓ res.status: eq 200
+   ✓ res.body.status: isDefined
+   ✓ res.body.checks: isDefined
+requests-create-success (202 ) - 15 ms
+Tests
+   ✓ request_id follows the frozen shape
+Assertions
+   ✓ res.status: eq 202
+   ✓ res.body.status: eq RECEIVED
+   ✓ res.body.next_action: eq PROCESSING
+requests-create-validation-error (400 ) - 28 ms
+Tests
+   ✓ error envelope matches manual.docx §18.2
+Assertions
+   ✓ res.status: eq 400
+   ✓ res.body.error.code: eq validation_failed
+
+📊 Execution Summary
+┌───────────────┬────────────────┐
+│ Metric        │     Result     │
+├───────────────┼────────────────┤
+│ Status        │     ✓ PASS     │
+├───────────────┼────────────────┤
+│ Requests      │ 20 (20 Passed) │
+├───────────────┼────────────────┤
+│ Tests         │      4/4       │
+├───────────────┼────────────────┤
+│ Assertions    │     42/42      │
+├───────────────┼────────────────┤
+│ Duration (ms) │      718       │
+└───────────────┴────────────────┘

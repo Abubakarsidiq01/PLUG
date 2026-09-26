@@ -3,13 +3,22 @@ import Foundation
 /// The session envelope from the contract. `Codable` because the whole value is what gets
 /// written to the Keychain: storing the tokens without the account they belong to would
 /// mean asking the server who the caller is before the first screen could be drawn.
-struct Session: Codable, Equatable {
+struct Session: Codable, Equatable, CustomStringConvertible, CustomDebugStringConvertible {
     let accessToken: String
     let accessTokenExpiresAt: Date
     let refreshToken: String
     let refreshTokenExpiresAt: Date
     let account: Account
     let consent: Consent
+
+    var description: String { "Session[redacted]" }
+    var debugDescription: String { description }
+
+    func updating(account: Account, consent: Consent) -> Session {
+        Session(accessToken: accessToken, accessTokenExpiresAt: accessTokenExpiresAt,
+                refreshToken: refreshToken, refreshTokenExpiresAt: refreshTokenExpiresAt,
+                account: account, consent: consent)
+    }
 
     /// Treated as expired slightly early so a request is not sent with a token that will
     /// have expired by the time it arrives.
@@ -31,6 +40,7 @@ struct Account: Codable, Equatable {
         case guest
         case phone
         case apple
+        case google
     }
 
     var isGuest: Bool { type == .guest }

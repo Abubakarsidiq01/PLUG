@@ -38,6 +38,26 @@ jobs:
         with:
           validate-wrappers: true
       - run: ./gradlew test databaseTest build --no-daemon
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Run the Phase 0 and Phase 1 API collection
+        run: |
+          npm ci --prefix ../tools/bruno --ignore-scripts --no-audit --no-fund
+          java -jar build/libs/plug-api-0.0.1-SNAPSHOT.jar --spring.profiles.active=db > build/api-test-server.log 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8080/health/ready > /dev/null; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then echo "API did not become ready"; exit 1; fi
+          cd ../tests/api
+          ../../tools/bruno/node_modules/.bin/bru run --env local
       - uses: actions/upload-artifact@v7
         if: always()
         with:

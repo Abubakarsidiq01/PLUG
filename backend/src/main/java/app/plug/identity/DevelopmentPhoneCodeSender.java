@@ -28,6 +28,15 @@ class DevelopmentPhoneCodeSender implements PhoneCodeSender {
     public void send(String phoneNumber, String code) {
         try {
             Files.createDirectories(destination.getParent());
+            if (destination.getFileSystem().supportedFileAttributeViews().contains("posix")) {
+                var ownerOnly = java.nio.file.attribute.PosixFilePermissions.fromString("rw-------");
+                try {
+                    Files.createFile(destination, java.nio.file.attribute.PosixFilePermissions.asFileAttribute(ownerOnly));
+                } catch (java.nio.file.FileAlreadyExistsException existing) {
+                    // Tighten files created by older development builds too.
+                }
+                Files.setPosixFilePermissions(destination, ownerOnly);
+            }
             Files.writeString(destination, Instant.now() + " " + phoneNumber + " " + code + System.lineSeparator(),
                     StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException exception) {

@@ -1,0 +1,47 @@
+{
+  "date": "2026-09-26",
+  "backend_tests": {
+    "total": 98,
+    "failures": 0,
+    "skipped": 0
+  },
+  "ios_tests": {
+    "total": 43,
+    "failures": 0
+  },
+  "ui_scenarios": {
+    "passed": 7,
+    "note": "Six general scenarios plus a separately run full phone signup/conflict/signin test using local development codes."
+  },
+  "web_tests": {
+    "total": 39,
+    "failures": 0
+  },
+  "api_walkthrough": {
+    "passed": 35,
+    "failed": 0
+  },
+  "checks": {
+    "web_lint": "passed",
+    "web_build": "passed",
+    "swiftlint": "passed",
+    "openapi": "passed",
+    "secret_scan": "passed",
+    "production_dependency_audit": "zero advisories",
+    "signed_phone_build": "passed"
+  },
+  "isolation": "Disposable plug-pr-validation container, 55433/plug_auth_regression. No live user database reset.",
+  "limitations": [
+    "Real SMS sender is not configured; no real SMS sent.",
+    "Apple capability needs eligible developer team.",
+    "G1 device/accessibility/joint checkpoint remains open."
+  ],
+  "phone_ui_result": "Test-PlugUI-2026.09.26_01-58-07--0500.xcresult",
+  "ios_result": "Test-Plug-2026.09.26_01-59-31--0500.xcresult",
+  "bruno": {
+    "requests": 20,
+    "tests": 4,
+    "assertions": 42,
+    "failures": 0
+  }
+}

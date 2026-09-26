@@ -27,10 +27,14 @@ struct KeychainStore: CredentialStore {
         var query = Self.query(account: account)
         query[kSecValueData as String] = data
         query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-        // Delete first rather than update: an item written under a different accessibility
-        // class would otherwise keep that class for ever, and it would not be obvious.
-        SecItemDelete(Self.query(account: account) as CFDictionary)
-        let status = SecItemAdd(query as CFDictionary, nil)
+        // Update the value and accessibility together. Deleting first loses the existing
+        // session if the replacement cannot be saved (for example while the device locks).
+        let attributes: [String: Any] = [
+            kSecValueData as String: data,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        ]
+        var status = SecItemUpdate(Self.query(account: account) as CFDictionary, attributes as CFDictionary)
+        if status == errSecItemNotFound { status = SecItemAdd(query as CFDictionary, nil) }
         guard status == errSecSuccess else { throw KeychainError.unableToSave(status) }
     }
 

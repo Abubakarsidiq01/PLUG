@@ -50,11 +50,8 @@ rather than in somebody's memory.
 - **The error-code enum is frozen.** Branch clients on
   `error.details[].code` tokens rather than adding a new top-level code. Phase 1
   did this for invalid and expired one-time codes.
-- **The tab bar labels crowd each other at the largest Dynamic Type size.** Visible
-  in `evidence/P1/simulator/06-guest-profile-largest-text.png`. The names come from
-  the screen inventory in manual.docx §13, so renaming them is a joint product
-  decision. This phase is the first to touch the tab bar — settle it with Person
-  Two here rather than carrying it further.
+- **Recheck the tab bar on physical devices.** Phase 1 fixed the missing launch-screen declaration that squeezed the app into a 320×480 compatibility window. The September 23 simulator captures use the full display; confirm labels and navigation with real-device Dynamic Type and VoiceOver before changing tab names.
+
 
 ---
 

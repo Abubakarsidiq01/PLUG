@@ -45,9 +45,17 @@ class AuthController {
     // optional, so an anonymous caller reaches the same route and simply creates an account.
     @PostMapping("/apple")
     ResponseEntity<SessionResponse> apple(@AuthenticationPrincipal PlugPrincipal caller,
-            @Valid @RequestBody AppleSignIn request, HttpServletRequest http) {
+            @Valid @RequestBody ProviderSignIn request, HttpServletRequest http) {
         var signIn = accounts.signInWithApple(request.identityToken(), request.nonce(),
-                request.consentVersion(), caller, requestId(http));
+                request.consentVersion(), caller, requestId(http), request.intent());
+        return ResponseEntity.status(HttpStatus.CREATED).body(SessionResponse.from(signIn));
+    }
+
+    @PostMapping("/google")
+    ResponseEntity<SessionResponse> google(@AuthenticationPrincipal PlugPrincipal caller,
+            @Valid @RequestBody ProviderSignIn request, HttpServletRequest http) {
+        var signIn = accounts.signInWithGoogle(request.identityToken(), request.nonce(),
+                request.consentVersion(), caller, requestId(http), request.intent());
         return ResponseEntity.status(HttpStatus.CREATED).body(SessionResponse.from(signIn));
     }
 
@@ -63,7 +71,7 @@ class AuthController {
     ResponseEntity<SessionResponse> verifyPhone(@AuthenticationPrincipal PlugPrincipal caller,
             @Valid @RequestBody PhoneVerify request, HttpServletRequest http) {
         var signIn = accounts.verifyPhone(request.challengeId(), request.code(), request.consentVersion(),
-                caller, CallerAddress.prefixOf(http), requestId(http));
+                caller, CallerAddress.prefixOf(http), requestId(http), request.intent());
         return ResponseEntity.status(HttpStatus.CREATED).body(SessionResponse.from(signIn));
     }
 
@@ -93,13 +101,14 @@ class AuthController {
         return value == null ? null : value.toString();
     }
 
-    record AppleSignIn(
+    record ProviderSignIn(
             @NotBlank @Size(max = 4096) String identityToken,
             @NotBlank @Size(min = 16, max = 128) @Pattern(regexp = "^[A-Za-z0-9_-]+$") String nonce,
-            @NotBlank @Pattern(regexp = "^[0-9]{4}-[0-9]{2}-[0-9]{2}$") String consentVersion) {
+            @NotBlank @Pattern(regexp = "^[0-9]{4}-[0-9]{2}-[0-9]{2}$") String consentVersion,
+            @Pattern(regexp = "^(sign_up|sign_in)$") String intent) {
         @Override
         public String toString() {
-            return "AppleSignIn[redacted]";
+            return "ProviderSignIn[redacted]";
         }
     }
 
@@ -113,7 +122,8 @@ class AuthController {
     record PhoneVerify(
             @NotBlank @Size(max = 64) @Pattern(regexp = "^cha_[A-Za-z0-9-]+$") String challengeId,
             @NotBlank @Pattern(regexp = "^[0-9]{6}$") String code,
-            @NotBlank @Pattern(regexp = "^[0-9]{4}-[0-9]{2}-[0-9]{2}$") String consentVersion) {
+            @NotBlank @Pattern(regexp = "^[0-9]{4}-[0-9]{2}-[0-9]{2}$") String consentVersion,
+            @Pattern(regexp = "^(sign_up|sign_in)$") String intent) {
         @Override
         public String toString() {
             return "PhoneVerify[redacted]";

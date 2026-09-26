@@ -114,6 +114,72 @@ final class SessionStoreTests: XCTestCase {
         return SessionStore(client: client, credentials: credentials)
     }
 
+    func testSignOutRefreshesExpiredAccessBeforeRevokingTheSession() async throws {
+        let calls = Counter()
+        let rotated = TestSessions.make(accessToken: "pat_rotated", refreshToken: "prt_rotated",
+                                        accessExpiresIn: 900, refreshExpiresIn: 86_400)
+        TestTransport.handler = { request in
+            calls.increment()
+            if request.url?.path == "/v1/auth/refresh" {
+                return (try Self.jsonResponse(for: request), try TestSessions.encoded(rotated))
+            }
+            XCTAssertEqual(request.url?.path, "/v1/auth/logout")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer pat_rotated")
+            return (try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 204,
+                                                  httpVersion: nil, headerFields: nil)), Data())
+        }
+        let store = makeStore()
+        try await store.adopt(TestSessions.make(accessExpiresIn: -60, refreshExpiresIn: 86_400))
+        await store.signOut()
+        XCTAssertEqual(calls.value, 2)
+        XCTAssertTrue(credentials.isEmpty)
+    }
+
+    func testFailedCredentialWriteDoesNotReplaceTheCurrentSession() async throws {
+        let store = makeStore()
+        let original = TestSessions.make(accessExpiresIn: 900, refreshExpiresIn: 86_400)
+        try await store.adopt(original)
+        credentials.failSave = true
+        do {
+            try await store.adopt(TestSessions.make(accessToken: "pat_unsaved",
+                                                    accessExpiresIn: 900, refreshExpiresIn: 86_400))
+            XCTFail("A failed save must be reported.")
+        } catch { XCTAssertEqual(error as? KeychainError, .unableToSave(-1)) }
+        let current = await store.current()
+        XCTAssertEqual(current, original)
+    }
+
+    func testAnInFlightRefreshCannotRestoreAForgottenSession() async throws {
+        let started = expectation(description: "Refresh reached the server")
+        let release = DispatchSemaphore(value: 0)
+        let rotated = TestSessions.make(accessToken: "pat_rotated", refreshToken: "prt_rotated",
+                                        accessExpiresIn: 900, refreshExpiresIn: 86_400)
+        TestTransport.handler = { request in
+            started.fulfill()
+            guard release.wait(timeout: .now() + 5) == .success else { throw URLError(.timedOut) }
+            return (try Self.jsonResponse(for: request), try TestSessions.encoded(rotated))
+        }
+        let store = makeStore()
+        try await store.adopt(TestSessions.make(accessExpiresIn: -60, refreshExpiresIn: 86_400))
+        let refresh = Task { try await store.validAccessToken() }
+        await fulfillment(of: [started], timeout: 5)
+        await store.forget()
+        release.signal()
+        do {
+            _ = try await refresh.value
+            XCTFail("A cancelled session must not return refreshed credentials.")
+        } catch { /* Cancellation and signed-out responses are both safe outcomes. */ }
+        let current = await store.current()
+        XCTAssertNil(current)
+        XCTAssertTrue(credentials.isEmpty)
+    }
+
+    func testSessionDescriptionsNeverExposeTokens() {
+        let session = TestSessions.make(accessExpiresIn: 900, refreshExpiresIn: 86_400)
+        XCTAssertEqual(String(describing: session), "Session[redacted]")
+        XCTAssertEqual(String(reflecting: session), "Session[redacted]")
+    }
+
     private static func jsonResponse(for request: URLRequest) throws -> HTTPURLResponse {
         try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 200, httpVersion: nil,
             headerFields: ["Content-Type": "application/json", "X-Request-Id": "req_test"]))

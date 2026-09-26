@@ -14,10 +14,13 @@ enum AuthenticationState: Equatable {
     case offline(retryPreserved: Bool)
     case rateLimited(retryAfterSeconds: Int)
     case unavailable(message: String)
+    case accountExists
+    case accountNotFound
     case accountLinkConflict(message: String)
     case notificationsDenied
 
     enum SignInStep: Equatable {
+        case google
         case apple
         case guest
         case sendingCode

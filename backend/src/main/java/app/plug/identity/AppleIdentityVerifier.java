@@ -95,7 +95,7 @@ class AppleIdentityVerifier {
         }
         String subject = token.getSubject();
         Instant expiresAt = token.getExpiresAt();
-        if (subject == null || subject.isBlank() || expiresAt == null) {
+        if (subject == null || subject.isBlank() || expiresAt == null || !expiresAt.isAfter(Instant.now())) {
             throw refused();
         }
         claimSingleUse(identityToken, expiresAt);

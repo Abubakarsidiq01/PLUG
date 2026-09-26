@@ -49,6 +49,12 @@ public class ApiException extends RuntimeException {
         return new ApiException(409, "conflict", message, List.of(), null);
     }
 
+    // Called only after provider/OTP ownership has been verified, never for an email lookup.
+    public static ApiException authIntentConflict(String reason, String message) {
+        return new ApiException(409, "conflict", message,
+                List.of(new ApiExceptionHandler.FieldError("intent", reason, message)), null);
+    }
+
     public static ApiException rateLimited(int retryAfterSeconds) {
         return new ApiException(429, "rate_limited", "Too many attempts. Try again shortly.",
                 List.of(), retryAfterSeconds);

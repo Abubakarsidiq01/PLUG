@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        B10000000000000000000001 = {isa = PBXBuildFile; productRef = B10000000000000000000002; };
+        B10000000000000000000003 = {isa = PBXBuildFile; productRef = B10000000000000000000004; };
 		000000000000000000041001 /* PlugApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042001 /* PlugApp.swift */; };
 		000000000000000000041002 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042002 /* AppEnvironment.swift */; };
 		000000000000000000041003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042003 /* APIClient.swift */; };
@@ -17,7 +19,6 @@
 		000000000000000000041008 /* Core/DesignSystem/PlugTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000004200A /* Core/DesignSystem/PlugTokens.swift */; };
 		000000000000000000041009 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042011 /* APIClientTests.swift */; };
 		2E857CDF393AE466C187ED01 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */; };
-		E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */ = {isa = PBXBuildFile; fileRef = 7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */; };
 		A100000000000000000001F5 /* Core/Networking/Endpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* Core/Networking/Endpoint.swift */; };
 		A100000000000000000001F6 /* Core/Networking/APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* Core/Networking/APIError.swift */; };
 		A100000000000000000001F7 /* Core/Storage/KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* Core/Storage/KeychainStore.swift */; };
@@ -37,6 +38,8 @@
 		A10000000000000000000D /* Core/Networking/PlugJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000C /* Core/Networking/PlugJSON.swift */; };
 		A1000000000000000000E4 /* LiveBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000E3 /* LiveBackendTests.swift */; };
 		A1000000000000000000F8 /* SignInScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000F7 /* SignInScreenshotTests.swift */; };
+		E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */ = {isa = PBXBuildFile; fileRef = 7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */; };
+		C10000000000000000000001 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +60,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+        B10000000000000000000006 = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Plug/Resources/Authentication.xcconfig; sourceTree = SOURCE_ROOT; };
 		000000000000000000042001 /* PlugApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlugApp.swift; sourceTree = "<group>"; };
 		000000000000000000042002 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		000000000000000000042003 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -70,27 +74,28 @@
 		000000000000000000042011 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Color+Hex.swift"; path = "Core/DesignSystem/Color+Hex.swift"; sourceTree = "<group>"; };
 		7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Tokens.swift (generated)"; path = ../../design/generated/Tokens.swift; sourceTree = "<group>"; };
-		A10000000000000000000001 /* Core/Networking/Endpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Networking/Endpoint.swift"; sourceTree = "<group>"; };
-		A10000000000000000000002 /* Core/Networking/APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Networking/APIError.swift"; sourceTree = "<group>"; };
-		A10000000000000000000003 /* Core/Storage/KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Storage/KeychainStore.swift"; sourceTree = "<group>"; };
-		A10000000000000000000004 /* Core/Storage/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Storage/SessionStore.swift"; sourceTree = "<group>"; };
-		A10000000000000000000005 /* Core/Models/Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Models/Session.swift"; sourceTree = "<group>"; };
-		A10000000000000000000006 /* Core/Utilities/SignInNonce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Utilities/SignInNonce.swift"; sourceTree = "<group>"; };
-		A10000000000000000000007 /* Features/Authentication/AuthenticationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/AuthenticationState.swift"; sourceTree = "<group>"; };
-		A10000000000000000000008 /* Features/Authentication/AuthenticationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/AuthenticationModel.swift"; sourceTree = "<group>"; };
-		A10000000000000000000009 /* Features/Authentication/ConsentNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/ConsentNotice.swift"; sourceTree = "<group>"; };
-		A1000000000000000000000A /* Features/Authentication/CodeEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/CodeEntryView.swift"; sourceTree = "<group>"; };
-		A1000000000000000000000B /* Features/Authentication/WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Authentication/WelcomeView.swift"; sourceTree = "<group>"; };
+		A10000000000000000000001 /* Core/Networking/Endpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/Endpoint.swift; sourceTree = "<group>"; };
+		A10000000000000000000002 /* Core/Networking/APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/APIError.swift; sourceTree = "<group>"; };
+		A10000000000000000000003 /* Core/Storage/KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/KeychainStore.swift; sourceTree = "<group>"; };
+		A10000000000000000000004 /* Core/Storage/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/SessionStore.swift; sourceTree = "<group>"; };
+		A10000000000000000000005 /* Core/Models/Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/Session.swift; sourceTree = "<group>"; };
+		A10000000000000000000006 /* Core/Utilities/SignInNonce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Utilities/SignInNonce.swift; sourceTree = "<group>"; };
+		A10000000000000000000007 /* Features/Authentication/AuthenticationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/AuthenticationState.swift; sourceTree = "<group>"; };
+		A10000000000000000000008 /* Features/Authentication/AuthenticationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/AuthenticationModel.swift; sourceTree = "<group>"; };
+		A10000000000000000000009 /* Features/Authentication/ConsentNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/ConsentNotice.swift; sourceTree = "<group>"; };
+		A1000000000000000000000A /* Features/Authentication/CodeEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/CodeEntryView.swift; sourceTree = "<group>"; };
+		A1000000000000000000000B /* Features/Authentication/WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/WelcomeView.swift; sourceTree = "<group>"; };
 		A10000000000000000000064 /* TestTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTransport.swift; sourceTree = "<group>"; };
 		A10000000000000000000065 /* InMemoryCredentialStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryCredentialStore.swift; sourceTree = "<group>"; };
 		A10000000000000000000066 /* KeychainStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000067 /* SessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStoreTests.swift; sourceTree = "<group>"; };
 		A10000000000000000000068 /* AuthenticationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationModelTests.swift; sourceTree = "<group>"; };
-		A10000000000000000000384 /* Resources/Plug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "Resources/Plug.entitlements"; sourceTree = "<group>"; };
-		A10000000000000000000C /* Core/Networking/PlugJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Core/Networking/PlugJSON.swift"; sourceTree = "<group>"; };
+		A10000000000000000000384 /* Resources/Plug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Resources/Plug.entitlements; sourceTree = "<group>"; };
+		A10000000000000000000C /* Core/Networking/PlugJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/PlugJSON.swift; sourceTree = "<group>"; };
 		A1000000000000000000E3 /* LiveBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBackendTests.swift; sourceTree = "<group>"; };
-		A1000000000000000000F7 /* SignInScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInScreenshotTests.swift; sourceTree = "<group>"; };
 		A1000000000000000000F2 /* PlugUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1000000000000000000F7 /* SignInScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInScreenshotTests.swift; sourceTree = "<group>"; };
+		C10000000000000000000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -98,6 +103,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+ B10000000000000000000001, B10000000000000000000003,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -137,6 +143,7 @@
 				000000000000000000047007 /* Core/Networking */,
 				000000000000000000047008 /* Features/Engineering */,
 				00000000000000000004200A /* Core/DesignSystem/PlugTokens.swift */,
+                C10000000000000000000002 /* Assets.xcassets */,
 				A10000000000000000000001 /* Core/Networking/Endpoint.swift */,
 				A10000000000000000000002 /* Core/Networking/APIError.swift */,
 				A10000000000000000000003 /* Core/Storage/KeychainStore.swift */,
@@ -238,7 +245,8 @@
 			);
 			dependencies = (
 			);
-			name = Plug;
+			packageProductDependencies = (B10000000000000000000002, B10000000000000000000004);
+            name = Plug;
 			productName = Plug;
 			productReference = 000000000000000000042006 /* Plug.app */;
 			productType = "com.apple.product-type.application";
@@ -314,6 +322,7 @@
 			productRefGroup = 000000000000000000047004 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
+            packageReferences = (B10000000000000000000005);
 			targets = (
 				000000000000000000054001 /* Plug */,
 				000000000000000000054002 /* PlugTests */,
@@ -327,6 +336,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                C10000000000000000000001 /* Assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -412,10 +422,19 @@
 		};
 /* End PBXTargetDependency section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+        B10000000000000000000005 = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/google/GoogleSignIn-iOS"; requirement = {kind = exactVersion; version = 9.2.0; }; };
+/* End XCRemoteSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+        B10000000000000000000002 = {isa = XCSwiftPackageProductDependency; package = B10000000000000000000005; productName = GoogleSignIn; };
+        B10000000000000000000004 = {isa = XCSwiftPackageProductDependency; package = B10000000000000000000005; productName = GoogleSignInSwift; };
+/* End XCSwiftPackageProductDependency section */
 /* Begin XCBuildConfiguration section */
 		000000000000000000043065 /* Debug */ = {
 			isa = XCBuildConfiguration;
+            baseConfigurationReference = B10000000000000000000006;
 			buildSettings = {
+                ONLY_ACTIVE_ARCH = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				SDKROOT = iphoneos;
@@ -426,6 +445,7 @@
 		};
 		000000000000000000043066 /* Release */ = {
 			isa = XCBuildConfiguration;
+            baseConfigurationReference = B10000000000000000000006;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
@@ -437,7 +457,8 @@
 		0000000000000000000430C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = "Plug/Resources/Plug.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Plug/Resources/Plug.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = W5A7U9W369;
@@ -446,8 +467,10 @@
 				INFOPLIST_FILE = "Plug/Resources/Debug-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -457,7 +480,8 @@
 		0000000000000000000430CA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = "Plug/Resources/Plug.entitlements";
+				CODE_SIGN_ENTITLEMENTS = Plug/Resources/Plug.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = W5A7U9W369;
@@ -466,8 +490,10 @@
 				INFOPLIST_FILE = "Plug/Resources/Release-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

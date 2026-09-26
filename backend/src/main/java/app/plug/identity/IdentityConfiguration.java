@@ -66,17 +66,27 @@ public class IdentityConfiguration {
     }
 
     @Bean
+    GoogleIdentityVerifier googleIdentityVerifier(Environment environment, JdbcTemplate jdbc) {
+        return new GoogleIdentityVerifier(environment.getProperty("plug.identity.google-client-id", ""), jdbc);
+    }
+
+    @Bean
     OtpRateLimiter otpRateLimiter(AuditLog audit) {
         return new OtpRateLimiter(audit);
     }
 
-    // Twilio arrives in Phase 3. Until then the default is the sender that admits it has no
-    // channel, and the development file sender is available on one developer's own machine.
+    // SMS is opt-in; development delivery remains confined to local environments.
     @Bean
     PhoneCodeSender phoneCodeSender(IdentitySettings settings, Environment environment) {
         if (settings.phoneDelivery() == IdentitySettings.PhoneDelivery.DEVELOPMENT) {
             return new DevelopmentPhoneCodeSender(environment.getRequiredProperty("plug.environment"),
-                    Path.of("build", "development-phone-codes.txt"));
+                    Path.of(environment.getProperty("plug.identity.development-code-file", "build/development-phone-codes.txt")));
+        }
+        if (settings.phoneDelivery() == IdentitySettings.PhoneDelivery.TWILIO) {
+            return new TwilioPhoneCodeSender(environment.getRequiredProperty("plug.sms.account-sid"),
+                    environment.getRequiredProperty("plug.sms.auth-token"),
+                    environment.getProperty("plug.sms.messaging-service-sid", ""),
+                    environment.getProperty("plug.sms.from-number", ""));
         }
         return new NoPhoneCodeSender();
     }
@@ -89,8 +99,8 @@ public class IdentityConfiguration {
 
     @Bean
     AccountService accountService(IdentityRepository identities, SessionService sessions,
-            AppleIdentityVerifier apple, PhoneVerificationService phones, AuditLog audit,
+            AppleIdentityVerifier apple, GoogleIdentityVerifier google, PhoneVerificationService phones, AuditLog audit,
             Secrets secrets, IdentitySettings settings) {
-        return new AccountService(identities, sessions, apple, phones, audit, secrets, settings);
+        return new AccountService(identities, sessions, apple, google, phones, audit, secrets, settings);
     }
 }

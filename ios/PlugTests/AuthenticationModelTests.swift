@@ -19,6 +19,22 @@ final class AuthenticationModelTests: XCTestCase {
         super.tearDown()
     }
 
+    func testPhoneFormattingAndMissingCountryCode() {
+        XCTAssertEqual(AuthenticationModel.normalizedPhone("+1 (312) 555-0123"), "+13125550123")
+        XCTAssertEqual(AuthenticationModel.normalizedPhone("+234 803 123 4567"), "+2348031234567")
+        XCTAssertNil(AuthenticationModel.normalizedPhone("08031234567"))
+        XCTAssertNil(AuthenticationModel.normalizedPhone("+123abc45678"))
+        XCTAssertNil(AuthenticationModel.normalizedPhone("+0123456789"))
+    }
+
+    func testInvalidPhoneDoesNotCallTheServer() async {
+        TestTransport.handler = { _ in XCTFail("Invalid number must not reach the server"); throw URLError(.badURL) }
+        let model = makeModel()
+        await model.sendCode(to: "08031234567")
+        guard case .failed(let message, _) = model.state else { return XCTFail("Expected phone guidance") }
+        XCTAssertTrue(message.contains("country code"))
+    }
+
     func testGuestSignInReachesTheSignedInState() async throws {
         respond(with: try TestSessions.encoded(TestSessions.make(accessExpiresIn: 900,
                                                                  refreshExpiresIn: 86_400)), status: 201)
@@ -122,12 +138,146 @@ final class AuthenticationModelTests: XCTestCase {
         XCTAssertTrue(credentials.isEmpty)
     }
 
+    func testExistingAccountSignupOffersSignInAndDoesNotSaveASession() async {
+        respond(with: Data(#"{"error":{"code":"conflict","message":"Sign in instead.","details":[{"field":"intent","code":"account_exists","message":"Sign in instead."}]}}"#.utf8), status: 409)
+        let model = makeModel()
+        await model.signInWithGoogle(identityToken: "synthetic", nonce: "synthetic-nonce-for-test", creatingAccount: true)
+        XCTAssertEqual(model.state, .accountExists)
+        XCTAssertTrue(credentials.isEmpty)
+    }
+
+    func testGoogleRequestsCarryTheSelectedIntent() async throws {
+        for creating in [true, false] {
+            TestTransport.handler = { request in
+                let data: Data
+                if let body = request.httpBody { data = body }
+                else {
+                    let stream = try XCTUnwrap(request.httpBodyStream)
+                    stream.open()
+                    defer { stream.close() }
+                    var bytes = Data()
+                    var buffer = [UInt8](repeating: 0, count: 1024)
+                    while stream.hasBytesAvailable {
+                        let count = stream.read(&buffer, maxLength: buffer.count)
+                        if count <= 0 { break }
+                        bytes.append(buffer, count: count)
+                    }
+                    data = bytes
+                }
+                let payload = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: String])
+                XCTAssertEqual(payload["intent"], creating ? "sign_up" : "sign_in")
+                let response = try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 201,
+                    httpVersion: nil, headerFields: ["Content-Type": "application/json"]))
+                return (response, try TestSessions.encoded(TestSessions.make(accessExpiresIn: 900,
+                    refreshExpiresIn: 86_400, accountType: .google)))
+            }
+            let model = makeModel()
+            await model.signInWithGoogle(identityToken: "synthetic", nonce: "synthetic-nonce-for-test", creatingAccount: creating)
+            guard case .signedIn = model.state else { return XCTFail("Expected verified session") }
+        }
+    }
+
+    func testUnknownAccountSignInOffersSignup() async {
+        respond(with: Data(#"{"error":{"code":"conflict","message":"Create an account.","details":[{"field":"intent","code":"account_not_found","message":"Create an account."}]}}"#.utf8), status: 409)
+        let model = makeModel()
+        await model.signInWithGoogle(identityToken: "synthetic", nonce: "synthetic-nonce-for-test")
+        XCTAssertEqual(model.state, .accountNotFound)
+        XCTAssertTrue(credentials.isEmpty)
+    }
+
     private func makeModel() -> AuthenticationModel {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [TestTransport.self]
         let client = APIClient(environment: .local, session: URLSession(configuration: configuration))
         return AuthenticationModel(client: client,
                                    sessions: SessionStore(client: client, credentials: credentials))
+    }
+
+    func testRestorePreservesCredentialsThroughAServerOutageAndRetry() async throws {
+        let session = TestSessions.make(accessExpiresIn: 900, refreshExpiresIn: 86_400)
+        try credentials.save(TestSessions.encoded(session), account: SessionStore.account)
+        let model = makeModel()
+        respond(with: Data(#"{"error":{"code":"dependency_unavailable","message":"Try again."}}"#.utf8), status: 503)
+        await model.restore()
+        XCTAssertFalse(credentials.isEmpty)
+        respond(with: try TestSessions.encoded(session), status: 200)
+        await model.retry()
+        XCTAssertEqual(model.state, .signedIn(session))
+    }
+
+    func testGuestUpgradeRefreshesExpiredAccessAndKeepsTheGuestIdentity() async throws {
+        let guest = TestSessions.make(accessExpiresIn: -60, refreshExpiresIn: 86_400)
+        try credentials.save(TestSessions.encoded(guest), account: SessionStore.account)
+        let rotated = TestSessions.make(accessToken: "pat_rotated", refreshToken: "prt_rotated",
+                                        accessExpiresIn: 900, refreshExpiresIn: 86_400)
+        let member = TestSessions.make(accessExpiresIn: 900, refreshExpiresIn: 86_400, accountType: .phone)
+        let calls = Counter()
+        TestTransport.handler = { request in
+            calls.increment()
+            let body: Data
+            let status: Int
+            if request.url?.path == "/v1/auth/refresh" {
+                body = try TestSessions.encoded(rotated)
+                status = 200
+            } else {
+                XCTAssertEqual(request.url?.path, "/v1/auth/phone/verify")
+                XCTAssertEqual(request.value(forHTTPHeaderField: "Authorization"), "Bearer pat_rotated")
+                body = try TestSessions.encoded(member)
+                status = 201
+            }
+            return (try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: status,
+                httpVersion: nil, headerFields: ["Content-Type": "application/json"])), body)
+        }
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [TestTransport.self]
+        let client = APIClient(environment: .local, session: URLSession(configuration: configuration))
+        let store = SessionStore(client: client, credentials: credentials)
+        _ = await store.restore()
+        let model = AuthenticationModel(client: client, sessions: store)
+        await model.verifyCode("123456", challengeID: "cha_test", creatingAccount: true)
+        XCTAssertEqual(calls.value, 2)
+        XCTAssertEqual(model.state, .signedIn(member))
+    }
+
+    func testContinuingAsGuestDuringUpgradeKeepsTheExistingAccount() async throws {
+        let session = TestSessions.make(accessExpiresIn: 900, refreshExpiresIn: 86_400)
+        respond(with: try TestSessions.encoded(session), status: 201)
+        let model = makeModel()
+        await model.continueAsGuest()
+        model.startOver()
+        TestTransport.handler = { request in
+            XCTAssertEqual(request.url?.path, "/v1/me", "Do not create a second guest during upgrade.")
+            return (try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 200,
+                httpVersion: nil, headerFields: ["Content-Type": "application/json"])),
+                try TestSessions.encoded(session))
+        }
+        await model.continueAsGuest()
+        XCTAssertEqual(model.state, .signedIn(session))
+    }
+
+    func testAcceptedConsentIsPersistedForTheNextLaunch() async throws {
+        let session = TestSessions.make(accessExpiresIn: 900, refreshExpiresIn: 86_400,
+                                        acceptedVersion: "2020-01-01")
+        respond(with: try TestSessions.encoded(session), status: 201)
+        let model = makeModel()
+        await model.continueAsGuest()
+        let accepted = Consent(currentVersion: PlugConsent.version,
+                               acceptedVersion: PlugConsent.version, acceptedAt: session.consent.acceptedAt)
+        respond(with: try PlugJSON.encoder.encode(accepted), status: 200)
+        await model.acceptConsent()
+        let data = try XCTUnwrap(credentials.read(account: SessionStore.account))
+        let saved = try PlugJSON.decoder.decode(Session.self, from: data)
+        XCTAssertEqual(saved.consent, accepted)
+        XCTAssertEqual(model.state, .signedIn(saved))
+    }
+
+    func testExpiredTunnelShowsServerErrorInsteadOfClaimingUserIsOffline() async {
+        TestTransport.handler = { _ in throw URLError(.cannotFindHost) }
+        let model = makeModel()
+        await model.signInWithGoogle(identityToken: "synthetic", nonce: "synthetic-nonce-for-test")
+        guard case .failed(let message, let canRetry) = model.state else { return XCTFail("Expected server guidance") }
+        XCTAssertTrue(message.contains("server address"))
+        XCTAssertTrue(canRetry)
     }
 
     private func respond(with body: Data, status: Int) {

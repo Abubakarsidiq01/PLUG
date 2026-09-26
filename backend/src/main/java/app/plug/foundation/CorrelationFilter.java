@@ -60,7 +60,7 @@ public class CorrelationFilter extends OncePerRequestFilter {
         return switch (path) {
             case "/health", "/health/ready", "/v1/requests", "/actuator/health",
                     "/actuator/health/readiness", "/actuator/health/liveness",
-                    "/v1/auth/apple", "/v1/auth/phone/start", "/v1/auth/phone/verify",
+                    "/v1/auth/apple", "/v1/auth/google", "/v1/auth/phone/start", "/v1/auth/phone/verify",
                     "/v1/auth/guest", "/v1/auth/refresh", "/v1/auth/logout",
                     "/v1/me", "/v1/me/consent", "/v1/me/sessions" -> path;
             default -> path.startsWith("/v1/me/sessions/") ? "/v1/me/sessions/{session_id}" : "unmapped";

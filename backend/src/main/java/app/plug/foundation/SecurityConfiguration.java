@@ -48,7 +48,7 @@ public class SecurityConfiguration {
     private void identityRules(
             org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer<HttpSecurity>
                     .AuthorizationManagerRequestMatcherRegistry auth) {
-        auth.requestMatchers(HttpMethod.POST, "/v1/auth/apple", "/v1/auth/phone/start", "/v1/auth/phone/verify",
+        auth.requestMatchers(HttpMethod.POST, "/v1/auth/apple", "/v1/auth/google", "/v1/auth/phone/start", "/v1/auth/phone/verify",
                         "/v1/auth/guest", "/v1/auth/refresh").permitAll()
                 .requestMatchers(HttpMethod.POST, "/v1/auth/logout", "/v1/me/consent").authenticated()
                 .requestMatchers(HttpMethod.GET, "/v1/me").authenticated()

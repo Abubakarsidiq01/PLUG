@@ -11,6 +11,30 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.2.2 — 2026-09-25 — additive — draft, not jointly frozen
+Apple/Google authentication and phone verification accept optional `intent`:
+`sign_up` rejects an existing verified identity; `sign_in` rejects an unknown one.
+Both return HTTP 409 with `error.code=conflict` and an `intent` detail containing
+`account_exists` or `account_not_found`. Checks run after ownership verification.
+Omitting intent preserves the earlier combined flow. Identity matching uses the
+provider's verified subject, not an unverified or cross-provider email address.
+Fixtures/tests: GoogleSignInTest, AuthenticationModelTests.
+Migration note: no database migration; deploy backend before the updated client.
+Rollback: revert clients first; earlier servers reject the new request field.
+
+### 0.2.1 — 2026-09-24 — draft, not jointly frozen
+User-requested expansion: Google sign-in (`POST /v1/auth/google`) and the `google`
+account type; real SMS through explicitly configured Twilio delivery. Google checks
+signature, issuer, server client audience, expiry, nonce and single use. Existing
+phone verification creates or returns an account after OTP verification, without
+revealing whether a number is registered. No passwords are stored; recovery is
+specific to the chosen provider.
+Fixtures/tests: GoogleSignInTest and TwilioPhoneCodeSenderTest.
+Migration: apply V3 before enabling Google. Ship clients accepting the new account type
+before enabling the provider. No changes to already-applied migrations.
+Rollback: clear Google client configuration and select `phone-delivery=none`;
+existing Google sessions remain readable. Keep V3 applied.
+
 ### 0.2.0 — unreleased — P1.S1
 Additive. Adds the identity and consent surface: `POST /v1/auth/apple`,
 `POST /v1/auth/phone/start`, `POST /v1/auth/phone/verify`, `POST /v1/auth/guest`,

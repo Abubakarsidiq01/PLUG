@@ -16,7 +16,7 @@ and no amount of automation substitutes for that.
 
 | File | What it shows |
 |---|---|
-| `logs/local-auth-walkthrough.txt` | 35 assertions over the whole auth surface against a running backend: guest sign-in, the guest scope limit, anonymous and forged-token refusals, admin denial, wrong and expired codes, guest upgrade-in-place, refresh rotation, replay revoking the chain, BOLA/IDOR answering 404, consent, logout revocation, and both brute-force limits. |
+| `logs/local-auth-walkthrough.txt` | 35 assertions over the whole auth surface against a running backend: guest sign-in, the guest scope limit, anonymous and forged-token refusals, admin denial, wrong codes, guest upgrade-in-place, refresh rotation, replay revoking the chain, BOLA/IDOR answering 404, consent, logout revocation, and both brute-force limits. |
 | `logs/log-leak-inspection.txt` | The backend log from that run searched for every access token, refresh token, authorization header, phone number and one-time code it handled. Also records what the log *does* keep: correlation ids, route templates and audit actions. |
 | `logs/request-id-correlation.txt` | The same request id appearing in the app's log and in the backend's log — the mechanic the connected checkpoint depends on (manual.docx §7 step 5). |
 | `simulator/` | The sign-in screens, photographed by `PlugUITests/SignInScreenshotTests.swift`, at the default text size and at the largest one. |
@@ -31,10 +31,11 @@ PLUG_DATABASE_PASSWORD=... PLUG_IDENTITY_PEPPER=... \
   ./dev bootRun --args='--spring.profiles.active=db --plug.identity.phone-delivery=development'
 
 # 2. The auth surface, end to end
+cd ..
 sh tools/phase1-auth-walkthrough.sh
 
 # 3. The screens
-xcodebuild test -project ios/Plug.xcodeproj -scheme Plug -only-testing:PlugUITests \
+xcodebuild test -project ios/Plug.xcodeproj -scheme PlugUI \
   -destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID' \
   CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER=""
 ```
@@ -66,3 +67,30 @@ reason these captures are taken at both sizes rather than only at the default.
 The tab bar's own labels still crowd each other at that size. The tab names come from the
 screen inventory in manual.docx §13, so renaming them is a product decision rather than
 Person One's to take alone — it is recorded in `open_risks` instead.
+
+## September 23 hardening
+
+See [the validation record](../../docs/testing/phase-1-hardening-2026-09-23.md).
+New captures are under `simulator/2026-09-23/` and `web/2026-09-23/`.
+The dedicated `PlugUI` scheme actually executes the screenshot tests; a missing
+launch-screen declaration was also fixed so the app uses the full display.
+These captures supersede the earlier compatibility-window screenshots.
+
+## September 25 physical Google sign-in
+
+[User-supplied iPhone results](phone/2026-09-25/README.md) show a Google account
+in Profile. The two accompanying welcome screenshots are the pre-redesign UI.
+
+## September 25 account and layout follow-up
+
+[Additional phone evidence](phone/2026-09-25/followup/README.md) records the expired
+tunnel error and the welcome layout approved by the user. The separate auth pages
+and account-exists flow are covered in
+[the follow-up record](../../docs/testing/account-intent-2026-09-25.md).
+
+## September 25 accepted phone build and PR validation
+
+[Latest user-supplied screenshots](phone/2026-09-25/accepted/README.md) show the
+approved welcome, API connectivity and Google account.
+[PR validation and remaining Phase 1 work](../../docs/testing/phase1-pr-readiness-2026-09-25.md)
+separate the automated results from real-SMS/Apple and joint G1 requirements.

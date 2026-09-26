@@ -38,7 +38,7 @@ You are the final technical authority on this phase. If something here conflicts
 - **Move the rate limits to Redis before running more than one instance.**
   `FixedWindowLimiter` counts in one process's memory. That is correct for a
   single instance and silently wrong for two, and this phase adds supplier
-  fan-out and inbound webhooks. `infra/compose.yml` already provisions a Redis
+  fan-out and inbound webhooks. The root `docker-compose.yml` already provisions a Redis
   nobody uses yet.
 - **Extend the BOLA test to supplier resource ids.** manual.docx §27.2 asks for
   user, supplier and admin. `SessionLifecycleTest` covers user and admin;

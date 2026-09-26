@@ -1,0 +1,11 @@
+HTTP/1.1 401
+X-Request-Id: req_5e68e2a0-c4b6-4eef-a7c9-72d7dfd3ce73
+Cache-Control: no-store
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Content-Security-Policy: default-src 'none'; frame-ancestors 'none'
+WWW-Authenticate: Bearer
+X-XSS-Protection: 0
+Content-Type: application/json
+Content-Length: 132
+Date: Wed, 23 Sep 2026 23:51:06 GMT

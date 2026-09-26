@@ -49,7 +49,7 @@ class PhoneVerificationService {
         if (!sender.isAvailable()) {
             audit.recordAnonymous("otp.start_unavailable", addressPrefix, "no_delivery_channel");
             throw ApiException.dependencyUnavailable(
-                    "We cannot send codes right now. Try signing in with Apple, or continue as a guest.", 60);
+                    "We cannot send codes right now. Choose another sign-in method or continue as a guest.", 60);
         }
         String code = Secrets.numericCode(CODE_DIGITS);
         Instant expiresAt = clock.instant().plus(settings.phoneCodeTtl());
@@ -74,6 +74,9 @@ class PhoneVerificationService {
             throw ApiException.rateLimited(Math.toIntExact(settings.phoneCodeTtl().toSeconds()));
         }
         int used = challenges.countAttempt(challengeId);
+        if (used > settings.phoneCodeAttempts()) {
+            throw ApiException.rateLimited(Math.toIntExact(settings.phoneCodeTtl().toSeconds()));
+        }
         // Both sides are hashes of the same length, compared in constant time. Comparing
         // the codes themselves leaks their length and their matching prefix through timing.
         if (!Secrets.matches(challenge.codeHash(), secrets.hashSubject(code))) {
@@ -83,7 +86,7 @@ class PhoneVerificationService {
             }
             throw ApiException.validation("code", "invalid", "That code is not correct.");
         }
-        if (!challenges.consume(challengeId)) {
+        if (!challenges.consume(challengeId, settings.phoneCodeAttempts())) {
             // Another caller already exchanged this challenge. One accepted code buys one
             // session, never two.
             throw expired();

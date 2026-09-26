@@ -1,227 +1,146 @@
-# Runbook — finishing Phase 1 and signing G1
+# Phase 1 — remaining device work and G1 sign-off
 
-Everything that can be automated is done and green. What is left needs a real
-phone, a real Apple Account, and a second person. This is the order to do it in.
+The current implementation and checks are recorded in
+[the PR validation record](../testing/phase1-pr-readiness-2026-09-25.md).
+G1 remains open. Simulator evidence does not prove physical Apple sign-in,
+VoiceOver operation, or the two-person staging checkpoint.
 
-Steps 1–4 are Person One alone and can be done today. Steps 5–7 need Person Two.
+## Local checks
 
-A gate is not passed by code being merged. It is passed by two people, together,
-in front of real staging (manual.docx §8.1 rule 10).
+Use Java 21, Node 22, Docker Desktop, and Xcode. Run `./backend/dev clean check`
+for the backend baseline. Identity tests use `./backend/dev databaseTest` and
+**truncate identity tables**: point `PLUG_DATABASE_URL` at a disposable test
+database, never your development or staging database. Also provide
+`PLUG_DATABASE_PASSWORD` and a test-only `PLUG_IDENTITY_PEPPER` (32+ characters).
+The September 23 run used an isolated container on port 55432.
 
----
+With an identity-enabled backend running on port 8080:
 
-## Before you start
-
-```bash
-git checkout p1.s1-one-identity-and-consent
-git pull --ff-only origin main   # if main has moved
-```
-
-You need `.env.local` with, at minimum:
-
-```
-PLUG_DATABASE_PASSWORD=<your local password>
-PLUG_IDENTITY_PEPPER=<32+ characters, local only>
-```
-
-The pepper is new in Phase 1. Without it the `db` and `staging` profiles refuse
-to start, which is deliberate — it keys the one-way values stored for phone
-numbers, Apple subjects and one-time codes.
-
----
-
-## Step 1 — Enable Sign in with Apple on the App ID
-
-This is a browser step and nothing in the repository can do it.
-
-1. developer.apple.com → Certificates, Identifiers & Profiles → Identifiers.
-2. Open `com.abubakarsidiq01.plug.app101`.
-3. Tick **Sign in with Apple**, save.
-4. In Xcode, let automatic signing refresh the profile.
-
-`ios/Plug/Resources/Plug.entitlements` is already committed and referenced from
-both build configurations. Until the capability is enabled, a device build will
-fail to sign; Simulator builds are unaffected.
-
-**Send me:** nothing. Just say whether it saved cleanly, or paste the error.
-
----
-
-## Step 2 — Prove the automated suites on your machine
-
-```bash
-docker compose --env-file .env.local up -d --wait postgres
-
-cd backend
-./dev check                                   # Phase 0 + contract tests + checkstyle
-PLUG_DATABASE_PASSWORD=... PLUG_IDENTITY_PEPPER=... ./dev databaseTest
-cd ..
-
-xcodebuild -showdestinations -project ios/Plug.xcodeproj -scheme Plug   # pick a UUID
-xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
-  -destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID' \
-  CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER=""
-```
-
-Expected: `BUILD SUCCESSFUL` twice, and `Executed 28 tests ... 0 failures`.
-
-`databaseTest` takes a while — one Phase 0 test deliberately waits on a
-cancelled query.
-
-**Send me:** the last 5 lines of each command. If anything fails, the whole
-failure block, not a summary of it.
-
----
-
-## Step 3 — Run the live walkthrough
-
-With the backend running in its own terminal:
-
-```bash
-cd backend
-PLUG_DATABASE_PASSWORD=... PLUG_IDENTITY_PEPPER=... \
-  ./dev bootRun --args='--spring.profiles.active=db --plug.identity.phone-delivery=development'
-```
-
-Then, from the repository root in another terminal:
-
-```bash
+```sh
+# From the repository root:
+pnpm --filter @plug/web lint
+pnpm --filter @plug/web build
+pnpm --filter @plug/web test:e2e
+npm ci --prefix tools/bruno --ignore-scripts --no-audit --no-fund
+(cd tests/api && ../../tools/bruno/node_modules/.bin/bru run --env local)
 sh tools/phase1-auth-walkthrough.sh
 ```
 
-Expected: `RESULT: 35 passed, 0 failed`.
+The walkthrough needs `--spring.profiles.active=db
+--plug.identity.phone-delivery=development` on the backend. Development codes
+stay local; do not share the ignored `backend/build/development-phone-codes.txt`.
+Restart this local test backend before repeating the abuse walkthrough, because
+its per-address limits intentionally survive between calls.
 
-The one-time-code limits are counted in the backend's memory and are per caller
-address, so a second run inside fifteen minutes is refused. That is the control
-working. Restart the backend between runs rather than raising the limit.
-
-**Send me:** the `RESULT:` line, and any `FAIL` lines above it.
-
----
-
-## Step 4 — Capture the real-device evidence
-
-This is the part that actually moves the gate forward.
-
-### 4a. The screens, automatically
-
-Plug the iPhone in, unlock it, trust the Mac, then:
-
-```bash
-xcodebuild -showdestinations -project ios/Plug.xcodeproj -scheme Plug   # find the device id
+```sh
+xcodebuild -showdestinations -project ios/Plug.xcodeproj -scheme Plug
+# Substitute an installed simulator UUID:
 xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
-  -only-testing:PlugUITests \
+  -destination 'platform=iOS Simulator,id=SIMULATOR-UUID' \
+  -derivedDataPath /tmp/plug-p1-build \
+  CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER=
+# UI tests use their own shared scheme and require the running backend:
+xcodebuild test -project ios/Plug.xcodeproj -scheme PlugUI \
+  -destination 'platform=iOS Simulator,id=SIMULATOR-UUID' \
+  -derivedDataPath /tmp/plug-p1-build \
+  CODE_SIGN_IDENTITY=- CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM= PROVISIONING_PROFILE_SPECIFIER=
+```
+
+Keep build output outside a synced Desktop folder if signing reports “resource
+fork, Finder information, or similar detritus.” The old `-scheme Plug
+-only-testing:PlugUITests` command did not run the skipped UI target; use `PlugUI`.
+
+## 1. Enable Apple signing
+
+**Remaining blocker:** The Personal development team does not support Sign in with Apple. Use an eligible Apple Developer Program team, enable the capability for the App ID and app entitlements, and refresh provisioning. The current signed app is installed and Google login is confirmed; Apple remains disabled.
+
+1. Sign in to [Apple Developer](https://developer.apple.com/account/).
+2. Open **Certificates, Identifiers & Profiles → Identifiers** and select
+   `com.abubakarsidiq01.plug.app101`.
+3. Enable **Sign in with Apple** and save. This needs the account owner's access.
+4. Open `ios/Plug.xcodeproj`. On the Plug target, choose your team in
+   **Signing & Capabilities** and allow Xcode to refresh provisioning.
+5. Connect and unlock the iPhone, trust the Mac, and enable Developer Mode if
+   iOS requests it. Approve any on-device restart or trust prompt.
+
+The unsigned iPhone Release build can be checked without a phone; it does not
+prove that your Apple account has the required capability or provisioning.
+
+## 2. Give the phone reachable API and consent URLs
+
+Run the backend with the database profile and your own local secrets. For
+an ADR-004 checkpoint, start a fresh HTTPS tunnel:
+
+```sh
+sh tools/run-phone-tunnel.sh
+```
+
+The launcher saves the fresh HTTPS URL in ignored `Local.xcconfig`. Rebuild with
+**Plug → your iPhone → Command-R**; physical Debug builds use that embedded URL.
+The simulator scheme stays on localhost. Set `PLUG_WEB_URL` to a
+reachable web URL serving `/terms` and `/privacy`; a second tunnel can forward
+port 3000. `localhost` on an iPhone refers to the phone, not the Mac.
+
+The web routes now exist, but their legal text awaits approval. Do not treat the
+placeholder pages or development consent date as published legal agreements.
+Development file-based phone delivery must remain local; it is unavailable in
+staging until Phase 3 (ADR-007).
+
+## 3. Capture and verify on the physical iPhone
+
+Select the phone as Xcode's destination and run the **Plug** scheme:
+
+1. Complete **Sign in with Apple** using your Apple Account.
+2. Force-quit PLUG, reopen it, and confirm the same account appears in Profile.
+3. Sign out. Confirm the server audit contains `session.revoked` for that
+   request. The automated live test separately proves the old credential gets
+   401; the app does not automatically send a stale token after logout.
+4. Sign in as a guest. In Profile choose **Create account or sign in**, then
+   create a new account with Apple. Confirm the backend keeps the same user ID and
+   revokes the weaker guest session.
+5. Turn off connectivity during sign-in or restore. Confirm the offline state;
+   reconnect and tap **Try again**. Record a failure and recovery in
+   `evidence/P1/failures/`.
+6. Turn on VoiceOver and walk the main flow: consent links, Apple sign-in,
+   guest access, upgrade, and logout. Record in `evidence/P1/a11y/`.
+
+For repeatable default/largest-text screenshots, run the **PlugUI** scheme on
+the phone. The runner needs URLs passed explicitly; Run-scheme variables alone
+do not configure its child application:
+
+```sh
+TEST_RUNNER_PLUG_API_URL=https://YOUR-API-TUNNEL \
+TEST_RUNNER_PLUG_WEB_URL=https://YOUR-WEB-TUNNEL \
+xcodebuild test -project ios/Plug.xcodeproj -scheme PlugUI \
   -destination 'platform=iOS,id=YOUR-DEVICE-UDID' \
-  -resultBundlePath /tmp/p1-device.xcresult
+  -derivedDataPath /tmp/plug-p1-device-build \
+  -resultBundlePath /tmp/plug-p1-device.xcresult
+
+xcrun xcresulttool export attachments \
+  --path /tmp/plug-p1-device.xcresult --output-path /tmp/plug-p1-device-shots
 ```
 
-Note: **no** `CODE_SIGN_IDENTITY` overrides here. A device build signs properly,
-which is why step 1 had to happen first.
+Use a fresh result-bundle path for each run. Keep normal device signing enabled;
+do not apply the Simulator signing overrides. Copy the named PNGs from the
+export manifest to `evidence/P1/ios/`. These tests cover welcome, phone entry,
+code entry/invalid code or unavailable delivery, guest Profile, and upgrade.
+Expired-code, denied-notification, conflict, offline, and real Apple states
+still need their own device evidence; the UI tests do not capture all of §12.
 
-The phone needs to reach the backend. `localhost` on the phone is the phone, so
-set `PLUG_API_URL` in the Xcode scheme to a `cloudflared` tunnel (ADR-004):
+## 4. Finish the joint checks
 
-```bash
-cloudflared tunnel --url http://localhost:8080
-```
+With Person Two:
 
-Then pull the images out:
+- Approve the draft 0.2.0 auth contract, then update its state to frozen.
+- Approve and publish the actual Terms, Privacy Policy, and matching consent
+  version. Review the onboarding/error/upgrade copy.
+- Run the auth and abuse checkpoint against the same fresh staging environment.
+  Capture external web/API security headers and one request ID in both logs.
+- Record the phone-delivery limitation and any accepted staging-test deferral.
+- Attach the remaining Windows setup evidence.
+- Only then add both engineers' G1 signatures and advance `PROJECT_STATE.json`.
 
-```bash
-xcrun xcresulttool export attachments --path /tmp/p1-device.xcresult --output-path /tmp/p1-shots
-mkdir -p evidence/P1/ios
-# copy the PNGs across, keeping the names from the manifest
-```
-
-These are real-device captures at the default and largest text sizes, which is
-what manual.docx §12.3 asks for.
-
-### 4b. The things no test can do
-
-Do these by hand on the phone and record them:
-
-1. **Sign in with Apple.** Complete it with a real Apple Account.
-2. **Force-quit the app** (swipe it away), reopen it. You must still be signed
-   in. This is the sentence the whole phase is judged on.
-3. **Sign out**, then confirm on the server that the session is gone — the
-   backend log line for the next request should be a 401.
-4. **VoiceOver walkthrough** of sign-in, screen-recorded, into `evidence/P1/a11y/`.
-   Every control reachable and announced.
-5. **One deliberate failure and its recovery**, recorded, into
-   `evidence/P1/failures/`. Turning off Wi-Fi mid sign-in is the easy one — the
-   app should show the offline state and say nothing was lost.
-
-**Send me:**
-- the file names that landed in `evidence/P1/ios/`,
-- a yes/no on the relaunch surviving,
-- the backend log line showing the 401 after logout,
-- anything that looked wrong, especially at the largest text size.
-
-I will wire the evidence paths into `PROJECT_STATE.json` and the tracker.
-
----
-
-## Step 5 — The contract session with Person Two
-
-Fifteen minutes, together. The contract is `contracts/openapi.yaml` at 0.2.0 and
-it is **draft** until you both approve it. Go through:
-
-- the token payload and the two lifetimes: 15-minute access, rotating refresh at
-  30 days for a verified account and 7 for a guest;
-- every error code, and the `invalid` / `expired` detail tokens on a bad code;
-- the guest scope limit on `/v1/me/sessions` and whether you both agree with it;
-- the consent version and what happens when it moves.
-
-The implementation follows the contract as written. If the review changes the
-contract, the implementation changes with it, in the same pull request.
-
-**Send me:** anything you agree to change. I will do the contract and the code
-together and move those eleven operations from `draft` to `frozen@0.2.0`.
-
----
-
-## Step 6 — The connected checkpoint
-
-Both of you, at the same time, against one running staging tunnel.
-
-Run, together:
-
-- Apple sign-in on the phone;
-- a guest upgrading without losing what it started;
-- logout, and the session being dead server-side afterwards;
-- the BOLA and IDOR cases;
-- the refresh-replay case;
-- Person Two's Bruno auth collection and the abuse suite.
-
-Find one correlation id that appears in **both** the iOS log and the backend log
-in the same session. That single value is what makes this a checkpoint rather
-than two people watching two screens.
-
-**Send me:** that request id, the backend log lines around it, and which of the
-cases above you actually ran.
-
----
-
-## Step 7 — Sign G1
-
-Only after steps 5 and 6. Append to `gate_log` in `PROJECT_STATE.json`, with
-both signatures, the evidence path, and any known limitation stated plainly —
-including that the phone brute-force cases were proved by automated tests rather
-than against staging, because there is no code channel until Phase 3 (ADR-007).
-
-**Send me:** the go-ahead, and I will write the entry, set `last_gate_passed` to
-`G1`, move `current_phase` to `P2` and rewrite `next_actions`.
-
----
-
-## What is deliberately not in this phase
-
-Each of these is written into the phase that owns it, so it surfaces when you
-get there rather than being remembered:
-
-| Deferred | Lands in | Written in |
-|---|---|---|
-| Twilio code delivery; Redis-backed rate limits; supplier BOLA ids; a real home for the pepper | P3 | `docs/phases/P3-ONE.md` → *Carried in from Phase 1* |
-| Admin scope and the step-up allow path; account-deletion screen; consent history in the admin console | P5 | `docs/phases/P5-ONE.md` → *Carried in from Phase 1* |
-| Load-testing the per-request session lookup; sweep behaviour under load | P6 | `docs/phases/P6-ONE.md` → *Carried in from Phase 1* |
-| Deny-by-default rules for new routes; the 404-not-403 ownership pattern; tab-bar labels at the largest text size | P2 | `docs/phases/P2-ONE.md` → *Carried in from Phase 1* |
+Admin account enrollment/MFA and its successful login path remain Phase 5 work;
+all Phase 1 admin routes reject guest/member access on the server. Redis-backed
+limits, SMS delivery, supplier BOLA coverage and managed pepper storage remain
+Phase 3 work. No G1 signature is inferred from this hardening pass.

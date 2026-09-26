@@ -40,6 +40,14 @@ final class APIClientTests: XCTestCase {
         } catch { }
     }
 
+    func testPhoneDevelopmentAddressOverridesStaleSchemeAndEmptySettingsFallThrough() {
+        XCTAssertEqual(AppEnvironment.preferredAPISetting(development: "https://current.example",
+                       runtime: "https://expired.example", bundled: nil), "https://current.example")
+        XCTAssertEqual(AppEnvironment.preferredAPISetting(development: "", runtime: "http://127.0.0.1:8081",
+                       bundled: nil), "http://127.0.0.1:8081")
+        XCTAssertNil(AppEnvironment.preferredAPISetting(development: "$(UNSET)", runtime: "", bundled: nil))
+    }
+
     func testLocalEnvironmentUsesLoopbackIPv4() {
         XCTAssertEqual(AppEnvironment.local.baseURL?.absoluteString, "http://127.0.0.1:8080")
     }

@@ -51,8 +51,9 @@ class PhoneChallengeRepository {
 
     // Returns false when the challenge was already consumed, which is what stops one
     // accepted code from being exchanged for two sessions.
-    boolean consume(String challengeId) {
+    boolean consume(String challengeId, int maximumAttempts) {
         return jdbc.update("UPDATE phone_challenges SET consumed_at = now()"
-                + " WHERE id = ? AND consumed_at IS NULL", challengeId) == 1;
+                + " WHERE id = ? AND consumed_at IS NULL AND expires_at > clock_timestamp()"
+                + " AND attempts_used <= ?", challengeId, maximumAttempts) == 1;
     }
 }

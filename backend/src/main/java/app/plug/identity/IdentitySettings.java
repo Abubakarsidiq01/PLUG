@@ -26,9 +26,8 @@ public record IdentitySettings(
         String appleJwkSetUri,
         PhoneDelivery phoneDelivery) {
 
-    // How a one-time code reaches a phone. Twilio is Phase 3 work, so until then the only
-    // honest options are "there is no channel" and "this is a developer's own machine".
-    public enum PhoneDelivery { NONE, DEVELOPMENT }
+    // Delivery is explicit: no sender, local file for tests, or configured Twilio SMS.
+    public enum PhoneDelivery { NONE, DEVELOPMENT, TWILIO }
 
     public IdentitySettings {
         // Nothing is required while the module is off. The profile that enables it is also
@@ -60,7 +59,7 @@ public record IdentitySettings(
             require(appleJwkSetUri != null && appleJwkSetUri.startsWith("https://"),
                     "plug.identity.apple-jwk-set-uri must be an https key set.");
             require(phoneDelivery != null,
-                    "plug.identity.phone-delivery must be none or development.");
+                    "plug.identity.phone-delivery must be none, development or twilio.");
         }
     }
 

@@ -70,7 +70,7 @@ documentation is part of the work.
 Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
 
-- [x] **P1.S1** — Freeze the auth OpenAPI: Apple, phone start and verify, guest, refresh and session rules, logout, errors and consent version.
+- [ ] **P1.S1** — Joint approval remains pending. Freeze the auth OpenAPI: Apple, phone start and verify, guest, refresh and session rules, logout, errors and consent version.
 - [x] **P1.S2** — Implement Apple token verification server-side, and the Sign in with Apple client flow in iOS.
 - [x] **P1.S3** — Implement phone verification with per-IP and per-identity rate limits, attempt limits, expiry and audit events.
 - [x] **P1.S4** — Implement guest identity and the upgrade-and-link behaviour, without losing the current request context.
@@ -114,7 +114,8 @@ Verify with:
 
 ```bash
 # The identity tests need a real database and the pepper the db profile requires.
-docker compose --env-file .env.local up -d --wait postgres
+# Use a disposable database; databaseTest truncates identity data.
+# See docs/runbooks/p1-gate-completion.md for the isolated validation setup.
 cd backend
 ./dev check                                  # Phase 0 suite, contract tests, checkstyle
 PLUG_DATABASE_PASSWORD=... PLUG_IDENTITY_PEPPER=... ./dev databaseTest
@@ -139,7 +140,7 @@ sh tools/phase1-auth-walkthrough.sh
 
 # The sign-in screens, photographed at both text sizes. Run this against a real
 # iPhone before the gate: the same test, and then the output IS the §12.3 evidence.
-xcodebuild test -project ios/Plug.xcodeproj -scheme Plug -only-testing:PlugUITests \
+xcodebuild test -project ios/Plug.xcodeproj -scheme PlugUI -only-testing:PlugUITests \
   -destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID' \
   CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER=""
 ```

@@ -7,9 +7,11 @@ import Foundation
 final class InMemoryCredentialStore: CredentialStore, @unchecked Sendable {
     private let lock = NSLock()
     private var items: [String: Data] = [:]
+    var failSave = false
 
     func save(_ data: Data, account: String) throws {
         lock.lock(); defer { lock.unlock() }
+        if failSave { throw KeychainError.unableToSave(-1) }
         items[account] = data
     }
 

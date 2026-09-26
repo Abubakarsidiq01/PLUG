@@ -45,6 +45,11 @@ logging:
 plug:
   environment: ${PLUG_ENVIRONMENT:local}
   requests-per-minute: 60
+  sms:
+    account-sid: ${PLUG_SMS_ACCOUNT_SID:}
+    auth-token: ${PLUG_SMS_AUTH_TOKEN:}
+    messaging-service-sid: ${PLUG_SMS_MESSAGING_SERVICE_SID:}
+    from-number: ${PLUG_SMS_FROM_NUMBER:}
   identity:
     # Off by default. The module needs a database, and turning it on is what the db and
     # staging profiles do. With it off the auth routes are not registered at all, which is
@@ -64,6 +69,6 @@ plug:
     apple-client-id: ${PLUG_APPLE_CLIENT_ID:com.abubakarsidiq01.plug.app101}
     apple-issuer: https://appleid.apple.com
     apple-jwk-set-uri: https://appleid.apple.com/auth/keys
-    # none until Phase 3 connects the messaging provider. "development" writes codes to a
-    # file under build/ on a local machine only, and is refused anywhere else.
-    phone-delivery: none
+    # Set twilio for real SMS. Development writes local test codes only; none fails closed.
+    phone-delivery: ${PLUG_IDENTITY_PHONE_DELIVERY:none}
+    google-client-id: ${PLUG_GOOGLE_SERVER_CLIENT_ID:}

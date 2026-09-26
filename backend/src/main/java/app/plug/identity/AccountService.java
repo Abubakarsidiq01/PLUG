@@ -22,16 +22,18 @@ public class AccountService {
     private final IdentityRepository identities;
     private final SessionService sessions;
     private final AppleIdentityVerifier apple;
+    private final GoogleIdentityVerifier google;
     private final PhoneVerificationService phones;
     private final AuditLog audit;
     private final Secrets secrets;
     private final IdentitySettings settings;
 
-    AccountService(IdentityRepository identities, SessionService sessions, AppleIdentityVerifier apple,
+    AccountService(IdentityRepository identities, SessionService sessions, AppleIdentityVerifier apple, GoogleIdentityVerifier google,
             PhoneVerificationService phones, AuditLog audit, Secrets secrets, IdentitySettings settings) {
         this.identities = identities;
         this.sessions = sessions;
         this.apple = apple;
+        this.google = google;
         this.phones = phones;
         this.audit = audit;
         this.secrets = secrets;
@@ -53,26 +55,43 @@ public class AccountService {
 
     @Transactional
     public SignIn signInWithApple(String identityToken, String nonce, String consentVersion,
-            PlugPrincipal caller, String requestId) {
+            PlugPrincipal caller, String requestId, String intent) {
         requirePublishedConsent(consentVersion);
         var verified = apple.verify(identityToken, nonce);
         return completeSignIn(AccountType.APPLE, secrets.hashSubject(verified.subject()),
-                consentVersion, caller, requestId);
+                consentVersion, caller, requestId, intent);
+    }
+
+    @Transactional
+    public SignIn signInWithGoogle(String identityToken, String nonce, String consentVersion,
+            PlugPrincipal caller, String requestId, String intent) {
+        requirePublishedConsent(consentVersion);
+        return completeSignIn(AccountType.GOOGLE, secrets.hashSubject(google.verify(identityToken, nonce)),
+                consentVersion, caller, requestId, intent);
     }
 
     @Transactional
     public SignIn verifyPhone(String challengeId, String code, String consentVersion,
-            PlugPrincipal caller, String addressPrefix, String requestId) {
+            PlugPrincipal caller, String addressPrefix, String requestId, String intent) {
         requirePublishedConsent(consentVersion);
         String phoneHash = phones.verify(challengeId, code, addressPrefix);
-        return completeSignIn(AccountType.PHONE, phoneHash, consentVersion, caller, requestId);
+        return completeSignIn(AccountType.PHONE, phoneHash, consentVersion, caller, requestId, intent);
     }
 
     // The three-way decision every verified sign-in makes. Written once so the Apple path
     // and the phone path cannot drift into behaving differently about the same question.
     private SignIn completeSignIn(AccountType type, String subjectHash, String consentVersion,
-            PlugPrincipal caller, String requestId) {
+            PlugPrincipal caller, String requestId, String intent) {
         Optional<UserRow> existing = identities.findUserByIdentity(type.storage(), subjectHash);
+        // Intent is checked after ownership verification and before issuing any session.
+        // Missing intent preserves compatibility with earlier clients' combined flow.
+        if ("sign_up".equals(intent) && existing.isPresent()) {
+            throw alreadyRegistered();
+        }
+        if ("sign_in".equals(intent) && existing.isEmpty()) {
+            throw ApiException.authIntentConflict("account_not_found",
+                    "No PLUG account exists for this sign-in method. Create an account first.");
+        }
         UserRow guest = callerGuest(caller);
 
         if (guest != null) {
@@ -86,6 +105,7 @@ public class AccountService {
                         + " Sign in to that account instead.");
             }
             if (existing.isEmpty() && !identities.attachIdentity(guest.id(), type.storage(), subjectHash)) {
+                if ("sign_up".equals(intent)) { throw alreadyRegistered(); }
                 // The unique constraint refused it, which means another request attached
                 // the same subject while this one was deciding.
                 throw ApiException.conflict("That sign-in is already connected to another PLUG account."
@@ -106,6 +126,7 @@ public class AccountService {
         if (user == null) {
             user = identities.createUser(type);
             if (!identities.attachIdentity(user.id(), type.storage(), subjectHash)) {
+                if ("sign_up".equals(intent)) { throw alreadyRegistered(); }
                 throw ApiException.conflict("That sign-in is already connected to another PLUG account.");
             }
             audit.record(user.id(), type.storage(), "account.created", "user", user.id(), type.storage());
@@ -114,6 +135,11 @@ public class AccountService {
         }
         identities.recordConsent(user.id(), consentVersion, requestId);
         return issueFor(user, false);
+    }
+
+    private static ApiException alreadyRegistered() {
+        return ApiException.authIntentConflict("account_exists",
+                "You already have a PLUG account. Sign in instead.");
     }
 
     @Transactional

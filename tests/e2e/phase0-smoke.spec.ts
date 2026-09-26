@@ -15,7 +15,7 @@ test("an unauthenticated request to /admin is redirected, never rendered", async
   const response = await page.goto("/admin");
   expect(response?.request().redirectedFrom()).not.toBeNull();
   await expect(page).toHaveURL(/\/admin\/login\?from=%2Fadmin/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sign-in not implemented yet");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Admin access is not available yet");
 });
 
 test("/admin/login itself does not redirect", async ({ page }) => {
@@ -30,7 +30,7 @@ test("a forged session cookie cannot unlock the admin shell", async ({ page, con
   ]);
   await page.goto("/admin");
   await expect(page).toHaveURL(/\/admin\/login\?from=%2Fadmin/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Sign-in not implemented yet");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Admin access is not available yet");
 });
 
 test("login-prefixed paths are still protected", async ({ page }) => {

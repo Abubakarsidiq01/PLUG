@@ -93,6 +93,15 @@ class AppleSignInTest extends IdentityTestSupport {
     }
 
     @Test
+    void aTokenInsideTheDecodersClockSkewWindowIsStillExpired() throws Exception {
+        String nonce = "device-nonce-recent-expiry";
+        post("/v1/auth/apple", signInBody(
+                token("apple-recent-expiry", nonce, ISSUER, AUDIENCE, APPLE_KEY,
+                        Instant.now().minusSeconds(1)), nonce)).andExpect(status().isUnauthorized());
+        assertEquals(0, jdbc.queryForObject("SELECT count(*) FROM users", Integer.class));
+    }
+
+    @Test
     void aTokenForAnotherAppOrAnotherIssuerIsRefused() throws Exception {
         String nonce = "device-nonce-0000000004";
         Instant future = Instant.now().plusSeconds(300);

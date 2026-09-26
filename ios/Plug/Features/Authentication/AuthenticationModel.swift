@@ -10,6 +10,11 @@ import OSLog
 final class AuthenticationModel: ObservableObject {
     @Published private(set) var state: AuthenticationState = .signedOut
 
+    var isWorking: Bool {
+        if case .working = state { return true }
+        return false
+    }
+
     private let client: APIClient
     private let sessions: SessionStore
     private let consentVersion: String
@@ -37,13 +42,17 @@ final class AuthenticationModel: ObservableObject {
                 state = .signedOut
                 return
             }
-            state = me.consent.needsAcceptance ? .consentRequired(session) : .signedIn(session)
+            try await adopt(session.updating(account: me.account, consent: me.consent))
         } catch {
             await handleRestoreFailure(error)
         }
     }
 
     func continueAsGuest() async {
+        if await sessions.current()?.account.isGuest == true {
+            await restore()
+            return
+        }
         await signIn(step: .guest) {
             try await self.client.send(
                 try Endpoint.post("v1/auth/guest", body: ConsentBody(consentVersion: self.consentVersion)),
@@ -54,22 +63,49 @@ final class AuthenticationModel: ObservableObject {
     /// `identityToken` and `rawNonce` come from ASAuthorizationAppleIDCredential. The app
     /// verifies nothing about the token: verification is the server's job, because a client
     /// that decides a token is valid is a client an attacker can rewrite.
-    func signInWithApple(identityToken: String, rawNonce: String) async {
-        let existing = await sessions.current()
+    func signInWithApple(identityToken: String, rawNonce: String, creatingAccount: Bool = false) async {
         await signIn(step: .apple) {
-            try await self.client.send(
+            let guestToken = creatingAccount ? try await self.guestAccessToken() : nil
+            return try await self.client.send(
                 try Endpoint.post("v1/auth/apple",
-                                  body: AppleBody(identityToken: identityToken, nonce: rawNonce,
-                                                  consentVersion: self.consentVersion),
+                                  body: ProviderBody(identityToken: identityToken, nonce: rawNonce,
+                                                  consentVersion: self.consentVersion,
+                                                  intent: creatingAccount ? "sign_up" : "sign_in"),
                                   // Sent only when the caller is a guest, which is what
                                   // upgrades that account in place instead of making a
                                   // second one and losing what the guest had started.
-                                  accessToken: existing?.account.isGuest == true ? existing?.accessToken : nil),
+                                  accessToken: guestToken),
                 as: Session.self)
         }
     }
 
+    func providerFailed(_ message: String) {
+        state = .failed(message: message, canRetry: true)
+    }
+
+    func signInWithGoogle(identityToken: String, nonce: String, creatingAccount: Bool = false) async {
+        await signIn(step: .google) {
+            let guestToken = creatingAccount ? try await self.guestAccessToken() : nil
+            return try await self.client.send(
+                try Endpoint.post("v1/auth/google",
+                                  body: ProviderBody(identityToken: identityToken, nonce: nonce,
+                                                  consentVersion: self.consentVersion,
+                                                  intent: creatingAccount ? "sign_up" : "sign_in"), accessToken: guestToken),
+                as: Session.self)
+        }
+    }
+
+    static func normalizedPhone(_ input: String) -> String? {
+        let compact = input.filter { !" ()-.".contains($0) && !$0.isWhitespace }
+        guard compact.range(of: "^\\+[1-9][0-9]{7,14}$", options: .regularExpression) != nil else { return nil }
+        return compact
+    }
+
     func sendCode(to phoneNumber: String) async {
+        guard let phoneNumber = Self.normalizedPhone(phoneNumber) else {
+            state = .failed(message: "Enter your country code and number, for example +1 312 555 0123.", canRetry: true)
+            return
+        }
         state = .working(.sendingCode)
         do {
             let challenge: PhoneChallenge = try await client.send(
@@ -82,15 +118,15 @@ final class AuthenticationModel: ObservableObject {
         }
     }
 
-    func verifyCode(_ code: String, challengeID: String) async {
-        let existing = await sessions.current()
+    func verifyCode(_ code: String, challengeID: String, creatingAccount: Bool = false) async {
         state = .working(.checkingCode)
         do {
+            let guestToken = creatingAccount ? try await guestAccessToken() : nil
             let session: Session = try await client.send(
                 try Endpoint.post("v1/auth/phone/verify",
                                   body: VerifyBody(challengeId: challengeID, code: code,
-                                                   consentVersion: consentVersion),
-                                  accessToken: existing?.account.isGuest == true ? existing?.accessToken : nil),
+                                                   consentVersion: consentVersion, intent: creatingAccount ? "sign_up" : "sign_in"),
+                                  accessToken: guestToken),
                 as: Session.self)
             try await adopt(session)
         } catch let error as APIError where error.code == "validation_failed" {
@@ -104,17 +140,18 @@ final class AuthenticationModel: ObservableObject {
     }
 
     func acceptConsent() async {
-        guard let session = await sessions.current() else {
+        guard await sessions.current() != nil else {
             state = .signedOut
             return
         }
         do {
             let accessToken = try await sessions.validAccessToken()
-            _ = try await client.send(
+            let consent = try await client.send(
                 try Endpoint.post("v1/me/consent", body: ConsentVersionBody(version: consentVersion),
                                   accessToken: accessToken),
                 as: Consent.self)
-            state = .signedIn(session)
+            guard let session = await sessions.current() else { throw APIError.signedOut() }
+            try await adopt(session.updating(account: session.account, consent: consent))
         } catch {
             state = mapped(error, retryPreserved: false)
         }
@@ -134,6 +171,16 @@ final class AuthenticationModel: ObservableObject {
 
     func startOver() {
         state = .signedOut
+    }
+
+    func retry() async {
+        if await sessions.current() != nil { await restore() }
+        else { startOver() }
+    }
+
+    private func guestAccessToken() async throws -> String? {
+        guard await sessions.current()?.account.isGuest == true else { return nil }
+        return try await sessions.validAccessToken()
     }
 
     private func signIn(step: AuthenticationState.SignInStep,
@@ -158,14 +205,21 @@ final class AuthenticationModel: ObservableObject {
             state = .offline(retryPreserved: true)
             return
         }
-        await sessions.forget()
-        state = .signedOut
+        if let apiError = error as? APIError, apiError.code == "unauthenticated" {
+            await sessions.forget()
+            state = .signedOut
+        } else {
+            state = mapped(error, retryPreserved: true)
+        }
     }
 
     /// One place where a failure becomes a state. Every branch names something the person
     /// can do next, which is what separates an error state from an apology.
     private func mapped(_ error: Error, retryPreserved: Bool) -> AuthenticationState {
         if let urlError = error as? URLError {
+            if urlError.code == .cannotFindHost || urlError.code == .dnsLookupFailed {
+                return .failed(message: "PLUG’s server address is unavailable. Please reconnect and try again.", canRetry: true)
+            }
             return isOffline(urlError)
                 ? .offline(retryPreserved: retryPreserved)
                 : .failed(message: "We could not reach PLUG. Please try again.", canRetry: true)
@@ -181,11 +235,15 @@ final class AuthenticationModel: ObservableObject {
         case "rate_limited":
             return .rateLimited(retryAfterSeconds: apiError.retryAfterSeconds ?? 60)
         case "conflict":
+            if apiError.fieldCode == "account_exists" { return .accountExists }
+            if apiError.fieldCode == "account_not_found" { return .accountNotFound }
             return .accountLinkConflict(message: apiError.message)
         case "dependency_unavailable":
             return .unavailable(message: apiError.message)
         case "unauthenticated":
             return .failed(message: apiError.message, canRetry: true)
+        case "validation_failed":
+            return .failed(message: "We couldn’t complete sign-in. Please try again.", canRetry: true)
         default:
             return .failed(message: apiError.message, canRetry: true)
         }
@@ -199,15 +257,17 @@ final class AuthenticationModel: ObservableObject {
     private struct ConsentBody: Encodable { let consentVersion: String }
     private struct ConsentVersionBody: Encodable { let version: String }
     private struct PhoneStartBody: Encodable { let phoneNumber: String }
-    private struct AppleBody: Encodable {
+    private struct ProviderBody: Encodable {
         let identityToken: String
         let nonce: String
         let consentVersion: String
+        let intent: String
     }
     private struct VerifyBody: Encodable {
         let challengeId: String
         let code: String
         let consentVersion: String
+        let intent: String
     }
 }
 

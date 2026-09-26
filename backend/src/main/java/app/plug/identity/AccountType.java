@@ -7,7 +7,7 @@ import java.util.Set;
 // What a person proved about themselves. The account keeps one user id for its whole
 // life, so upgrading from a guest changes this value and nothing else that matters.
 public enum AccountType {
-    GUEST, PHONE, APPLE;
+    GUEST, PHONE, APPLE, GOOGLE;
 
     public static AccountType fromStorage(String value) {
         return valueOf(value.toUpperCase(Locale.ROOT));

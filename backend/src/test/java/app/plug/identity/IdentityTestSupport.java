@@ -58,7 +58,7 @@ abstract class IdentityTestSupport {
     void resetIdentityTables() {
         int network = NETWORKS.incrementAndGet();
         callerAddress = "10." + (network / 250) + "." + (network % 250) + ".7";
-        jdbc.execute("TRUNCATE sessions, identities, consents, phone_challenges, apple_token_uses,"
+        jdbc.execute("TRUNCATE sessions, identities, consents, phone_challenges, apple_token_uses, google_token_uses,"
                 + " audit_events, users RESTART IDENTITY CASCADE");
         codes.clear();
     }
