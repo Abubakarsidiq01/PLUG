@@ -1,1 +1,3 @@
-{ "refresh_token": "<refresh-token>" }
+{
+  "refresh_token": "prt_example-refresh-token"
+}

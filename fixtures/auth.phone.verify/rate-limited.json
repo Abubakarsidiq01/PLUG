@@ -1,8 +1,8 @@
 {
   "error": {
     "code": "rate_limited",
-    "message": "Too many requests. Try again shortly.",
+    "message": "Too many attempts. Try again shortly.",
     "request_id": "req_01H8XK4Q7N",
-    "retry_after_seconds": 30
+    "retry_after_seconds": 300
   }
 }

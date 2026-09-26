@@ -1,7 +1,14 @@
 {
   "error": {
-    "code": "invalid_code",
+    "code": "validation_failed",
     "message": "That code is not correct.",
-    "request_id": "req_01H8XK4Q7N"
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "code",
+        "code": "invalid",
+        "message": "That code is not correct."
+      }
+    ]
   }
 }

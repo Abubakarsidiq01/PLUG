@@ -1,7 +1,7 @@
 {
   "error": {
     "code": "unauthenticated",
-    "message": "That Apple sign-in could not be verified. Try again.",
+    "message": "Authentication is required.",
     "request_id": "req_01H8XK4Q7N"
   }
 }

@@ -1,7 +1,0 @@
-{
-  "error": {
-    "code": "too_many_attempts",
-    "message": "Too many attempts. Request a new code.",
-    "request_id": "req_01H8XK4Q7N"
-  }
-}
