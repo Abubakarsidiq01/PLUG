@@ -83,8 +83,9 @@ port 3000. `localhost` on an iPhone refers to the phone, not the Mac.
 
 The web routes now exist, but their legal text awaits approval. Do not treat the
 placeholder pages or development consent date as published legal agreements.
-Development file-based phone delivery must remain local; it is unavailable in
-staging until Phase 3 (ADR-007).
+Development file-based phone delivery must remain local. Optional Twilio OTP
+can now be enabled with a configured sender (ADR-007 amendment); real delivery
+still needs a physical receipt test. Two-way SMS and iMessage remain later work.
 
 ## 3. Capture and verify on the physical iPhone
 
@@ -142,5 +143,5 @@ With Person Two:
 
 Admin account enrollment/MFA and its successful login path remain Phase 5 work;
 all Phase 1 admin routes reject guest/member access on the server. Redis-backed
-limits, SMS delivery, supplier BOLA coverage and managed pepper storage remain
+limits, two-way SMS, supplier BOLA coverage and managed pepper storage remain
 Phase 3 work. No G1 signature is inferred from this hardening pass.

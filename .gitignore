@@ -32,3 +32,11 @@ evidence/**/*.mov
 /PLUG_Production_Master_Manual*.docx
 /web/AGENTS.md
 /web/CLAUDE.md
+
+# Local Apple exports and runtime diagnostic dumps; share sanitized evidence instead.
+*.xcresult/
+*.xcarchive/
+*.dSYM/
+*.ipa
+*.hprof
+*.jfr

@@ -49,8 +49,9 @@ class FixtureBehaviourTest extends IdentityTestSupport {
         var challenge = body(post("/v1/auth/phone/start", """
                 {"phone_number":"+15551279002"}""").andExpect(status().isAccepted()));
         assertSameError("auth.phone.verify/invalid-code.json", body(post("/v1/auth/phone/verify", """
-                {"challenge_id":"%s","code":"000000","consent_version":"%s"}"""
-                .formatted(challenge.get("challenge_id").asText(), CONSENT)).andExpect(status().isBadRequest())));
+                {"challenge_id":"%s","code":"%s","consent_version":"%s"}"""
+                .formatted(challenge.get("challenge_id").asText(),
+                        "000000".equals(codes.latest()) ? "000001" : "000000", CONSENT)).andExpect(status().isBadRequest())));
 
         assertSameError("auth.refresh/session-ended.json", body(post("/v1/auth/refresh",
                 example("auth-refresh-request.json")).andExpect(status().isUnauthorized())));

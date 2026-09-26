@@ -1,11 +1,11 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-25T06:14:56.748949+00:00",
+  "updated_at": "2026-09-26T21:54:56.084258+00:00",
   "updated_by": "person_one",
   "current_phase": "P1",
   "current_step": "P1.S12",
-  "current_step_title": "Phase 1 identity/consent and Google/phone OTP implementation prepared for PR. Physical Google login confirmed; real SMS sender, Apple provisioning and joint G1 sign-off remain open.",
+  "current_step_title": "Phase 1 stacked PRs #27, #25 and #26 validated together; physical Apple evidence, provider setup, joint contract/legal approval and G1 checkpoint remain open.",
   "manual_section": "27.2",
   "readme": "docs/phases/P1-ONE.md",
   "owner": "person_one",
@@ -55,7 +55,7 @@
     {
       "id": "P1-auth-contract-review",
       "owner": "person_two",
-      "task": "Review contracts/openapi.yaml 0.2.0 and contracts/CHANGELOG.md with Person One: token payload, the 15-minute access and rotating 30-day / 7-day refresh rules, every error code, the invalid/expired details tokens on a one-time code, the guest scope limit on /v1/me/sessions, and the consent version. The implementation is on p1.s1-one-identity-and-consent and follows the contract; if the review changes the contract, the implementation changes with it. 2026-09-26: the draft 0.2.0 fixtures and examples from PR #25 were replaced with ones that match this implementation (consent_version, 201 sign-in, cha_ challenges, absolute expiry, Google, sign_up/sign_in intent, 503 dependency_unavailable) and are checked against the live backend by FixtureBehaviourTest; auth routes make no Idempotency-Key replay promise. Person One still has to approve before the operations are frozen.",
+      "task": "Review and approve the aligned auth contract in PRs #27 and #25 together. PR #26 is stacked on #25. Fixtures and implementation now agree, including Google, intent, opaque tokens and unavailable-provider errors. Record both engineers' approvals before freezing operations; automated verification is not a signature.",
       "manual_section": "27.2",
       "acceptance": "Both engineers approve the contract pull request and the eleven Phase 1 operations move from draft to frozen@0.2.0 in this file."
     },
@@ -101,8 +101,8 @@
     "UI tests now use the dedicated PlugUI scheme and require a running identity backend. Both text-size tests passed. They capture 7 states per size, not the full physical-device matrix.",
     "The eleven Phase 1 auth operations are implemented and tested but not yet frozen: they need the joint contract review that manual.docx \u00a727.2 puts before implementation. Person One built to the contract as written rather than waiting, so a change agreed at that review is a change to both the contract and the implementation, in one pull request.",
     "PLUG's own access and refresh tokens are opaque and resolved against the sessions table on every request (ADR-006). That is one indexed read and one last_used_at write per authenticated call. It has not been load-tested; measure before assuming it holds.",
-    "Phone verification has no delivery channel until Phase 3 (ADR-007). The verification machinery is complete and exercised through a development file sender on a local machine only; staging answers 503 dependency_unavailable.",
-    "The connected iPhone is available, but Xcode provisioning refresh failed: the configured Personal development team does not support Sign in with Apple. Use an Apple Developer Program team that supports this capability, select it in Signing & Capabilities, enable the capability for the App ID, and refresh provisioning. Then follow the physical-device runbook. No phone app was installed or reset.",
+    "Twilio outbound OTP is optionally implemented in Phase 1 under amended ADR-007, but no configured sender or real received-SMS evidence has been established. Development codes remain local-only; disabled delivery returns 503. Two-way SMS/iMessage remain later-phase work.",
+    "The connected iPhone is available, but Xcode provisioning refresh failed: the configured Personal development team does not support Sign in with Apple. Use an Apple Developer Program team that supports this capability, select it in Signing & Capabilities, enable the capability for the App ID, and refresh provisioning. Then follow the physical-device runbook. A signed Google-capable app was previously tested; that does not establish Apple capability.",
     "PLUG_IDENTITY_PEPPER is required by the db and staging profiles, including for local ./dev databaseTest runs. It keys the stored phone, Apple-subject and one-time-code hashes, so rotating it makes every existing identity unrecognisable. It has no secret-storage home yet beyond .env.local and the CI workflow.",
     "No account type in Phase 1 can be granted the admin scope, so every route under /v1/admin is refused \u2014 confirmed in the walkthrough. AdminStepUpAuthorization is in place ahead of the first admin route, but nothing exercises the allow path until Phase 5.",
     "Terms, Privacy, and Support web routes now exist. Terms and Privacy explicitly await approved legal text; PLUG_WEB_URL must point at a reachable site on a real phone. Do not treat the development consent version as an approved published agreement.",
@@ -207,6 +207,21 @@
       "ios_tests": 43,
       "ui_scenarios": 7,
       "api_walkthrough_assertions": 35
+    },
+    "final_pr_stack": {
+      "date": "2026-09-26",
+      "prs": [
+        27,
+        25,
+        26
+      ],
+      "backend_tests": 108,
+      "web_tests": 69,
+      "bruno_requests": 20,
+      "bruno_assertions": 42,
+      "failures": 0,
+      "g1_passed": false,
+      "record": "docs/testing/phase1-final-integration-2026-09-26.md"
     }
   }
 }
