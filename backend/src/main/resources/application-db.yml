@@ -23,3 +23,7 @@ spring:
       hibernate:
         jdbc:
           time_zone: UTC
+plug:
+  identity:
+    # A database is present in this profile, so the identity module runs.
+    enabled: true

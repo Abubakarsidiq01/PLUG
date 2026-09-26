@@ -1,0 +1,29 @@
+meta {
+  name: Phase 1 - logout-guest
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/v1/auth/guest
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"consent_version": "2026-09-01"}
+}
+
+assert {
+  res.status: eq 201
+  res.body.account.type: eq guest
+}
+
+script:post-response {
+  bru.setVar("p1LogoutAccess", res.getBody().access_token);
+  bru.setVar("p1LogoutRefresh", res.getBody().refresh_token);
+}

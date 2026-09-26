@@ -1,0 +1,24 @@
+meta {
+  name: Phase 1 - unknown-challenge
+  type: http
+  seq: 15
+}
+
+post {
+  url: {{baseUrl}}/v1/auth/phone/verify
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"challenge_id": "cha_00000000-0000-0000-0000-000000000000", "code": "123456", "consent_version": "2026-09-01"}
+}
+
+assert {
+  res.status: eq 400
+  res.body.error.details[0].code: eq expired
+}

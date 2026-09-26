@@ -26,6 +26,35 @@ You are the final technical authority on this phase. If something here conflicts
 
 ---
 
+## Carried in from Phase 1
+
+- **Phone code delivery is this phase's job (ADR-007).** Phase 1 built the whole
+  verification mechanism — challenge, expiry, attempt limit, three layered rate
+  limits, constant-time comparison, audit events — behind the `PhoneCodeSender`
+  interface, with no implementation. Implement it with Twilio and change
+  `plug.identity.phone-delivery`. Nothing above the interface has to move. Until
+  that lands, `POST /v1/auth/phone/start` answers `503 dependency_unavailable`,
+  and no code is ever written to the application log in any environment.
+- **Move the rate limits to Redis before running more than one instance.**
+  `FixedWindowLimiter` counts in one process's memory. That is correct for a
+  single instance and silently wrong for two, and this phase adds supplier
+  fan-out and inbound webhooks. The root `docker-compose.yml` already provisions a Redis
+  nobody uses yet.
+- **Extend the BOLA test to supplier resource ids.** manual.docx §27.2 asks for
+  user, supplier and admin. `SessionLifecycleTest` covers user and admin;
+  supplier resources do not exist until this phase, so the third class is
+  genuinely uncovered until you add it here.
+- **Give `PLUG_IDENTITY_PEPPER` a real home.** It currently lives only in
+  `.env.local` and the CI workflow. ADR-004 says AWS is revisited no later than
+  this phase, because Twilio needs a stable webhook URL; move the pepper into
+  Secrets Manager at the same time. Rotating it makes every stored phone hash,
+  Apple subject and code hash unrecognisable — treat it as permanent.
+- **Webhook authentication is not session authentication.** Twilio requests
+  carry a signature, not a bearer token. Verify the signature in the handler and
+  keep `/v1/webhooks/**` off the session filter's rules.
+
+---
+
 ## 0. Before any code — the contract
 
 This phase does not start with code. It starts with a fifteen-minute session

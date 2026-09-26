@@ -21,6 +21,11 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest(properties = {
         "spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration",
         "PLUG_JWT_ISSUER=https://issuer.invalid", "PLUG_JWT_AUDIENCE=plug-api",
+        // This test covers the Phase 0 chain for POST /v1/requests, which is reached
+        // through an externally issued JWT and no database. The identity module needs one,
+        // so it is switched off here rather than given a half-configured context.
+        "plug.identity.enabled=false", "PLUG_IDENTITY_PEPPER=staging-security-test-pepper-value-32ch",
+        "PLUG_APPLE_CLIENT_ID=app.plug.test",
         "PLUG_DATABASE_PASSWORD=test", "PLUG_MIGRATION_DATABASE_URL=jdbc:postgresql://localhost/unused",
         "PLUG_MIGRATION_DATABASE_USER=test", "PLUG_MIGRATION_DATABASE_PASSWORD=test"})
 @AutoConfigureMockMvc

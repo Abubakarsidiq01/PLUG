@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+        B10000000000000000000001 = {isa = PBXBuildFile; productRef = B10000000000000000000002; };
+        B10000000000000000000003 = {isa = PBXBuildFile; productRef = B10000000000000000000004; };
 		000000000000000000041001 /* PlugApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042001 /* PlugApp.swift */; };
 		000000000000000000041002 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042002 /* AppEnvironment.swift */; };
 		000000000000000000041003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042003 /* APIClient.swift */; };
@@ -17,7 +19,27 @@
 		000000000000000000041008 /* Core/DesignSystem/PlugTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000004200A /* Core/DesignSystem/PlugTokens.swift */; };
 		000000000000000000041009 /* APIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042011 /* APIClientTests.swift */; };
 		2E857CDF393AE466C187ED01 /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */; };
+		A100000000000000000001F5 /* Core/Networking/Endpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000001 /* Core/Networking/Endpoint.swift */; };
+		A100000000000000000001F6 /* Core/Networking/APIError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000002 /* Core/Networking/APIError.swift */; };
+		A100000000000000000001F7 /* Core/Storage/KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000003 /* Core/Storage/KeychainStore.swift */; };
+		A100000000000000000001F8 /* Core/Storage/SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000004 /* Core/Storage/SessionStore.swift */; };
+		A100000000000000000001F9 /* Core/Models/Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000005 /* Core/Models/Session.swift */; };
+		A100000000000000000001FA /* Core/Utilities/SignInNonce.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000006 /* Core/Utilities/SignInNonce.swift */; };
+		A100000000000000000001FB /* Features/Authentication/AuthenticationState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000007 /* Features/Authentication/AuthenticationState.swift */; };
+		A100000000000000000001FC /* Features/Authentication/AuthenticationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000008 /* Features/Authentication/AuthenticationModel.swift */; };
+		A100000000000000000001FD /* Features/Authentication/ConsentNotice.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000009 /* Features/Authentication/ConsentNotice.swift */; };
+		A100000000000000000001FE /* Features/Authentication/CodeEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000A /* Features/Authentication/CodeEntryView.swift */; };
+		A100000000000000000001FF /* Features/Authentication/WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000000B /* Features/Authentication/WelcomeView.swift */; };
+		A10000000000000000000258 /* TestTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000064 /* TestTransport.swift */; };
+		A10000000000000000000259 /* InMemoryCredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000065 /* InMemoryCredentialStore.swift */; };
+		A1000000000000000000025A /* KeychainStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000066 /* KeychainStoreTests.swift */; };
+		A1000000000000000000025B /* SessionStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000067 /* SessionStoreTests.swift */; };
+		A1000000000000000000025C /* AuthenticationModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000068 /* AuthenticationModelTests.swift */; };
+		A10000000000000000000D /* Core/Networking/PlugJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000C /* Core/Networking/PlugJSON.swift */; };
+		A1000000000000000000E4 /* LiveBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000E3 /* LiveBackendTests.swift */; };
+		A1000000000000000000F8 /* SignInScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000F7 /* SignInScreenshotTests.swift */; };
 		E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */ = {isa = PBXBuildFile; fileRef = 7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */; };
+		C10000000000000000000001 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,9 +50,17 @@
 			remoteGlobalIDString = 000000000000000000054001;
 			remoteInfo = Plug;
 		};
+		A1000000000000000000FD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 000000000000000000050001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 000000000000000000054001;
+			remoteInfo = Plug;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+        B10000000000000000000006 = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Plug/Resources/Authentication.xcconfig; sourceTree = SOURCE_ROOT; };
 		000000000000000000042001 /* PlugApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlugApp.swift; sourceTree = "<group>"; };
 		000000000000000000042002 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		000000000000000000042003 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -44,6 +74,28 @@
 		000000000000000000042011 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Color+Hex.swift"; path = "Core/DesignSystem/Color+Hex.swift"; sourceTree = "<group>"; };
 		7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Tokens.swift (generated)"; path = ../../design/generated/Tokens.swift; sourceTree = "<group>"; };
+		A10000000000000000000001 /* Core/Networking/Endpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/Endpoint.swift; sourceTree = "<group>"; };
+		A10000000000000000000002 /* Core/Networking/APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/APIError.swift; sourceTree = "<group>"; };
+		A10000000000000000000003 /* Core/Storage/KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/KeychainStore.swift; sourceTree = "<group>"; };
+		A10000000000000000000004 /* Core/Storage/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/SessionStore.swift; sourceTree = "<group>"; };
+		A10000000000000000000005 /* Core/Models/Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Models/Session.swift; sourceTree = "<group>"; };
+		A10000000000000000000006 /* Core/Utilities/SignInNonce.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Utilities/SignInNonce.swift; sourceTree = "<group>"; };
+		A10000000000000000000007 /* Features/Authentication/AuthenticationState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/AuthenticationState.swift; sourceTree = "<group>"; };
+		A10000000000000000000008 /* Features/Authentication/AuthenticationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/AuthenticationModel.swift; sourceTree = "<group>"; };
+		A10000000000000000000009 /* Features/Authentication/ConsentNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/ConsentNotice.swift; sourceTree = "<group>"; };
+		A1000000000000000000000A /* Features/Authentication/CodeEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/CodeEntryView.swift; sourceTree = "<group>"; };
+		A1000000000000000000000B /* Features/Authentication/WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Authentication/WelcomeView.swift; sourceTree = "<group>"; };
+		A10000000000000000000064 /* TestTransport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestTransport.swift; sourceTree = "<group>"; };
+		A10000000000000000000065 /* InMemoryCredentialStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InMemoryCredentialStore.swift; sourceTree = "<group>"; };
+		A10000000000000000000066 /* KeychainStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStoreTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000067 /* SessionStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStoreTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000068 /* AuthenticationModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationModelTests.swift; sourceTree = "<group>"; };
+		A10000000000000000000384 /* Resources/Plug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Resources/Plug.entitlements; sourceTree = "<group>"; };
+		A10000000000000000000C /* Core/Networking/PlugJSON.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/PlugJSON.swift; sourceTree = "<group>"; };
+		A1000000000000000000E3 /* LiveBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBackendTests.swift; sourceTree = "<group>"; };
+		A1000000000000000000F2 /* PlugUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1000000000000000000F7 /* SignInScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInScreenshotTests.swift; sourceTree = "<group>"; };
+		C10000000000000000000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -51,6 +103,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+ B10000000000000000000001, B10000000000000000000003,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -62,6 +115,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1000000000000000000F4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -70,6 +130,7 @@
 			children = (
 				000000000000000000047002 /* Plug */,
 				000000000000000000047003 /* PlugTests */,
+				A1000000000000000000F6 /* PlugUITests */,
 				000000000000000000047004 /* Products */,
 				000000000000000000047005 /* Frameworks */,
 			);
@@ -82,6 +143,20 @@
 				000000000000000000047007 /* Core/Networking */,
 				000000000000000000047008 /* Features/Engineering */,
 				00000000000000000004200A /* Core/DesignSystem/PlugTokens.swift */,
+                C10000000000000000000002 /* Assets.xcassets */,
+				A10000000000000000000001 /* Core/Networking/Endpoint.swift */,
+				A10000000000000000000002 /* Core/Networking/APIError.swift */,
+				A10000000000000000000003 /* Core/Storage/KeychainStore.swift */,
+				A10000000000000000000004 /* Core/Storage/SessionStore.swift */,
+				A10000000000000000000005 /* Core/Models/Session.swift */,
+				A10000000000000000000006 /* Core/Utilities/SignInNonce.swift */,
+				A10000000000000000000007 /* Features/Authentication/AuthenticationState.swift */,
+				A10000000000000000000008 /* Features/Authentication/AuthenticationModel.swift */,
+				A10000000000000000000009 /* Features/Authentication/ConsentNotice.swift */,
+				A1000000000000000000000A /* Features/Authentication/CodeEntryView.swift */,
+				A1000000000000000000000B /* Features/Authentication/WelcomeView.swift */,
+				A10000000000000000000384 /* Resources/Plug.entitlements */,
+				A10000000000000000000C /* Core/Networking/PlugJSON.swift */,
 				6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */,
 				7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */,
 			);
@@ -94,6 +169,12 @@
 				000000000000000000042005 /* HealthResponseTests.swift */,
 				000000000000000000042009 /* ../../contracts/examples/health-response.json */,
 				000000000000000000042011 /* APIClientTests.swift */,
+				A1000000000000000000E3 /* LiveBackendTests.swift */,
+				A10000000000000000000064 /* TestTransport.swift */,
+				A10000000000000000000065 /* InMemoryCredentialStore.swift */,
+				A10000000000000000000066 /* KeychainStoreTests.swift */,
+				A10000000000000000000067 /* SessionStoreTests.swift */,
+				A10000000000000000000068 /* AuthenticationModelTests.swift */,
 			);
 			path = PlugTests;
 			sourceTree = "<group>";
@@ -103,6 +184,7 @@
 			children = (
 				000000000000000000042006 /* Plug.app */,
 				000000000000000000042007 /* PlugTests.xctest */,
+				A1000000000000000000F2 /* PlugUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -140,6 +222,14 @@
 			path = Features/Engineering;
 			sourceTree = "<group>";
 		};
+		A1000000000000000000F6 /* PlugUITests */ = {
+			isa = PBXGroup;
+			children = (
+				A1000000000000000000F7 /* SignInScreenshotTests.swift */,
+			);
+			path = PlugUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -155,7 +245,8 @@
 			);
 			dependencies = (
 			);
-			name = Plug;
+			packageProductDependencies = (B10000000000000000000002, B10000000000000000000004);
+            name = Plug;
 			productName = Plug;
 			productReference = 000000000000000000042006 /* Plug.app */;
 			productType = "com.apple.product-type.application";
@@ -178,6 +269,24 @@
 			productReference = 000000000000000000042007 /* PlugTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
+		A1000000000000000000F1 /* PlugUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1000000000000000000F9 /* Build configuration list for PBXNativeTarget "PlugUITests" */;
+			buildPhases = (
+				A1000000000000000000F3 /* Sources */,
+				A1000000000000000000F4 /* Frameworks */,
+				A1000000000000000000F5 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1000000000000000000FC /* PBXTargetDependency */,
+			);
+			name = PlugUITests;
+			productName = PlugUITests;
+			productReference = A1000000000000000000F2 /* PlugUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -195,6 +304,10 @@
 						CreatedOnToolsVersion = 16.0;
 						TestTargetID = 000000000000000000054001;
 					};
+					A1000000000000000000F1 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = 000000000000000000054001;
+					};
 				};
 			};
 			buildConfigurationList = 00000000000000000004C001 /* Build configuration list for PBXProject "Plug" */;
@@ -209,9 +322,11 @@
 			productRefGroup = 000000000000000000047004 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
+            packageReferences = (B10000000000000000000005);
 			targets = (
 				000000000000000000054001 /* Plug */,
 				000000000000000000054002 /* PlugTests */,
+				A1000000000000000000F1 /* PlugUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -221,6 +336,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+                C10000000000000000000001 /* Assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -229,6 +345,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				000000000000000000041007 /* ../../contracts/examples/health-response.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1000000000000000000F5 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,6 +369,18 @@
 				000000000000000000041008 /* Core/DesignSystem/PlugTokens.swift in Sources */,
 				2E857CDF393AE466C187ED01 /* Color+Hex.swift in Sources */,
 				E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */,
+				A10000000000000000000D /* Core/Networking/PlugJSON.swift in Sources */,
+				A100000000000000000001F5 /* Core/Networking/Endpoint.swift in Sources */,
+				A100000000000000000001F6 /* Core/Networking/APIError.swift in Sources */,
+				A100000000000000000001F7 /* Core/Storage/KeychainStore.swift in Sources */,
+				A100000000000000000001F8 /* Core/Storage/SessionStore.swift in Sources */,
+				A100000000000000000001F9 /* Core/Models/Session.swift in Sources */,
+				A100000000000000000001FA /* Core/Utilities/SignInNonce.swift in Sources */,
+				A100000000000000000001FB /* Features/Authentication/AuthenticationState.swift in Sources */,
+				A100000000000000000001FC /* Features/Authentication/AuthenticationModel.swift in Sources */,
+				A100000000000000000001FD /* Features/Authentication/ConsentNotice.swift in Sources */,
+				A100000000000000000001FE /* Features/Authentication/CodeEntryView.swift in Sources */,
+				A100000000000000000001FF /* Features/Authentication/WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -255,6 +390,20 @@
 			files = (
 				000000000000000000041005 /* HealthResponseTests.swift in Sources */,
 				000000000000000000041009 /* APIClientTests.swift in Sources */,
+				A1000000000000000000E4 /* LiveBackendTests.swift in Sources */,
+				A10000000000000000000258 /* TestTransport.swift in Sources */,
+				A10000000000000000000259 /* InMemoryCredentialStore.swift in Sources */,
+				A1000000000000000000025A /* KeychainStoreTests.swift in Sources */,
+				A1000000000000000000025B /* SessionStoreTests.swift in Sources */,
+				A1000000000000000000025C /* AuthenticationModelTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1000000000000000000F3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000000000000000000F8 /* SignInScreenshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -266,12 +415,26 @@
 			target = 000000000000000000054001 /* Plug */;
 			targetProxy = 000000000000000000043001 /* PBXContainerItemProxy */;
 		};
+		A1000000000000000000FC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 000000000000000000054001 /* Plug */;
+			targetProxy = A1000000000000000000FD /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+        B10000000000000000000005 = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/google/GoogleSignIn-iOS"; requirement = {kind = exactVersion; version = 9.2.0; }; };
+/* End XCRemoteSwiftPackageReference section */
+/* Begin XCSwiftPackageProductDependency section */
+        B10000000000000000000002 = {isa = XCSwiftPackageProductDependency; package = B10000000000000000000005; productName = GoogleSignIn; };
+        B10000000000000000000004 = {isa = XCSwiftPackageProductDependency; package = B10000000000000000000005; productName = GoogleSignInSwift; };
+/* End XCSwiftPackageProductDependency section */
 /* Begin XCBuildConfiguration section */
 		000000000000000000043065 /* Debug */ = {
 			isa = XCBuildConfiguration;
+            baseConfigurationReference = B10000000000000000000006;
 			buildSettings = {
+                ONLY_ACTIVE_ARCH = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
 				SDKROOT = iphoneos;
@@ -282,6 +445,7 @@
 		};
 		000000000000000000043066 /* Release */ = {
 			isa = XCBuildConfiguration;
+            baseConfigurationReference = B10000000000000000000006;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
@@ -293,6 +457,8 @@
 		0000000000000000000430C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Plug/Resources/Plug.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = W5A7U9W369;
@@ -301,8 +467,10 @@
 				INFOPLIST_FILE = "Plug/Resources/Debug-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -312,6 +480,8 @@
 		0000000000000000000430CA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Plug/Resources/Plug.entitlements;
+				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = W5A7U9W369;
@@ -320,8 +490,10 @@
 				INFOPLIST_FILE = "Plug/Resources/Release-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+                PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -353,6 +525,30 @@
 			};
 			name = Release;
 		};
+		A1000000000000000000FA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Plug;
+			};
+			name = Debug;
+		};
+		A1000000000000000000FB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = Plug;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -379,6 +575,15 @@
 			buildConfigurations = (
 				00000000000000000004312D /* Debug */,
 				00000000000000000004312E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1000000000000000000F9 /* Build configuration list for PBXNativeTarget "PlugUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000000000000000000FA /* Debug */,
+				A1000000000000000000FB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -1,11 +1,11 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-22T09:15:00-05:00",
+  "updated_at": "2026-09-25T06:14:56.748949+00:00",
   "updated_by": "person_one",
   "current_phase": "P1",
-  "current_step": "P1.S1",
-  "current_step_title": "Agree the Phase 1 identity and consent contract before feature implementation. G0 signed; Phase 0 contract 0.1.0 jointly agreed, as confirmed by Person One on 2026-09-22.",
+  "current_step": "P1.S12",
+  "current_step_title": "Phase 1 identity/consent and Google/phone OTP implementation prepared for PR. Physical Google login confirmed; real SMS sender, Apple provisioning and joint G1 sign-off remain open.",
   "manual_section": "27.2",
   "readme": "docs/phases/P1-ONE.md",
   "owner": "person_one",
@@ -24,8 +24,8 @@
       "summary": "Live, two-person connected checkpoint against real staging (cloudflared Quick Tunnel, ADR-004). Person One's physical iPhone request_id req_b78c1781-9266-4900-808b-16d18e293037 (GET /health) was independently confirmed inside the same backend terminal log that also recorded Person Two's real requests from her own Windows PC (req_8fb31027..., req_0679b3c7..., req_13c7c30c..., all POST /v1/requests 202). PR #20 (superseding earlier PR #10/#19) merged to main with uzom-a's independent code-owner review, satisfying the branch-protection requirement.",
       "evidence": [
         "evidence/P0/logs/connected-checkpoint-2026-09-22.log",
-        "evidence/P0/ios/Screenshot 2026-09-22 at 12.03.34 AM.png",
-        "evidence/P0/logs/Screenshot 2026-09-22 at 12.08.28 AM.png",
+        "evidence/P0/ios/Screenshot 2026-09-22 at 12.03.34\u202fAM.png",
+        "evidence/P0/logs/Screenshot 2026-09-22 at 12.08.28\u202fAM.png",
         "evidence/P0/logs/database-resilience-2026-09-22.md"
       ]
     }
@@ -33,16 +33,45 @@
   "contracts": {
     "GET /health": "frozen@0.1.0",
     "GET /health/ready": "frozen@0.1.0",
-    "POST /v1/requests": "frozen@0.1.0"
+    "POST /v1/requests": "frozen@0.1.0",
+    "POST /v1/auth/apple": "draft",
+    "POST /v1/auth/phone/start": "draft",
+    "POST /v1/auth/phone/verify": "draft",
+    "POST /v1/auth/guest": "draft",
+    "POST /v1/auth/refresh": "draft",
+    "POST /v1/auth/logout": "draft",
+    "GET /v1/me": "draft",
+    "POST /v1/me/consent": "draft",
+    "GET /v1/me/sessions": "draft",
+    "GET /v1/me/sessions/{session_id}": "draft",
+    "DELETE /v1/me/sessions/{session_id}": "draft",
+    "POST /v1/auth/google": "draft@0.2.1"
   },
-  "feature_flags": {},
+  "feature_flags": {
+    "identity": "staging_only",
+    "phone_code_delivery": "off"
+  },
   "next_actions": [
     {
-      "id": "P1-auth-contract",
-      "owner": "person_one",
-      "task": "Together with Person Two, agree and merge the Phase 1 Apple, phone, guest, session/refresh/logout, errors and consent contract before implementing features.",
+      "id": "P1-auth-contract-review",
+      "owner": "person_two",
+      "task": "Review contracts/openapi.yaml 0.2.0 and contracts/CHANGELOG.md with Person One: token payload, the 15-minute access and rotating 30-day / 7-day refresh rules, every error code, the invalid/expired details tokens on a one-time code, the guest scope limit on /v1/me/sessions, and the consent version. The implementation is on p1.s1-one-identity-and-consent and follows the contract; if the review changes the contract, the implementation changes with it.",
       "manual_section": "27.2",
-      "acceptance": "Both engineers record agreement; contract, examples and fixtures are reviewed and merged."
+      "acceptance": "Both engineers approve the contract pull request and the eleven Phase 1 operations move from draft to frozen@0.2.0 in this file."
+    },
+    {
+      "id": "P1-device-evidence",
+      "owner": "person_one",
+      "task": "Use the PlugUI scheme for real-device screenshots at both text sizes. Then perform real Apple sign-in, relaunch, guest upgrade, logout verification, VoiceOver and a recorded offline recovery. Automated screenshots cover a subset, not all states. Enable the Apple capability and provide reachable API/web URLs; exact commands: docs/runbooks/p1-gate-completion.md.",
+      "manual_section": "27.2",
+      "acceptance": "evidence/P1/ios/ has one capture per required cell at both text sizes from a real device, the Apple relaunch is demonstrated, and a11y/ and failures/ are populated."
+    },
+    {
+      "id": "P1-connected-checkpoint",
+      "owner": "person_one",
+      "task": "Run the G1 connected checkpoint with Person Two against real staging: Apple sign-in, guest upgrade, logout revocation, the BOLA and IDOR cases and the refresh-replay case, with one correlation id confirmed in both lanes' logs. Step-by-step: docs/runbooks/p1-gate-completion.md.",
+      "manual_section": "27.2",
+      "acceptance": "One request id appears in the iOS log and the backend log in the same session, and the abuse suite runs against staging with both engineers present."
     },
     {
       "id": "P1-person-two-evidence",
@@ -50,23 +79,134 @@
       "task": "Attach sanitized local database/Bruno reports for the already reported Windows setup (ADR-005). PR #23 records the clean local 21/21 browser run. Public checkpoint and Phase 0 contract agreement are complete.",
       "manual_section": "27.2",
       "acceptance": "Local setup evidence records checkout, commands and results; no repeat of the completed public checkpoint is required."
+    },
+    {
+      "id": "P1-web-legal-review",
+      "owner": "person_two",
+      "task": "Review the public route shells, consent/error/upgrade copy, the closed admin boundary, Bruno auth collection and September 23 browser evidence. Supply and approve actual Terms and Privacy content before publishing its consent version. Extend staging auth evidence after the joint contract review.",
+      "manual_section": "27.2",
+      "acceptance": "Approved legal content and consent version agree across web, iOS and backend; remaining design/staging review is recorded."
     }
   ],
   "do_not_touch": [
-    "/ios/**",
-    "/infra/**",
-    "/backend/src/main/java/app/plug/security/**"
+    "/web/**",
+    "/tests/**",
+    "/fixtures/**",
+    "/design/**"
   ],
   "open_risks": [
-    "Operational health routes reject requests carrying tunnel/proxy forwarding headers by design (SecurityConfiguration.directProbeOnly()). GET /health/ready correctly returns HTTP 401 through the public tunnel; GET /health and the POST /v1/requests cases pass. Confirmed from both Person One's Mac/iPhone and, on 2026-09-22, Person Two's own Windows PC — the ADR-005 deferral for her own-machine API run is resolved.",
-    "AWS staging is deferred (ADR-004) — no budget available right now, even for the near-$0/month minimal design in docs/runbooks/aws-staging-setup.md. The Phase 0 connected checkpoint uses a cloudflared Quick Tunnel instead; revisit AWS no later than Phase 3, when Twilio needs a stable (non-rotating) webhook URL a Quick Tunnel can't provide.",
-    "Backend has no Redis dependency or Redis readiness check, even though infra/compose.yml and docker-compose.yml provision Redis. Either wire it in when something actually needs it, or drop it from Compose — don't let 'provisioned but unused' stand as if it were tested.",
-    "PRODUCT_BUNDLE_IDENTIFIER changed to com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account) and committed to project.pbxproj.",
-    "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file — no Figma access was available this session.",
-    "ADR-005 personal setup evidence remains an explicit Phase 1 onboarding follow-up: Windows Docker/WSL/database and Bruno results are operator-reported, and local sanitized reports must still be attached. PR #23 reports a clean 21/21 browser run; hosted CI is separate evidence."
+    "September 23 verification was local, on an isolated real PostgreSQL database: see docs/testing/phase-1-hardening-2026-09-23.md. G1 still needs joint staging evidence under ADR-004.",
+    "The Phase 1 rate limits are counted in one process's memory (FixedWindowLimiter). That is correct for a single instance and wrong the moment there are two, and it also means the limits survive across test runs \u2014 a second walkthrough inside fifteen minutes is refused. Wire Redis in before the backend is ever run as more than one process.",
+    "The missing launch-screen declaration caused a 320x480 compatibility window. Fixed and captured at full size on September 23. Largest-text controls are scrollable; physical-device visual/VoiceOver review remains pending.",
+    "UI tests now use the dedicated PlugUI scheme and require a running identity backend. Both text-size tests passed. They capture 7 states per size, not the full physical-device matrix.",
+    "The eleven Phase 1 auth operations are implemented and tested but not yet frozen: they need the joint contract review that manual.docx \u00a727.2 puts before implementation. Person One built to the contract as written rather than waiting, so a change agreed at that review is a change to both the contract and the implementation, in one pull request.",
+    "PLUG's own access and refresh tokens are opaque and resolved against the sessions table on every request (ADR-006). That is one indexed read and one last_used_at write per authenticated call. It has not been load-tested; measure before assuming it holds.",
+    "Phone verification has no delivery channel until Phase 3 (ADR-007). The verification machinery is complete and exercised through a development file sender on a local machine only; staging answers 503 dependency_unavailable.",
+    "The connected iPhone is available, but Xcode provisioning refresh failed: the configured Personal development team does not support Sign in with Apple. Use an Apple Developer Program team that supports this capability, select it in Signing & Capabilities, enable the capability for the App ID, and refresh provisioning. Then follow the physical-device runbook. No phone app was installed or reset.",
+    "PLUG_IDENTITY_PEPPER is required by the db and staging profiles, including for local ./dev databaseTest runs. It keys the stored phone, Apple-subject and one-time-code hashes, so rotating it makes every existing identity unrecognisable. It has no secret-storage home yet beyond .env.local and the CI workflow.",
+    "No account type in Phase 1 can be granted the admin scope, so every route under /v1/admin is refused \u2014 confirmed in the walkthrough. AdminStepUpAuthorization is in place ahead of the first admin route, but nothing exercises the allow path until Phase 5.",
+    "Terms, Privacy, and Support web routes now exist. Terms and Privacy explicitly await approved legal text; PLUG_WEB_URL must point at a reachable site on a real phone. Do not treat the development consent version as an approved published agreement.",
+    "Operational health routes reject requests carrying tunnel/proxy forwarding headers by design (SecurityConfiguration.directProbeOnly()). Confirmed from Person One's Mac/iPhone and, on 2026-09-22, Person Two's own Windows PC.",
+    "AWS staging is deferred (ADR-004) \u2014 no budget right now. Revisit no later than Phase 3, when Twilio needs a stable webhook URL a Quick Tunnel cannot provide.",
+    "PRODUCT_BUNDLE_IDENTIFIER is com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account).",
+    "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available.",
+    "ADR-005 personal setup evidence remains a Phase 1 onboarding follow-up for Person Two: sanitized local Docker/WSL/database and Bruno reports still to be attached."
   ],
   "environments": {
-    "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
+    "staging": "ephemeral \u2014 cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
     "production": "not-yet-provisioned"
+  },
+  "latest_validation": {
+    "date": "2026-09-23",
+    "report": "docs/testing/phase-1-hardening-2026-09-23.md",
+    "device_steps": "docs/runbooks/p1-gate-completion.md",
+    "evidence": "evidence/P1",
+    "environment": "local disposable database; no G1 sign-off",
+    "user_followup": "User photos confirm simulator guest account and successful health/refresh requests. Physical phone shows DNS failure for expired tunnel; Apple entitlement was removed in the working tree, so Apple sign-in remains unavailable. Apple button width constrained to 130\u2013375 points to address the supplied layout warning.",
+    "auth_expansion": {
+      "date": "2026-09-24",
+      "backend_tests": 86,
+      "ios_unit_integration_tests": 38,
+      "ui_scenarios": 3,
+      "live_auth_assertions": 35,
+      "release_device_build": "passed_unsigned",
+      "provider_live_verification": "pending Google client configuration and Twilio credentials; no real SMS sent",
+      "setup": "docs/runbooks/auth-provider-setup.md",
+      "report": "docs/testing/auth-expansion-2026-09-24.md"
+    },
+    "auth_phone_followup": {
+      "date": "2026-09-25",
+      "root_cause": "Two failures: expired quick-tunnel DNS and global JSON maxStringLength=1000 rejecting a real 1180-character Google ID token. Fixed parser limit to match 4096 auth contract; refreshed phone API origin.",
+      "ios_tests": 40,
+      "ui_tests": 5,
+      "phone_build": "Signed update installed and launched on connected iPhone.",
+      "google_live_login": "Live POST /v1/auth/google returned HTTP 201 at 2026-09-25 09:42:30 CDT after the parser fix.",
+      "unavailable_providers": "Apple and SMS actions hidden until explicitly configured. Local test-code mode documented; no real SMS delivery claimed.",
+      "backend_tests": 86,
+      "legal_links": "Bundled Terms, Privacy and Help open offline; private-testing notices explicitly await approved public launch policies."
+    },
+    "branded_auth": {
+      "date": "2026-09-25",
+      "manual_sections": [
+        "9",
+        "10",
+        "11",
+        "16"
+      ],
+      "ios_tests": 40,
+      "ui_scenarios": 6,
+      "design": "design/brand/README.md",
+      "phone_evidence": "evidence/P1/phone/2026-09-25",
+      "simulator_evidence": "evidence/P1/simulator/2026-09-25/branded-auth",
+      "scope": "Native welcome, provider selection, recovery, phone/code controls, legal notices, app icon and launch identity.",
+      "provider_changes": "None; existing Google and guest authentication retained.",
+      "status": "Superseded after user feedback; see blueprint_auth."
+    },
+    "blueprint_auth": {
+      "date": "2026-09-25",
+      "design_source": "PLUG_Production_Master_Manual_v3.docx, Figures 7, 8 and 10",
+      "report": "docs/testing/blueprint-auth-2026-09-25.md",
+      "ui_scenarios": 6,
+      "evidence": "evidence/P1/simulator/2026-09-25/blueprint-auth",
+      "changes": "Centred welcome, redrawn blueprint P mark, local streetscape, Get started/I have an account, generated type sizes, permanent field labels, provider-specific recovery.",
+      "review": "Implementation tested; visual approval remains with the user."
+    },
+    "account_intent_followup": {
+      "date": "2026-09-25",
+      "report": "docs/testing/account-intent-2026-09-25.md",
+      "backend_tests": 90,
+      "ios_tests": 43,
+      "ui_scenarios": 6,
+      "phone_build": "Signed, installed and launched on connected iPhone.",
+      "welcome": "Explicitly approved by user; preserved.",
+      "changes": "Verified existing-account signup offers Sign in; unknown-account sign-in offers Create account. Centered method forms, compact navigation and inline account switch. Expired tunnel replaced.",
+      "regression_database": "plug_auth_regression; isolated from live phone accounts",
+      "phone_evidence": "evidence/P1/phone/2026-09-25/followup",
+      "simulator_evidence": "evidence/P1/simulator/2026-09-25/account-intent",
+      "manual_check": "New duplicate-signup flow with the user\u2019s real Google account still requires their provider interaction."
+    },
+    "tunnel_recovery": {
+      "date": "2026-09-25",
+      "launcher": "tools/run-phone-tunnel.sh",
+      "backend": "Healthy; no restart or account reset required.",
+      "connectivity": "Expired tunnel replaced; Wi-Fi DNS NXDOMAIN confirmed against successful public-DNS HTTPS health check. Phone may need mobile data.",
+      "sleep_prevention": "Temporary idle-sleep assertion tied to tunnel lifetime.",
+      "phone_build": "Signed build passed, installed on connected iPhone.",
+      "ios_tests": 43,
+      "report": "docs/testing/account-intent-2026-09-25.md"
+    },
+    "phase1_pr": {
+      "date": "2026-09-26",
+      "branch": "p1/auth-hardening-and-phone-access",
+      "report": "docs/testing/phase1-pr-readiness-2026-09-25.md",
+      "backend_tests": 98,
+      "web_tests": 39,
+      "phone_evidence": "evidence/P1/phone/2026-09-25/accepted",
+      "live_sms": "Not verified: neither Twilio Messaging Service SID nor sender number is configured.",
+      "gate": "G1 remains open; no signatures inferred.",
+      "ios_tests": 43,
+      "ui_scenarios": 7,
+      "api_walkthrough_assertions": 35
+    }
   }
 }

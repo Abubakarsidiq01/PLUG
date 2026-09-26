@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.1.0
+  version: 0.2.1
   description: >
-    Phase 0 contract shared by the PLUG iOS app and the modular-monolith backend.
+    Phase 0 and Phase 1 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
     (manual.docx §18.1). Changes require one pull request in /contracts with BOTH
     approvals, updated fixtures and an entry in CHANGELOG.md.
@@ -74,6 +74,334 @@ paths:
         '415': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
+  /v1/auth/apple:
+    post:
+      operationId: signInWithApple
+      summary: Exchange an Apple identity token for a PLUG session
+      description: >
+        The client sends the identity token Sign in with Apple returned on the device.
+        The server verifies the signature against Apple's published keys and checks the
+        issuer, audience, expiry and nonce before it trusts anything in the token. A token
+        that has already been exchanged is refused, so a captured token cannot be replayed.
+
+        Sending a guest access token in the Authorization header upgrades that guest
+        account in place: the user_id does not change, so a request the guest started
+        stays attached to the same person after signing in.
+      security:
+        - plugSession: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AppleSignIn' }
+      responses:
+        '201':
+          description: Signed in. A new session was issued.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/auth/google:
+    post:
+      operationId: signInWithGoogle
+      summary: Exchange an Google identity token for a PLUG session
+      description: >
+        The client sends the identity token Sign in with Google returned on the device.
+        The server verifies the signature against Google's published keys and checks the
+        issuer, audience, expiry and nonce before it trusts anything in the token. A token
+        that has already been exchanged is refused, so a captured token cannot be replayed.
+
+        Sending a guest access token in the Authorization header upgrades that guest
+        account in place: the user_id does not change, so a request the guest started
+        stays attached to the same person after signing in.
+      security:
+        - plugSession: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GoogleSignIn' }
+      responses:
+        '201':
+          description: Signed in. A new session was issued.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/auth/phone/start:
+    post:
+      operationId: startPhoneVerification
+      summary: Begin phone verification and send a one-time code
+      description: >
+        Returns a challenge the caller verifies with POST /v1/auth/phone/verify. The
+        response is identical whether or not the number is already known to PLUG, so
+        this endpoint cannot be used to discover who has an account.
+
+        Three independent limits apply: per phone number, per caller address and, on
+        verification, per challenge. The response never says which limit was reached.
+
+        Twilio SMS delivery is enabled only when explicitly configured;
+        environments without a delivery channel return 503 dependency_unavailable
+        rather than pretending a message was sent.
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PhoneStart' }
+      responses:
+        '202':
+          description: A code was sent if the number can receive one.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PhoneChallenge' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/auth/phone/verify:
+    post:
+      operationId: verifyPhoneCode
+      summary: Exchange a verified phone code for a PLUG session
+      description: >
+        A wrong or expired code is a validation_failed carrying details[0].field = "code"
+        and details[0].code = "invalid" or "expired". The client branches on that token
+        and never on the message. Running out of attempts is a rate_limited response with
+        retry_after_seconds, because the control that stopped the caller is a limit.
+
+        Sending a guest access token in the Authorization header upgrades that guest
+        account in place, exactly as the Apple route does.
+      security:
+        - plugSession: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PhoneVerify' }
+      responses:
+        '201':
+          description: Verified. A new session was issued.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/auth/guest:
+    post:
+      operationId: signInAsGuest
+      summary: Create a guest account and session
+      description: >
+        A guest is a real account with a real user_id, so the work a guest starts survives
+        an upgrade to Apple or phone. It carries the guest scope only, and its refresh
+        window is shorter than a verified account's.
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/GuestSignIn' }
+      responses:
+        '201':
+          description: A guest account and session were created.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/auth/refresh:
+    post:
+      operationId: refreshSession
+      summary: Rotate a refresh token and issue a new access token
+      description: >
+        Every refresh rotates: the token sent here is spent and a new one comes back.
+        Presenting a token that was already rotated means the material leaked, so the
+        whole chain is revoked and the caller must sign in again.
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshRequest' }
+      responses:
+        '200':
+          description: A rotated session.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Session' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/auth/logout:
+    post:
+      operationId: logout
+      summary: Revoke the calling session server-side
+      description: >
+        Revocation happens on the server, which is what makes "I logged out" true. The
+        access token and the whole refresh chain stop working immediately. Calling this
+        with an already revoked token still returns 204, so a client that retries after a
+        dropped connection does not see an error for work that is already done.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '204':
+          description: The session is revoked.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/me:
+    get:
+      operationId: getMe
+      summary: The calling account and its consent state
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: The caller's own account.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Me' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/me/consent:
+    post:
+      operationId: acceptConsent
+      summary: Record acceptance of a published consent version
+      description: >
+        Called when the published consent version moves ahead of the version the account
+        accepted. Each acceptance is stored with its version and an audit event, so support
+        can answer "which terms did this person agree to, and when" without a database client.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ConsentAcceptance' }
+      responses:
+        '200':
+          description: The acceptance was recorded.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Consent' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/me/sessions:
+    get:
+      operationId: listOwnSessions
+      summary: The caller's own live sessions
+      description: >
+        Requires the member scope. A guest is refused with 403 forbidden: its identity is
+        a single device credential, so there is no second session for it to manage, and
+        POST /v1/auth/logout already ends the one it has.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Live sessions belonging to the caller, newest first.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionList' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/me/sessions/{session_id}:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - in: path
+        name: session_id
+        required: true
+        schema: { type: string, maxLength: 64, pattern: '^ses_[A-Za-z0-9-]+$' }
+    get:
+      operationId: getOwnSession
+      summary: One of the caller's own sessions
+      description: >
+        Ownership is checked on the server for every read. A session that belongs to
+        someone else returns 404, not 403, because 403 would confirm that the identifier
+        names a real session and identifiers must stay unguessable in both directions.
+      security:
+        - plugSession: []
+      responses:
+        '200':
+          description: The session.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SessionSummary' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    delete:
+      operationId: revokeOwnSession
+      summary: Revoke one of the caller's own sessions
+      description: >
+        Signing out a lost device. Revoking a session the caller does not own returns 404,
+        for the same reason the read does.
+      security:
+        - plugSession: []
+      responses:
+        '204':
+          description: The session is revoked.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
 components:
   securitySchemes:
     stagingJwt:
@@ -81,6 +409,14 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: Staging issuer, audience, expiry and plug.requests.write scope are validated. Local loopback development is exempt.
+    plugSession:
+      type: http
+      scheme: bearer
+      description: >
+        An opaque PLUG access token from POST /v1/auth/*. It is not a JWT and carries no
+        claims: the server looks the session up on every request, which is what lets logout
+        and a security-sensitive change revoke it the instant they happen rather than when
+        an expiry eventually catches up (manual.docx 25.2).
   parameters:
     RequestIdHeader:
       in: header
@@ -104,6 +440,15 @@ components:
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     Forbidden:
       description: Access token lacks the required write scope
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Conflict:
+      description: The identity is already attached to a different account.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    NotFound:
+      description: No such resource, or it does not belong to the caller.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    DependencyUnavailable:
+      description: A dependency this route needs is not available.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     RateLimited:
       description: Too many requests; retry_after_seconds names the wait
@@ -163,6 +508,185 @@ components:
     NextAction:
       type: string
       enum: [PROCESSING]
+    AppleSignIn:
+      type: object
+      additionalProperties: false
+      required: [identity_token, nonce, consent_version]
+      properties:
+        identity_token:
+          type: string
+          minLength: 1
+          maxLength: 4096
+          description: The identity token from ASAuthorizationAppleIDCredential. Never logged.
+        nonce:
+          type: string
+          minLength: 16
+          maxLength: 128
+          pattern: '^[A-Za-z0-9_-]+$'
+          description: >
+            The raw nonce whose SHA-256 the client sent to Apple. The server hashes it and
+            compares it to the token's nonce claim, which is what ties the token to this
+            device's sign-in attempt rather than to any token Apple ever issued.
+        consent_version: { $ref: '#/components/schemas/ConsentVersion' }
+        intent: { $ref: '#/components/schemas/AuthIntent' }
+    GoogleSignIn:
+      type: object
+      additionalProperties: false
+      required: [identity_token, nonce, consent_version]
+      properties:
+        identity_token:
+          type: string
+          minLength: 1
+          maxLength: 4096
+          description: The identity token from GIDSignInResult.user.idToken. Never logged.
+        nonce:
+          type: string
+          minLength: 16
+          maxLength: 128
+          pattern: '^[A-Za-z0-9_-]+$'
+          description: >
+            The raw nonce sent to the Google SDK. It must match the signed token nonce exactly.
+        consent_version: { $ref: '#/components/schemas/ConsentVersion' }
+        intent: { $ref: '#/components/schemas/AuthIntent' }
+    PhoneStart:
+      type: object
+      additionalProperties: false
+      required: [phone_number]
+      properties:
+        phone_number:
+          type: string
+          pattern: '^\+[1-9][0-9]{7,14}$'
+          description: E.164, including the country code. Stored as a hash, never logged.
+    PhoneChallenge:
+      type: object
+      additionalProperties: false
+      required: [challenge_id, expires_at, attempts_remaining]
+      properties:
+        challenge_id: { type: string, pattern: '^cha_[A-Za-z0-9-]+$' }
+        expires_at: { type: string, format: date-time }
+        attempts_remaining: { type: integer, minimum: 0, maximum: 5 }
+    PhoneVerify:
+      type: object
+      additionalProperties: false
+      required: [challenge_id, code, consent_version]
+      properties:
+        challenge_id: { type: string, pattern: '^cha_[A-Za-z0-9-]+$' }
+        code:
+          type: string
+          pattern: '^[0-9]{6}$'
+          description: The six digits from the message. Never logged, in any form.
+        consent_version: { $ref: '#/components/schemas/ConsentVersion' }
+        intent: { $ref: '#/components/schemas/AuthIntent' }
+    AuthIntent:
+      type: string
+      enum: [sign_up, sign_in]
+      description: >
+        sign_up refuses an existing verified provider identity (409 conflict, detail code
+        account_exists); sign_in refuses an unknown verified identity (account_not_found).
+        These checks run only after provider token or OTP verification. Omission preserves
+        the combined flow for older clients. Email strings never link different providers.
+    GuestSignIn:
+      type: object
+      additionalProperties: false
+      required: [consent_version]
+      properties:
+        consent_version: { $ref: '#/components/schemas/ConsentVersion' }
+    RefreshRequest:
+      type: object
+      additionalProperties: false
+      required: [refresh_token]
+      properties:
+        refresh_token: { type: string, minLength: 1, maxLength: 512 }
+    ConsentAcceptance:
+      type: object
+      additionalProperties: false
+      required: [version]
+      properties:
+        version: { $ref: '#/components/schemas/ConsentVersion' }
+    ConsentVersion:
+      type: string
+      pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+      example: "2026-09-01"
+      description: >
+        The publication date of the Terms and Privacy Policy the person accepted. The
+        client sends the version it actually displayed, and the server rejects a version
+        it has never published rather than recording an agreement to unknown text.
+    Session:
+      description: >
+        Issued by every sign-in route and by refresh. Both tokens are opaque and both are
+        stored only in the iOS Keychain (manual.docx 20.2). Access tokens live 15 minutes;
+        a refresh token lives 30 days for a verified account and 7 days for a guest.
+      type: object
+      additionalProperties: false
+      required: [access_token, access_token_expires_at, refresh_token, refresh_token_expires_at, account, consent]
+      properties:
+        access_token: { type: string, minLength: 1, maxLength: 512 }
+        access_token_expires_at: { type: string, format: date-time }
+        refresh_token: { type: string, minLength: 1, maxLength: 512 }
+        refresh_token_expires_at: { type: string, format: date-time }
+        account: { $ref: '#/components/schemas/Account' }
+        consent: { $ref: '#/components/schemas/Consent' }
+    Account:
+      type: object
+      additionalProperties: false
+      required: [user_id, type, scopes]
+      properties:
+        user_id:
+          type: string
+          pattern: '^usr_[A-Za-z0-9-]+$'
+          description: >
+            Stable for the life of the account, including across a guest upgrade. Phase 2
+            and everything after it use this identifier; there is no second client identity.
+        type: { type: string, enum: [guest, phone, apple, google] }
+        scopes:
+          type: array
+          description: What this session may do. A guest holds guest only.
+          items: { type: string, enum: [guest, member, admin] }
+    Consent:
+      type: object
+      additionalProperties: false
+      required: [current_version, accepted_version]
+      properties:
+        current_version: { $ref: '#/components/schemas/ConsentVersion' }
+        accepted_version:
+          oneOf:
+            - { $ref: '#/components/schemas/ConsentVersion' }
+            - { type: 'null' }
+          description: >
+            Null only in the moment before a first acceptance. When it trails
+            current_version the client must show the consent screen again.
+        accepted_at:
+          oneOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+    Me:
+      type: object
+      additionalProperties: false
+      required: [account, consent]
+      properties:
+        account: { $ref: '#/components/schemas/Account' }
+        consent: { $ref: '#/components/schemas/Consent' }
+    SessionSummary:
+      type: object
+      additionalProperties: false
+      required: [session_id, created_at, last_used_at, expires_at, current]
+      properties:
+        session_id: { type: string, pattern: '^ses_[A-Za-z0-9-]+$' }
+        created_at: { type: string, format: date-time }
+        last_used_at: { type: string, format: date-time }
+        expires_at: { type: string, format: date-time }
+        current:
+          type: boolean
+          description: True for the session making this call, so the client can label it.
+    SessionList:
+      type: object
+      additionalProperties: false
+      required: [sessions]
+      properties:
+        sessions:
+          type: array
+          maxItems: 50
+          items: { $ref: '#/components/schemas/SessionSummary' }
     Error:
       description: The error envelope. Every non-2xx response has exactly this shape (manual.docx §18.2).
       type: object

@@ -70,18 +70,18 @@ documentation is part of the work.
 Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
 
-- [ ] **P1.S1** — Freeze the auth OpenAPI: Apple, phone start and verify, guest, refresh and session rules, logout, errors and consent version.
-- [ ] **P1.S2** — Implement Apple token verification server-side, and the Sign in with Apple client flow in iOS.
-- [ ] **P1.S3** — Implement phone verification with per-IP and per-identity rate limits, attempt limits, expiry and audit events.
-- [ ] **P1.S4** — Implement guest identity and the upgrade-and-link behaviour, without losing the current request context.
-- [ ] **P1.S5** — Create the `users`, `identities`, `sessions` and `consents` migrations.
-- [ ] **P1.S6** — Store iOS credentials in the Keychain per §20.2. Ensure tokens never appear in logs, analytics or crash breadcrumbs.
-- [ ] **P1.S7** — Use short-lived access tokens and rotating refresh sessions; store refresh material server-side in a revocable form.
-- [ ] **P1.S8** — Implement session revocation on logout, account deletion and any security-sensitive change.
-- [ ] **P1.S9** — Add deny-by-default auth middleware and a resource-level authorization test endpoint.
-- [ ] **P1.S10** — Require MFA for admin access before any production or beta admin mutation is enabled.
-- [ ] **P1.S11** — Build the welcome, sign-in and create-account screens, with invalid code, expired code, offline, denied-notification and account-link-conflict states.
-- [ ] **P1.S12** — Add the Terms and Privacy links and the consent copy to the onboarding flow.
+- [ ] **P1.S1** — Joint approval remains pending. Freeze the auth OpenAPI: Apple, phone start and verify, guest, refresh and session rules, logout, errors and consent version.
+- [x] **P1.S2** — Implement Apple token verification server-side, and the Sign in with Apple client flow in iOS.
+- [x] **P1.S3** — Implement phone verification with per-IP and per-identity rate limits, attempt limits, expiry and audit events.
+- [x] **P1.S4** — Implement guest identity and the upgrade-and-link behaviour, without losing the current request context.
+- [x] **P1.S5** — Create the `users`, `identities`, `sessions` and `consents` migrations.
+- [x] **P1.S6** — Store iOS credentials in the Keychain per §20.2. Ensure tokens never appear in logs, analytics or crash breadcrumbs.
+- [x] **P1.S7** — Use short-lived access tokens and rotating refresh sessions; store refresh material server-side in a revocable form.
+- [x] **P1.S8** — Implement session revocation on logout, account deletion and any security-sensitive change.
+- [x] **P1.S9** — Add deny-by-default auth middleware and a resource-level authorization test endpoint.
+- [x] **P1.S10** — Require MFA for admin access before any production or beta admin mutation is enabled.
+- [x] **P1.S11** — Build the welcome, sign-in and create-account screens, with invalid code, expired code, offline, denied-notification and account-link-conflict states.
+- [x] **P1.S12** — Add the Terms and Privacy links and the consent copy to the onboarding flow.
 
 ---
 
@@ -99,30 +99,59 @@ verbal description.
 
 ## 4. Tests that must pass
 
-- [ ] Replayed and expired Apple token tests.
-- [ ] Phone brute-force and rate-limit tests.
-- [ ] Keychain persistence and logout tests.
-- [ ] Guest restriction and upgrade tests.
-- [ ] IDOR and auth-bypass tests on a protected endpoint.
-- [ ] Refresh-token rotation and replay test: a reused rotated token is rejected and the affected chain is revoked.
-- [ ] BOLA test across user, supplier and admin resource IDs.
-- [ ] Log inspection confirms no access token, refresh token, OTP secret or authorization header is emitted.
+- [x] Replayed and expired Apple token tests — `backend .../identity/AppleSignInTest.java`
+- [x] Phone brute-force and rate-limit tests — `PhoneVerificationTest.java`
+- [x] Keychain persistence and logout tests — `ios/PlugTests/KeychainStoreTests.swift`, `SessionStoreTests.swift`
+- [x] Guest restriction and upgrade tests — `GuestAndUpgradeTest.java`
+- [x] IDOR and auth-bypass tests on a protected endpoint — `SessionLifecycleTest.java`
+- [x] Refresh-token rotation and replay test: a reused rotated token is rejected and the affected chain is revoked — `SessionLifecycleTest.java`
+- [x] BOLA test across user and admin resource IDs — `SessionLifecycleTest.java`. Supplier
+      resources do not exist until Phase 3, so that third identifier class is not covered
+      here and must be added with the supplier module.
+- [x] Log inspection confirms no access token, refresh token, OTP secret or authorization header is emitted — `AuthLoggingTest.java`
 
-Verify the existing baseline with:
+Verify with:
 
 ```bash
-(cd backend && ./dev check)
+# The identity tests need a real database and the pepper the db profile requires.
+# Use a disposable database; databaseTest truncates identity data.
+# See docs/runbooks/p1-gate-completion.md for the isolated validation setup.
+cd backend
+./dev check                                  # Phase 0 suite, contract tests, checkstyle
+PLUG_DATABASE_PASSWORD=... PLUG_IDENTITY_PEPPER=... ./dev databaseTest
+
+cd ..
 xcodebuild -showdestinations -project ios/Plug.xcodeproj -scheme Plug
-# Choose an installed simulator UUID from the output above:
+# Choose an installed simulator UUID from the output above. Ad-hoc signing is what gives
+# the app an entitlement; without it the Keychain tests can only skip.
 xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
-  -destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID'
+  -destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID' \
+  CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER=""
 ```
 
 `ContractTest` runs in the normal backend test task; there is no separate
-`contractTest` task or `ArchitectureTest` class yet. Add the Phase 1 security
-tests with the approved implementation and document their commands here.
-Passing the baseline does not prove the Phase 1 cases above. Run the completed
-authentication flow on a real device before claiming G1.
+`contractTest` task or `ArchitectureTest` class yet.
+
+With a backend running, two more things can be checked end to end:
+
+```bash
+# The whole auth surface, 35 assertions, against a real database
+sh tools/phase1-auth-walkthrough.sh
+
+# The sign-in screens, photographed at both text sizes. Run this against a real
+# iPhone before the gate: the same test, and then the output IS the §12.3 evidence.
+xcodebuild test -project ios/Plug.xcodeproj -scheme PlugUI -only-testing:PlugUITests \
+  -destination 'platform=iOS Simulator,id=YOUR-SIMULATOR-UUID' \
+  CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER=""
+```
+
+`LiveBackendTests` joins the normal run whenever a backend is answering on
+`127.0.0.1:8080`, and skips when one is not. It prints the correlation ids to
+search for in the backend log.
+
+Passing all of the above does not pass the gate. The Apple path has to be run on
+a real physical device, force-quit and relaunched, before anyone claims the
+session survives a relaunch — and two people have to see it.
 
 ---
 
@@ -161,6 +190,11 @@ Store everything under `evidence/P1/`:
 ---
 
 ## 8. Closing the phase
+
+> The step-by-step version of everything below, including what is still
+> outstanding and who has to be in the room for it, is
+> `docs/runbooks/p1-gate-completion.md`.
+
 
 1. Run the audit prompt from §8.4 of the manual against your surface.
 2. Fix or formally except every critical and high finding. An exception needs an

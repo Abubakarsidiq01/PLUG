@@ -104,12 +104,12 @@ documentation is part of the work.
 Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
 
-- [ ] **P1.S1** — Build the public Privacy Policy, Terms and Support route shells in `/web`, using the final legal content once it is approved.
-- [ ] **P1.S2** — Build the admin login and protected-route shell against the approved backend session design. No frontend-only authorization.
+- [x] **P1.S1** — Route shells implemented; approved legal text remains pending. Build the public Privacy Policy, Terms and Support route shells in `/web`, using the final legal content once it is approved.
+- [x] **P1.S2** — Closed admin shell implemented; real admin enrollment/MFA remains Phase 5. Build the admin login and protected-route shell against the approved backend session design. No frontend-only authorization.
 - [ ] **P1.S3** — Create the Bruno auth collection covering valid, expired, replayed and invalid tokens, wrong code, brute force and rate limiting, and guest cases.
-- [ ] **P1.S4** — Create Playwright tests proving protected admin routes cannot be reached when unauthenticated, and that the API is never called with an unauthenticated session.
+- [x] **P1.S4** — Create Playwright tests proving protected admin routes cannot be reached when unauthenticated, and that the API is never called with an unauthenticated session.
 - [ ] **P1.S5** — Review the consent copy, the error copy and the account-upgrade experience in Figma and in the browser.
-- [ ] **P1.S6** — Run a dependency and security scan, and verify no secret or configuration value leaks into the rendered HTML or JavaScript.
+- [x] **P1.S6** — Run a dependency and security scan, and verify no secret or configuration value leaks into the rendered HTML or JavaScript.
 - [ ] **P1.S7** — Verify the security headers on staging from outside, with `curl -sI`, and attach the output as evidence.
 
 ---
@@ -137,11 +137,19 @@ verbal description.
 - [ ] BOLA test across user, supplier and admin resource IDs.
 - [ ] Log inspection confirms no access token, refresh token, OTP secret or authorization header is emitted.
 
+September 23 results and exact scope: [validation record](../testing/phase-1-hardening-2026-09-23.md).
+The `tests/api/auth` Bruno collection covers guest, refresh/replay, logout,
+admin denial, invalid Apple token, missing phone challenge and consent validation.
+Valid/expired Apple signatures, real OTP delivery, and phone abuse are exercised
+by the database suite and local walkthrough, not by that portable collection.
+P1.S3 remains open for the full staging collection.
+
 Current baseline checks are the lint/build/browser/local-API commands above.
 `next build` includes the TypeScript check. The current web package does not
-have separate `typecheck` or `test:unit` scripts, and `tests/api/abuse` does not
-yet exist. Add the Phase 1 auth and abuse tests with the approved contract,
-then document their actual commands here. Do not treat the baseline suite as
+have separate `typecheck` or `test:unit` scripts. Run the auth collection with
+`bru run auth --env local` against the database-enabled backend; the full
+collection runs in the backend CI job. The Windows CI job without Docker runs
+only the four public baseline cases. Do not treat the baseline suite as
 proof that the Phase 1 security cases above have passed.
 
 Run the Phase 1 auth/security-header checks against the agreed authenticated

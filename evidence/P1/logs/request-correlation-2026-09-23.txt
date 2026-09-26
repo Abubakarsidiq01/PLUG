@@ -1,0 +1,5 @@
+Local simulator and backend; not a joint staging checkpoint.
+CORRELATION guest_denied_sessions request_id=req_2994fc5f-8a26-4a1f-b7a6-588fa4bc2669
+2026-09-23T18:56:30.376-05:00  INFO 18306 --- [plug-api] [0.1-8080-exec-4] app.plug.foundation.CorrelationFilter    : http_request request_id=req_2994fc5f-8a26-4a1f-b7a6-588fa4bc2669 method=GET path=/v1/me/sessions status=403
+CORRELATION revoked_after_logout request_id=req_65eb7cd3-282a-48b9-8c09-fbca80acd6ca
+2026-09-23T18:56:30.401-05:00  INFO 18306 --- [plug-api] [0.1-8080-exec-2] app.plug.foundation.CorrelationFilter    : http_request request_id=req_65eb7cd3-282a-48b9-8c09-fbca80acd6ca method=GET path=/v1/me status=401
