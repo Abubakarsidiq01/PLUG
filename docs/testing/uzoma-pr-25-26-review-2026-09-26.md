@@ -1,5 +1,8 @@
 # PR #25 and #26 integration review — 2026-09-26
 
+**Historical review:** Uzoma resolved these findings in the revised stack. See
+[the final integration check](phase1-final-integration-2026-09-26.md) for current status.
+
 Reviewed #25 at `de6a04e489dd4a70cb03a313363de0b6461bd174`, #26 at
 `72c823cbc235e447e4b36d364f0dd446a4f290e5`, against #27 at
 `62ea101e61a6ae4fdc039fa73c544a77496a0dce`. All six CI workflows passed

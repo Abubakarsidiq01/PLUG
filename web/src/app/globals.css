@@ -83,14 +83,37 @@ a {
   gap: var(--space-4);
 }
 
-.site-footer a {
+.site-footer a,
+.public-shell .legal-back a {
+  /* design/tokens.json target.minTouch: 44 in both directions. The focus ring from
+     :focus-visible outlines this box, so it grows with the target. */
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 44px;
+  min-width: 44px;
   text-decoration: underline;
   text-underline-offset: 4px;
 }
 
 .public-shell p + p {
   margin-top: var(--space-4);
+}
+
+.public-shell .legal-status {
+  margin-top: var(--space-6);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  color: var(--color-ink-600);
+}
+
+.public-shell .legal-back {
+  margin-top: var(--space-8);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+}
+
+.public-shell .legal-back a {
+  color: var(--color-brand-700);
+  text-decoration: underline;
 }

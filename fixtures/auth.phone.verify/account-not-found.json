@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "No PLUG account exists for this sign-in method. Create an account first.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "intent",
+        "code": "account_not_found",
+        "message": "No PLUG account exists for this sign-in method. Create an account first."
+      }
+    ]
+  }
+}

@@ -23,7 +23,7 @@ public class ApiExceptionHandler {
         for (var result : exception.getParameterValidationResults()) {
             if (result instanceof Errors errors) {
                 errors.getFieldErrors().forEach(fieldError ->
-                        details.add(new FieldError(fieldError.getField(), constraintCode(fieldError.getCode()), fieldError.getDefaultMessage())));
+                        details.add(new FieldError(wireName(fieldError.getField()), constraintCode(fieldError.getCode()), fieldError.getDefaultMessage())));
             } else {
                 String field = result.getMethodParameter().getParameterName();
                 result.getResolvableErrors().forEach(resolvable ->
@@ -74,7 +74,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorEnvelope> validation(MethodArgumentNotValidException exception, HttpServletRequest request) {
         var details = exception.getBindingResult().getFieldErrors().stream()
-                .map(error -> new FieldError(error.getField(), constraintCode(error.getCode()), error.getDefaultMessage()))
+                .map(error -> new FieldError(wireName(error.getField()), constraintCode(error.getCode()), error.getDefaultMessage()))
                 .toList();
         return ResponseEntity.badRequest().body(new ErrorEnvelope(new ErrorBody(
                 "validation_failed", "The request was invalid.",
@@ -84,6 +84,13 @@ public class ApiExceptionHandler {
     private ResponseEntity<ErrorEnvelope> build(HttpServletRequest request, int status, String code, String message) {
         return ResponseEntity.status(status).body(new ErrorEnvelope(new ErrorBody(code, message,
                 String.valueOf(request.getAttribute(CorrelationFilter.REQUEST_ATTRIBUTE)), List.of(), null)));
+    }
+
+    // Bean validation reports the Java property (phoneNumber); the body the client sent and
+    // the contract both use the snake_case wire name (phone_number), which is what a client
+    // matches against to highlight the right input.
+    private static String wireName(String field) {
+        return field.replaceAll("([a-z0-9])([A-Z])", "$1_$2").toLowerCase(Locale.ROOT);
     }
 
     // Spring's constraint code is the bare annotation name (NotBlank, Size, ...); the

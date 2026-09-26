@@ -63,8 +63,8 @@ before shipping real copy rather than assuming.
 
 Built today, ahead of its phase, as the Phase 0 public shell:
 **`/`** exists with honest placeholder copy (no invented metrics, no CTA that
-leads nowhere) — see `web/src/app/page.tsx`. The other five public routes are
-not yet built; they don't have a phase number of their own in §15, so treat
+leads nowhere) — see `web/src/app/page.tsx`. `/privacy`, `/terms` and `/support` also
+exist as placeholder shells (P1.S1). The other three public routes are not yet built; they don't have a phase number of their own in §15, so treat
 them as due whenever `/` graduates from placeholder to real copy, not as a P0
 requirement.
 

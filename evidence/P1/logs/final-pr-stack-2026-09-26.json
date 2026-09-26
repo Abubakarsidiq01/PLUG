@@ -1,0 +1,68 @@
+{
+  "date": "2026-09-26",
+  "base_heads": {
+    "27": "b5148e3a506ca77fc109195a0f0f2a06e77bc197",
+    "25": "4cc7c49f7b9f617629050f58e79c931de9a05f8d",
+    "26": "6bd2eb43b5021d82dff145d7745590bae6c2701d"
+  },
+  "backend": {
+    "unit": 39,
+    "database": 69,
+    "failures": 0,
+    "skipped": 0
+  },
+  "web": {
+    "passed": 69,
+    "failed": 0,
+    "viewports": [
+      360,
+      768,
+      1280
+    ],
+    "production_port": 3011
+  },
+  "bruno": {
+    "requests": 20,
+    "tests": 4,
+    "assertions": 42,
+    "failed": 0
+  },
+  "checks": {
+    "web_lint": "passed",
+    "web_production_build": "passed",
+    "backend_build_checkstyle": "passed",
+    "openapi": "no warnings",
+    "tracked_file_secret_scan": "no leaks",
+    "history_secret_scan": "no leaks in 48 commits",
+    "production_dependency_audit": "zero advisories"
+  },
+  "ios": "Unchanged by this pass; GitHub iOS checks passed on all three fetched PR heads. Physical Apple evidence remains pending.",
+  "cleanup": [
+    {
+      "removed": "evidence/P1/simulator/2026-09-23/07-guest-upgrade-default.png",
+      "retained": "evidence/P1/simulator/2026-09-23/01-welcome-default.png",
+      "bytes": 157132
+    },
+    {
+      "removed": "evidence/P1/simulator/2026-09-23/07-guest-upgrade-largest-text.png",
+      "retained": "evidence/P1/simulator/2026-09-23/01-welcome-largest-text.png",
+      "bytes": 207165
+    },
+    {
+      "removed": "evidence/P1/simulator/2026-09-25/account-intent/07-guest-upgrade-default.png",
+      "retained": "evidence/P1/simulator/2026-09-25/account-intent/01-welcome-default.png",
+      "bytes": 133036
+    },
+    {
+      "removed": "evidence/P1/simulator/2026-09-25/blueprint-auth/07-guest-upgrade-default.png",
+      "retained": "evidence/P1/simulator/2026-09-25/blueprint-auth/01-welcome-default.png",
+      "bytes": 131747
+    },
+    {
+      "removed": "evidence/P1/simulator/2026-09-25/blueprint-auth/07-guest-upgrade-largest-text.png",
+      "retained": "evidence/P1/simulator/2026-09-25/blueprint-auth/01-welcome-largest-text.png",
+      "bytes": 185028
+    }
+  ],
+  "g1_passed": false
+}

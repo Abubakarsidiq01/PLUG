@@ -75,8 +75,9 @@ class IdentityContractTest extends IdentityTestSupport {
         var challenge = body(post("/v1/auth/phone/start", """
                 {"phone_number":"+15551270003"}""").andExpect(status().isAccepted()));
         ContractSchemas.validate("Error", body(post("/v1/auth/phone/verify", """
-                {"challenge_id":"%s","code":"000000","consent_version":"%s"}"""
-                .formatted(challenge.get("challenge_id").asText(), CONSENT))
+                {"challenge_id":"%s","code":"%s","consent_version":"%s"}"""
+                .formatted(challenge.get("challenge_id").asText(),
+                        "000000".equals(codes.latest()) ? "000001" : "000000", CONSENT))
                 .andExpect(status().isBadRequest())));
     }
 }

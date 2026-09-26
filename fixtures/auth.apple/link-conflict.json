@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "That sign-in is already connected to another PLUG account. Sign in to that account instead.",
+    "request_id": "req_01H8XK4Q7N"
+  }
+}

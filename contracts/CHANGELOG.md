@@ -11,6 +11,26 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### Unreleased — 2026-09-26 — fixtures and examples only — P1.S1
+No route or schema change. Replaces the unimplemented 0.2.0 draft shapes (guest
+`device_id`, nested terms/privacy consent, flat session fields, `chl_` challenges,
+relative expiry, JWT access tokens and the auth `Idempotency-Key` replay promise) with
+examples and fixtures that match the implemented contract: opaque tokens, 201 on
+sign-in, `consent_version`, `cha_` challenges, absolute expiry, the 30-day verified /
+7-day guest refresh policy (ADR-006), Google sign-in, `sign_up`/`sign_in` intent with
+`account_exists`/`account_not_found`, and `503 dependency_unavailable` when phone
+delivery or Google is not configured. Only `POST /v1/requests` accepts
+`Idempotency-Key`; auth routes do not replay, and `FixtureContractTest` keeps it so.
+Validation `details[].field` now uses the snake_case wire name (`phone_number`, not
+`phoneNumber`), matching the request body and the fields `ApiException` already used.
+Fixtures updated: `fixtures/auth.{apple,google,guest,phone.start,phone.verify,refresh,logout}/*`,
+`fixtures/me.{get,consent,sessions}/*`; removed `fixtures/requests.create/guest-restricted.json`
+(guests are not restricted on that route).
+Tests: `FixtureContractTest` validates every fixture and example against its schema;
+`FixtureBehaviourTest` and `UnavailableProviderTest` send the examples to the real
+backend and compare status, code, details and message with the fixture.
+Migration note: none. Rollback: revert the commit; no server state depends on it.
+
 ### 0.2.2 — 2026-09-25 — additive — draft, not jointly frozen
 Apple/Google authentication and phone verification accept optional `intent`:
 `sign_up` rejects an existing verified identity; `sign_in` rejects an unknown one.
