@@ -1,6 +1,6 @@
 # ADR-007: Phone verification ships without a delivery channel until Phase 3
 
-- Status: Accepted
+- Status: Accepted; delivery scope amended 2026-09-26
 - Date: 2026-09-22
 
 ## Decision
@@ -43,3 +43,16 @@ appears.
   gate rather than glossed over.
 - Phase 3 implements `PhoneCodeSender` with Twilio and changes one configuration
   value. Nothing above the interface has to move.
+
+## Amendment — 2026-09-26
+
+The owner requested real phone OTP during Phase 1. PR #27 adds an optional
+Twilio implementation of `PhoneCodeSender`, configured with either a Messaging
+Service SID or a Twilio-owned sender number. This supersedes the original
+no-production-implementation decision above; two-way SMS and iMessage remain
+later-phase work. Outbound OTP does not require a public inbound webhook.
+
+Delivery remains `none` by default. Missing or disabled delivery returns
+`503 dependency_unavailable`; no real SMS delivery is claimed until sender
+configuration and a physical-device receipt test succeed. Development code
+files remain local-only with restricted permissions.

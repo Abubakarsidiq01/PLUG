@@ -55,7 +55,7 @@ enum LegalDocument: String, Identifiable {
             return [
                 ("Private testing notice", "PLUG is currently a private test build. These notices describe that test. Public Terms of Service have not yet been approved, and this is not a published public-use agreement."),
                 ("What you can test", "You can create an account, sign in, and explore the available screens. Some features are still being developed. Availability and test data may change or be reset. Do not rely on this build for urgent or essential services."),
-                ("Your account", "Use an account you control. Google and Apple manage their own sign-in credentials; PLUG does not ask for those passwords. A guest session is tied to this device. Sign in with an available provider to keep the same guest account."),
+                ("Your account", "Use an account you control. Google and Apple manage their own sign-in credentials; PLUG does not ask for those passwords. A guest session is tied to this device. Creating a new account keeps your guest activity. Signing in to an existing account switches accounts without merging guest activity."),
                 ("Responsible use", "Use only test information you are comfortable sharing with the project team. Do not submit another person’s private information or attempt to access other accounts."),
                 ("Questions or stopping participation", "You can sign out from Profile and stop using the test at any time. Contact the person who invited you to test PLUG with account or data-removal requests. A public support contact will be provided before launch.")
             ]
@@ -70,7 +70,7 @@ enum LegalDocument: String, Identifiable {
             ]
         case .help:
             return [
-                ("Signing in", "Use the same method you used when creating your account. Complete the Google or Apple account sheet, then return to PLUG. Only configured methods are offered in this build."),
+                ("Signing in", "Use the same method you used when creating your account. Complete the Google or Apple account sheet, then return to PLUG. Phone sign-in shows an availability notice when code delivery is not configured."),
                 ("Connection problems", "Keep an internet connection available. If PLUG cannot connect, ask the person running the test to check its development server and tunnel. Trying again will not reset your saved account."),
                 ("Phone and password recovery", "Phone sign-in uses a one-time code rather than a password. Google and Apple manage password recovery on their own account recovery pages, available under Trouble signing in."),
                 ("Report a problem", "Contact the person who invited you. Include the action, time, and any request ID from the diagnostic log. Do not send passwords, one-time codes or session tokens.")
