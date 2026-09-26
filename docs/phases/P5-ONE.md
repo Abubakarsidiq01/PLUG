@@ -26,6 +26,29 @@ You are the final technical authority on this phase. If something here conflicts
 
 ---
 
+## Carried in from Phase 1
+
+- **The admin step-up rule is already in place, and only its deny path is
+  tested.** `AdminStepUpAuthorization` guards `/v1/admin/**` and requires both
+  the `admin` scope and a session with `mfa_verified`. Phase 1 grants the admin
+  scope to no account type, so every admin route is currently refused and the
+  allow path has never run. When the admin identity model lands here: grant the
+  scope, set `sessions.mfa_verified` on a completed second factor, and add the
+  tests that prove an admin *can* get in as well as that everybody else cannot.
+- **Account deletion has a service and no screen.**
+  `AccountService.deleteAccount` revokes every session and marks the user
+  deleted, in one transaction. Nothing calls it. G5 requires deletion, so wire
+  the Profile screen to it and capture the evidence.
+- **Consent history is already auditable.** `consents` holds one row per
+  accepted version and `audit_events` refuses UPDATE and DELETE at the database
+  level. The admin console's "which terms did this person agree to, and when"
+  view reads from those two tables — it does not need a new one.
+- **Every admin mutation needs a reason and an immutable audit event.**
+  `AuditLog.record` already takes a reason argument; pass a real one rather than
+  null on anything a support agent does.
+
+---
+
 ## 0. Before any code — the contract
 
 This phase does not start with code. It starts with a fifteen-minute session

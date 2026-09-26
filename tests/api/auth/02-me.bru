@@ -1,0 +1,20 @@
+meta {
+  name: Phase 1 - me
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/v1/me
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p1Access}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.account.type: eq guest
+}

@@ -1,0 +1,29 @@
+meta {
+  name: Phase 1 - rotate
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/v1/auth/refresh
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"refresh_token": "{{p1Refresh}}"}
+}
+
+assert {
+  res.status: eq 200
+  res.body.account.type: eq guest
+}
+
+script:post-response {
+  bru.setVar("p1RotatedAccess", res.getBody().access_token);
+  bru.setVar("p1RotatedRefresh", res.getBody().refresh_token);
+}

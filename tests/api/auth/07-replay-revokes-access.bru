@@ -1,0 +1,20 @@
+meta {
+  name: Phase 1 - replay-revokes-access
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/v1/me
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p1RotatedAccess}}
+}
+
+assert {
+  res.status: eq 401
+  res.body.error.code: eq unauthenticated
+}

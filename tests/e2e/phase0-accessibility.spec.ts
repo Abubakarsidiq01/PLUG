@@ -4,6 +4,9 @@ import AxeBuilder from "@axe-core/playwright";
 for (const route of [
   { path: "/", name: "public-shell" },
   { path: "/admin/login", name: "admin-login" },
+  { path: "/terms", name: "terms" },
+  { path: "/privacy", name: "privacy" },
+  { path: "/support", name: "support" },
 ]) {
   test(`${route.name} has no automated accessibility violations`, async ({ page }, testInfo) => {
     // Axe analysis plus a full-page screenshot, run across three viewport

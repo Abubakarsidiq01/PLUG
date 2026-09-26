@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Phase 0 has no session issuer or verifier. Fail closed until Phase 1 adds
-// server-side session verification; an arbitrary browser cookie proves nothing.
+// Phase 1 issues guest/member sessions, never admin credentials. Fail closed
+// until admin enrollment and MFA exist; an arbitrary browser cookie proves nothing.
 // Future admin data/actions must also authorize access at their own boundary.
 
 export function proxy(request: NextRequest) {

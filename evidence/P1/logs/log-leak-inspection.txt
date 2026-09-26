@@ -1,0 +1,26 @@
+Log inspection - backend, full Phase 1 session
+==============================================================
+
+Covers everything this backend handled: the auth walkthrough in
+local-auth-walkthrough.txt, the iOS LiveBackendTests run, and the UI screenshot
+walkthrough driven from the Simulator.
+
+log lines inspected           : 185
+one-time codes issued         : 13
+
+Required to be absent (manual.docx 19.9): access tokens (pat_*), refresh tokens
+(prt_*), authorization headers, bearer values, full phone numbers, and every
+one-time code this run issued.
+
+RESULT: clean - none of the above appears in the log.
+
+Required to be present, because redaction that also removes traceability has
+traded one problem for another:
+
+correlation ids               : 76
+routes, logged by template    : /health, /v1/auth/guest, /v1/auth/logout, /v1/auth/phone/start, /v1/auth/phone/verify, /v1/auth/refresh, /v1/me, /v1/me/consent, /v1/me/sessions, /v1/me/sessions/{session_id}, unmapped
+audit actions recorded        : account.created, account.upgraded, consent.accepted, otp.failed, otp.rate_limited, otp.started, otp.verified, session.replay_detected, session.revoked, session.revoked_all, session.rotated
+
+Note the route list: /v1/me/sessions/{session_id} appears as its template, never
+with a real session id in it. CorrelationFilter allow-lists routes for exactly
+that reason - an unrecognised path is logged as "unmapped" rather than echoed.

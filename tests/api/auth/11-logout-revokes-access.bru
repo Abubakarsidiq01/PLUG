@@ -1,0 +1,20 @@
+meta {
+  name: Phase 1 - logout-revokes-access
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/v1/me
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p1LogoutAccess}}
+}
+
+assert {
+  res.status: eq 401
+  res.body.error.code: eq unauthenticated
+}

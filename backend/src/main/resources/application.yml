@@ -45,3 +45,30 @@ logging:
 plug:
   environment: ${PLUG_ENVIRONMENT:local}
   requests-per-minute: 60
+  sms:
+    account-sid: ${PLUG_SMS_ACCOUNT_SID:}
+    auth-token: ${PLUG_SMS_AUTH_TOKEN:}
+    messaging-service-sid: ${PLUG_SMS_MESSAGING_SERVICE_SID:}
+    from-number: ${PLUG_SMS_FROM_NUMBER:}
+  identity:
+    # Off by default. The module needs a database, and turning it on is what the db and
+    # staging profiles do. With it off the auth routes are not registered at all, which is
+    # the rollback named in contracts/CHANGELOG.md.
+    enabled: false
+    # The publication date of the Terms and Privacy Policy the app displays. A sign-in that
+    # sends any other version is refused rather than recorded as agreement to unknown text.
+    consent-version: "2026-09-01"
+    pepper: ${PLUG_IDENTITY_PEPPER:}
+    # Decided here and written into the contract. Changing either after Phase 1 ripples
+    # through every screen that can be open when a session ends (manual.docx 27.2).
+    access-token-ttl: 15m
+    refresh-token-ttl: 30d
+    guest-refresh-token-ttl: 7d
+    phone-code-ttl: 10m
+    phone-code-attempts: 5
+    apple-client-id: ${PLUG_APPLE_CLIENT_ID:com.abubakarsidiq01.plug.app101}
+    apple-issuer: https://appleid.apple.com
+    apple-jwk-set-uri: https://appleid.apple.com/auth/keys
+    # Set twilio for real SMS. Development writes local test codes only; none fails closed.
+    phone-delivery: ${PLUG_IDENTITY_PHONE_DELIVERY:none}
+    google-client-id: ${PLUG_GOOGLE_SERVER_CLIENT_ID:}

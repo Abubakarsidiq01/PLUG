@@ -70,3 +70,27 @@ a {
   line-height: var(--type-bodyLg-line);
   color: var(--color-ink-600);
 }
+
+.site-footer {
+  margin-top: auto;
+  padding: var(--space-8) var(--space-4);
+}
+
+.site-footer nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.site-footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.public-shell p + p {
+  margin-top: var(--space-4);
+}

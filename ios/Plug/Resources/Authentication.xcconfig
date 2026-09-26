@@ -1,0 +1,9 @@
+// Public OAuth identifiers, never client secrets. Local.xcconfig is ignored by Git.
+PLUG_GOOGLE_IOS_CLIENT_ID =
+PLUG_GOOGLE_SERVER_CLIENT_ID =
+PLUG_GOOGLE_REVERSED_CLIENT_ID =
+// Enable providers only after signing/delivery has been configured.
+PLUG_APPLE_SIGN_IN_ENABLED = NO
+PLUG_PHONE_SIGN_IN_ENABLED = NO
+PLUG_DEVELOPMENT_API_URL =
+#include? "Local.xcconfig"

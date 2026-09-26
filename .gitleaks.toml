@@ -7,3 +7,28 @@ useDefault = true
 # API collections and fixtures must be scanned too: credentials accidentally
 # pasted into those files are still leaks. Add only verified, narrowly scoped
 # false-positive exceptions instead of excluding entire directories.
+
+[[rules]]
+id = "jwt"
+[[rules.allowlists]]
+description = "Exact unsigned JWT used only in the auth-bypass regression fixtures"
+condition = "AND"
+paths = ['''(^|/)(tools/phase1-auth-walkthrough\.sh|backend/src/test/java/app/plug/identity/SessionLifecycleTest\.java)$''']
+regexTarget = "secret"
+regexes = ['''^eyJhbGciOiJub25lIn0\.eyJzdWIiOiJhZG1pbiJ9\.$''']
+
+[[rules]]
+id = "generic-api-key"
+[[rules.allowlists]]
+description = "Exact synthetic tokens in the OpenAPI session example (not issued credentials)"
+condition = "AND"
+paths = ['''(^|/)contracts/examples/session\.json$''']
+regexTarget = "secret"
+regexes = ['''^(pat_3Rv6Qk1xWm9ZbT0sLuHc2JqEa7Nd4YfP|prt_8Hc2XyLa0Bn5TqWe6MvKd1Rz3JgU9sFo)$''']
+
+[[rules.allowlists]]
+description = "Exact nonsecret Phase 0 idempotency key"
+condition = "AND"
+paths = ['(^|/)tests/api/requests-create-success\.bru$']
+regexTarget = "secret"
+regexes = ['^bruno-phase0-success$']

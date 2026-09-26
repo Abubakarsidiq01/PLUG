@@ -1,0 +1,227 @@
+[
+  {
+    "title": "public-shell has no automated accessibility violations",
+    "project": "mobile",
+    "url": "http://127.0.0.1:3000/",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 360,
+      "windowHeight": 800,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "admin-login has no automated accessibility violations",
+    "project": "mobile",
+    "url": "http://127.0.0.1:3000/admin/login",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 360,
+      "windowHeight": 800,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "terms has no automated accessibility violations",
+    "project": "mobile",
+    "url": "http://127.0.0.1:3000/terms",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 360,
+      "windowHeight": 800,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "privacy has no automated accessibility violations",
+    "project": "mobile",
+    "url": "http://127.0.0.1:3000/privacy",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 360,
+      "windowHeight": 800,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "support has no automated accessibility violations",
+    "project": "mobile",
+    "url": "http://127.0.0.1:3000/support",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 360,
+      "windowHeight": 800,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "public-shell has no automated accessibility violations",
+    "project": "tablet",
+    "url": "http://127.0.0.1:3000/",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 768,
+      "windowHeight": 1024,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "admin-login has no automated accessibility violations",
+    "project": "tablet",
+    "url": "http://127.0.0.1:3000/admin/login",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 768,
+      "windowHeight": 1024,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "terms has no automated accessibility violations",
+    "project": "tablet",
+    "url": "http://127.0.0.1:3000/terms",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 768,
+      "windowHeight": 1024,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "privacy has no automated accessibility violations",
+    "project": "tablet",
+    "url": "http://127.0.0.1:3000/privacy",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 768,
+      "windowHeight": 1024,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "support has no automated accessibility violations",
+    "project": "tablet",
+    "url": "http://127.0.0.1:3000/support",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (iPad; CPU OS 12_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1",
+      "windowWidth": 768,
+      "windowHeight": 1024,
+      "orientationAngle": 90,
+      "orientationType": "portrait-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "public-shell has no automated accessibility violations",
+    "project": "desktop",
+    "url": "http://127.0.0.1:3000/",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+      "windowWidth": 1280,
+      "windowHeight": 900,
+      "orientationAngle": 0,
+      "orientationType": "landscape-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "admin-login has no automated accessibility violations",
+    "project": "desktop",
+    "url": "http://127.0.0.1:3000/admin/login",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+      "windowWidth": 1280,
+      "windowHeight": 900,
+      "orientationAngle": 0,
+      "orientationType": "landscape-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "terms has no automated accessibility violations",
+    "project": "desktop",
+    "url": "http://127.0.0.1:3000/terms",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+      "windowWidth": 1280,
+      "windowHeight": 900,
+      "orientationAngle": 0,
+      "orientationType": "landscape-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "privacy has no automated accessibility violations",
+    "project": "desktop",
+    "url": "http://127.0.0.1:3000/privacy",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+      "windowWidth": 1280,
+      "windowHeight": 900,
+      "orientationAngle": 0,
+      "orientationType": "landscape-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  },
+  {
+    "title": "support has no automated accessibility violations",
+    "project": "desktop",
+    "url": "http://127.0.0.1:3000/support",
+    "viewport": {
+      "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/153.0.8010.12 Safari/537.36",
+      "windowWidth": 1280,
+      "windowHeight": 900,
+      "orientationAngle": 0,
+      "orientationType": "landscape-primary"
+    },
+    "violations": [],
+    "incomplete": [],
+    "passed_rules": 29
+  }
+]

@@ -19,7 +19,7 @@
 2. Open `ios/Plug.xcodeproj`.
 3. Select a development team for local signing.
 4. Run `Plug` in a simulator.
-5. For a physical phone, replace the placeholder LAN/staging URL in `AppEnvironment.swift`; never commit credentials.
+5. For a physical phone, set `PLUG_API_URL` and `PLUG_WEB_URL` in the Xcode scheme to reachable HTTPS URLs; never commit credentials.
 
 ## Before the first shared PR
 

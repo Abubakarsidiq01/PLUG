@@ -55,7 +55,7 @@ writeFileSync(join(outDir, "tokens.css"), cssLines.join("\n") + "\n");
 
 // ---- Tokens.swift -----------------------------------------------------------
 // iOS uses system typography (tokens.json._rules), so only color, space, radius
-// and motion — the values that are not typographic — are generated for Swift.
+// and motion are generated alongside base type sizes; SwiftUI scales type dynamically.
 function swiftColorHex(hex) {
   const clean = hex.replace("#", "");
   // Fully qualified: inside `enum Color { ... }` below, an unqualified `Color(...)`
@@ -85,6 +85,11 @@ swiftLines.push("    }");
 swiftLines.push("    enum Radius {");
 for (const [step, value] of Object.entries(tokens.radius)) {
   swiftLines.push(`        static let ${step}: CGFloat = ${value}`);
+}
+swiftLines.push("    }");
+swiftLines.push("    enum TypeSize {");
+for (const [name, value] of Object.entries(tokens.type)) {
+  swiftLines.push(`        static let ${name}: CGFloat = ${value.size}`);
 }
 swiftLines.push("    }");
 swiftLines.push("    enum Motion {");

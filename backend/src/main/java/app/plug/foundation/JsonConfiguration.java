@@ -22,7 +22,9 @@ public class JsonConfiguration {
                             .setCoercion(CoercionInputShape.Boolean, CoercionAction.Fail);
                     mapper.getFactory().setStreamReadConstraints(
                             com.fasterxml.jackson.core.StreamReadConstraints.builder()
-                                    .maxNestingDepth(20).maxStringLength(1000).maxNumberLength(32).build());
+                                    // Provider tokens are allowed up to 4096 characters by the auth contract.
+                                    // Request text keeps its independent @Size(max = 1000) validation.
+                                    .maxNestingDepth(20).maxStringLength(4096).maxNumberLength(32).build());
                 });
     }
 }

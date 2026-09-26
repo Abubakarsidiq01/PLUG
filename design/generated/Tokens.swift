@@ -44,6 +44,17 @@ enum PlugTokens {
         static let lg: CGFloat = 10
         static let xl: CGFloat = 14
     }
+    enum TypeSize {
+        static let display: CGFloat = 34
+        static let title1: CGFloat = 26
+        static let title2: CGFloat = 20
+        static let title3: CGFloat = 17
+        static let bodyLg: CGFloat = 15
+        static let body: CGFloat = 13
+        static let label: CGFloat = 12
+        static let caption: CGFloat = 11
+        static let overline: CGFloat = 10
+    }
     enum Motion {
         static let fast: Double = 120 / 1000
         static let base: Double = 180 / 1000

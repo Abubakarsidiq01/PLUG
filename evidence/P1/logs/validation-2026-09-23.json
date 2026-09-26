@@ -1,0 +1,43 @@
+{
+  "date": "2026-09-23",
+  "backend": {
+    "test": {
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "databaseTest": {
+      "tests": 46,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    }
+  },
+  "ios": {
+    "unit_and_live_tests": 36,
+    "ui_tests": 2,
+    "failures": 0,
+    "skipped": 0,
+    "release": "unsigned device build passed"
+  },
+  "web": {
+    "tests": 39,
+    "viewports": [
+      360,
+      768,
+      1280
+    ],
+    "failures": 0,
+    "axe_violations": 0
+  },
+  "api": {
+    "walkthrough_assertions": 35,
+    "bruno_requests": 20,
+    "bruno_assertions": 42,
+    "bruno_script_tests": 4,
+    "failures": 0
+  },
+  "bruno_tooling_tests": 2,
+  "scope": "Local verification only; G1 unsigned"
+}

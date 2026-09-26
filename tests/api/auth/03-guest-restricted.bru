@@ -1,0 +1,20 @@
+meta {
+  name: Phase 1 - guest-restricted
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/v1/me/sessions
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p1Access}}
+}
+
+assert {
+  res.status: eq 403
+  res.body.error.code: eq forbidden
+}

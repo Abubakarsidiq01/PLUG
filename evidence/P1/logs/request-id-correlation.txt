@@ -1,0 +1,23 @@
+Request-id correlation - iOS client and backend, same request
+==============================================================
+
+manual.docx §7 step 5 and §12.3 ask for one correlation id that appears in both
+the client log and the server log. LiveBackendTests drove the real APIClient from
+the Simulator against the backend below; the ids it printed are then found in the
+backend's own log, with the route and status that produced them.
+
+Captured from the iOS test output:
+  CORRELATION guest_denied_sessions  request_id=req_92ae7aeb-60a8-4a34-9118-0b203d83e892
+  CORRELATION revoked_after_logout   request_id=req_86d04302-a87c-4932-b908-a8938f1a470a
+
+Found in the backend log:
+  2026-09-22T20:08:23.800-05:00  INFO 15685 --- [plug-api] [0.1-8080-exec-5] app.plug.foundation.CorrelationFilter    : http_request request_id=req_92ae7aeb-60a8-4a34-9118-0b203d83e892 method=GET path=/v1/me/sessions status=403
+  2026-09-22T20:08:23.809-05:00  INFO 15685 --- [plug-api] [0.1-8080-exec-2] app.plug.foundation.CorrelationFilter    : http_request request_id=req_86d04302-a87c-4932-b908-a8938f1a470a method=GET path=/v1/me status=401
+
+The first is the guest scope limit refusing /v1/me/sessions; the second is an access
+token that stopped working the moment logout returned. Both were enforced by the
+server, not by the client.
+
+NOTE: this is a local backend, not staging (ADR-004). It proves the mechanic, not
+the gate. G1 needs the same correlation captured with both engineers present against
+real staging.

@@ -1,0 +1,10 @@
+{
+  "scope": "Current local live backend log; issued development OTPs compared without saving their values",
+  "matches": {
+    "access_tokens": 0,
+    "refresh_tokens": 0,
+    "bearer_headers": 0,
+    "phone_numbers": 0,
+    "issued_codes_in_log": 0
+  }
+}

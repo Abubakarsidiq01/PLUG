@@ -1,0 +1,19 @@
+HTTP/1.1 200 OK
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: camera=(), microphone=(), geolocation=()
+Content-Security-Policy: frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'
+Strict-Transport-Security: max-age=31536000
+Vary: rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding
+x-nextjs-cache: HIT
+x-nextjs-prerender: 1
+x-nextjs-prerender: 1
+x-nextjs-stale-time: 300
+Cache-Control: s-maxage=31536000
+ETag: "a44k3iaanp65i"
+Content-Type: text/html; charset=utf-8
+Content-Length: 7976
+Date: Wed, 23 Sep 2026 23:51:06 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5

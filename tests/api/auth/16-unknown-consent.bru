@@ -1,0 +1,24 @@
+meta {
+  name: Phase 1 - unknown-consent
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/v1/auth/guest
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"consent_version": "1999-01-01"}
+}
+
+assert {
+  res.status: eq 400
+  res.body.error.details[0].field: eq consent_version
+}

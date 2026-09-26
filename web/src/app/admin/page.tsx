@@ -1,12 +1,7 @@
-export default function AdminHome() {
-  return (
-    <main className="public-shell">
-      <p className="eyebrow">PLUG Admin</p>
-      <h1>Console shell</h1>
-      <p className="lede">
-        No admin surface exists yet — this route only proves the protected
-        shell works. Real screens land in Phase 5 (§14).
-      </p>
-    </main>
-  );
+import { redirect } from "next/navigation";
+
+// Enforce the closed boundary in the server page as well as the proxy. Phase 1
+// issues no admin scope; a cookie alone must never grant administrative access.
+export default function AdminHome(): never {
+  redirect("/admin/login?from=%2Fadmin");
 }

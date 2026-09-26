@@ -1,0 +1,19 @@
+meta {
+  name: Phase 1 - logout
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/v1/auth/logout
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p1LogoutAccess}}
+}
+
+assert {
+  res.status: eq 204
+}

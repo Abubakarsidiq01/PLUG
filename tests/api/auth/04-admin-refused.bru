@@ -1,0 +1,20 @@
+meta {
+  name: Phase 1 - admin-refused
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/v1/admin/users
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p1Access}}
+}
+
+assert {
+  res.status: eq 403
+  res.body.error.code: eq forbidden
+}

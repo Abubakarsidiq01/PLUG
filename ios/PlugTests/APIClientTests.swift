@@ -40,6 +40,14 @@ final class APIClientTests: XCTestCase {
         } catch { }
     }
 
+    func testPhoneDevelopmentAddressOverridesStaleSchemeAndEmptySettingsFallThrough() {
+        XCTAssertEqual(AppEnvironment.preferredAPISetting(development: "https://current.example",
+                       runtime: "https://expired.example", bundled: nil), "https://current.example")
+        XCTAssertEqual(AppEnvironment.preferredAPISetting(development: "", runtime: "http://127.0.0.1:8081",
+                       bundled: nil), "http://127.0.0.1:8081")
+        XCTAssertNil(AppEnvironment.preferredAPISetting(development: "$(UNSET)", runtime: "", bundled: nil))
+    }
+
     func testLocalEnvironmentUsesLoopbackIPv4() {
         XCTAssertEqual(AppEnvironment.local.baseURL?.absoluteString, "http://127.0.0.1:8080")
     }
@@ -93,20 +101,4 @@ final class APIClientTests: XCTestCase {
                             userInfo: [NSLocalizedDescriptionKey: "sensitive internal URL and token"])
         XCTAssertEqual(HealthFailure.message(for: error), "The server could not be reached. Please try again.")
     }
-}
-
-private final class TestTransport: URLProtocol {
-    static var handler: ((URLRequest) throws -> (HTTPURLResponse, Data))?
-    override class func canInit(with request: URLRequest) -> Bool { true }
-    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
-    override func startLoading() {
-        do {
-            let handler = try XCTUnwrap(Self.handler)
-            let (response, data) = try handler(request)
-            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-            client?.urlProtocol(self, didLoad: data)
-            client?.urlProtocolDidFinishLoading(self)
-        } catch { client?.urlProtocol(self, didFailWithError: error) }
-    }
-    override func stopLoading() { }
 }

@@ -26,6 +26,21 @@ You are the final technical authority on this phase. If something here conflicts
 
 ---
 
+## Carried in from Phase 1
+
+- **Load-test the session lookup.** PLUG's access tokens are opaque and resolved
+  against the `sessions` table on every authenticated request — one indexed read
+  plus one `last_used_at` write (ADR-006). That was a deliberate trade for
+  instant revocation and it has never been measured. If it turns out to be a
+  bottleneck, the answer is a cache in front of the read, not claims the server
+  cannot withdraw.
+- **Confirm the opportunistic sweeps hold under load.** `phone_challenges` and
+  `apple_token_uses` are pruned on write rather than by a scheduled job, and
+  `sessions` is never pruned at all. Check the growth curve during the load
+  drill and add a sweep if the numbers say so.
+
+---
+
 ## 0. Before any code — the contract
 
 This phase does not start with code. It starts with a fifteen-minute session

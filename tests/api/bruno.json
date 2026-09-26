@@ -1,6 +1,6 @@
 {
   "version": "1",
-  "name": "PLUG API — Phase 0",
+  "name": "PLUG API — Phase 0 and Phase 1",
   "type": "collection",
   "ignore": ["node_modules", ".git"]
 }
