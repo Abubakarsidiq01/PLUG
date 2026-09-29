@@ -47,6 +47,18 @@ a {
   padding: var(--space-16) var(--space-4);
 }
 
+/* The app's name is the largest, boldest text on every public page, centred above the
+   page's own heading. */
+.public-shell .brand {
+  font-size: var(--type-display-size);
+  line-height: var(--type-display-line);
+  font-weight: var(--type-display-weight);
+  letter-spacing: var(--type-display-tracking);
+  text-align: center;
+  color: var(--color-brand-600);
+  margin-bottom: var(--space-6);
+}
+
 .public-shell .eyebrow {
   font-size: var(--type-overline-size);
   line-height: var(--type-overline-line);
@@ -58,10 +70,10 @@ a {
 }
 
 .public-shell h1 {
-  font-size: var(--type-display-size);
-  line-height: var(--type-display-line);
-  font-weight: var(--type-display-weight);
-  letter-spacing: var(--type-display-tracking);
+  font-size: var(--type-title1-size);
+  line-height: var(--type-title1-line);
+  font-weight: var(--type-title1-weight);
+  letter-spacing: var(--type-title1-tracking);
   margin-bottom: var(--space-4);
 }
 
@@ -100,12 +112,6 @@ a {
   margin-top: var(--space-4);
 }
 
-.public-shell .legal-status {
-  margin-top: var(--space-6);
-  font-size: var(--type-body-size);
-  line-height: var(--type-body-line);
-  color: var(--color-ink-600);
-}
 
 .public-shell .legal-back {
   margin-top: var(--space-8);

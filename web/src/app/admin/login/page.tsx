@@ -3,7 +3,8 @@
 export default function AdminLogin() {
   return (
     <main className="public-shell">
-      <p className="eyebrow">PLUG Admin</p>
+      <p className="brand">PLUG</p>
+      <p className="eyebrow">Admin</p>
       <h1>Admin access is not available yet</h1>
       <p className="lede">
         This console is reserved for authorized PLUG staff. Admin sign-in will

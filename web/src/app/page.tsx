@@ -4,7 +4,7 @@
 export default function Home() {
   return (
     <main className="public-shell">
-      <p className="eyebrow">PLUG</p>
+      <p className="brand">PLUG</p>
       <h1>Ask for what you need. Get real, verified availability back.</h1>
       <p className="lede">
         PLUG is in private development. There is nothing to sign up for yet.
