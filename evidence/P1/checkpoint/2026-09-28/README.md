@@ -34,12 +34,16 @@ work, but physical Apple and the two-person staging outcome are not established.
 2. Twilio credentials exist, but a read-only inventory found zero SMS-capable
    owned numbers, and the Messaging Service SID is empty. Delivery remains none.
    No number was purchased and no paid SMS was sent.
-3. Privacy PDF is requested from the owner; approved Terms/operator/support
-   details are also pending. Private-development notices remain honest placeholders.
+3. Follow-up: the owner supplied the privacy PDF and confirmed operator/contact
+   details and age 15+. The revised review draft is in
+   docs/legal/plug-privacy-policy-review.md. Approved Terms, deletion/retention
+   procedures and teen safeguards remain pending; public notices are unchanged.
 4. External tests used the **local db profile** through user-authorized Cloudflare
    tunnels. They do not prove the dedicated staging profile or simultaneous
    participation by both engineers. The blueprint's joint G1 checkpoint remains open.
-5. Physical screenshots/VoiceOver/offline evidence are awaited from the owner.
+5. Follow-up: physical screenshots were supplied and reviewed on 2026-09-29;
+   see ../../phone/2026-09-29/README.md for Google/guest acceptance and two matched
+   health request IDs. VoiceOver, largest-text, offline and Apple evidence remain open.
 
 ## Phone handoff
 

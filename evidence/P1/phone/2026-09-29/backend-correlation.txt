@@ -1,0 +1,2 @@
+2026-09-28T22:40:52.209-05:00  INFO 11668 --- [plug-api] [0.1-8080-exec-5] app.plug.foundation.CorrelationFilter    : http_request request_id=req_bd313eff-8e15-425f-b6cf-446f23c418fe method=GET path=/health status=200
+2026-09-28T22:41:46.784-05:00  INFO 11668 --- [plug-api] [0.1-8080-exec-5] app.plug.foundation.CorrelationFilter    : http_request request_id=req_a5a78bba-94de-4aad-b36d-0eec5f18d954 method=GET path=/health status=200

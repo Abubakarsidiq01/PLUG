@@ -1,7 +1,7 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-29T03:43:27.690526+00:00",
+  "updated_at": "2026-09-29T12:37:01.585617+00:00",
   "updated_by": "person_one",
   "current_phase": "P1",
   "current_step": "P1.S12",
@@ -55,7 +55,7 @@
     {
       "id": "P1-device-evidence",
       "owner": "person_one",
-      "task": "Use the PlugUI scheme for real-device screenshots at both text sizes. Then perform real Apple sign-in, relaunch, guest upgrade, logout verification, VoiceOver and a recorded offline recovery. Automated screenshots cover a subset, not all states. Enable the Apple capability and provide reachable API/web URLs; exact commands: docs/runbooks/p1-gate-completion.md.",
+      "task": "Google/guest device flow accepted by the owner and five screenshots reviewed on 2026-09-29; two physical health request IDs matched backend logs. Finish real Apple sign-in/relaunch (eligible team required), guest-to-new-account upgrade, VoiceOver, largest-text and recorded offline recovery evidence. See evidence/P1/phone/2026-09-29/README.md and docs/runbooks/p1-gate-completion.md.",
       "manual_section": "27.2",
       "acceptance": "evidence/P1/ios/ has one capture per required cell at both text sizes from a real device, the Apple relaunch is demonstrated, and a11y/ and failures/ are populated."
     },
@@ -69,7 +69,7 @@
     {
       "id": "P1-web-legal-review",
       "owner": "person_two",
-      "task": "Review the public route shells, consent/error/upgrade copy, the closed admin boundary, Bruno auth collection and September 23 browser evidence. Supply and approve actual Terms and Privacy content before publishing its consent version. Extend staging auth evidence after the joint contract review. 2026-09-26: PR #26 integrated on top of #27 and #25 \u2014 one shared LegalPage shell carrying #27's placeholder copy, #27's single site footer (the separate home-page link row was dropped), Terms of Service naming to match the iOS consent screen, and 44x44px link targets asserted in Playwright on all three viewports.",
+      "task": "Privacy PDF supplied and revised on 2026-09-28 against the actual Phase 1 data flows. Owner confirmed Abubakar Bolakale, United States, privacy@plugapp.com and age 15+ with safeguards. Review draft: docs/legal/plug-privacy-policy-review.md. Terms remain pending. Resolve account deletion, retention and teen safeguards before publishing final text and updating the consent version across web/iOS/backend; finish copy/staging review.",
       "manual_section": "27.2",
       "acceptance": "Approved legal content and consent version agree across web, iOS and backend; remaining design/staging review is recorded."
     }
@@ -94,7 +94,8 @@
     "Operational health routes reject requests carrying tunnel/proxy forwarding headers by design (SecurityConfiguration.directProbeOnly()). Confirmed from Person One's Mac/iPhone and, on 2026-09-22, Person Two's own Windows PC.",
     "AWS staging is deferred (ADR-004) \u2014 no budget right now. Revisit no later than Phase 3, when Twilio needs a stable webhook URL a Quick Tunnel cannot provide.",
     "PRODUCT_BUNDLE_IDENTIFIER is com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account).",
-    "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available."
+    "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available.",
+    "Phone evidence includes a Google notification naming Aura; verify whether it belongs to this PLUG sign-in and correct the selected OAuth project branding if so. Original personal email notification remains private."
   ],
   "environments": {
     "staging": "ephemeral \u2014 cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
@@ -221,6 +222,40 @@
       "person_two_evidence": "PR #29 supplies local Windows evidence and explicitly excludes G1 sign-off.",
       "g1_passed": false,
       "record": "evidence/P1/checkpoint/2026-09-28/README.md"
+    },
+    "privacy_review": {
+      "date": "2026-09-28",
+      "status": "review_draft_not_published",
+      "source": "User-supplied Plug Privacy Policy.pdf",
+      "text": "docs/legal/plug-privacy-policy-review.md",
+      "confirmed_operator": "Abubakar Bolakale",
+      "confirmed_country": "United States",
+      "confirmed_contact": "privacy@plugapp.com",
+      "minimum_age": 15,
+      "publication_gaps": [
+        "in-app account deletion and verified request handling",
+        "retention/deletion/backup schedules",
+        "teen safeguards",
+        "approved Terms and synchronized consent version"
+      ],
+      "app_consent_version_changed": false
+    },
+    "physical_phone_2026_09_29": {
+      "evidence": "evidence/P1/phone/2026-09-29/README.md",
+      "visually_confirmed": [
+        "Google profile",
+        "guest profile",
+        "welcome screen",
+        "API connectivity"
+      ],
+      "owner_reported_passed": [
+        "Google sign-in",
+        "force-close/reopen",
+        "logout",
+        "guest access"
+      ],
+      "backend_correlated_phone_requests": 2,
+      "g1_passed": false
     }
   }
 }

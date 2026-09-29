@@ -1,0 +1,49 @@
+{
+  "received_date": "2026-09-29",
+  "user_report": "evidence that everything worked",
+  "files": [
+    {
+      "source_filename": "IMG_4302.HEIC",
+      "source_sha256": "b0b0d59ed25346d6f1903690c5ef6a4bd2ea8101fb9fee5c7c815c1508929c81",
+      "visual_review": "completed",
+      "artifact": "IMG_4302.png",
+      "artifact_sha256": "c1115b7875dc210a7f888b55045156e27ce977df6861387484205547cc27d942",
+      "transformation": "HEIC to PNG conversion using macOS sips; no image content edits"
+    },
+    {
+      "source_filename": "IMG_4303.HEIC",
+      "source_sha256": "70d26cba2029d6306c8509653899f0dee8792bb9455a53876e9663e1db58a038",
+      "visual_review": "completed",
+      "handling": "Original kept private because notification contains personal email; sanitized copy pending owner choice."
+    },
+    {
+      "source_filename": "IMG_4304.HEIC",
+      "source_sha256": "17c0a4b79200f191b53fd2075aa073ca6f80b3a241ba57540744d38dac24dd95",
+      "visual_review": "completed",
+      "artifact": "IMG_4304.png",
+      "artifact_sha256": "153cc2fd390bbb029aef0f13310e24051425dbec05bcf762db78ca8e2f0fea2d",
+      "transformation": "HEIC to PNG conversion using macOS sips; no image content edits"
+    },
+    {
+      "source_filename": "IMG_4305.HEIC",
+      "source_sha256": "8f48d3c8fc84766e0ce6f9e7be13cd7d63868830680ae5a3daed2ebe0d666147",
+      "visual_review": "completed",
+      "artifact": "IMG_4305.png",
+      "artifact_sha256": "33fabd32fc60ca2f47a64b0b96d3a519f0768bd755a2d059fbd0b6b679cc18e3",
+      "transformation": "HEIC to PNG conversion using macOS sips; no image content edits"
+    },
+    {
+      "source_filename": "IMG_4306.HEIC",
+      "source_sha256": "36cce564cd7cb054c0b945045206cf4bdebce2ffb0cb6f4888b0df02eb146088",
+      "visual_review": "completed",
+      "artifact": "IMG_4306.png",
+      "artifact_sha256": "d683445868c1a88627ada66f334de2a2635b62ab7b2cac1b3c9f3a721ceba169",
+      "transformation": "HEIC to PNG conversion using macOS sips; no image content edits"
+    }
+  ],
+  "physical_request_ids": [
+    "req_bd313eff-8e15-425f-b6cf-446f23c418fe",
+    "req_a5a78bba-94de-4aad-b36d-0eec5f18d954"
+  ],
+  "matched_log_lines": 2
+}
