@@ -18,7 +18,10 @@ body {
   display: flex;
   flex-direction: column;
   color: var(--color-ink-900);
-  background: var(--color-surface-0);
+  /* A soft brand wash at the top of every page, fading into the page surface. */
+  background:
+    radial-gradient(ellipse 120% 480px at 50% 0%, var(--color-brand-50), transparent) no-repeat,
+    var(--color-surface-50);
   font-family: var(--font-plex-sans), sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -41,22 +44,44 @@ a {
   outline-offset: 2px;
 }
 
+/* ---- Page frame ------------------------------------------------------------ */
+
 .public-shell {
-  max-width: 640px;
+  width: 100%;
+  max-width: 720px;
   margin: 0 auto;
-  padding: var(--space-16) var(--space-4);
+  padding: var(--space-12) var(--space-4) var(--space-16);
 }
 
-/* The app's name is the largest, boldest text on every public page, centred above the
-   page's own heading. */
+.public-shell p {
+  font-size: var(--type-bodyLg-size);
+  line-height: var(--type-bodyLg-line);
+}
+
+.public-shell p + p {
+  margin-top: var(--space-4);
+}
+
+/* The app's name is the largest, boldest text on every public page: the P mark above
+   the wordmark, centred over the page's own heading. */
 .public-shell .brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
   font-size: var(--type-display-size);
   line-height: var(--type-display-line);
   font-weight: var(--type-display-weight);
   letter-spacing: var(--type-display-tracking);
   text-align: center;
+  color: var(--color-ink-900);
+  margin-bottom: var(--space-8);
+}
+
+.brand-mark {
+  height: var(--space-12);
+  width: auto;
   color: var(--color-brand-600);
-  margin-bottom: var(--space-6);
 }
 
 .public-shell .eyebrow {
@@ -65,7 +90,7 @@ a {
   font-weight: var(--type-overline-weight);
   letter-spacing: var(--type-overline-tracking);
   text-transform: uppercase;
-  color: var(--color-brand-600);
+  color: var(--color-brand-700);
   margin-bottom: var(--space-2);
 }
 
@@ -78,22 +103,163 @@ a {
 }
 
 .public-shell .lede {
-  font-size: var(--type-bodyLg-size);
-  line-height: var(--type-bodyLg-line);
   color: var(--color-ink-600);
 }
 
-.site-footer {
-  margin-top: auto;
-  padding: var(--space-8) var(--space-4);
+/* ---- Home ------------------------------------------------------------------ */
+
+.home .hero {
+  text-align: center;
 }
 
-.site-footer nav {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
+.home .hero h1,
+.home .hero .lede {
+  max-width: 560px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.public-shell .status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-brand-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-0);
+  color: var(--color-brand-700);
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+}
+
+.status-dot {
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: 50%;
+  background: var(--color-brand-600);
+}
+
+.public-shell .tagline {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: var(--type-title3-size);
+  line-height: var(--type-title3-line);
+  font-weight: var(--type-title3-weight);
+  color: var(--color-brand-700);
+}
+
+.streetscape {
+  margin-top: var(--space-12);
+  padding: var(--space-8) var(--space-6) 0;
+  border: 1px solid var(--color-brand-border);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(var(--color-surface-0), var(--color-brand-50));
+  overflow: hidden;
+}
+
+.streetscape-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  color: var(--color-brand-border);
+}
+
+.neighbourhood-pin {
+  color: var(--color-brand-600);
+}
+
+.steps {
+  margin-top: var(--space-16);
+}
+
+.steps h2 {
+  text-align: center;
+  font-size: var(--type-title2-size);
+  line-height: var(--type-title2-line);
+  font-weight: var(--type-title2-weight);
+  letter-spacing: var(--type-title2-tracking);
+  margin-bottom: var(--space-6);
+}
+
+.steps ol {
+  list-style: none;
+  display: grid;
   gap: var(--space-4);
 }
+
+.step {
+  padding: var(--space-6);
+  border: var(--elevation-flat);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-0);
+  box-shadow: var(--elevation-raised);
+  transition: border-color var(--motion-base) var(--motion-easing),
+    transform var(--motion-base) var(--motion-easing);
+}
+
+.step:hover {
+  border-color: var(--color-brand-border);
+  transform: translateY(calc(-1 * var(--space-1)));
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  margin-bottom: var(--space-3);
+  border-radius: 50%;
+  background: var(--color-brand-50);
+  color: var(--color-brand-700);
+  font-size: var(--type-label-size);
+  font-weight: var(--type-label-weight);
+}
+
+.step h3 {
+  font-size: var(--type-title3-size);
+  line-height: var(--type-title3-line);
+  font-weight: var(--type-title3-weight);
+  margin-bottom: var(--space-2);
+}
+
+.public-shell .step p {
+  color: var(--color-ink-600);
+}
+
+@media (min-width: 720px) {
+  .public-shell {
+    padding-top: var(--space-16);
+  }
+
+  .steps ol {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---- Content card (legal, support, admin) ----------------------------------- */
+
+.card {
+  padding: var(--space-8) var(--space-6);
+  border: var(--elevation-flat);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface-0);
+  box-shadow: var(--elevation-raised);
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+.public-shell .legal-back {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-8);
+}
+
+/* ---- Links and buttons -------------------------------------------------------- */
 
 .site-footer a,
 .public-shell .legal-back a {
@@ -102,24 +268,98 @@ a {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  min-width: 44px;
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.public-shell p + p {
-  margin-top: var(--space-4);
-}
-
-
-.public-shell .legal-back {
-  margin-top: var(--space-8);
-  font-size: var(--type-body-size);
-  line-height: var(--type-body-line);
+  min-height: var(--target-min-touch);
+  min-width: var(--target-min-touch);
+  transition: color var(--motion-fast) var(--motion-easing),
+    background-color var(--motion-fast) var(--motion-easing),
+    border-color var(--motion-fast) var(--motion-easing);
 }
 
 .public-shell .legal-back a {
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-line-300);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-0);
+  color: var(--color-ink-900);
+  font-size: var(--type-bodyLg-size);
+  font-weight: var(--type-label-weight);
+}
+
+.public-shell .legal-back a:hover {
+  border-color: var(--color-brand-border);
+  background: var(--color-brand-50);
+  color: var(--color-brand-700);
+}
+
+/* ---- Footer --------------------------------------------------------------------- */
+
+.site-footer {
+  margin-top: auto;
+  border-top: var(--elevation-flat);
+  background: var(--color-surface-0);
+}
+
+.site-footer-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--type-title3-size);
+  line-height: var(--type-title3-line);
+  font-weight: var(--type-display-weight);
+}
+
+.footer-mark {
+  height: var(--space-6);
+  width: auto;
+  color: var(--color-brand-600);
+}
+
+.site-footer nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-1) var(--space-4);
+}
+
+.site-footer a {
+  padding: 0 var(--space-2);
+  color: var(--color-ink-600);
+  font-size: var(--type-bodyLg-size);
+  text-underline-offset: 4px;
+}
+
+.site-footer a:hover {
   color: var(--color-brand-700);
   text-decoration: underline;
+}
+
+@media (max-width: 560px) {
+  .site-footer-inner {
+    flex-direction: column;
+  }
+}
+
+/* design/tokens.json motion.reducedMotion: all durations resolve to 0ms. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+  }
+
+  .step:hover {
+    transform: none;
+  }
 }
