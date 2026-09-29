@@ -44,12 +44,18 @@ session recorded in [the connected checkpoint log](../../evidence/P0/logs/connec
 G0 is signed in `PROJECT_STATE.json`, merged in PR #21. This supersedes the
 earlier public-test deferral; it does not prove the Phase 1 authentication flows.
 
+## Phase 1 local evidence — 2026-09-28
+
+On merged `main` at `3e8f96a`, from Person Two's own Windows PC: web lint and build
+passed, Playwright passed 69/69 across the three viewports, the `db`-profile backend ran
+against the local Docker Postgres with health and readiness `UP`, and Bruno passed 20/20
+requests and 42/42 assertions. The sanitized records are in
+[`evidence/P1/windows/2026-09-28/`](../../evidence/P1/windows/2026-09-28/README.md). This
+attaches the local database/Bruno evidence the items below asked for.
+
 ## Still pending
 
-- Attach the sanitized local Playwright report for PR #23 and Bruno summaries
-  under `evidence/P0/`. The full-suite result is now confirmed by Person Two's
-  commit record; keep the earlier timeout and rerun history above.
-- Attach sanitized local database/Bruno evidence for the operator-reported setup
-  above before closing the remaining personal setup action in the tracker.
+- ~~Attach sanitized local Playwright, database and Bruno evidence~~ — done
+  2026-09-28 on the current `main` (see above); it supersedes the older checkout.
 - Complete the joint Phase 1 contract review before authentication feature work.
   G0 sign-off does not freeze the new Phase 1 auth contract.

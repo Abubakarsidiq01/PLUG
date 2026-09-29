@@ -76,9 +76,9 @@
     {
       "id": "P1-person-two-evidence",
       "owner": "person_two",
-      "task": "Attach sanitized local database/Bruno reports for the already reported Windows setup (ADR-005). PR #23 records the clean local 21/21 browser run. Public checkpoint and Phase 0 contract agreement are complete.",
+      "task": "Done 2026-09-28 on merged main 3e8f96a: Person Two's own Windows PC ran web lint/build and Playwright 69/69, the db-profile backend against the local Docker Postgres (health and readiness UP), and Bruno 20/20 requests, 42/42 assertions. Sanitized results: evidence/P1/windows/2026-09-28/.",
       "manual_section": "27.2",
-      "acceptance": "Local setup evidence records checkout, commands and results; no repeat of the completed public checkpoint is required."
+      "acceptance": "Local setup evidence records checkout, commands and results; no repeat of the completed public checkpoint is required. Met by evidence/P1/windows/2026-09-28/README.md."
     },
     {
       "id": "P1-web-legal-review",
