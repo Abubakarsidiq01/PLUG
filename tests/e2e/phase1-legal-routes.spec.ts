@@ -23,9 +23,9 @@ for (const route of routes) {
     await expect(page).toHaveTitle(route.title);
   });
 
-  test(`${route.path} says the final text is pending and offers a way back`, async ({ page }) => {
+  test(`${route.path} offers a way back home`, async ({ page }) => {
     await page.goto(route.path);
-    await expect(page.getByText("Status: placeholder. Final wording is pending approval.")).toBeVisible();
+    await expect(page.getByText(/^Status:/)).toHaveCount(0);
     await page.getByRole("link", { name: "Back to home" }).click();
     await expect(page).toHaveURL(/\/$/);
   });
@@ -57,4 +57,27 @@ test("every public page has one shared footer linking all three routes", async (
   await expect(nav.getByRole("link", { name: "Privacy", exact: true })).toHaveAttribute("href", "/privacy");
   await expect(nav.getByRole("link", { name: "Terms", exact: true })).toHaveAttribute("href", "/terms");
   await expect(nav.getByRole("link", { name: "Support", exact: true })).toHaveAttribute("href", "/support");
+});
+
+// The app's name is the largest and boldest text on every public page, centred above
+// the page's own heading.
+test("the PLUG name is centred, bold and larger than the page heading", async ({ page }) => {
+  for (const path of ["/", "/admin/login", ...routes.map(route => route.path)]) {
+    await page.goto(path);
+    const brand = page.locator("main .brand");
+    await expect(brand, path).toHaveText("PLUG");
+    const style = await brand.evaluate(element => {
+      const css = getComputedStyle(element);
+      const heading = getComputedStyle(document.querySelector("main h1")!);
+      return {
+        size: parseFloat(css.fontSize),
+        headingSize: parseFloat(heading.fontSize),
+        weight: Number(css.fontWeight),
+        align: css.textAlign,
+      };
+    });
+    expect(style.size, path).toBeGreaterThan(style.headingSize);
+    expect(style.weight, path).toBeGreaterThanOrEqual(700);
+    expect(style.align, path).toBe("center");
+  }
 });
