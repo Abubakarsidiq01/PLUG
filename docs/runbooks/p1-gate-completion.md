@@ -1,5 +1,7 @@
 # Phase 1 — remaining device work and G1 sign-off
 
+For the current owner walkthrough, see [step-by-step next actions](p1-owner-next-steps.md).
+
 The current implementation and checks are recorded in
 [the PR validation record](../testing/phase1-pr-readiness-2026-09-25.md).
 G1 remains open. Simulator evidence does not prove physical Apple sign-in,

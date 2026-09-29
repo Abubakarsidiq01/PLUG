@@ -57,3 +57,14 @@ was retained during the external checks using public DNS resolution.
 Test Google sign-in, force-close/reopen, logout, guest access and offline recovery.
 Send Profile/Engineering/error screenshots and VoiceOver evidence. Apple and
 real SMS cannot be marked complete with Google/guest screenshots.
+
+## September 29 CI follow-up
+
+PR #30's Windows job failed in the web build before Playwright or backend
+startup: `next/font/google queries have exactly one entry` while resolving
+IBM Plex Sans through Turbopack. The missing report warnings were downstream
+consequences, not separate failing tests. Bundled unmodified IBM font assets
+and their OFL license now replace the build-time Google font resolver; the
+same family and four weights remain. Local production build, ESLint and all
+69 production-browser tests passed with the local fonts. The new Windows
+CI result must be checked on the pushed commit.
