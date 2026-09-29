@@ -132,9 +132,10 @@ owner's VoiceOver experience or claim a physical Apple login that never happened
 The [privacy review](../legal/plug-privacy-policy-review.md) is editable source,
 not a published policy. Operator, country, contact and minimum age are confirmed.
 The blueprint's Phase 1 work includes session revocation on account deletion;
-that must be verified even though a full user-facing deletion flow is also an
-App Store release requirement. Do not mistake successful logout tests for proof
-of account deletion.
+the internal transactional deletion service now has a dedicated passing test
+that revokes access and refresh credentials on both devices, preserves another
+account, and records the deletion audit. A public deletion API and in-app flow
+remain separate implementation work; no data-erasure behavior is claimed.
 
 Implementation can cover deletion UI/API, revocation tests, approved retention
 jobs, age/parental-permission controls and synchronized legal pages. Before

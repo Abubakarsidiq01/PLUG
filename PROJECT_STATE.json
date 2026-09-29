@@ -1,7 +1,7 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-29T12:37:01.585617+00:00",
+  "updated_at": "2026-09-29T14:50:49.256316+00:00",
   "updated_by": "person_one",
   "current_phase": "P1",
   "current_step": "P1.S12",
@@ -256,6 +256,17 @@
       ],
       "backend_correlated_phone_requests": 2,
       "g1_passed": false
+    },
+    "pr30_followup": {
+      "date": "2026-09-29",
+      "windows_fix": "Original IBM Plex Sans assets bundled with license; next/font/local removes failing Google font resolver.",
+      "web_production_build": "passed",
+      "web_lint": "passed",
+      "web_browser_tests": 69,
+      "backend_tests": 109,
+      "checkstyle": "passed",
+      "deletion_revocation": "Dedicated two-device test of existing internal service passed; public deletion API/UI and erasure remain pending.",
+      "owner_steps": "docs/runbooks/p1-owner-next-steps.md"
     }
   }
 }

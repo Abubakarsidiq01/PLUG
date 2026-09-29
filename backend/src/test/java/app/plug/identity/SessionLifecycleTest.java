@@ -6,11 +6,43 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import app.plug.security.PlugPrincipal;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 // Rotation, replay, revocation, and the authorization checks that stop one person reading
 // another's session. These are the cases gate G1 is judged on.
 class SessionLifecycleTest extends IdentityTestSupport {
+    @Autowired AccountService accounts;
+
+    @Test
+    void accountDeletionRevokesEveryDeviceWithoutAffectingAnotherAccount() throws Exception {
+        var first = memberSession("+15551260006");
+        var second = memberSessionForExistingNumber("+15551260006");
+        var unrelated = memberSession("+15551260007");
+        String userId = first.get("account").get("user_id").asText();
+        assertEquals(userId, second.get("account").get("user_id").asText());
+
+        // Exercise the transactional service; a public deletion endpoint is not yet
+        // in the frozen contract. Verify its effects through real HTTP authentication.
+        accounts.deleteAccount(new PlugPrincipal(userId, sessionIdOf(first),
+                Set.of(PlugPrincipal.SCOPE_MEMBER), false));
+
+        for (var session : new JsonNode[] {first, second}) {
+            get("/v1/me", accessTokenOf(session)).andExpect(status().isUnauthorized());
+            post("/v1/auth/refresh", """
+                    {"refresh_token":"%s"}""".formatted(refreshTokenOf(session)))
+                    .andExpect(status().isUnauthorized());
+        }
+        get("/v1/me", accessTokenOf(unrelated)).andExpect(status().isOk());
+        assertEquals("deleted", jdbc.queryForObject(
+                "SELECT status FROM users WHERE id = ?", String.class, userId));
+        assertEquals(2, jdbc.queryForObject("SELECT count(*) FROM sessions WHERE user_id = ?"
+                + " AND revoked_at IS NOT NULL AND revoked_reason = 'account_deleted'", Integer.class, userId));
+        assertEquals(1, jdbc.queryForObject("SELECT count(*) FROM audit_events"
+                + " WHERE action = 'account.deleted' AND resource_id = ?", Integer.class, userId));
+    }
 
     @Test
     void everyRefreshRotatesBothTokens() throws Exception {

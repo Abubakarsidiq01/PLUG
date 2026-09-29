@@ -68,3 +68,10 @@ and their OFL license now replace the build-time Google font resolver; the
 same family and four weights remain. Local production build, ESLint and all
 69 production-browser tests passed with the local fonts. The new Windows
 CI result must be checked on the pushed commit.
+
+Account-deletion follow-up: the internal transactional service now has a
+regression test proving both devices lose access and refresh authorization,
+an unrelated account retains access, and deletion is audited. All 109 backend
+tests (39 unit + 70 database) and Checkstyle pass on the isolated port-55433
+database. This does not claim a public deletion endpoint, in-app deletion UI
+or erasure of retained personal records.
