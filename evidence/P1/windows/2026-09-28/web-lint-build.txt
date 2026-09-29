@@ -1,0 +1,23 @@
+
+Done in 8.6s using pnpm v9.15.9
+--- lint
+> @plug/web@0.1.0 lint C:\Users\<user>\repos\PLUG\web
+> eslint
+
+--- build
+  Generating static pages using 10 workers (0/9) ...
+  Generating static pages using 10 workers (2/9) 
+  Generating static pages using 10 workers (4/9) 
+  Generating static pages using 10 workers (6/9) 
+✓ Generating static pages using 10 workers (9/9) in 2.3s
+  Finalizing page optimization ...
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ○ /admin
+├ ○ /admin/login
+├ ○ /privacy
+├ ○ /support
+└ ○ /terms
+ƒ Proxy (Middleware)
+○  (Static)  prerendered as static content
