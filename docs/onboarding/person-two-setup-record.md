@@ -57,5 +57,6 @@ attaches the local database/Bruno evidence the items below asked for.
 
 - ~~Attach sanitized local Playwright, database and Bruno evidence~~ — done
   2026-09-28 on the current `main` (see above); it supersedes the older checkout.
-- Complete the joint Phase 1 contract review before authentication feature work.
-  G0 sign-off does not freeze the new Phase 1 auth contract.
+- Contract implementation/fixture PR approvals were recorded on #25 and #27;
+  finish version reconciliation and the freeze record. G1 still requires the
+  physical-device evidence and shared staging checkpoint.

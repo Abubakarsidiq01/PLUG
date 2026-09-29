@@ -1,0 +1,205 @@
+{
+  "date": "2026-09-28",
+  "scope": "Remote HTTPS checks of local db profile under ADR-004; not a two-person staging-profile G1 sign-off",
+  "api": "https://excellent-themselves-demands-observation.trycloudflare.com",
+  "web": "https://varies-university-keno-prohibited.trycloudflare.com",
+  "results": [
+    {
+      "check": "Public API health",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "request_id": "req_g1_88d64aaba00a469386d736366c977335"
+    },
+    {
+      "check": "External readiness hidden",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "request_id": "req_g1_d6857825287c479a87c45992de854bc0"
+    },
+    {
+      "check": "Anonymous account denied",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "request_id": "req_g1_fb333744c12745b5b92b7b9380af230c"
+    },
+    {
+      "check": "Guest creation",
+      "status": 201,
+      "expected": 201,
+      "passed": true,
+      "request_id": "req_g1_d78a914fc93d4ca38da0c9d44afd24c0"
+    },
+    {
+      "check": "Authenticated account",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "request_id": "req_g1_26959fbf2d7d4bcdafef79564e2db059"
+    },
+    {
+      "check": "Guest session management denied",
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "request_id": "req_g1_9e0c88f03ef747a999bc2632f3707ce0"
+    },
+    {
+      "check": "Guest admin access denied",
+      "status": 403,
+      "expected": 403,
+      "passed": true,
+      "request_id": "req_g1_47f2ca1f52a24846b78cabac2a6e3a20"
+    },
+    {
+      "check": "Refresh rotates",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "request_id": "req_g1_915734b2226b44408869fe836304362a"
+    },
+    {
+      "check": "Refresh replay refused",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "request_id": "req_g1_b11afe488a214154a814def291abba32"
+    },
+    {
+      "check": "Replay revokes access chain",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "request_id": "req_g1_fec48dd0447743cd9affe61d8c6fb707"
+    },
+    {
+      "check": "Replay revokes refresh chain",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "request_id": "req_g1_b900ebdcba7f4e3c8b1a20e612d857f4"
+    },
+    {
+      "check": "Second guest creation",
+      "status": 201,
+      "expected": 201,
+      "passed": true,
+      "request_id": "req_g1_e8021670d4dd4327a7134e26813a00de"
+    },
+    {
+      "check": "Logout",
+      "status": 204,
+      "expected": 204,
+      "passed": true,
+      "request_id": "req_g1_e33911012f5f4072b569e9f7d7dfc859"
+    },
+    {
+      "check": "Logged out access denied",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "request_id": "req_g1_4246fbfc479a4dc6a7a148771474caba"
+    },
+    {
+      "check": "Logged out refresh denied",
+      "status": 401,
+      "expected": 401,
+      "passed": true,
+      "request_id": "req_g1_38dfb7e09b7d4379a4a8872142e50f8e"
+    },
+    {
+      "check": "Unconfigured SMS honest failure",
+      "status": 503,
+      "expected": 503,
+      "passed": true,
+      "request_id": "req_g1_a24f0f4651784b2eb3b73212174fd146"
+    },
+    {
+      "check": "Public web /terms",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "request_id": null
+    },
+    {
+      "check": "/terms content-security-policy",
+      "passed": true,
+      "value": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+    },
+    {
+      "check": "/terms x-content-type-options",
+      "passed": true,
+      "value": "nosniff"
+    },
+    {
+      "check": "/terms x-frame-options",
+      "passed": true,
+      "value": "DENY"
+    },
+    {
+      "check": "/terms strict-transport-security",
+      "passed": true,
+      "value": "max-age=31536000"
+    },
+    {
+      "check": "Public web /privacy",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "request_id": null
+    },
+    {
+      "check": "/privacy content-security-policy",
+      "passed": true,
+      "value": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+    },
+    {
+      "check": "/privacy x-content-type-options",
+      "passed": true,
+      "value": "nosniff"
+    },
+    {
+      "check": "/privacy x-frame-options",
+      "passed": true,
+      "value": "DENY"
+    },
+    {
+      "check": "/privacy strict-transport-security",
+      "passed": true,
+      "value": "max-age=31536000"
+    },
+    {
+      "check": "Public web /support",
+      "status": 200,
+      "expected": 200,
+      "passed": true,
+      "request_id": null
+    },
+    {
+      "check": "/support content-security-policy",
+      "passed": true,
+      "value": "frame-ancestors 'none'; object-src 'none'; base-uri 'self'; form-action 'self'"
+    },
+    {
+      "check": "/support x-content-type-options",
+      "passed": true,
+      "value": "nosniff"
+    },
+    {
+      "check": "/support x-frame-options",
+      "passed": true,
+      "value": "DENY"
+    },
+    {
+      "check": "/support strict-transport-security",
+      "passed": true,
+      "value": "max-age=31536000"
+    }
+  ],
+  "backend_correlation": {
+    "matched": 16,
+    "total": 16
+  }
+}

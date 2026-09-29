@@ -70,7 +70,7 @@ documentation is part of the work.
 Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
 
-- [ ] **P1.S1** — Joint approval remains pending. Freeze the auth OpenAPI: Apple, phone start and verify, guest, refresh and session rules, logout, errors and consent version.
+- [x] **P1.S1** — Implementation/fixtures approved in #25/#27; version reconciled as 0.2.2 on 2026-09-28. Freeze the auth OpenAPI: Apple, phone start and verify, guest, refresh and session rules, logout, errors and consent version.
 - [x] **P1.S2** — Implement Apple token verification server-side, and the Sign in with Apple client flow in iOS.
 - [x] **P1.S3** — Implement phone verification with per-IP and per-identity rate limits, attempt limits, expiry and audit events.
 - [x] **P1.S4** — Implement guest identity and the upgrade-and-link behaviour, without losing the current request context.

@@ -1,11 +1,11 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-26T21:54:56.084258+00:00",
+  "updated_at": "2026-09-29T03:43:27.690526+00:00",
   "updated_by": "person_one",
   "current_phase": "P1",
   "current_step": "P1.S12",
-  "current_step_title": "Phase 1 stacked PRs #27, #25 and #26 validated together; physical Apple evidence, provider setup, joint contract/legal approval and G1 checkpoint remain open.",
+  "current_step_title": "Phase 1 contract reconciled, Windows evidence merged, fresh automated checks passed, and physical Google/guest build installed. G1 remains pending Apple-capable provisioning, device evidence, approved legal content and the two-person staging checkpoint.",
   "manual_section": "27.2",
   "readme": "docs/phases/P1-ONE.md",
   "owner": "person_one",
@@ -34,31 +34,24 @@
     "GET /health": "frozen@0.1.0",
     "GET /health/ready": "frozen@0.1.0",
     "POST /v1/requests": "frozen@0.1.0",
-    "POST /v1/auth/apple": "draft",
-    "POST /v1/auth/phone/start": "draft",
-    "POST /v1/auth/phone/verify": "draft",
-    "POST /v1/auth/guest": "draft",
-    "POST /v1/auth/refresh": "draft",
-    "POST /v1/auth/logout": "draft",
-    "GET /v1/me": "draft",
-    "POST /v1/me/consent": "draft",
-    "GET /v1/me/sessions": "draft",
-    "GET /v1/me/sessions/{session_id}": "draft",
-    "DELETE /v1/me/sessions/{session_id}": "draft",
-    "POST /v1/auth/google": "draft@0.2.1"
+    "POST /v1/auth/apple": "frozen@0.2.2",
+    "POST /v1/auth/phone/start": "frozen@0.2.2",
+    "POST /v1/auth/phone/verify": "frozen@0.2.2",
+    "POST /v1/auth/guest": "frozen@0.2.2",
+    "POST /v1/auth/refresh": "frozen@0.2.2",
+    "POST /v1/auth/logout": "frozen@0.2.2",
+    "GET /v1/me": "frozen@0.2.2",
+    "POST /v1/me/consent": "frozen@0.2.2",
+    "GET /v1/me/sessions": "frozen@0.2.2",
+    "GET /v1/me/sessions/{session_id}": "frozen@0.2.2",
+    "DELETE /v1/me/sessions/{session_id}": "frozen@0.2.2",
+    "POST /v1/auth/google": "frozen@0.2.2"
   },
   "feature_flags": {
     "identity": "staging_only",
     "phone_code_delivery": "off"
   },
   "next_actions": [
-    {
-      "id": "P1-auth-contract-review",
-      "owner": "person_two",
-      "task": "Review and approve the aligned auth contract in PRs #27 and #25 together. PR #26 is stacked on #25. Fixtures and implementation now agree, including Google, intent, opaque tokens and unavailable-provider errors. Record both engineers' approvals before freezing operations; automated verification is not a signature.",
-      "manual_section": "27.2",
-      "acceptance": "Both engineers approve the contract pull request and the eleven Phase 1 operations move from draft to frozen@0.2.0 in this file."
-    },
     {
       "id": "P1-device-evidence",
       "owner": "person_one",
@@ -72,13 +65,6 @@
       "task": "Run the G1 connected checkpoint with Person Two against real staging: Apple sign-in, guest upgrade, logout revocation, the BOLA and IDOR cases and the refresh-replay case, with one correlation id confirmed in both lanes' logs. Step-by-step: docs/runbooks/p1-gate-completion.md.",
       "manual_section": "27.2",
       "acceptance": "One request id appears in the iOS log and the backend log in the same session, and the abuse suite runs against staging with both engineers present."
-    },
-    {
-      "id": "P1-person-two-evidence",
-      "owner": "person_two",
-      "task": "Done 2026-09-28 on merged main 3e8f96a: Person Two's own Windows PC ran web lint/build and Playwright 69/69, the db-profile backend against the local Docker Postgres (health and readiness UP), and Bruno 20/20 requests, 42/42 assertions. Sanitized results: evidence/P1/windows/2026-09-28/.",
-      "manual_section": "27.2",
-      "acceptance": "Local setup evidence records checkout, commands and results; no repeat of the completed public checkpoint is required. Met by evidence/P1/windows/2026-09-28/README.md."
     },
     {
       "id": "P1-web-legal-review",
@@ -99,7 +85,6 @@
     "The Phase 1 rate limits are counted in one process's memory (FixedWindowLimiter). That is correct for a single instance and wrong the moment there are two, and it also means the limits survive across test runs \u2014 a second walkthrough inside fifteen minutes is refused. Wire Redis in before the backend is ever run as more than one process.",
     "The missing launch-screen declaration caused a 320x480 compatibility window. Fixed and captured at full size on September 23. Largest-text controls are scrollable; physical-device visual/VoiceOver review remains pending.",
     "UI tests now use the dedicated PlugUI scheme and require a running identity backend. Both text-size tests passed. They capture 7 states per size, not the full physical-device matrix.",
-    "The eleven Phase 1 auth operations are implemented and tested but not yet frozen: they need the joint contract review that manual.docx \u00a727.2 puts before implementation. Person One built to the contract as written rather than waiting, so a change agreed at that review is a change to both the contract and the implementation, in one pull request.",
     "PLUG's own access and refresh tokens are opaque and resolved against the sessions table on every request (ADR-006). That is one indexed read and one last_used_at write per authenticated call. It has not been load-tested; measure before assuming it holds.",
     "Twilio outbound OTP is optionally implemented in Phase 1 under amended ADR-007, but no configured sender or real received-SMS evidence has been established. Development codes remain local-only; disabled delivery returns 503. Two-way SMS/iMessage remain later-phase work.",
     "The connected iPhone is available, but Xcode provisioning refresh failed: the configured Personal development team does not support Sign in with Apple. Use an Apple Developer Program team that supports this capability, select it in Signing & Capabilities, enable the capability for the App ID, and refresh provisioning. Then follow the physical-device runbook. A signed Google-capable app was previously tested; that does not establish Apple capability.",
@@ -109,8 +94,7 @@
     "Operational health routes reject requests carrying tunnel/proxy forwarding headers by design (SecurityConfiguration.directProbeOnly()). Confirmed from Person One's Mac/iPhone and, on 2026-09-22, Person Two's own Windows PC.",
     "AWS staging is deferred (ADR-004) \u2014 no budget right now. Revisit no later than Phase 3, when Twilio needs a stable webhook URL a Quick Tunnel cannot provide.",
     "PRODUCT_BUNDLE_IDENTIFIER is com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account).",
-    "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available.",
-    "ADR-005 personal setup evidence remains a Phase 1 onboarding follow-up for Person Two: sanitized local Docker/WSL/database and Bruno reports still to be attached."
+    "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available."
   ],
   "environments": {
     "staging": "ephemeral \u2014 cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
@@ -222,6 +206,21 @@
       "failures": 0,
       "g1_passed": false,
       "record": "docs/testing/phase1-final-integration-2026-09-26.md"
+    },
+    "g1_preparation": {
+      "date": "2026-09-28",
+      "backend_tests": 108,
+      "web_tests": 69,
+      "local_abuse_assertions": 35,
+      "external_checks": 31,
+      "correlated_backend_requests": 16,
+      "physical_build": "signed, installed and launched on paired iPhone",
+      "windows_evidence_pr": 29,
+      "contract_version": "0.2.2",
+      "person_one_authorization": "User explicitly authorized completion work and sign-off on 2026-09-28. Recorded for verified work only; not a claim that G1 passed.",
+      "person_two_evidence": "PR #29 supplies local Windows evidence and explicitly excludes G1 sign-off.",
+      "g1_passed": false,
+      "record": "evidence/P1/checkpoint/2026-09-28/README.md"
     }
   }
 }

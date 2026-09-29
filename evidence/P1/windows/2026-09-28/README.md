@@ -42,8 +42,10 @@ docker compose -f infra/compose.yml up -d --wait     # already running and healt
 .\gradlew.bat bootRun --args="--spring.profiles.active=db"
 ```
 
-The backend read `.env.local` (database password and a local-only
-`PLUG_IDENTITY_PEPPER`, neither recorded here). On start it applied `V2 identity` and
+The backend received the configured database password and local-only
+`PLUG_IDENTITY_PEPPER` in its environment (neither recorded here). The command
+excerpt assumes those values were already exported: Spring Boot does not
+automatically source a shell `.env.local` file. On start it applied `V2 identity` and
 `V3 google identity` to the local database. `GET /health` and `GET /health/ready` both
 answered `UP`, with database and migrations `UP` (`backend-startup.txt`).
 
