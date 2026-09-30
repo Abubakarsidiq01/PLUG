@@ -69,7 +69,7 @@
     {
       "id": "P1-connected-checkpoint",
       "owner": "person_one",
-      "task": "Run the G1 connected checkpoint with Person Two against real staging: Apple sign-in, guest upgrade, logout revocation, the BOLA and IDOR cases and the refresh-replay case, with one correlation id confirmed in both lanes' logs. Step-by-step: docs/runbooks/p1-gate-completion.md.",
+      "task": "Run the G1 connected checkpoint with Person Two against real staging: Apple sign-in, guest upgrade, logout revocation, the BOLA and IDOR cases and the refresh-replay case, with one correlation id confirmed in both lanes' logs. Step-by-step: docs/runbooks/p1-gate-completion.md. 2026-09-30: Person Two's scope is done and approved. From her own PC against Person One's API and web tunnels, the Bruno auth folder passed 16/16 requests and 31/31 assertions, and the external /privacy headers (HSTS, CSP frame-ancestors, X-Frame-Options, nosniff, referrer and permissions policy) were confirmed. See evidence/P1/security/person-two-checkpoint-2026-09-30.md. Still open: Person One's backend commit and profile, the rate-limit/abuse run, the phone request-ID correlation, and Person One's sign-off.",
       "manual_section": "27.2",
       "acceptance": "One request id appears in the iOS log and the backend log in the same session, and the abuse suite runs against staging with both engineers present."
     },
