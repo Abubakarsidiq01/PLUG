@@ -1,11 +1,11 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-29T14:50:49.256316+00:00",
+  "updated_at": "2026-09-30T05:48:57.290066+00:00",
   "updated_by": "person_one",
   "current_phase": "P1",
   "current_step": "P1.S12",
-  "current_step_title": "Phase 1 contract reconciled, Windows evidence merged, fresh automated checks passed, and physical Google/guest build installed. G1 remains pending Apple-capable provisioning, device evidence, approved legal content and the two-person staging checkpoint.",
+  "current_step_title": "Person One signed off available physical Google/guest testing, offline recovery and VoiceOver on 2026-09-30; full G1 remains open for recorded exceptions and joint acceptance.",
   "manual_section": "27.2",
   "readme": "docs/phases/P1-ONE.md",
   "owner": "person_one",
@@ -55,7 +55,7 @@
     {
       "id": "P1-device-evidence",
       "owner": "person_one",
-      "task": "Google/guest device flow accepted by the owner and five screenshots reviewed on 2026-09-29; two physical health request IDs matched backend logs. Finish real Apple sign-in/relaunch (eligible team required), guest-to-new-account upgrade, VoiceOver, largest-text and recorded offline recovery evidence. See evidence/P1/phone/2026-09-29/README.md and docs/runbooks/p1-gate-completion.md.",
+      "task": "Person One signed off available phone flows and VoiceOver on 2026-09-30. Seven images show Google/guest, enlarged Engineering text and offline recovery; three requests correlate with backend logs. Apple physical sign-in remains budget-blocked. Complete or explicitly amend remaining screenshot-matrix and guest identity-preserving upgrade evidence; do not repeat accepted owner tests without a concrete reason. See evidence/P1/phone/2026-09-30/README.md.",
       "manual_section": "27.2",
       "acceptance": "evidence/P1/ios/ has one capture per required cell at both text sizes from a real device, the Apple relaunch is demonstrated, and a11y/ and failures/ are populated."
     },
@@ -267,6 +267,21 @@
       "checkstyle": "passed",
       "deletion_revocation": "Dedicated two-device test of existing internal service passed; public deletion API/UI and erasure remain pending.",
       "owner_steps": "docs/runbooks/p1-owner-next-steps.md"
+    },
+    "physical_phone_2026_09_30": {
+      "evidence": "evidence/P1/phone/2026-09-30/README.md",
+      "signed_by": "person_one",
+      "signer_name": "Abubakar Bolakale",
+      "authorization": "Explicit user request to sign off supplied phone evidence and confirmation of VoiceOver",
+      "accepted_scope": [
+        "available Google/guest phone flow",
+        "enlarged text testing",
+        "offline/retry recovery",
+        "VoiceOver (owner attestation)"
+      ],
+      "backend_correlated_requests": 3,
+      "phase2_requested": true,
+      "g1_passed": false
     }
   }
 }
