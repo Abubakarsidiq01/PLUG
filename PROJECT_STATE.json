@@ -1,17 +1,17 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-30T05:59:31.774248+00:00",
+  "updated_at": "2026-09-30T19:46:12.275363+00:00",
   "updated_by": "person_one",
-  "current_phase": "P1",
-  "current_step": "P1.S12",
-  "current_step_title": "Owner accepted Apple/SMS deferral (ADR-008); starter legal drafts prepared; Person Two verbal acceptance reported by owner, but merged evidence excludes joint staging. Close the evidence/consent record before unconditional G1.",
-  "manual_section": "27.2",
-  "readme": "docs/phases/P1-ONE.md",
+  "current_phase": "P2",
+  "current_step": "P2.S1",
+  "current_step_title": "Prepare and jointly approve Phase 2 request contracts after manually merging PRs #32 and #30. G1 accepted for private development with explicit carried release requirements.",
+  "manual_section": "27.3",
+  "readme": "docs/phases/P2-ONE.md",
   "owner": "person_one",
   "blocked_on": null,
-  "last_gate_passed": "G0",
-  "next_gate": "G1",
+  "last_gate_passed": "G1",
+  "next_gate": "G2",
   "gate_log": [
     {
       "gate": "G0",
@@ -27,6 +27,33 @@
         "evidence/P0/ios/Screenshot 2026-09-22 at 12.03.34\u202fAM.png",
         "evidence/P0/logs/Screenshot 2026-09-22 at 12.08.28\u202fAM.png",
         "evidence/P0/logs/database-resilience-2026-09-22.md"
+      ]
+    },
+    {
+      "gate": "G1",
+      "status": "accepted_for_private_development_with_exceptions",
+      "date": "2026-09-30",
+      "manual_section": "27.2",
+      "signed_by": [
+        "person_one",
+        "person_two"
+      ],
+      "approval_scope": {
+        "person_one": "Explicit user authorization; completion addendum and accepted phone evidence",
+        "person_two": "Own-machine external auth and header scope only, signed in PR #32; no broader signature inferred"
+      },
+      "summary": "Identity checkpoint accepted for Phase 2 private development. Not an unconditional original-blueprint or public-release pass. Apple/SMS deferred; local db-profile HTTPS is recorded honestly; launch controls remain open.",
+      "evidence": [
+        "evidence/P1/security/person-two-checkpoint-2026-09-30.md",
+        "evidence/P1/security/person-one-signoff-2026-09-30.md",
+        "evidence/P1/security/person-one-rate-limits-2026-09-30.json",
+        "evidence/P1/phone/2026-09-30/README.md"
+      ],
+      "exceptions": [
+        "ADR-008 Apple and real SMS budget deferral",
+        "Dedicated staging profile, immutable deployment metadata and external member BOLA pending before external beta",
+        "Starter legal drafts only; full deletion, retention, teen controls and final consent pending before public launch",
+        "Full device state matrix and live upgrade evidence not implied by owner acceptance"
       ]
     }
   ],
@@ -53,25 +80,24 @@
   },
   "next_actions": [
     {
-      "id": "P1-device-evidence",
+      "id": "P2-contract-review",
       "owner": "person_one",
-      "task": "Available phone flow and VoiceOver accepted by owner with evidence dated 2026-09-30. Apple physical path explicitly deferred by ADR-008; do not require payment for current private development. Retain remaining per-screen/upgrade evidence limitations accurately.",
-      "manual_section": "27.2",
-      "acceptance": "evidence/P1/ios/ has one capture per required cell at both text sizes from a real device, the Apple relaunch is demonstrated, and a11y/ and failures/ are populated."
+      "task": "After owner merges #32 then #30, prepare Phase 2 OpenAPI/fixtures for create request, clarify, cancel, status and offers. Specify state transitions, one-clarification rule, idempotency, owner checks, location, money units and timestamps. No feature implementation before both approve the contract.",
+      "manual_section": "27.3",
+      "acceptance": "Contract PR reviewed by both engineers and merged; existing auth@0.2.2 unchanged."
     },
     {
-      "id": "P1-connected-checkpoint",
-      "owner": "person_one",
-      "task": "Owner reports Uzoma verbal acceptance. Reviewed main 81fd0e2 and PRs #29/#31: merged evidence expressly excludes joint staging. Attach an existing joint-run note or perform the focused run in docs/runbooks/p1-joint-checkpoint-short.md; record actual profile and independent acceptance. No blanket repetition of local Windows/device tests.",
-      "manual_section": "27.2",
-      "acceptance": "One request id appears in the iOS log and the backend log in the same session, and the abuse suite runs against staging with both engineers present."
-    },
-    {
-      "id": "P1-web-legal-review",
+      "id": "P2-contract-fixtures",
       "owner": "person_two",
-      "task": "Review the September 30 starter Terms, Privacy and Support pack in docs/legal/README.md and rendered routes. Draft content now exists; approve final text and implement retention/deletion/teen safeguards before public launch. Synchronize affirmative consent in a reviewed change; current version unchanged.",
-      "manual_section": "27.2",
-      "acceptance": "Approved legal content and consent version agree across web, iOS and backend; remaining design/staging review is recorded."
+      "task": "Review Phase 2 contract and supply parser/e2e fixtures covering ambiguity, empty results, expired intent, ownership denial and honest progress; preserve existing web legal branding.",
+      "manual_section": "27.3",
+      "acceptance": "Fixtures agree with approved schema and contain no invented live supplier claims."
+    },
+    {
+      "id": "release-requirements",
+      "owner": "person_one",
+      "task": "Track the G1 carried requirements in evidence/P1/security/person-one-signoff-2026-09-30.md. Close staging/metadata/external BOLA before external beta; final legal/consent, deletion/retention/teen safeguards before public launch; revisit Apple/SMS funding at Phase 3 planning.",
+      "acceptance": "Requirements resolved with evidence before corresponding release or provider activation."
     }
   ],
   "do_not_touch": [
@@ -296,12 +322,13 @@
       "spending_authorized": false
     },
     "person_two_joint_acceptance": {
-      "status": "owner_reported_verbal_acceptance",
-      "reported_on": "2026-09-30",
-      "statement": "She said everything works fine the way it is meant to work.",
-      "repository_review": "main 81fd0e2; PR #29 explicitly excludes joint staging; PR #31 covers branding and web tests only",
-      "independent_checkpoint_record": "not found in reviewed merged evidence",
-      "procedure": "docs/runbooks/p1-joint-checkpoint-short.md"
+      "status": "independent_scope_signed_off",
+      "date": "2026-09-30",
+      "pr": 32,
+      "commit": "f0e0287ecf2d41770d4cadc89817b3aba0de6742",
+      "evidence": "evidence/P1/security/person-two-checkpoint-2026-09-30.md",
+      "external_auth_requests": 16,
+      "external_auth_assertions": 31
     },
     "starter_legal": {
       "date": "2026-09-30",
@@ -320,6 +347,13 @@
         "eslint": "passed",
         "playwright_tests": 81
       }
+    },
+    "g1_handoff": {
+      "status": "scoped_private_development_acceptance",
+      "record": "evidence/P1/security/person-one-signoff-2026-09-30.md",
+      "live_rate_limit_checks": 14,
+      "matching_backend_request_ids": 14,
+      "release_approval": false
     }
   }
 }
