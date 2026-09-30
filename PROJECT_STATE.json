@@ -1,11 +1,11 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-30T05:48:57.290066+00:00",
+  "updated_at": "2026-09-30T05:59:31.774248+00:00",
   "updated_by": "person_one",
   "current_phase": "P1",
   "current_step": "P1.S12",
-  "current_step_title": "Person One signed off available physical Google/guest testing, offline recovery and VoiceOver on 2026-09-30; full G1 remains open for recorded exceptions and joint acceptance.",
+  "current_step_title": "Owner accepted Apple/SMS deferral (ADR-008); starter legal drafts prepared; Person Two verbal acceptance reported by owner, but merged evidence excludes joint staging. Close the evidence/consent record before unconditional G1.",
   "manual_section": "27.2",
   "readme": "docs/phases/P1-ONE.md",
   "owner": "person_one",
@@ -55,21 +55,21 @@
     {
       "id": "P1-device-evidence",
       "owner": "person_one",
-      "task": "Person One signed off available phone flows and VoiceOver on 2026-09-30. Seven images show Google/guest, enlarged Engineering text and offline recovery; three requests correlate with backend logs. Apple physical sign-in remains budget-blocked. Complete or explicitly amend remaining screenshot-matrix and guest identity-preserving upgrade evidence; do not repeat accepted owner tests without a concrete reason. See evidence/P1/phone/2026-09-30/README.md.",
+      "task": "Available phone flow and VoiceOver accepted by owner with evidence dated 2026-09-30. Apple physical path explicitly deferred by ADR-008; do not require payment for current private development. Retain remaining per-screen/upgrade evidence limitations accurately.",
       "manual_section": "27.2",
       "acceptance": "evidence/P1/ios/ has one capture per required cell at both text sizes from a real device, the Apple relaunch is demonstrated, and a11y/ and failures/ are populated."
     },
     {
       "id": "P1-connected-checkpoint",
       "owner": "person_one",
-      "task": "Run the G1 connected checkpoint with Person Two against real staging: Apple sign-in, guest upgrade, logout revocation, the BOLA and IDOR cases and the refresh-replay case, with one correlation id confirmed in both lanes' logs. Step-by-step: docs/runbooks/p1-gate-completion.md.",
+      "task": "Owner reports Uzoma verbal acceptance. Reviewed main 81fd0e2 and PRs #29/#31: merged evidence expressly excludes joint staging. Attach an existing joint-run note or perform the focused run in docs/runbooks/p1-joint-checkpoint-short.md; record actual profile and independent acceptance. No blanket repetition of local Windows/device tests.",
       "manual_section": "27.2",
       "acceptance": "One request id appears in the iOS log and the backend log in the same session, and the abuse suite runs against staging with both engineers present."
     },
     {
       "id": "P1-web-legal-review",
       "owner": "person_two",
-      "task": "Privacy PDF supplied and revised on 2026-09-28 against the actual Phase 1 data flows. Owner confirmed Abubakar Bolakale, United States, privacy@plugapp.com and age 15+ with safeguards. Review draft: docs/legal/plug-privacy-policy-review.md. Terms remain pending. Resolve account deletion, retention and teen safeguards before publishing final text and updating the consent version across web/iOS/backend; finish copy/staging review.",
+      "task": "Review the September 30 starter Terms, Privacy and Support pack in docs/legal/README.md and rendered routes. Draft content now exists; approve final text and implement retention/deletion/teen safeguards before public launch. Synchronize affirmative consent in a reviewed change; current version unchanged.",
       "manual_section": "27.2",
       "acceptance": "Approved legal content and consent version agree across web, iOS and backend; remaining design/staging review is recorded."
     }
@@ -95,7 +95,8 @@
     "AWS staging is deferred (ADR-004) \u2014 no budget right now. Revisit no later than Phase 3, when Twilio needs a stable webhook URL a Quick Tunnel cannot provide.",
     "PRODUCT_BUNDLE_IDENTIFIER is com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account).",
     "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available.",
-    "Phone evidence includes a Google notification naming Aura; verify whether it belongs to this PLUG sign-in and correct the selected OAuth project branding if so. Original personal email notification remains private."
+    "Phone evidence includes a Google notification naming Aura; verify whether it belongs to this PLUG sign-in and correct the selected OAuth project branding if so. Original personal email notification remains private.",
+    "Apple/SMS budget deferral accepted in ADR-008. Starter legal wording cannot immunize the operator from claims and is not evidence of implemented retention, erasure or teen controls."
   ],
   "environments": {
     "staging": "ephemeral \u2014 cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
@@ -282,6 +283,43 @@
       "backend_correlated_requests": 3,
       "phase2_requested": true,
       "g1_passed": false
+    },
+    "phase1_scope_amendment": {
+      "date": "2026-09-30",
+      "approved_by": "person_one",
+      "record": "docs/decisions/ADR-008-defer-paid-auth.md",
+      "deferred": [
+        "paid Apple provisioning and physical Apple sign-in",
+        "real SMS delivery"
+      ],
+      "revisit": "Phase 3 planning and before relevant provider activation or external release",
+      "spending_authorized": false
+    },
+    "person_two_joint_acceptance": {
+      "status": "owner_reported_verbal_acceptance",
+      "reported_on": "2026-09-30",
+      "statement": "She said everything works fine the way it is meant to work.",
+      "repository_review": "main 81fd0e2; PR #29 explicitly excludes joint staging; PR #31 covers branding and web tests only",
+      "independent_checkpoint_record": "not found in reviewed merged evidence",
+      "procedure": "docs/runbooks/p1-joint-checkpoint-short.md"
+    },
+    "starter_legal": {
+      "date": "2026-09-30",
+      "status": "private_test_review_draft",
+      "source": "web/src/content/legal-starter.json",
+      "review_pack": "docs/legal/README.md",
+      "routes": [
+        "/terms",
+        "/privacy",
+        "/support"
+      ],
+      "consent_version_changed": false,
+      "public_launch_approved": false,
+      "validation": {
+        "production_build": "passed",
+        "eslint": "passed",
+        "playwright_tests": 81
+      }
     }
   }
 }

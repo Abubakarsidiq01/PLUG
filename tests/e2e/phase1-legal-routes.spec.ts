@@ -81,3 +81,16 @@ test("the PLUG name is centred, bold and larger than the page heading", async ({
     expect(style.align, path).toBe("center");
   }
 });
+
+for (const route of routes) {
+  test(`${route.path} contains readable starter text and a working contact`, async ({ page }) => {
+    await page.goto(route.path);
+    await expect(page.getByText(/For private-test review/)).toBeVisible();
+    expect(await page.getByRole("heading", { level: 2 }).count()).toBeGreaterThan(3);
+    const contact = page.getByRole("link", { name: "Contact PLUG: privacy@plugapp.com" });
+    await expect(contact).toHaveAttribute("href", "mailto:privacy@plugapp.com");
+    await contact.scrollIntoViewIfNeeded();
+    await expect(contact).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+}
