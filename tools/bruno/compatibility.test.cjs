@@ -24,3 +24,26 @@ test('Bruno can generate primitive and repeated values with patched Faker', () =
   assert.equal(result.items.length, 2);
   assert.ok(result.items.every(Number.isInteger));
 });
+
+test('Bruno imports an OpenAPI YAML request with the patched YAML parser', () => {
+  const { openApiToBruno } = require('@usebruno/converters');
+  const collection = openApiToBruno(`openapi: 3.0.3
+info:
+  title: PLUG compatibility
+  version: 1.0.0
+servers:
+  - url: https://example.invalid
+paths:
+  /health:
+    get:
+      summary: Read health
+      responses:
+        "200":
+          description: OK
+`);
+  assert.equal(collection.name, 'PLUG compatibility');
+  assert.equal(collection.items[0].request.method, 'GET');
+  assert.equal(collection.items[0].request.url, '{{baseUrl}}/health');
+  assert.equal(collection.items[0].examples[0].response.status, 200);
+  assert.equal(collection.environments[0].variables[0].value, 'https://example.invalid');
+});
