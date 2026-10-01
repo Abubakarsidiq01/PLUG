@@ -1,5 +1,7 @@
 # Phase 1 — remaining device work and G1 sign-off
 
+For the current owner walkthrough, see [step-by-step next actions](p1-owner-next-steps.md).
+
 The current implementation and checks are recorded in
 [the PR validation record](../testing/phase1-pr-readiness-2026-09-25.md).
 G1 remains open. Simulator evidence does not prove physical Apple sign-in,
@@ -132,13 +134,13 @@ still need their own device evidence; the UI tests do not capture all of §12.
 
 With Person Two:
 
-- Approve the draft 0.2.0 auth contract, then update its state to frozen.
+- Contract approval/version reconciliation is recorded as frozen@0.2.2; review any future contract changes jointly.
 - Approve and publish the actual Terms, Privacy Policy, and matching consent
   version. Review the onboarding/error/upgrade copy.
 - Run the auth and abuse checkpoint against the same fresh staging environment.
   Capture external web/API security headers and one request ID in both logs.
 - Record the phone-delivery limitation and any accepted staging-test deferral.
-- Attach the remaining Windows setup evidence.
+- Windows local setup evidence was supplied in PR #29; retain its evidence links.
 - Only then add both engineers' G1 signatures and advance `PROJECT_STATE.json`.
 
 Admin account enrollment/MFA and its successful login path remain Phase 5 work;

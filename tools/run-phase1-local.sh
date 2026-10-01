@@ -1,17 +1,32 @@
 #!/bin/sh
-# Local-only disposable Phase 1 database; never use these defaults for staging.
+# Canonical local Phase 1 launcher. Preserve the configured database and identity pepper.
 set -eu
 cd "$(dirname "$0")/.."
-# This ignored, owner-managed file contains shell environment assignments.
-if [ -f secrets/auth.env ]; then
-    set -a
-    . ./secrets/auth.env
-    set +a
+for config in .env.local secrets/auth.env; do
+    if [ -f "$config" ]; then
+        set -a
+        . "./$config"
+        set +a
+    fi
+done
+if [ "${PLUG_ENVIRONMENT:-local}" != local ]; then
+    echo 'This launcher is local only; staging must use its staging profile and configuration.' >&2
+    exit 1
 fi
-cd backend
-export PLUG_DATABASE_URL="${PLUG_DATABASE_URL:-jdbc:postgresql://127.0.0.1:55432/plug_validation}"
-export PLUG_DATABASE_PASSWORD="${PLUG_DATABASE_PASSWORD:-local-validation-only}"
-export PLUG_IDENTITY_PEPPER="${PLUG_IDENTITY_PEPPER:-local-validation-pepper-at-least-32-characters}"
-# Real SMS must be selected explicitly; no silent file-delivery fallback.
+: "${PLUG_DATABASE_URL:?Set PLUG_DATABASE_URL in .env.local}"
+: "${PLUG_DATABASE_PASSWORD:?Set PLUG_DATABASE_PASSWORD in .env.local}"
+: "${PLUG_IDENTITY_PEPPER:?Set the existing PLUG_IDENTITY_PEPPER in .env.local}"
+if [ "${#PLUG_IDENTITY_PEPPER}" -lt 32 ]; then
+    echo 'PLUG_IDENTITY_PEPPER must contain at least 32 characters. Preserve existing identity keys.' >&2
+    exit 1
+fi
 export PLUG_IDENTITY_PHONE_DELIVERY="${PLUG_IDENTITY_PHONE_DELIVERY:-none}"
-exec ./dev bootRun --args='--spring.profiles.active=db'
+case "$PLUG_IDENTITY_PHONE_DELIVERY" in
+    none|development|twilio) ;;
+    *) echo 'Phone delivery must be none, development or twilio.' >&2; exit 1 ;;
+esac
+if lsof -nP -iTCP:8080 -sTCP:LISTEN >/dev/null 2>&1; then
+    echo 'Port 8080 is occupied. Stop the previous backend before restarting with new configuration.' >&2
+    exit 1
+fi
+exec ./backend/dev bootRun --no-daemon --args='--spring.profiles.active=db --debug=false --trace=false'

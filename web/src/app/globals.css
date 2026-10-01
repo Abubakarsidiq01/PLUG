@@ -363,3 +363,14 @@ a {
     transform: none;
   }
 }
+
+/* Long-form legal text retains the shared brand shell and readable spacing. */
+.legal-copy section { margin-top: var(--space-8); }
+.legal-copy h2 { margin-bottom: var(--space-4); }
+.legal-copy a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
+  overflow-wrap: anywhere;
+}
