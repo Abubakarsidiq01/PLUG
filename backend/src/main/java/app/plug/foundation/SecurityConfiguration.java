@@ -28,6 +28,8 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 
 @Configuration
 public class SecurityConfiguration {
+    @Value("${plug.requests-v2.enabled:false}")
+    private boolean requestsV2;
     private HttpSecurity base(HttpSecurity http) throws Exception {
         // This API uses explicit bearer headers, not browser cookies or sessions, so a
         // cross-site request cannot carry a caller's credentials in the first place.
@@ -48,6 +50,12 @@ public class SecurityConfiguration {
     private void identityRules(
             org.springframework.security.config.annotation.web.configurers.AuthorizeHttpRequestsConfigurer<HttpSecurity>
                     .AuthorizationManagerRequestMatcherRegistry auth) {
+        if (requestsV2) {
+            auth.requestMatchers(HttpMethod.POST, "/v1/requests", "/v1/requests/*/clarifications", "/v1/requests/*/cancel")
+                    .hasAnyAuthority("SCOPE_guest", "SCOPE_member")
+                .requestMatchers(HttpMethod.GET, "/v1/requests/*", "/v1/requests/*/offers")
+                    .hasAnyAuthority("SCOPE_guest", "SCOPE_member");
+        }
         auth.requestMatchers(HttpMethod.POST, "/v1/auth/apple", "/v1/auth/google", "/v1/auth/phone/start", "/v1/auth/phone/verify",
                         "/v1/auth/guest", "/v1/auth/refresh").permitAll()
                 .requestMatchers(HttpMethod.POST, "/v1/auth/logout", "/v1/me/consent").authenticated()
@@ -77,8 +85,8 @@ public class SecurityConfiguration {
             auth.requestMatchers(HttpMethod.GET, "/health").permitAll()
                     .requestMatchers(HttpMethod.GET, "/health/ready", "/actuator/health",
                             "/actuator/health/readiness", "/actuator/health/liveness")
-                        .access(directProbeOnly())
-                    .requestMatchers(HttpMethod.POST, "/v1/requests").permitAll();
+                        .access(directProbeOnly());
+            if (!requestsV2) auth.requestMatchers(HttpMethod.POST, "/v1/requests").permitAll();
             identityRules(auth);
             auth.anyRequest().denyAll();
         }).addFilterBefore(sessionFilter(authenticator), AnonymousAuthenticationFilter.class).build();
@@ -91,6 +99,8 @@ public class SecurityConfiguration {
     @Bean
     @Profile("staging")
     @Order(1)
+    @org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+            prefix = "plug.requests-v2", name = "enabled", havingValue = "false", matchIfMissing = true)
     SecurityFilterChain stagingRequests(HttpSecurity http) throws Exception {
         return base(http).securityMatcher("/v1/requests")
                 .authorizeHttpRequests(auth -> auth.anyRequest().hasAuthority("SCOPE_plug.requests.write"))

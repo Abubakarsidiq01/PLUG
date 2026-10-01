@@ -45,6 +45,8 @@ logging:
 plug:
   environment: ${PLUG_ENVIRONMENT:local}
   requests-per-minute: 60
+  requests-v2:
+    enabled: ${PLUG_REQUESTS_V2_ENABLED:false}
   sms:
     account-sid: ${PLUG_SMS_ACCOUNT_SID:}
     auth-token: ${PLUG_SMS_AUTH_TOKEN:}

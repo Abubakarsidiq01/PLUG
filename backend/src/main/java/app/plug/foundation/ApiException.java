@@ -64,6 +64,11 @@ public class ApiException extends RuntimeException {
         return new ApiException(503, "dependency_unavailable", message, List.of(), retryAfterSeconds);
     }
 
+    public static ApiException requestError(int status, String code, String field, String detail, String message) {
+        return new ApiException(status, code, message,
+                field == null ? List.of() : List.of(new ApiExceptionHandler.FieldError(field, detail, message)), null);
+    }
+
     public int status() {
         return status;
     }

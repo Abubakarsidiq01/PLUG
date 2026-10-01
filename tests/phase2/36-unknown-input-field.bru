@@ -1,0 +1,33 @@
+meta {
+  name: Unknown input field
+  type: http
+  seq: 36
+}
+
+post {
+  url: {{baseUrl}}/v1/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Other}}
+  Idempotency-Key: {{p2Run}}-Unknown-input-field
+}
+
+body:json {
+  {"text":"Barber under $35 in 30 minutes","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"},"admin":true}
+}
+
+assert {
+  res.status: eq 400
+  res.body.error.code: eq validation_failed
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

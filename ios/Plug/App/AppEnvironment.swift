@@ -7,6 +7,17 @@ struct AppEnvironment {
     /// production domain yet and a placeholder would read like a decision.
     var webBaseURL: URL?
 
+    /// The Phase 2 preview stays off unless explicitly enabled for the matching backend.
+    var requestsEnabled: Bool {
+        let bundled = Bundle.main.object(forInfoDictionaryKey: "PlugRequestsV2Enabled") as? String
+        #if DEBUG
+        let value = ProcessInfo.processInfo.environment["PLUG_REQUESTS_V2_ENABLED"] ?? bundled
+        #else
+        let value = bundled
+        #endif
+        return ["YES", "TRUE", "1"].contains(value?.uppercased() ?? "")
+    }
+
     static let local = AppEnvironment(baseURL: URL(string: "http://127.0.0.1:8080"),
                                       webBaseURL: URL(string: "http://localhost:3000"))
 

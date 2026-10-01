@@ -63,7 +63,8 @@ paths:
         `details[0]` = { field: text, code: unsupported_category }; nothing is persisted and
         nobody is contacted. A prohibited request is refused with 422 restricted_intent; it
         creates no outreach, writes an audit event, and the response names no rule and
-        carries no request identifier.
+        carries no created request resource identifier. error.request_id is still the
+        correlation ID required by the shared error envelope.
 
 
         Caller must hold the guest or member scope and have accepted the current consent
@@ -130,6 +131,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/requests/{request_id}/clarifications:
@@ -173,6 +175,8 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/RequestStateConflict' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
+        '415': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/requests/{request_id}/offers:
@@ -206,6 +210,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/requests/{request_id}/cancel:
@@ -240,6 +245,7 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/RequestStateConflict' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/auth/apple:
@@ -654,7 +660,8 @@ components:
     RestrictedIntent:
       description: >
         restricted_intent. Understood but refused by policy. No outreach, an audit event
-        written, no rule identifier and no request identifier in the body.
+        written, no rule identifier and no created request resource identifier in the
+        body. error.request_id is the correlation ID, not a persisted request resource.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     DependencyUnavailable:
       description: A dependency this route needs is not available.
@@ -830,7 +837,11 @@ components:
           oneOf:
             - { $ref: '#/components/schemas/Category' }
             - { type: 'null' }
-          description: Null only while status is draft awaiting the category clarification.
+          description: >
+            Null while status is draft awaiting the category clarification, and remains
+            null if that unanswered draft is canceled or expires with
+            no_result_reason clarification_unanswered. Never invent a category to close
+            an unanswered request. All other states require a concrete category.
         budget_cents:
           oneOf:
             - { type: integer, minimum: 500, maximum: 50000 }

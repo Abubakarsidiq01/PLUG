@@ -1,0 +1,32 @@
+meta {
+  name: Anonymous clarifications
+  type: http
+  seq: 27
+}
+
+post {
+  url: {{baseUrl}}/v1/requests/{{p2Request}}/clarifications
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Idempotency-Key: {{p2Run}}-anonymous-answer
+}
+
+body:json {
+  {"clarification_id":"{{p2Clarification}}","value":"barber"}
+}
+
+assert {
+  res.status: eq 401
+  res.body.error.code: eq unauthenticated
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

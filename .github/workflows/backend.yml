@@ -58,8 +58,37 @@ jobs:
           if [ "$ready" != true ]; then echo "API did not become ready"; exit 1; fi
           cd ../tests/api
           ../../tools/bruno/node_modules/.bin/bru run --env local
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9.15.9
+      - name: Install Phase 2 contract validation dependencies
+        working-directory: .
+        run: pnpm install --frozen-lockfile
+      - name: Run the Phase 2 live contract and abuse suite
+        timeout-minutes: 15
+        working-directory: .
+        run: |
+          java -jar backend/build/libs/plug-api-0.0.1-SNAPSHOT.jar \
+            --spring.profiles.active=db --server.port=18080 \
+            --plug.requests-v2.enabled=true > backend/build/phase2-api.log 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          ready=false
+          for attempt in $(seq 1 60); do
+            if ! kill -0 "$api_pid" 2>/dev/null; then echo "Phase 2 API exited before readiness"; exit 1; fi
+            if curl --fail --silent http://127.0.0.1:18080/health/ready > /dev/null; then
+              ready=true
+              break
+            fi
+            sleep 1
+          done
+          if [ "$ready" != true ]; then echo "Phase 2 API did not become ready"; exit 1; fi
+          PHASE2_DISPOSABLE=1 PHASE2_BASE_URL=http://127.0.0.1:18080 \
+            PHASE2_REPORT=backend/build/phase2-live.json node tools/phase2-live.mjs
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-test-results
-          path: backend/build/reports/tests/
+          path: |
+            backend/build/reports/tests/
+            backend/build/phase2-live.json

@@ -1,0 +1,658 @@
+{
+  "contract_version": "0.3.0",
+  "status": "proposed",
+  "clock": "2026-10-01T20:00:10Z",
+  "responses": [
+    {
+      "file": "fixtures/requests.create/auth-error.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 401,
+      "example": "authorization-error.json",
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/requests.create/forbidden.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/requests.create/rate-limited.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 429,
+      "example": "rate-limited.json",
+      "error_code": "rate_limited"
+    },
+    {
+      "file": "fixtures/requests.create/transient-error.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 500,
+      "example": "transient-error.json",
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/requests.get/auth-error.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 401,
+      "example": "authorization-error.json",
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/requests.get/forbidden.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/requests.get/rate-limited.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 429,
+      "example": "rate-limited.json",
+      "error_code": "rate_limited"
+    },
+    {
+      "file": "fixtures/requests.get/transient-error.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 500,
+      "example": "transient-error.json",
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/requests.get/not-found.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.get/ownership-denied.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.get/malformed-id.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.clarify/auth-error.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 401,
+      "example": "authorization-error.json",
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/requests.clarify/forbidden.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/requests.clarify/rate-limited.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 429,
+      "example": "rate-limited.json",
+      "error_code": "rate_limited"
+    },
+    {
+      "file": "fixtures/requests.clarify/transient-error.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 500,
+      "example": "transient-error.json",
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/requests.clarify/not-found.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.clarify/ownership-denied.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.clarify/malformed-id.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.offers/auth-error.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 401,
+      "example": "authorization-error.json",
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/requests.offers/forbidden.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/requests.offers/rate-limited.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 429,
+      "example": "rate-limited.json",
+      "error_code": "rate_limited"
+    },
+    {
+      "file": "fixtures/requests.offers/transient-error.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 500,
+      "example": "transient-error.json",
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/requests.offers/not-found.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.offers/ownership-denied.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.offers/malformed-id.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.cancel/auth-error.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 401,
+      "example": "authorization-error.json",
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/requests.cancel/forbidden.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/requests.cancel/rate-limited.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 429,
+      "example": "rate-limited.json",
+      "error_code": "rate_limited"
+    },
+    {
+      "file": "fixtures/requests.cancel/transient-error.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 500,
+      "example": "transient-error.json",
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/requests.cancel/not-found.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.cancel/ownership-denied.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.cancel/malformed-id.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 404,
+      "example": "requests-not-found-error.json",
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/requests.create/success.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 201,
+      "example": "requests-created.json"
+    },
+    {
+      "file": "fixtures/requests.get/success.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 200,
+      "example": "requests-ranked.json"
+    },
+    {
+      "file": "fixtures/requests.offers/success.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 200,
+      "example": "requests-offers.json"
+    },
+    {
+      "file": "fixtures/requests.cancel/success.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 200,
+      "example": "requests-canceled.json"
+    },
+    {
+      "file": "fixtures/requests.create/ambiguous.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 201,
+      "example": "requests-awaiting-clarification.json"
+    },
+    {
+      "file": "fixtures/requests.create/validation-error.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 400,
+      "example": "requests-validation-error.json",
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "budget_cents",
+          "code": "out_of_range",
+          "message": "Budget must be between $5 and $500."
+        },
+        {
+          "field": "needed_by",
+          "code": "in_the_past",
+          "message": "Choose a time later than now."
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.create/unsupported-category.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 400,
+      "example": "requests-unsupported-category-error.json",
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "text",
+          "code": "unsupported_category",
+          "message": "PLUG can help with barbers and beauty right now."
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.create/restricted-intent.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 422,
+      "example": "requests-restricted-intent-error.json",
+      "error_code": "restricted_intent"
+    },
+    {
+      "file": "fixtures/requests.create/consent-required.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 403,
+      "example": "requests-consent-required-error.json",
+      "error_code": "forbidden",
+      "details": [
+        {
+          "field": "consent",
+          "code": "consent_required"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.create/idempotency-conflict.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 409,
+      "example": "requests-idempotency-conflict-error.json",
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "Idempotency-Key",
+          "code": "idempotency_key_reused"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.create/in-progress.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 409,
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "Idempotency-Key",
+          "code": "request_in_progress"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.clarify/idempotency-conflict.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "example": "requests-idempotency-conflict-error.json",
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "Idempotency-Key",
+          "code": "idempotency_key_reused"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.clarify/in-progress.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "Idempotency-Key",
+          "code": "request_in_progress"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.create/payload-too-large.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 413,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/requests.create/unsupported-media-type.json",
+      "method": "post",
+      "path": "/v1/requests",
+      "status": 415,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/requests.clarify/validation-error.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 400,
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "value",
+          "code": "not_an_option"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.clarify/already-answered.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "example": "requests-not-awaiting-clarification-error.json",
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "clarification_id",
+          "code": "not_awaiting_clarification"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.clarify/expired.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "example": "requests-not-awaiting-clarification-error.json",
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "clarification_id",
+          "code": "not_awaiting_clarification"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.clarify/canceled.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "example": "requests-not-awaiting-clarification-error.json",
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "clarification_id",
+          "code": "not_awaiting_clarification"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.clarify/success.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 200
+    },
+    {
+      "file": "fixtures/requests.get/draft.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 200,
+      "example": "requests-awaiting-clarification.json"
+    },
+    {
+      "file": "fixtures/requests.get/submitted.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 200,
+      "example": "requests-created.json"
+    },
+    {
+      "file": "fixtures/requests.get/routed.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 200
+    },
+    {
+      "file": "fixtures/requests.get/awaiting-responses.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 200
+    },
+    {
+      "file": "fixtures/requests.get/empty.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 200,
+      "example": "requests-no-result.json"
+    },
+    {
+      "file": "fixtures/requests.get/no-offers.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 200
+    },
+    {
+      "file": "fixtures/requests.get/canceled.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 200,
+      "example": "requests-canceled.json"
+    },
+    {
+      "file": "fixtures/requests.get/clarification-unanswered.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 200
+    },
+    {
+      "file": "fixtures/requests.cancel/draft-canceled.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 200
+    },
+    {
+      "file": "fixtures/requests.cancel/already-canceled.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 200,
+      "example": "requests-canceled.json"
+    },
+    {
+      "file": "fixtures/requests.cancel/expired.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 409,
+      "example": "requests-not-cancelable-error.json",
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "request_id",
+          "code": "not_cancelable"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.cancel/completed.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 409,
+      "example": "requests-not-cancelable-error.json",
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "request_id",
+          "code": "not_cancelable"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.cancel/blocked.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 409,
+      "example": "requests-not-cancelable-error.json",
+      "error_code": "conflict",
+      "details": [
+        {
+          "field": "request_id",
+          "code": "not_cancelable"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.offers/empty.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 200,
+      "example": "requests-offers-empty.json"
+    },
+    {
+      "file": "fixtures/requests.offers/pending.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 200
+    },
+    {
+      "file": "fixtures/requests.offers/unknown.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 200
+    },
+    {
+      "file": "fixtures/requests.get/payload-too-large.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}",
+      "status": 413,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/requests.clarify/payload-too-large.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 413,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/requests.clarify/unsupported-media-type.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/clarifications",
+      "status": 415,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/requests.offers/payload-too-large.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 413,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/requests.cancel/payload-too-large.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 413,
+      "error_code": "validation_failed"
+    }
+  ],
+  "not_applicable": {
+    "requests.create": [
+      "empty: creation returns a resource, not an offer list; no results are polled later"
+    ],
+    "requests.get": [
+      "validation: malformed identifiers return 404, not 400"
+    ],
+    "requests.clarify": [
+      "empty: answering returns the canonical submitted resource"
+    ],
+    "requests.offers": [
+      "validation: malformed identifiers return 404, not 400"
+    ],
+    "requests.cancel": [
+      "empty: cancellation returns the canonical canceled resource",
+      "validation: this bodyless route documents no 400 response"
+    ]
+  }
+}

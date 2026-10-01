@@ -53,3 +53,14 @@ tasks.register('databaseTest', Test) {
 checkstyle {
     toolVersion = '10.26.1'
 }
+
+// The phase gate names this task explicitly; contract examples and runtime responses
+// share the same OpenAPI-backed validator. Database contracts also run in databaseTest.
+tasks.register('contractTest', Test) {
+    description = 'Checks OpenAPI contracts and shared response fixtures.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { excludeTags 'database' }
+    filter { includeTestsMatching '*ContractTest' }
+}

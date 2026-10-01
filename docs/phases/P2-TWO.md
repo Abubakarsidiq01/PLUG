@@ -42,17 +42,26 @@ Nothing below this line begins until that pull request has merged with both
 approvals. If you find yourself writing an endpoint that is not in the contract,
 stop and open a contract pull request instead.
 
+Contract-review preparation on 2026-10-01: P2.S1 response fixtures and the labelled
+dataset are prepared alongside the proposal, as requested in `PROJECT_STATE.json`.
+They remain subject to both approvals. See [the hardening record](../testing/phase2-person-two-hardening-2026-10-01.md).
+P2.S2 live tests and later implementation are still gated on the contract merge.
+
 ---
 
 ## 1. Environment
 
 ```powershell
-docker compose up -d postgres redis
-pnpm install
+pnpm install --frozen-lockfile
+pnpm test:contracts                 # fixtures and dataset, no backend required
 pnpm --filter @plug/web dev          # http://localhost:3000
-bru run tests/api --env staging
+# Stop the interactive server when finished. Playwright owns localhost:3100.
 pnpm --filter @plug/web test:e2e
 ```
+
+For the database, identity secret, backend and locked Bruno CLI, follow
+[Windows onboarding](../onboarding/windows.md). There is no standing staging URL;
+use the current checkpoint tunnel as described in `tests/api/environments/README.md`.
 
 If any of those commands fails on a clean machine, that is a bug in
 `docs/onboarding/windows.md`, and fixing the
@@ -65,7 +74,7 @@ documentation is part of the work.
 Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
 
-- [ ] **P2.S1** — Create and maintain the labelled intent and edge-case dataset, and the shared fixtures under `/fixtures`.
+- [ ] **P2.S1** — Create and maintain the labelled intent and edge-case dataset, and the shared fixtures under `/fixtures`. Prepared and locally validated; contract review/merge pending.
 - [ ] **P2.S2** — Build the Bruno contract tests for request creation, clarification, polling and status, offers, cancellation, and every documented error.
 - [ ] **P2.S3** — Review Figma for anti-vibecode compliance per §16: typography, spacing, no gradients, no glass, no pills, no fake proof, and every required state present.
 - [ ] **P2.S4** — Build a web-based internal request inspector only if QA needs it; it must consume real staging data and must not duplicate canonical logic.
@@ -103,10 +112,14 @@ pnpm --filter @plug/web typecheck
 pnpm --filter @plug/web lint
 pnpm --filter @plug/web test:unit
 pnpm --filter @plug/web test:e2e
-bru run tests/api --env staging
-bru run tests/api/abuse --env staging
-curl.exe -sI https://staging.plug.app | Sort-Object    # security headers
 ```
+
+`test:unit` runs the shared static contract/fixture/dataset checks. It does not
+execute the future intent adapter. The existing `tests/api/requests-create-*.bru`
+files exercise the Phase 0 stub; do not present them as Phase 2 acceptance.
+P2.S2 must add the real request collection and P2.S6 the abuse cases after contract
+merge and backend availability; `tests/api/abuse` does not exist yet. The full
+phase requires the connected evidence listed below, beyond these local checks.
 
 ---
 

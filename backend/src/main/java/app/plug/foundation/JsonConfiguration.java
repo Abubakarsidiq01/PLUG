@@ -13,7 +13,8 @@ public class JsonConfiguration {
     @Bean
     Jackson2ObjectMapperBuilderCustomizer strictNumbers() {
         // Coordinates must be JSON numbers, not strings silently converted to numbers.
-        return builder -> builder.featuresToDisable(MapperFeature.ALLOW_COERCION_OF_SCALARS)
+        return builder -> builder.featuresToDisable(MapperFeature.ALLOW_COERCION_OF_SCALARS,
+                        com.fasterxml.jackson.databind.DeserializationFeature.ACCEPT_FLOAT_AS_INT)
                 .postConfigurer(mapper -> {
                     // ALLOW_COERCION_OF_SCALARS does not disable number/boolean-to-String coercion.
                     mapper.coercionConfigFor(LogicalType.Textual)

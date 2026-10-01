@@ -1,0 +1,22 @@
+{
+  "request_id": "req_01J9Z6Q3V8M2K4P7R5T1W0XY3B",
+  "offers": [
+    {
+      "offer_id": "off_01J9Z6T2A6B0C4D8E2F6G0H4J8",
+      "place": {
+        "place_id": "plc_seed-01",
+        "name": "Fade City Barbershop",
+        "address": "100 Example Street",
+        "distance_m": 850
+      },
+      "service_name": "Haircut",
+      "price_cents": 3000,
+      "currency": "USD",
+      "available_at": "2026-10-01T20:20:00Z",
+      "expires_at": "2026-10-01T20:30:00Z",
+      "observed_at": "2026-10-01T18:00:00Z",
+      "truth_label": "unknown",
+      "source": "seed"
+    }
+  ]
+}
