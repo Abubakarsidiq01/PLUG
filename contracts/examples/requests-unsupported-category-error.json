@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "PLUG can help with barbers and beauty right now.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      { "field": "text", "code": "unsupported_category", "message": "PLUG can help with barbers and beauty right now." }
+    ]
+  }
+}

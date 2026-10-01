@@ -1,15 +1,15 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-01T04:00:20.633298+00:00",
+  "updated_at": "2026-10-01T06:52:26.057352+00:00",
   "updated_by": "person_one",
   "current_phase": "P2",
   "current_step": "P2.S1",
-  "current_step_title": "Prepare and jointly approve Phase 2 request contracts after manually merging PRs #32 and #30. G1 accepted for private development with explicit carried release requirements.",
+  "current_step_title": "Phase 2 request contract 0.3.0 proposed in a /contracts pull request; awaiting Person Two review, both approvals and the P2.S1 fixtures. No P2.S2+ implementation before merge.",
   "manual_section": "27.3",
   "readme": "docs/phases/P2-ONE.md",
   "owner": "person_one",
-  "blocked_on": null,
+  "blocked_on": "person_two: contract 0.3.0 review/approval and fixtures/requests.* (manual.docx \u00a77.1-7.2)",
   "last_gate_passed": "G1",
   "next_gate": "G2",
   "gate_log": [
@@ -60,7 +60,7 @@
   "contracts": {
     "GET /health": "frozen@0.1.0",
     "GET /health/ready": "frozen@0.1.0",
-    "POST /v1/requests": "frozen@0.1.0",
+    "POST /v1/requests": "proposed@0.3.0 (served as Phase 0 stub frozen@0.1.0 until requests_v2)",
     "POST /v1/auth/apple": "frozen@0.2.2",
     "POST /v1/auth/phone/start": "frozen@0.2.2",
     "POST /v1/auth/phone/verify": "frozen@0.2.2",
@@ -72,26 +72,38 @@
     "GET /v1/me/sessions": "frozen@0.2.2",
     "GET /v1/me/sessions/{session_id}": "frozen@0.2.2",
     "DELETE /v1/me/sessions/{session_id}": "frozen@0.2.2",
-    "POST /v1/auth/google": "frozen@0.2.2"
+    "POST /v1/auth/google": "frozen@0.2.2",
+    "GET /v1/requests/{request_id}": "proposed@0.3.0",
+    "POST /v1/requests/{request_id}/clarifications": "proposed@0.3.0",
+    "GET /v1/requests/{request_id}/offers": "proposed@0.3.0",
+    "POST /v1/requests/{request_id}/cancel": "proposed@0.3.0"
   },
   "feature_flags": {
     "identity": "staging_only",
-    "phone_code_delivery": "off"
+    "phone_code_delivery": "off",
+    "requests_v2": "off"
   },
   "next_actions": [
     {
-      "id": "P2-contract-review",
-      "owner": "person_one",
-      "task": "After owner merges #32 then #30, prepare Phase 2 OpenAPI/fixtures for create request, clarify, cancel, status and offers. Specify state transitions, one-clarification rule, idempotency, owner checks, location, money units and timestamps. No feature implementation before both approve the contract.",
+      "id": "P2-contract-approval",
+      "owner": "both",
+      "task": "Hold the \u00a77.1 contract session on contracts 0.3.0 (branch p2.s1-one-request-contract). Settle the open questions listed in its pull request, amend the contract in that PR if needed, then merge with both approvals and flip the five request routes to frozen@0.3.0.",
       "manual_section": "27.3",
-      "acceptance": "Contract PR reviewed by both engineers and merged; existing auth@0.2.2 unchanged."
+      "acceptance": "Contract PR merged with both approvals; auth@0.2.2 routes unchanged; Spectral and ContractTest green."
     },
     {
       "id": "P2-contract-fixtures",
       "owner": "person_two",
-      "task": "Review Phase 2 contract and supply parser/e2e fixtures covering ambiguity, empty results, expired intent, ownership denial and honest progress; preserve existing web legal branding.",
+      "task": "P2.S1 (Two): write fixtures/requests.{create,get,clarify,offers,cancel}/ from contracts/examples/requests-*.json \u2014 success, empty, validation, authorization and transient per operation, plus ambiguity, unsupported category, restricted intent, expired and ownership-denial cases \u2014 and start the labelled intent dataset. Replace the RECEIVED stub success fixture. Preserve existing web legal branding.",
       "manual_section": "27.3",
-      "acceptance": "Fixtures agree with approved schema and contain no invented live supplier claims."
+      "acceptance": "FixtureContractTest green on the new fixtures; no invented live supplier claims."
+    },
+    {
+      "id": "P2-implementation",
+      "owner": "person_one",
+      "task": "Only after the contract merges: P2.S2 intent adapter (strict structured output, deterministic fallback), P2.S3 state machine with legal/illegal transition and idempotent cancel tests, P2.S4 requests/request_constraints/places/supplier-seed migrations, behind requests_v2 default off. Add identityRules() and CorrelationFilter.safePath() entries in the same change as each route. Remove the Phase0* schemas in that PR.",
+      "manual_section": "27.3",
+      "acceptance": "Backend tests and ContractTest validate real responses against 0.3.0; flag off preserves the stub."
     },
     {
       "id": "release-requirements",
@@ -122,7 +134,8 @@
     "PRODUCT_BUNDLE_IDENTIFIER is com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account).",
     "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available.",
     "Phone evidence includes a Google notification naming Aura; verify whether it belongs to this PLUG sign-in and correct the selected OAuth project branding if so. Original personal email notification remains private.",
-    "Apple/SMS budget deferral accepted in ADR-008. Starter legal wording cannot immunize the operator from claims and is not evidence of implemented retention, erasure or teen controls."
+    "Apple/SMS budget deferral accepted in ADR-008. Starter legal wording cannot immunize the operator from claims and is not evidence of implemented retention, erasure or teen controls.",
+    "Contract 0.3.0 open questions for the \u00a77.1 session: (1) category enum is [barber, beauty] from \u00a72.1/\u00a725.6 although \u00a71 also says 'one category'; (2) the request resource and the correlation ID both use the req_ prefix, which support can confuse; (3) draft -> expired is added to the \u00a719.6 transition table so an unanswered clarification can lapse; (4) consent_required (403) is a new gate on request creation; (5) 7-day needed_by horizon and 24-hour idempotency retention are proposals, not manual values."
   ],
   "environments": {
     "staging": "ephemeral \u2014 cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",

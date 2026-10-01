@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "We could not accept that request.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      { "field": "budget_cents", "code": "out_of_range", "message": "Budget must be between $5 and $500." },
+      { "field": "needed_by", "code": "in_the_past", "message": "Choose a time later than now." }
+    ]
+  }
+}
