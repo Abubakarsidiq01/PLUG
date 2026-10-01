@@ -11,6 +11,14 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.2.2 — 2026-09-28 — metadata reconciliation — approved implementation
+Align OpenAPI info.version with the existing 0.2.2 signup/signin-intent entry.
+No endpoint, schema, runtime behavior or fixture content changes. The implementation
+and fixtures were approved through PRs #25/#27 and reached main through #28.
+Person One authorized the completion record on 2026-09-28. This contract record
+is not the separate G1 device/staging sign-off.
+Migration note: none. Rollback: metadata-only revert.
+
 ### Unreleased — 2026-09-26 — fixtures and examples only — P1.S1
 No route or schema change. Replaces the unimplemented 0.2.0 draft shapes (guest
 `device_id`, nested terms/privacy consent, flat session fields, `chl_` challenges,

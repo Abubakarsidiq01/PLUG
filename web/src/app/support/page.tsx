@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import { LegalPage } from "../_components/legal-page";
+import { LegalCopy } from "../_components/legal-copy";
+import legal from "../../content/legal-starter.json";
 
 export const metadata: Metadata = { title: "Support | PLUG" };
 
 export default function Support() {
   return (
-    <LegalPage title="Support" lede="Testing PLUG? Contact the person who invited you.">
-      Include what you were trying to do, when it happened, and a request ID if the app shows
-      one. Never send passwords, sign-in codes, or session tokens. A public support channel will
-      be listed here before launch.
+    <LegalPage title="Support" lede="Private-test starter draft · September 30, 2026">
+      <LegalCopy sections={legal.support.sections} />
     </LegalPage>
   );
 }

@@ -40,3 +40,6 @@ evidence/**/*.mov
 *.ipa
 *.hprof
 *.jfr
+
+# Generated document exports; editable reviewed sources live under docs/legal.
+/output/
