@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "That request is no longer waiting for an answer.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "clarification_id",
+        "code": "not_awaiting_clarification"
+      }
+    ]
+  }
+}

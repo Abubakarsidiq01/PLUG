@@ -60,7 +60,15 @@ struct RootView: View {
 
     private func signedIn(_ session: Session) -> some View {
         TabView {
-            foundationPage("Ask", detail: "Request intake will be connected in Phase 2.")
+            Group {
+                if environment.requestsEnabled {
+                    AskView(service: RequestService(client: APIClient(environment: environment),
+                        sessions: model.sessions, userId: session.account.userId))
+                        .id(session.account.userId)
+                } else {
+                    foundationPage("Ask", detail: "Request intake is not enabled in this environment.")
+                }
+            }
                 .tabItem { Label("Ask", systemImage: "magnifyingglass") }
             foundationPage("Activity", detail: "Your requests will appear here once request history is implemented.")
                 .tabItem { Label("Activity", systemImage: "clock") }

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
+        prefix = "plug.requests-v2", name = "enabled", havingValue = "false", matchIfMissing = true)
 @RestController
 @RequestMapping("/v1/requests")
 public class RequestController {

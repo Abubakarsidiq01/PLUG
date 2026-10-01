@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "This request is still being processed.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "Idempotency-Key",
+        "code": "request_in_progress"
+      }
+    ]
+  }
+}

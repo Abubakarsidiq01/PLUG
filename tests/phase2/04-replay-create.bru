@@ -1,0 +1,32 @@
+meta {
+  name: Replay create
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/v1/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Owner}}
+  Idempotency-Key: {{p2Run}}-create
+}
+
+body:json {
+  {"text":"Barber under $35 in 30 minutes","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"}}
+}
+
+assert {
+  res.status: eq 201
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("same canonical response", function () { expect(res.getBody()).to.deep.equal(JSON.parse(bru.getVar("p2CreateBody"))); });
+}

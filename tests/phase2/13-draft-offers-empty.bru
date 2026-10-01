@@ -1,0 +1,26 @@
+meta {
+  name: Draft offers empty
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/v1/requests/{{p2Draft}}/offers
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p2Owner}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("no invented offers", function () { expect(res.getBody().offers).to.deep.equal([]); });
+}

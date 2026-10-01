@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>PlugRequestsV2Enabled</key>
+	<string>$(PLUG_REQUESTS_V2_ENABLED)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PLUG uses your approximate location to find the service you request. You can type an address instead.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
@@ -24,6 +28,8 @@
 	<string>$(PLUG_APPLE_SIGN_IN_ENABLED)</string>
 	<key>PlugDevelopmentAPIURL</key>
 	<string>$(PLUG_DEVELOPMENT_API_URL)</string>
+	<key>PlugWebURL</key>
+	<string>$(PLUG_DEVELOPMENT_WEB_URL)</string>
 	<key>PlugPhoneSignInEnabled</key>
 	<string>$(PLUG_PHONE_SIGN_IN_ENABLED)</string>
 	<key>UILaunchScreen</key>

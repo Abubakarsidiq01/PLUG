@@ -1,0 +1,26 @@
+meta {
+  name: Read offers
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/v1/requests/{{p2Request}}/offers
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p2Owner}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("seed data never claims verification", function () { for (const o of res.getBody().offers) { expect(o.source).to.equal("seed"); expect(["estimated", "unknown"]).to.include(o.truth_label); expect(o.price_cents).to.be.at.most(3500); } });
+}

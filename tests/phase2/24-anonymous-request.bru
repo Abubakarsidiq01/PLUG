@@ -1,0 +1,26 @@
+meta {
+  name: Anonymous request
+  type: http
+  seq: 24
+}
+
+get {
+  url: {{baseUrl}}/v1/requests/{{p2Request}}
+  body: none
+  auth: none
+}
+
+headers {
+}
+
+assert {
+  res.status: eq 401
+  res.body.error.code: eq unauthenticated
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

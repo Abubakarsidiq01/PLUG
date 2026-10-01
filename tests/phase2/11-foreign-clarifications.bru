@@ -1,0 +1,33 @@
+meta {
+  name: Foreign clarifications
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/v1/requests/{{p2Request}}/clarifications
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Other}}
+  Idempotency-Key: {{p2Run}}-foreign-answer
+}
+
+body:json {
+  {"clarification_id":"cla_unknown","value":"barber"}
+}
+
+assert {
+  res.status: eq 404
+  res.body.error.code: eq not_found
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

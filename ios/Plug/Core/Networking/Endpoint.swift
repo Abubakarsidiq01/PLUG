@@ -8,6 +8,8 @@ struct Endpoint {
     let path: String
     let body: Data?
     let accessToken: String?
+    var idempotencyKey: String? = nil
+    var maximumResponseBytes: Int = 16_384
 
     static func get(_ path: String, accessToken: String? = nil) -> Endpoint {
         Endpoint(method: "GET", path: path, body: nil, accessToken: accessToken)

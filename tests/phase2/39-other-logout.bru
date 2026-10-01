@@ -1,0 +1,26 @@
+meta {
+  name: Other logout
+  type: http
+  seq: 39
+}
+
+post {
+  url: {{baseUrl}}/v1/auth/logout
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p2Other}}
+}
+
+assert {
+  res.status: eq 204
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

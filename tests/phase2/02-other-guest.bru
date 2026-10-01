@@ -1,0 +1,34 @@
+meta {
+  name: Other guest
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/v1/auth/guest
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"consent_version":"2026-09-01"}
+}
+
+assert {
+  res.status: eq 201
+}
+
+script:post-response {
+  bru.setVar("p2Other", res.getBody().access_token);
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

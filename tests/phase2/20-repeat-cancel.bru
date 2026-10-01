@@ -1,0 +1,26 @@
+meta {
+  name: Repeat cancel
+  type: http
+  seq: 20
+}
+
+post {
+  url: {{baseUrl}}/v1/requests/{{p2Request}}/cancel
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p2Owner}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("cancel unchanged without key", function () { expect(res.getBody()).to.deep.equal(JSON.parse(bru.getVar("p2CancelBody"))); });
+}

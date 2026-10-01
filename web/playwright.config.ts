@@ -1,5 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// An explicit URL means test that deployment without starting an unrelated
+// localhost server. Local runs own their server, so a stale process cannot make
+// tests pass against an older build. Use a separate port from interactive dev.
+const externalURL = process.env.PLUG_WEB_URL;
+const localURL = "http://127.0.0.1:3100";
+
 // Test files live in /tests/e2e per manual.docx §17.3 ("tests/e2e — Playwright,
 // three viewports"); this config lives in web/ because the runner is wired
 // through the web workspace (`pnpm --filter @plug/web test:e2e`).
@@ -10,15 +16,15 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: [["html", { open: "never" }]],
   use: {
-    baseURL: process.env.PLUG_WEB_URL ?? "http://127.0.0.1:3000",
+    baseURL: externalURL ?? localURL,
     trace: "on-first-retry",
   },
-  webServer: {
+  webServer: externalURL ? undefined : {
     command: process.env.CI
-      ? "pnpm --filter @plug/web start"
-      : "pnpm --filter @plug/web dev",
-    url: "http://127.0.0.1:3000",
-    reuseExistingServer: !process.env.CI,
+      ? "pnpm --filter @plug/web start --hostname 127.0.0.1 --port 3100"
+      : "pnpm --filter @plug/web dev --hostname 127.0.0.1 --port 3100",
+    url: localURL,
+    reuseExistingServer: false,
     cwd: "..",
   },
   projects: [

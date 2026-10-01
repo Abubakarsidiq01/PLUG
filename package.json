@@ -2,7 +2,13 @@
   "name": "plug",
   "private": true,
   "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "test:contracts": "node --test tests/contracts/*.test.mjs"
+  },
   "devDependencies": {
-    "@axe-core/playwright": "4.13.0"
+    "@axe-core/playwright": "4.13.0",
+    "ajv": "8.18.0",
+    "ajv-formats": "3.0.1",
+    "yaml": "2.9.1"
   }
 }

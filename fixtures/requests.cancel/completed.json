@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "That request has already finished.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "request_id",
+        "code": "not_cancelable"
+      }
+    ]
+  }
+}

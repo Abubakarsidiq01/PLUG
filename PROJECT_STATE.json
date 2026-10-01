@@ -1,15 +1,15 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-01T06:52:26.057352+00:00",
-  "updated_by": "person_one",
+  "updated_at": "2026-10-01T23:04:35.425085+00:00",
+  "updated_by": "owner-authorized multi-agent Phase 2 implementation",
   "current_phase": "P2",
-  "current_step": "P2.S1",
-  "current_step_title": "Phase 2 request contract 0.3.0 proposed in a /contracts pull request; awaiting Person Two review, both approvals and the P2.S1 fixtures. No P2.S2+ implementation before merge.",
+  "current_step": "P2.implementation",
+  "current_step_title": "Phase 2 implemented and verified locally end to end (tools/phase2-verify-all.sh) and running on the owner's iPhone via tools/run-phase2-phone.sh. Contract 0.3.0 approval, device evidence, Windows run and G2 signatures remain.",
   "manual_section": "27.3",
   "readme": "docs/phases/P2-ONE.md",
-  "owner": "person_one",
-  "blocked_on": "person_two: contract 0.3.0 review/approval and fixtures/requests.* (manual.docx \u00a77.1-7.2)",
+  "owner": "both",
+  "blocked_on": null,
   "last_gate_passed": "G1",
   "next_gate": "G2",
   "gate_log": [
@@ -85,25 +85,17 @@
   },
   "next_actions": [
     {
+      "id": "P2-build-and-verify",
+      "owner": "both",
+      "task": "Implementation and automated verification complete locally (tools/phase2-verify-all.sh). Owner captures physical-device screenshots and VoiceOver walkthrough with tools/run-phase2-phone.sh into evidence/P2/ios and evidence/P2/a11y; Person Two reruns the suites on Windows; both review contract 0.3.0.",
+      "acceptance": "Device evidence committed for every required state; contract approved by both engineers; connected checkpoint correlation ID in both logs."
+    },
+    {
       "id": "P2-contract-approval",
       "owner": "both",
       "task": "Hold the \u00a77.1 contract session on contracts 0.3.0 (branch p2.s1-one-request-contract). Settle the open questions listed in its pull request, amend the contract in that PR if needed, then merge with both approvals and flip the five request routes to frozen@0.3.0.",
       "manual_section": "27.3",
       "acceptance": "Contract PR merged with both approvals; auth@0.2.2 routes unchanged; Spectral and ContractTest green."
-    },
-    {
-      "id": "P2-contract-fixtures",
-      "owner": "person_two",
-      "task": "P2.S1 (Two): write fixtures/requests.{create,get,clarify,offers,cancel}/ from contracts/examples/requests-*.json \u2014 success, empty, validation, authorization and transient per operation, plus ambiguity, unsupported category, restricted intent, expired and ownership-denial cases \u2014 and start the labelled intent dataset. Replace the RECEIVED stub success fixture. Preserve existing web legal branding.",
-      "manual_section": "27.3",
-      "acceptance": "FixtureContractTest green on the new fixtures; no invented live supplier claims."
-    },
-    {
-      "id": "P2-implementation",
-      "owner": "person_one",
-      "task": "Only after the contract merges: P2.S2 intent adapter (strict structured output, deterministic fallback), P2.S3 state machine with legal/illegal transition and idempotent cancel tests, P2.S4 requests/request_constraints/places/supplier-seed migrations, behind requests_v2 default off. Add identityRules() and CorrelationFilter.safePath() entries in the same change as each route. Remove the Phase0* schemas in that PR.",
-      "manual_section": "27.3",
-      "acceptance": "Backend tests and ContractTest validate real responses against 0.3.0; flag off preserves the stub."
     },
     {
       "id": "release-requirements",
@@ -112,12 +104,7 @@
       "acceptance": "Requirements resolved with evidence before corresponding release or provider activation."
     }
   ],
-  "do_not_touch": [
-    "/web/**",
-    "/tests/**",
-    "/fixtures/**",
-    "/design/**"
-  ],
+  "do_not_touch": [],
   "open_risks": [
     "September 23 verification was local, on an isolated real PostgreSQL database: see docs/testing/phase-1-hardening-2026-09-23.md. G1 still needs joint staging evidence under ADR-004.",
     "The Phase 1 rate limits are counted in one process's memory (FixedWindowLimiter). That is correct for a single instance and wrong the moment there are two, and it also means the limits survive across test runs \u2014 a second walkthrough inside fifteen minutes is refused. Wire Redis in before the backend is ever run as more than one process.",
@@ -375,6 +362,95 @@
       "compatibility_tests": 3,
       "npm_audit_vulnerabilities": 0,
       "scope": "Bruno tooling only; no gate or contract status changed."
+    },
+    "phase2_person_two": {
+      "date": "2026-10-01",
+      "branch": "p2.s1-two-fixture-hardening",
+      "status": "local_preparation_passed_contract_approval_pending",
+      "report": "docs/testing/phase2-person-two-hardening-2026-10-01.md",
+      "request_fixtures": 68,
+      "labelled_intent_cases": 42,
+      "static_contract_tests": 127,
+      "backend_non_database_tests": 42,
+      "browser_tests": 81,
+      "bruno_tooling_tests": 3,
+      "web_build": "passed Next.js 16.3.6",
+      "typecheck": "passed",
+      "lint": "passed",
+      "openapi_lint": "passed, zero warnings",
+      "pnpm_audit": "no known vulnerabilities",
+      "g2_passed": false,
+      "authorization": "User explicitly requested Person Two Phase 2 hardening; existing backend wrapper and iOS edits preserved.",
+      "not_verified": [
+        "Live Phase 2 API/Bruno and abuse cases",
+        "Intent adapter accuracy, provider fallback, state-machine/race behavior and audit/no-outreach enforcement",
+        "Windows execution on Person Two machine",
+        "Figma review and physical-device Phase 2 flow",
+        "Connected checkpoint and independent engineer approvals"
+      ]
+    },
+    "phase2_implementation_local": {
+      "date": "2026-10-01",
+      "branch": "p2.s2-all-request-flow",
+      "status": "all_automated_checks_passed_device_running_g2_pending",
+      "fix": "RequestV2Test pinned every Clock bean to 2026-10-01T20:00Z, so sessions were issued already expired against the database now() after 20:15Z and all 7 request tests returned 401. Request code now uses its own RequestClock; identity time is untouched.",
+      "backend_non_database_tests": 49,
+      "backend_database_tests": 77,
+      "static_contract_tests": 132,
+      "live_api_checks": {
+        "passed": 863,
+        "failed": 0,
+        "exchanges": 246,
+        "report": "evidence/P2/security/phase2-live-2026-10-01.json"
+      },
+      "bruno_phase2": {
+        "requests": 39,
+        "tests": 51,
+        "assertions": 63,
+        "failed": 0
+      },
+      "ios_unit_tests": {
+        "executed": 58,
+        "failed": 0,
+        "note": "includes live sign-in against a fresh isolated backend"
+      },
+      "typecheck": "passed",
+      "lint": "passed",
+      "openapi_lint": "passed, zero warnings",
+      "environment": "fresh disposable plug_phase2_qa_rerun database, JAR snapshot on 127.0.0.1:18083, requests_v2 on, no SMS/model provider",
+      "g2_passed": false,
+      "not_verified": [
+        "Physical-device state screenshots and VoiceOver walkthrough",
+        "Device failure/recovery evidence",
+        "Figma review",
+        "Windows execution on Person Two machine",
+        "Contract 0.3.0 approval, connected staging checkpoint and both G2 signatures"
+      ],
+      "report": "docs/testing/phase2-implementation-2026-10-01.md",
+      "automation": {
+        "verify_all": "tools/phase2-verify-all.sh",
+        "phone": "tools/run-phase2-phone.sh",
+        "ui_evidence": "tools/run-phase2-ui-evidence.sh"
+      },
+      "ios_ui_screenshot_tests": {
+        "passed": 2,
+        "screenshots": 18,
+        "evidence": "evidence/P2/simulator/2026-10-01",
+        "source": "synthetic fixture server, not G2 device evidence"
+      },
+      "phone": "Signed Debug build installed and launched on the paired iPhone 13 Pro Max against the isolated backend via Quick Tunnel; guest sign-in 201 and GET /v1/me 200 in the backend log.",
+      "environment_repairs": "Stopped stale 18080/18082 backends; restarted infra-postgres-1 and the 8080 Phase 1 backend (guest sign-in 201)."
     }
+  },
+  "implementation_authorization": {
+    "date": "2026-10-01",
+    "scope": "User explicitly requested all Phase Two work using all available agents and the Mac after being told the contract approval gate was pending. Proceed with local implementation against 0.3.0; no independent human signature or merge approval is inferred.",
+    "branch": "p2.s2-all-request-flow",
+    "preserve": [
+      "existing user iOS project/scheme/config changes",
+      "existing backend/gradlew.bat edits",
+      "live user accounts and Phase 1 services"
+    ],
+    "gate": "G2 remains unsigned until its actual evidence and approvals exist."
   }
 }

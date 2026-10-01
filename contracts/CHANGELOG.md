@@ -12,7 +12,14 @@ Rollback: <what turning the flag off does>
 ```
 
 ### 0.3.0 — 2026-10-01 — BREAKING (POST /v1/requests only) — P2.S1
-Freezes the Phase 2 request contract (manual.docx §18.3, §19.5, §19.6, §27.3).
+Proposes the Phase 2 request contract (manual.docx §18.3, §19.5, §19.6, §27.3).
+Still awaiting both engineers' approval and merge; it is not frozen or implemented.
+Person Two hardening: an unanswered draft keeps its null category when canceled or
+expired with clarification_unanswered, rather than inventing a category to close it.
+Restricted errors omit a created resource ID but retain error.request_id for correlation.
+Fixtures now cover every documented HTTP response across all five operations, plus
+draft cancellation/expiry, ownership denial, and the labelled intent cases. See
+`tests/contracts/fixture-manifest.json` and `fixtures/intents/p2.jsonl`.
 `POST /v1/requests` is replaced: body `CreateRequestBody` (`text` ≤ 500 plus optional
 `category`, `budget_cents`/`currency`, `needed_by`, `max_distance_m`, and `location`
 with `precision`), required `Idempotency-Key` (16–128), `plugSession` auth instead of
@@ -32,9 +39,11 @@ The Phase 0 stub schemas are renamed `Phase0RequestCreate`, `Phase0Location` and
 `Phase0RequestResponse`, marked deprecated, and kept only so the stub the backend still
 serves stays tested; they are removed in the implementation pull request.
 Examples: `contracts/examples/requests-*.json` — one per documented outcome.
-Fixtures: Person Two writes `fixtures/requests.{create,get,clarify,offers,cancel}/` in the
-P2.S1 fixture pull request (§7.2). `FixtureContractTest` already maps those folders and
-holds the old `requests.create/success.json` to the deprecated stub schema until then.
+Fixtures: `fixtures/requests.{create,get,clarify,offers,cancel}/` now use the proposed
+0.3.0 shapes (§7.2). The old stub remains covered by `request-response.json` and the
+explicit Phase 0 Bruno requests until backend implementation. `FixtureContractTest`
+validates the new response bodies; `pnpm test:contracts` additionally checks status
+coverage, cross-field invariants and the labelled dataset's input schema expectations.
 Tests: `ContractTest` validates every new example and checks the status → next_action
 mapping, the present-if-and-only-if fields and the progress invariants across them.
 Migration note: no database change in this pull request. The backend ships the new routes
