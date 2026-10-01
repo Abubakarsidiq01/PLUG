@@ -1,7 +1,7 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-09-30T19:46:12.275363+00:00",
+  "updated_at": "2026-10-01T04:00:20.633298+00:00",
   "updated_by": "person_one",
   "current_phase": "P2",
   "current_step": "P2.S1",
@@ -354,6 +354,14 @@
       "live_rate_limit_checks": 14,
       "matching_backend_request_ids": 14,
       "release_approval": false
+    },
+    "bruno_dependency_security": {
+      "date": "2026-09-30",
+      "pr": 33,
+      "fix": "Override js-yaml to 4.3.2 and yaml to 2.9.1 after Bruno 4.2.0 introduced vulnerable transitive versions.",
+      "compatibility_tests": 3,
+      "npm_audit_vulnerabilities": 0,
+      "scope": "Bruno tooling only; no gate or contract status changed."
     }
   }
 }
