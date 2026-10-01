@@ -1,0 +1,10 @@
+{
+  "error": {
+    "code": "forbidden",
+    "message": "Accept the current Terms and Privacy Policy to continue.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      { "field": "consent", "code": "consent_required" }
+    ]
+  }
+}

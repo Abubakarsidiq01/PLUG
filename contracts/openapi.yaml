@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.2.2
+  version: 0.3.0
   description: >
-    Phase 0 and Phase 1 contract shared by the PLUG iOS app and the modular-monolith backend.
+    Phase 0, Phase 1 and Phase 2 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
     (manual.docx §18.1). Changes require one pull request in /contracts with BOTH
     approvals, updated fixtures and an entry in CHANGELOG.md.
@@ -41,37 +41,205 @@ paths:
   /v1/requests:
     post:
       operationId: createRequest
-      summary: Accept a customer request for asynchronous processing
+      summary: Create a service request from the person's own words
       description: >
-        Phase 0 validation stub. No supplier outreach or persistence occurs.
-        Staging requires a signed access token with the write scope; local
-        loopback development does not.
+        Phase 2 (manual.docx §18.3, §27.3). `text` is required; every structured field is
+        optional. A structured value the client sends is authoritative and is validated
+        exactly like any other input. A value the client omits is extracted from `text` by
+        the intent adapter, whose output is untrusted and is schema-validated and
+        range-checked before it is persisted (§19.5). Anything still missing takes the safe
+        default named on RequestConstraints. A model timeout or invalid model output never
+        produces an error: the server falls back to deterministic extraction.
+
+
+        Only a missing category blocks execution, so it is the only thing PLUG ever asks
+        about, and it asks at most once per request (§27.3 ClarificationPolicy). When it
+        must ask, the 201 response has status `draft`, next_action `answer_clarification`
+        and a `clarification`. Location is never asked: the client sends it, from the device
+        or from an address the person typed, so the permission-denied path still works.
+
+
+        A category PLUG recognises but does not serve is refused with 400 validation_failed,
+        `details[0]` = { field: text, code: unsupported_category }; nothing is persisted and
+        nobody is contacted. A prohibited request is refused with 422 restricted_intent; it
+        creates no outreach, writes an audit event, and the response names no rule and
+        carries no request identifier.
+
+
+        Caller must hold the guest or member scope and have accepted the current consent
+        version, otherwise 403 forbidden with `details[0].code` = consent_required. Rate
+        limits: 10 creations per minute per account and 30 per minute per caller address.
+        Bodies over 16 KB are 413 before parsing.
       security:
-        - stagingJwt: []
+        - plugSession: []
       parameters:
         - $ref: '#/components/parameters/RequestIdHeader'
-        - in: header
-          name: Idempotency-Key
-          required: false
-          schema: { type: string, maxLength: 255 }
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
       requestBody:
         required: true
         content:
           application/json:
-            schema: { $ref: '#/components/schemas/RequestCreate' }
+            schema: { $ref: '#/components/schemas/CreateRequestBody' }
       responses:
-        '202':
-          description: Request accepted
+        '201':
+          description: >
+            Created. The body is the server's canonical state. Replaying the same
+            Idempotency-Key with the same body returns this response again, unchanged, and
+            creates nothing.
           headers:
             X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
           content:
             application/json:
-              schema: { $ref: '#/components/schemas/RequestResponse' }
+              schema: { $ref: '#/components/schemas/RequestResource' }
         '400': { $ref: '#/components/responses/ValidationFailed' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
         '413': { $ref: '#/components/responses/ValidationFailed' }
         '415': { $ref: '#/components/responses/ValidationFailed' }
+        '422': { $ref: '#/components/responses/RestrictedIntent' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/requests/{request_id}:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/RequestIdPath'
+    get:
+      operationId: getRequest
+      summary: The caller's own request — status, next_action and real progress
+      description: >
+        The polling route. `status`, `next_action` and `progress` come only from the server;
+        the client never infers state from elapsed time and never advances progress between
+        polls. While next_action is `wait_for_offers` the response carries
+        `poll_after_seconds`, and the client waits that long before asking again.
+
+
+        Ownership is checked against the database on every read. A request that does not
+        exist, or belongs to someone else, is 404 — never 403 — so an identifier cannot be
+        confirmed by probing.
+      security:
+        - plugSession: []
+      responses:
+        '200':
+          description: The request.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RequestResource' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/requests/{request_id}/clarifications:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/RequestIdPath'
+    post:
+      operationId: answerClarification
+      summary: Answer the one clarifying question on a draft request
+      description: >
+        Accepted only while the request is `draft` with next_action `answer_clarification`,
+        and only for the clarification_id the server issued. `value` must be one of that
+        clarification's option values. A successful answer moves the request to
+        `submitted`; no second question is ever asked.
+
+
+        A retry with the same Idempotency-Key and body returns the original response. Any
+        other answer once the request has left `draft` (answered, canceled or expired) is
+        409 conflict with `details[0]` = { field: clarification_id, code:
+        not_awaiting_clarification }. A value outside the options is 400 with code
+        not_an_option. Someone else's request is 404.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ClarificationAnswer' }
+      responses:
+        '200':
+          description: Answered. The request's new canonical state.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RequestResource' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/RequestStateConflict' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/requests/{request_id}/offers:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/RequestIdPath'
+    get:
+      operationId: listOffers
+      summary: Validated offers for the caller's own request, ranked by the server
+      description: >
+        Only structured, validated offers are returned. Price, availability and the truth
+        label are set by the server; the client renders them and never computes, re-labels
+        or re-sorts them. An offer whose expires_at has passed is not returned.
+
+
+        A request that has no offers yet — including one still in `draft` or
+        `awaiting_responses` — returns 200 with an empty list; the client follows
+        next_action on GET /v1/requests/{request_id}, not the length of this list. At most
+        20 offers; there is no pagination, because fan-out is bounded. Someone else's
+        request is 404.
+      security:
+        - plugSession: []
+      responses:
+        '200':
+          description: The offers, best first.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OfferList' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/requests/{request_id}/cancel:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/RequestIdPath'
+    post:
+      operationId: cancelRequest
+      summary: Cancel the caller's own request, at any point, idempotently
+      description: >
+        Always available while the request is live, including mid-flight (§11.5). The
+        transition takes a row lock, so a cancel racing a worker either lands first or sees
+        the worker's result; it never leaves a half-applied state, and no outreach starts
+        after a cancel commits.
+
+
+        Cancelling a request that is already `canceled` returns 200 with the same body, so a
+        retry after a dropped connection is safe without an Idempotency-Key. Cancelling one
+        that is `expired`, `completed` or `blocked` is 409 conflict with `details[0]` =
+        { field: request_id, code: not_cancelable }. Someone else's request is 404.
+      security:
+        - plugSession: []
+      responses:
+        '200':
+          description: Canceled. status is `canceled` and next_action is `none`.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RequestResource' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/RequestStateConflict' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/auth/apple:
@@ -408,7 +576,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: Staging issuer, audience, expiry and plug.requests.write scope are validated. Local loopback development is exempt.
+      description: >
+        Phase 0 only. Staging issuer, audience, expiry and plug.requests.write scope are
+        validated; local loopback development is exempt. No Phase 2 operation uses it; the
+        backend keeps it on the Phase 0 stub until requests_v2 replaces that stub.
     plugSession:
       type: http
       scheme: bearer
@@ -427,6 +598,27 @@ components:
         Client-generated correlation ID. Echoed back on the response and carried into
         both lanes' structured logs so the connected checkpoint can find one request
         in both places. The server generates one if absent or invalid (manual.docx §19.2).
+    IdempotencyKeyHeader:
+      in: header
+      name: Idempotency-Key
+      required: true
+      schema: { type: string, minLength: 16, maxLength: 128, pattern: '^[A-Za-z0-9_-]+$' }
+      description: >
+        Client-generated, stable across every retry of the same logical action (a UUID
+        works). Stored per account with a hash of the body: the same key and body return the
+        original response unchanged; the same key with a different body is 409 conflict with
+        details[0].code = idempotency_key_reused; a duplicate arriving while the first is
+        still running is 409 with request_in_progress. Missing or malformed is 400 with
+        details[0].field = Idempotency-Key. Keys are kept for 24 hours (manual.docx §19.2).
+    RequestIdPath:
+      in: path
+      name: request_id
+      required: true
+      schema: { type: string, maxLength: 64, pattern: '^req_[A-Za-z0-9-]+$' }
+      description: >
+        Opaque. Logged as the route template, never as the value. A well-formed identifier
+        the caller does not own is 404; a malformed one is also 404, so the two cannot be
+        told apart.
   headers:
     RequestIdResponseHeader:
       description: The correlation ID for this request — either the caller's or a server-generated one.
@@ -446,6 +638,23 @@ components:
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     NotFound:
       description: No such resource, or it does not belong to the caller.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    IdempotencyConflict:
+      description: >
+        conflict. details[0] = { field: Idempotency-Key, code: idempotency_key_reused |
+        request_in_progress }.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    RequestStateConflict:
+      description: >
+        conflict. The request is not in a state that allows this action, or the
+        Idempotency-Key was reused. details[0].code is one of not_awaiting_clarification,
+        not_cancelable, idempotency_key_reused, request_in_progress. The client reloads
+        GET /v1/requests/{request_id} and follows its next_action.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    RestrictedIntent:
+      description: >
+        restricted_intent. Understood but refused by policy. No outreach, an audit event
+        written, no rule identifier and no request identifier in the body.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     DependencyUnavailable:
       description: A dependency this route needs is not available.
@@ -480,34 +689,320 @@ components:
           properties:
             database: { type: string, enum: [UP, DOWN, DISABLED] }
             migrations: { type: string, enum: [UP, DOWN, DISABLED] }
-    RequestCreate:
+    Phase0RequestCreate:
+      deprecated: true
+      description: >
+        The Phase 0 stub body (frozen@0.1.0). Not part of the Phase 2 contract. Kept only so
+        the stub the backend still serves stays checkable until the P2 implementation
+        replaces it behind the requests_v2 flag; removed in that pull request.
       type: object
       additionalProperties: false
       required: [query, location]
       properties:
         query: { type: string, minLength: 1, maxLength: 1000 }
-        location: { $ref: '#/components/schemas/Location' }
-    Location:
+        location: { $ref: '#/components/schemas/Phase0Location' }
+    Phase0Location:
+      deprecated: true
       type: object
       additionalProperties: false
       required: [latitude, longitude]
       properties:
         latitude: { type: number, minimum: -90, maximum: 90 }
         longitude: { type: number, minimum: -180, maximum: 180 }
-    RequestResponse:
+    Phase0RequestResponse:
+      deprecated: true
+      description: The Phase 0 stub's 202 body. Removed with Phase0RequestCreate.
       type: object
       additionalProperties: false
       required: [request_id, status, next_action]
       properties:
         request_id: { type: string, pattern: '^req_[A-Za-z0-9-]+$' }
+        status: { type: string, enum: [RECEIVED] }
+        next_action: { type: string, enum: [PROCESSING] }
+    CreateRequestBody:
+      description: >
+        What the person asked for. Only `text` and `location` are required. A structured
+        field, when present, is authoritative over whatever is extracted from `text`.
+      type: object
+      additionalProperties: false
+      required: [text, location]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+          description: >
+            The person's own words. Must contain a non-whitespace character; control
+            characters other than newline are rejected. Never written to a log.
+          example: "Barber under $35 in 30 minutes"
+        category: { $ref: '#/components/schemas/Category' }
+        budget_cents:
+          type: integer
+          minimum: 500
+          maximum: 50000
+          description: Upper price limit in integer cents, $5.00–$500.00. Requires currency.
+        currency: { $ref: '#/components/schemas/Currency' }
+        needed_by:
+          type: string
+          format: date-time
+          description: >
+            ISO-8601 with an explicit offset. Must be later than now (in_the_past) and no
+            more than 7 days ahead (too_far_ahead).
+        max_distance_m:
+          type: integer
+          minimum: 100
+          maximum: 50000
+        location: { $ref: '#/components/schemas/RequestLocation' }
+    RequestLocation:
+      description: >
+        Where to search from. Sent by the client from the device or from an address the
+        person typed and the device geocoded. The server stores and returns it rounded to
+        its precision — coarse to 3 decimal places (about 110 m), fine to 4 (about 11 m) —
+        and never writes coordinates to a log.
+      type: object
+      additionalProperties: false
+      required: [latitude, longitude, precision]
+      properties:
+        latitude: { type: number, minimum: -90, maximum: 90 }
+        longitude: { type: number, minimum: -180, maximum: 180 }
+        precision: { type: string, enum: [coarse, fine] }
+    Category:
+      type: string
+      enum: [barber, beauty]
+      description: >
+        The V1 allow-list (manual.docx §2.1, §25.6). Any other value sent here is 400
+        validation_failed. A category recognised in `text` but not on this list is 400 with
+        details code unsupported_category; it is never silently routed.
+    Currency:
+      type: string
+      pattern: '^[A-Z]{3}$'
+      description: ISO 4217. V1 accepts USD only; any other code is 400 with code unsupported.
+      example: USD
+    RequestResource:
+      description: >
+        The canonical request. Clients render it and navigate on next_action; they never
+        compute status, progress, labels or prices themselves.
+      type: object
+      additionalProperties: false
+      required: [request_id, status, next_action, text, constraints, progress, created_at, updated_at, expires_at]
+      properties:
+        request_id: { type: string, pattern: '^req_[A-Za-z0-9-]+$' }
         status: { $ref: '#/components/schemas/RequestStatus' }
         next_action: { $ref: '#/components/schemas/NextAction' }
+        text:
+          type: string
+          maxLength: 500
+          description: The person's own words, returned only to the owner.
+        constraints: { $ref: '#/components/schemas/RequestConstraints' }
+        progress: { $ref: '#/components/schemas/RequestProgress' }
+        clarification:
+          $ref: '#/components/schemas/Clarification'
+          description: Present if and only if next_action is answer_clarification.
+        no_result_reason:
+          $ref: '#/components/schemas/NoResultReason'
+          description: Present if and only if next_action is show_no_result.
+        poll_after_seconds:
+          type: integer
+          minimum: 1
+          maximum: 30
+          description: >
+            Present if and only if next_action is wait_for_offers. How long to wait before
+            the next GET. It is a polling interval, not an estimate of when offers arrive,
+            and must never be shown as one.
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+        expires_at:
+          type: string
+          format: date-time
+          description: >
+            When the request stops collecting offers, or, in draft, when an unanswered
+            clarification lapses. After it the server moves the request to expired.
+    RequestConstraints:
+      description: >
+        The constraints the server will execute, after explicit values, validated
+        extraction and defaults are combined. A null is a stated default, not a missing
+        value: the client shows "Any price" or "As soon as possible", never a guess.
+      type: object
+      additionalProperties: false
+      required: [category, budget_cents, currency, needed_by, max_distance_m, location]
+      properties:
+        category:
+          oneOf:
+            - { $ref: '#/components/schemas/Category' }
+            - { type: 'null' }
+          description: Null only while status is draft awaiting the category clarification.
+        budget_cents:
+          oneOf:
+            - { type: integer, minimum: 500, maximum: 50000 }
+            - { type: 'null' }
+          description: Null means no budget filter.
+        currency: { $ref: '#/components/schemas/Currency' }
+        needed_by:
+          oneOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+          description: Null means as soon as possible.
+        max_distance_m:
+          type: integer
+          minimum: 100
+          maximum: 50000
+          description: Always concrete. When not stated, the zone default.
+        location: { $ref: '#/components/schemas/RequestLocation' }
+    RequestProgress:
+      description: >
+        Real counts from the server (manual.docx §11.5). They change only when the server
+        does work; the client never interpolates them or animates them against time.
+        Invariants: replied <= contacted and offers_ready <= replied. In Phase 2 the suppliers
+        counted are seeded suppliers and no message leaves PLUG; Phase 3 keeps the same
+        fields for real outreach.
+      type: object
+      additionalProperties: false
+      required: [contacted, replied, offers_ready]
+      properties:
+        contacted: { type: integer, minimum: 0, maximum: 50 }
+        replied: { type: integer, minimum: 0, maximum: 50 }
+        offers_ready: { type: integer, minimum: 0, maximum: 20 }
     RequestStatus:
       type: string
-      enum: [RECEIVED]
+      enum: [draft, submitted, routed, awaiting_responses, ranked, user_selected,
+             confirmed, completed, expired, canceled, blocked]
+      description: >
+        Server-owned state (manual.docx §19.6). Legal transitions, enforced under a row lock:
+        draft -> submitted | expired | canceled;
+        submitted -> routed | blocked | canceled;
+        routed -> awaiting_responses | expired | canceled;
+        awaiting_responses -> ranked | expired | canceled;
+        ranked -> user_selected | expired | canceled;
+        user_selected -> confirmed | expired | canceled;
+        confirmed -> completed | canceled;
+        completed, expired, canceled and blocked are terminal.
+        confirmed is reachable only from a supplier event — never a timer, an admin or a
+        client. Phase 2 reaches draft through ranked plus expired, canceled and blocked;
+        user_selected, confirmed and completed are declared now so Phase 3 adds no value.
+        A blocked request is refused with 422 at creation and is never returned to a client.
     NextAction:
       type: string
-      enum: [PROCESSING]
+      enum: [answer_clarification, wait_for_offers, choose_offer,
+             await_supplier_confirmation, show_result, show_no_result, none]
+      description: >
+        What the client shows next. Authoritative; the client never derives it from status
+        or from elapsed time. The server emits exactly:
+        draft -> answer_clarification;
+        submitted, routed, awaiting_responses -> wait_for_offers;
+        ranked -> choose_offer;
+        user_selected -> await_supplier_confirmation;
+        confirmed, completed -> show_result;
+        expired -> show_no_result;
+        canceled -> none.
+    NoResultReason:
+      type: string
+      enum: [no_coverage, no_offers, clarification_unanswered]
+      description: >
+        Why there is nothing to show, so the empty state can say why and offer one action.
+        no_coverage — no eligible supplier is within max_distance_m for the category;
+        no_offers — suppliers were contacted but no valid offer arrived, or every offer
+        expired; clarification_unanswered — the draft lapsed before the question was answered.
+    Clarification:
+      description: >
+        The one question PLUG may ask. Structured options only; there is no free-text answer.
+        `question` and option labels are server copy, safe to display, and never contain
+        model reasoning.
+      type: object
+      additionalProperties: false
+      required: [clarification_id, field, question, options]
+      properties:
+        clarification_id: { type: string, maxLength: 64, pattern: '^cla_[A-Za-z0-9-]+$' }
+        field:
+          type: string
+          enum: [category]
+          description: The constraint the answer fills. Only category blocks execution.
+        question: { type: string, minLength: 1, maxLength: 200 }
+        options:
+          type: array
+          minItems: 1
+          maxItems: 8
+          items: { $ref: '#/components/schemas/ClarificationOption' }
+    ClarificationOption:
+      type: object
+      additionalProperties: false
+      required: [value, label]
+      properties:
+        value: { type: string, minLength: 1, maxLength: 64, pattern: '^[a-z0-9_]+$' }
+        label: { type: string, minLength: 1, maxLength: 80 }
+    ClarificationAnswer:
+      type: object
+      additionalProperties: false
+      required: [clarification_id, value]
+      properties:
+        clarification_id: { type: string, maxLength: 64, pattern: '^cla_[A-Za-z0-9-]+$' }
+        value: { type: string, minLength: 1, maxLength: 64, pattern: '^[a-z0-9_]+$' }
+    OfferList:
+      type: object
+      additionalProperties: false
+      required: [request_id, offers]
+      properties:
+        request_id: { type: string, pattern: '^req_[A-Za-z0-9-]+$' }
+        offers:
+          type: array
+          maxItems: 20
+          description: Ranked by the server, best first. The client does not re-sort.
+          items: { $ref: '#/components/schemas/Offer' }
+    Offer:
+      description: >
+        A validated offer. Every value here came from a supplier record or reply that passed
+        server validation; none is generated by a model or filled in by a client. An offer
+        that cannot carry a real price and a real time does not exist.
+      type: object
+      additionalProperties: false
+      required: [offer_id, place, service_name, price_cents, currency, available_at,
+                 expires_at, observed_at, truth_label, source]
+      properties:
+        offer_id: { type: string, maxLength: 64, pattern: '^off_[A-Za-z0-9-]+$' }
+        place: { $ref: '#/components/schemas/Place' }
+        service_name: { type: string, minLength: 1, maxLength: 80 }
+        price_cents: { type: integer, minimum: 500, maximum: 50000 }
+        currency: { $ref: '#/components/schemas/Currency' }
+        available_at:
+          type: string
+          format: date-time
+          description: When the slot starts.
+        expires_at:
+          type: string
+          format: date-time
+          description: When the offer stops being valid. Always later than available_at.
+        observed_at:
+          type: string
+          format: date-time
+          description: When the evidence behind price and availability was captured.
+        truth_label: { $ref: '#/components/schemas/TruthLabel' }
+        source: { $ref: '#/components/schemas/OfferSource' }
+    Place:
+      type: object
+      additionalProperties: false
+      required: [place_id, name, address, distance_m]
+      properties:
+        place_id: { type: string, maxLength: 64, pattern: '^plc_[A-Za-z0-9-]+$' }
+        name: { type: string, minLength: 1, maxLength: 120 }
+        address: { type: string, minLength: 1, maxLength: 200 }
+        distance_m:
+          type: integer
+          minimum: 0
+          maximum: 50000
+          description: Straight-line metres from the request location, computed server-side.
+    TruthLabel:
+      type: string
+      enum: [confirmed, recent, estimated, unknown]
+      description: >
+        Set by the server only, from the evidence source and observed_at (manual.docx §11.2).
+        confirmed and recent require supplier or scout verification inside their window, so
+        a `seed` offer is never confirmed or recent. Clients render the label they were
+        sent; they never compute it and never upgrade it as time passes.
+    OfferSource:
+      type: string
+      enum: [seed, sms, portal]
+      description: >
+        seed — synthetic Phase 2 supplier data, labelled estimated at best; sms and portal —
+        Phase 3 supplier replies, declared now so Phase 3 adds no value.
     AppleSignIn:
       type: object
       additionalProperties: false
@@ -709,7 +1204,11 @@ components:
             request_id: { type: string, example: req_01H8XK4Q7N }
             details:
               type: array
-              description: Field-level problems. validation_failed only.
+              description: >
+                Field-level problems on validation_failed. A route may also document a
+                branching token here on conflict or forbidden (for example
+                idempotency_key_reused, not_cancelable, consent_required); clients branch on
+                details[].code rather than on a new top-level code.
               items:
                 type: object
                 additionalProperties: false
