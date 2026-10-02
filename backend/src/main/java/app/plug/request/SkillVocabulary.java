@@ -56,7 +56,32 @@ public final class SkillVocabulary {
             phrases.add(Map.entry(Pattern.compile("(?<![\\p{L}\\p{N}])" + Pattern.quote(phrase) + "(?:e?s)?(?![\\p{L}\\p{N}])"),
                     bySynonym.get(phrase)));
         }
+        // People also put the action first: "phone repair" is said "I repair phones" or "fix my
+        // phone". Derived only from listed two-word synonyms, so no new skill can appear.
+        for (String phrase : all) {
+            String[] words = phrase.split(" ");
+            String verbs = words.length == 2 ? ACTIONS.get(words[1]) : null;
+            if (verbs == null) continue;
+            phrases.add(Map.entry(Pattern.compile("(?<![\\p{L}\\p{N}])(?:" + verbs + ")\\s+" + DETERMINER
+                    + Pattern.quote(words[0]) + "(?:e?s)?(?![\\p{L}\\p{N}])"), bySynonym.get(phrase)));
+        }
     }
+
+    /// The action word of a listed synonym, and the ways people say it before the thing.
+    private static final Map<String, String> ACTIONS = Map.ofEntries(
+            Map.entry("repair", "repair|repairs|repairing|fix|fixes|fixing|mend|mends|mending"),
+            Map.entry("cleaning", "clean|cleans|cleaning"),
+            Map.entry("walking", "walk|walks|walking"),
+            Map.entry("mounting", "mount|mounts|mounting"),
+            Map.entry("assembly", "assemble|assembles|assembling|build|builds|building"),
+            Map.entry("grooming", "groom|grooms|grooming"),
+            Map.entry("sitting", "sit|sits|sitting|watch|watches|watching"),
+            Map.entry("wash", "wash|washes|washing"),
+            Map.entry("painting", "paint|paints|painting"),
+            Map.entry("replacement", "replace|replaces|replacing"),
+            Map.entry("lessons", "teach|teaches|teaching"),
+            Map.entry("install", "install|installs|installing"));
+    private static final String DETERMINER = "(?:(?:my|a|an|the|your|their|his|her|our|people's|peoples|someone's|customers')\\s+)?";
 
     public Skill get(String tag) { return byTag.get(tag); }
     public boolean contains(String tag) { return tag != null && byTag.containsKey(tag); }
