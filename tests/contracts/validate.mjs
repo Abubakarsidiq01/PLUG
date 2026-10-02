@@ -68,8 +68,11 @@ export function validateResource(body) {
   if (body.clarification) {
     const values = body.clarification.options.map(option => option.value);
     assert.equal(new Set(values).size, values.length, 'Duplicate clarification options');
-    for (const value of values) assert.ok(contract.components.schemas.Category.enum.includes(value));
+    for (const value of values) assert.match(value, new RegExp(contract.components.schemas.Category.pattern));
   }
+  // ADR-009: the display name and maps search terms exist exactly when the service is known.
+  assert.equal(body.constraints.service_name === null, category === null, 'service_name tracks category');
+  assert.equal(body.constraints.search_terms.length === 0, category === null, 'search_terms track category');
   const digits = location.precision === 'coarse' ? 3 : 4;
   for (const axis of ['latitude', 'longitude']) {
     assert.equal(location[axis], Number(location[axis].toFixed(digits)), 'Unrounded location');

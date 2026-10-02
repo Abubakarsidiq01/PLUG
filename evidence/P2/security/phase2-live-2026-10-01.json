@@ -1,7 +1,7 @@
 {
   "suite": "phase2-live",
   "environment": "isolated-local",
-  "started_at": "2026-10-01T22:43:32.125Z",
+  "started_at": "2026-10-02T00:31:15.486Z",
   "checks": [
     {
       "name": "owner guest: HTTP 201",
@@ -740,11 +740,11 @@
       "passed": true
     },
     {
-      "name": "concurrent duplicate 0: documented contract",
+      "name": "concurrent duplicate 1: documented contract",
       "passed": true
     },
     {
-      "name": "concurrent duplicate 1: documented contract",
+      "name": "concurrent duplicate 0: documented contract",
       "passed": true
     },
     {
@@ -1048,35 +1048,35 @@
       "passed": true
     },
     {
-      "name": "dataset unsupported-plumber: HTTP 400",
+      "name": "dataset open-plumber: HTTP 201",
       "passed": true
     },
     {
-      "name": "dataset unsupported-plumber: correlation",
+      "name": "dataset open-plumber: correlation",
       "passed": true
     },
     {
-      "name": "dataset unsupported-plumber: contract",
+      "name": "dataset open-plumber: contract",
       "passed": true
     },
     {
-      "name": "dataset unsupported-plumber: error",
+      "name": "dataset open-plumber: canonical extraction",
       "passed": true
     },
     {
-      "name": "dataset unsupported-restaurant: HTTP 400",
+      "name": "dataset open-restaurant: HTTP 201",
       "passed": true
     },
     {
-      "name": "dataset unsupported-restaurant: correlation",
+      "name": "dataset open-restaurant: correlation",
       "passed": true
     },
     {
-      "name": "dataset unsupported-restaurant: contract",
+      "name": "dataset open-restaurant: contract",
       "passed": true
     },
     {
-      "name": "dataset unsupported-restaurant: error",
+      "name": "dataset open-restaurant: canonical extraction",
       "passed": true
     },
     {
@@ -1296,19 +1296,19 @@
       "passed": true
     },
     {
-      "name": "dataset unsupported-structured-category: HTTP 400",
+      "name": "dataset invalid-structured-category: HTTP 400",
       "passed": true
     },
     {
-      "name": "dataset unsupported-structured-category: correlation",
+      "name": "dataset invalid-structured-category: correlation",
       "passed": true
     },
     {
-      "name": "dataset unsupported-structured-category: contract",
+      "name": "dataset invalid-structured-category: contract",
       "passed": true
     },
     {
-      "name": "dataset unsupported-structured-category: error",
+      "name": "dataset invalid-structured-category: error",
       "passed": true
     },
     {
@@ -1576,6 +1576,70 @@
       "passed": true
     },
     {
+      "name": "dataset shoe-repair-tomorrow: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset shoe-repair-tomorrow: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset shoe-repair-tomorrow: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset shoe-repair-tomorrow: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset open-locksmith: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset open-locksmith: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset open-locksmith: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset open-locksmith: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset thousands-budget: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset thousands-budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset thousands-budget: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset thousands-budget: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset over-cap-budget: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset over-cap-budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset over-cap-budget: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset over-cap-budget: error",
+      "passed": true
+    },
+    {
       "name": "abuse schema guest: HTTP 201",
       "passed": true
     },
@@ -1776,19 +1840,19 @@
       "passed": true
     },
     {
-      "name": "abuse comma text budget: HTTP 400",
+      "name": "abuse malformed comma text budget: HTTP 400",
       "passed": true
     },
     {
-      "name": "abuse comma text budget: correlation",
+      "name": "abuse malformed comma text budget: correlation",
       "passed": true
     },
     {
-      "name": "abuse comma text budget: contract",
+      "name": "abuse malformed comma text budget: contract",
       "passed": true
     },
     {
-      "name": "abuse comma text budget: error",
+      "name": "abuse malformed comma text budget: error",
       "passed": true
     },
     {
@@ -2088,30 +2152,6 @@
       "passed": true
     },
     {
-      "name": "rate D: HTTP 201",
-      "passed": true
-    },
-    {
-      "name": "rate D: correlation",
-      "passed": true
-    },
-    {
-      "name": "rate D: session",
-      "passed": true
-    },
-    {
-      "name": "rate B: HTTP 201",
-      "passed": true
-    },
-    {
-      "name": "rate B: correlation",
-      "passed": true
-    },
-    {
-      "name": "rate B: session",
-      "passed": true
-    },
-    {
       "name": "rate C: HTTP 201",
       "passed": true
     },
@@ -2133,6 +2173,30 @@
     },
     {
       "name": "rate A: session",
+      "passed": true
+    },
+    {
+      "name": "rate B: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "rate B: correlation",
+      "passed": true
+    },
+    {
+      "name": "rate B: session",
+      "passed": true
+    },
+    {
+      "name": "rate D: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "rate D: correlation",
+      "passed": true
+    },
+    {
+      "name": "rate D: session",
       "passed": true
     },
     {
@@ -3462,1722 +3526,1750 @@
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_18aeeb5e-1d7e-41a4-9056-57a486a96937"
+      "correlation_id": "qa_85a02294-128c-43a4-9e9c-a1b4802a94b9"
     },
     {
       "case": "other guest",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_c4de59fa-7666-4856-96a9-6bdca3a705ee"
+      "correlation_id": "qa_c72fcb13-c3ad-443f-8dcb-656b4ac559a8"
     },
     {
       "case": "supported create",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_640662c0-2c85-4eed-91b8-363d92eba4e5"
+      "correlation_id": "qa_33cdc5d4-f73e-40fa-b46c-c21d0042df87"
     },
     {
       "case": "create replay",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_c70225af-432a-4a3b-aa33-b716d6d333e4"
+      "correlation_id": "qa_a39abbe3-7c07-4d10-ba1f-2525438a46e1"
     },
     {
       "case": "create key conflict",
       "method": "POST",
       "route": "/v1/requests",
       "status": 409,
-      "correlation_id": "qa_3157614c-c9bc-40eb-bda0-27f26c805b91"
+      "correlation_id": "qa_767e63d3-4c2b-40e0-a45c-73a75040537f"
     },
     {
       "case": "foreign GET resource",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 404,
-      "correlation_id": "qa_026b42c4-cbf9-4e1e-a778-d196708f3e8c"
+      "correlation_id": "qa_ca5d75fc-0589-4884-9238-48ff558e9394"
     },
     {
       "case": "missing GET resource",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 404,
-      "correlation_id": "qa_3370c063-4424-4f10-9076-c30cceef81d4"
+      "correlation_id": "qa_ab100aac-ecf6-44e3-a7ab-27d20418a410"
     },
     {
       "case": "malformed GET resource",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 404,
-      "correlation_id": "qa_dfcde44d-ed8b-4248-93df-9813d0d64e97"
+      "correlation_id": "qa_2baa2943-9694-449f-8137-6312db8a6a34"
     },
     {
       "case": "anonymous GET resource",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 401,
-      "correlation_id": "qa_f076b391-71d5-4f06-962d-90ad7f402b18"
+      "correlation_id": "qa_5e858d67-5c0d-4320-b04c-5eb606ebeb56"
     },
     {
       "case": "foreign GET /offers",
       "method": "GET",
       "route": "/v1/requests/{request_id}/offers",
       "status": 404,
-      "correlation_id": "qa_d154f85f-7ecb-4be8-a095-3d14967dc0ec"
+      "correlation_id": "qa_036dd258-3583-4c5b-9490-af8dbcf18807"
     },
     {
       "case": "missing GET /offers",
       "method": "GET",
       "route": "/v1/requests/{request_id}/offers",
       "status": 404,
-      "correlation_id": "qa_b30a8b31-5e52-42fa-8cd3-7e354d4c965d"
+      "correlation_id": "qa_896968fa-1b8e-44db-adbe-5acf8a58548e"
     },
     {
       "case": "malformed GET /offers",
       "method": "GET",
       "route": "/v1/requests/{request_id}/offers",
       "status": 404,
-      "correlation_id": "qa_5cb583f6-c8db-4e8e-a90e-d7be1fdf61e2"
+      "correlation_id": "qa_a28f72b3-240e-47e5-99eb-82a6c954eda4"
     },
     {
       "case": "anonymous GET /offers",
       "method": "GET",
       "route": "/v1/requests/{request_id}/offers",
       "status": 401,
-      "correlation_id": "qa_8ad6de6a-a43a-4607-8d7a-d8d395120195"
+      "correlation_id": "qa_005fafd6-9206-401e-b178-e65bc44d55cf"
     },
     {
       "case": "foreign POST /cancel",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 404,
-      "correlation_id": "qa_ecb4d35b-6f5a-4f19-bb8f-3485f0f941a6"
+      "correlation_id": "qa_e4389045-5488-46e4-b867-6041bc996e73"
     },
     {
       "case": "missing POST /cancel",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 404,
-      "correlation_id": "qa_7971ee60-402c-4993-9867-9bf51753000a"
+      "correlation_id": "qa_d0845892-59de-4494-9255-1a25c49a5b25"
     },
     {
       "case": "malformed POST /cancel",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 404,
-      "correlation_id": "qa_4cd825ba-fe62-4362-8346-38f45797c4e4"
+      "correlation_id": "qa_a999647c-4f36-4df8-bac5-82a28cb4a059"
     },
     {
       "case": "anonymous POST /cancel",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 401,
-      "correlation_id": "qa_78ce5260-ccc8-422b-9548-1234c54d559a"
+      "correlation_id": "qa_875a7db0-322a-4cce-9985-2b27fa5d5b9e"
     },
     {
       "case": "foreign POST /clarifications",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 404,
-      "correlation_id": "qa_d786948a-4fe0-4c7d-9bba-88f1093ce21d"
+      "correlation_id": "qa_ea4c9666-8ccf-468e-9789-083ccee0709c"
     },
     {
       "case": "missing POST /clarifications",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 404,
-      "correlation_id": "qa_ee9e0ebb-e6ba-47e8-b0a1-0570a8e54214"
+      "correlation_id": "qa_0efc0f85-e2f5-463f-b0e9-8d650580326c"
     },
     {
       "case": "malformed POST /clarifications",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 404,
-      "correlation_id": "qa_017d3358-3e44-4a72-b838-676cf9b59a92"
+      "correlation_id": "qa_4a533da2-b6ff-4f3d-977b-987e5333d470"
     },
     {
       "case": "anonymous POST /clarifications",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 401,
-      "correlation_id": "qa_c2b39804-7711-4a85-9ead-3419fa8dd557"
+      "correlation_id": "qa_c33836b6-14d4-4c42-8bd6-0894fbe27fdb"
     },
     {
       "case": "anonymous create",
       "method": "POST",
       "route": "/v1/requests",
       "status": 401,
-      "correlation_id": "qa_b557675e-e125-4cc4-a0ce-29df500a01ca"
+      "correlation_id": "qa_39568e18-ec22-494d-9494-278c10cf8159"
     },
     {
       "case": "poll seeded work",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_4b7a3148-d82a-4543-8108-bfe3b8b0993c"
+      "correlation_id": "qa_9c5f866a-4845-4707-b35e-5b2406f322da"
     },
     {
       "case": "poll seeded work",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_8618e893-f07d-48c9-9f46-e97b21b76705"
+      "correlation_id": "qa_71856db1-7e5e-4f6a-b91b-eca8fdc1fede"
     },
     {
       "case": "poll seeded work",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_25073b9e-a0e4-48f5-bfc7-0d2292709b47"
+      "correlation_id": "qa_88cb051e-727e-4baa-9caa-a77afecdb5a4"
     },
     {
       "case": "poll seeded work",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_d8c0d274-5204-4073-bca3-12d252757275"
+      "correlation_id": "qa_a049e802-6eb2-493a-8452-dbfe3fd95c1b"
     },
     {
       "case": "seeded offers",
       "method": "GET",
       "route": "/v1/requests/{request_id}/offers",
       "status": 200,
-      "correlation_id": "qa_3d2c278c-d92b-47ef-9462-b48e89bf6c2c"
+      "correlation_id": "qa_26108587-1879-4e8d-a79c-446fe4745b0f"
     },
     {
       "case": "ambiguous create",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_0c1c0a40-13c0-4bea-a06d-00da885869ff"
+      "correlation_id": "qa_412e53b0-d396-4569-ac67-02a7d8704494"
     },
     {
       "case": "draft offers empty",
       "method": "GET",
       "route": "/v1/requests/{request_id}/offers",
       "status": 200,
-      "correlation_id": "qa_f0441a2f-9689-4c72-979b-513dc94ab72d"
+      "correlation_id": "qa_6851fdb1-7ca1-47df-94df-9ae6b6d05046"
     },
     {
       "case": "missing clarification idempotency",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 400,
-      "correlation_id": "qa_4cd35f1d-c97e-4ec9-8503-82da59bddbac"
+      "correlation_id": "qa_f7cc9dbb-8013-41d1-b507-c26521aafc4d"
     },
     {
       "case": "invalid option",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 400,
-      "correlation_id": "qa_e4c5f5ab-269f-4f6b-897d-835135a8ebba"
+      "correlation_id": "qa_81459260-4f37-4328-908b-57381032c350"
     },
     {
       "case": "wrong clarification identifier",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 409,
-      "correlation_id": "qa_012d992f-3e66-4c33-ae7c-752a8b2e6999"
+      "correlation_id": "qa_2f58ce86-596a-4eb2-bb9c-bd07c621c7be"
     },
     {
       "case": "answer category",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 200,
-      "correlation_id": "qa_27921b12-5985-470b-93a2-d1f1990f95fd"
+      "correlation_id": "qa_470d1f60-e72d-4aa2-9c12-5af9b7e7ef43"
     },
     {
       "case": "answer replay",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 200,
-      "correlation_id": "qa_439c76d6-bb18-44a5-b3de-316306b21921"
+      "correlation_id": "qa_433098a3-2422-4fb5-9512-b696e404523e"
     },
     {
       "case": "different answer same key",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 409,
-      "correlation_id": "qa_caac245d-1723-4626-aead-b59aaf4adb61"
+      "correlation_id": "qa_4ae3a203-5c53-4b92-aa1c-e1cab2ce6253"
     },
     {
       "case": "no second clarification",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 409,
-      "correlation_id": "qa_7bb33eac-160d-48f5-a90a-5dde906188ab"
+      "correlation_id": "qa_c217a189-e1b2-4b47-86d7-6a8cf4ba6572"
     },
     {
       "case": "cancel ranked",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 200,
-      "correlation_id": "qa_844dad77-2e42-49f7-8d92-1e170f452c4e"
+      "correlation_id": "qa_c75bd044-f849-4a99-bb53-6ff0df07f5b0"
     },
     {
       "case": "cancel repeat",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 200,
-      "correlation_id": "qa_b1c240cc-c372-4d77-ad93-ae886d143756"
+      "correlation_id": "qa_116db113-437b-4be3-8f8b-a9e1206a9457"
     },
     {
       "case": "draft cancellation create",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_e8bce894-7c48-4679-be48-820adb5fed7b"
+      "correlation_id": "qa_d3cd7509-a8e7-4759-bc85-5a8f28976d20"
     },
     {
       "case": "cancel unanswered draft",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 200,
-      "correlation_id": "qa_bd3d51e3-dfe9-4963-8dd6-3d3600a8a536"
+      "correlation_id": "qa_bcddfb6a-55f3-4687-955e-d2633ba100e5"
     },
     {
       "case": "oversized clarification body",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 413,
-      "correlation_id": "qa_cc388f94-62a0-4656-8f3f-b6bca688d4d5"
+      "correlation_id": "qa_2254e6f7-8ee7-4fd7-949a-00f2fe8a85e1"
     },
     {
       "case": "clarification media type",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 415,
-      "correlation_id": "qa_2aaa1a04-d7e2-48f8-a360-18253682b14c"
+      "correlation_id": "qa_f489c069-0382-4c28-8670-e008187d97eb"
     },
     {
       "case": "oversized cancellation body",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 413,
-      "correlation_id": "qa_44bec051-6c5c-4c2d-9010-facd98e110fc"
+      "correlation_id": "qa_af5f042a-93f8-479d-9536-93c27c13e2f0"
     },
     {
       "case": "answer after cancel",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 409,
-      "correlation_id": "qa_79e48c55-a369-4606-be6a-86fa602eef3c"
+      "correlation_id": "qa_1d5f3190-c14a-42db-a832-1ed8e18280fb"
     },
     {
       "case": "midflight create",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_3e828c84-71df-4574-9c3a-0e2dc9c2e260"
+      "correlation_id": "qa_138f834a-def3-42f7-b875-74b3a4d9bf89"
     },
     {
       "case": "midflight cancel",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 200,
-      "correlation_id": "qa_b7efd223-2416-488c-8d4e-129ab02e33c8"
+      "correlation_id": "qa_f34a2d2b-5b3a-4ff8-9853-3fcaa5ff4c18"
     },
     {
       "case": "cancellation survives worker",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_d5ea726d-4339-4e22-b8f1-5a03488a868b"
-    },
-    {
-      "case": "concurrent duplicate 0",
-      "method": "POST",
-      "route": "/v1/requests",
-      "status": 201,
-      "correlation_id": "qa_1a195611-0143-428a-a530-dde488ae9a43"
+      "correlation_id": "qa_454edd50-7e81-4574-9b54-6e0ee31e9610"
     },
     {
       "case": "concurrent duplicate 1",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_2e3533dc-a74d-4b9b-a522-f586582ef92a"
+      "correlation_id": "qa_ba98c22e-a0cc-49fe-ab20-b62431f79ce2"
+    },
+    {
+      "case": "concurrent duplicate 0",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_2f8c7529-b86a-4e66-9a1e-7f8cf7231cac"
     },
     {
       "case": "out-of-zone create",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_83484b98-efc4-409e-a3de-74edc9d04c58"
+      "correlation_id": "qa_57bc961a-0c3f-42bb-aa8d-6d81ad7a0c72"
     },
     {
       "case": "no affordable offers create",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_bfa5b6b9-ea2a-4318-856f-5fd0357668a4"
+      "correlation_id": "qa_599b6800-9abd-4408-9655-02d7ccfd68d2"
     },
     {
       "case": "no coverage poll",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_e520720c-86d1-4551-9964-611ab79f7201"
+      "correlation_id": "qa_e29fcdee-3d22-414d-86a7-8204f378a9b8"
     },
     {
       "case": "no coverage offers",
       "method": "GET",
       "route": "/v1/requests/{request_id}/offers",
       "status": 200,
-      "correlation_id": "qa_952bc212-f6e1-4fab-98ba-fa65df6ae863"
+      "correlation_id": "qa_348727cf-a702-4ab2-9f0c-9ad211c2eea1"
     },
     {
       "case": "no coverage cannot cancel expired",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 409,
-      "correlation_id": "qa_8f5ff982-87bb-443f-a18c-1e3fa8284d4b"
+      "correlation_id": "qa_0cae2c48-30f5-47fb-90cb-7b5cb0255c36"
     },
     {
       "case": "no eligible offers poll",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_7618185d-7141-4bb0-8158-f0c1a6430222"
+      "correlation_id": "qa_322c31e7-bee2-4524-8a72-96363026e07f"
     },
     {
       "case": "no eligible offers poll",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_3496acce-65b1-4bb2-9a01-83b83a9d9dcf"
+      "correlation_id": "qa_8053e221-205f-4627-a37e-fb462956419a"
     },
     {
       "case": "no eligible offers poll",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_e5663991-b881-4db5-beb7-164201c2af1c"
+      "correlation_id": "qa_88693223-d9bc-450d-8514-91edba70fe88"
     },
     {
       "case": "no eligible offers offers",
       "method": "GET",
       "route": "/v1/requests/{request_id}/offers",
       "status": 200,
-      "correlation_id": "qa_f698999f-d698-409b-a058-9b597b7a1d59"
+      "correlation_id": "qa_66f2ccfc-3cd8-403d-aa01-d3be05bc5004"
     },
     {
       "case": "no eligible offers cannot cancel expired",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 409,
-      "correlation_id": "qa_ac2d7e65-77bc-4461-a0e7-a21cfd24fbc6"
+      "correlation_id": "qa_e70f9939-cd15-42f6-94f8-8218558e288a"
     },
     {
       "case": "expiring unanswered draft",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_38f61b40-78f7-4db1-9dc2-96db6dc45842"
+      "correlation_id": "qa_5bc304a0-d0d0-49ec-a51b-2942654dc72f"
     },
     {
       "case": "unanswered draft expiration",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_70e810c6-3b5a-4c53-a63c-3f9d1a3b7742"
+      "correlation_id": "qa_58bf02a1-1bf1-4c24-89be-5b1de1023ab8"
     },
     {
       "case": "answer expired question",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 409,
-      "correlation_id": "qa_a2f7f3a8-d9dc-4347-9e9a-c84abcfd52d7"
+      "correlation_id": "qa_8ea22b08-b981-4762-8908-5ff773f20792"
     },
     {
       "case": "dataset guest batch 1",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_8562393c-48a2-4aeb-bd52-aa21c69fb27d"
+      "correlation_id": "qa_13c3c4a2-9d2b-4b1a-98e1-9684759460ba"
     },
     {
       "case": "dataset barber-budget-relative-time",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_5d71bc56-94c2-4ee6-9887-61720ab759e2"
+      "correlation_id": "qa_22baac64-827b-47d8-924e-60b2a8021f6b"
     },
     {
       "case": "dataset beauty-budget",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_e7322679-5d30-4ea2-b1bd-61fcc2f11c58"
+      "correlation_id": "qa_828fe5e6-1e91-4bd1-8f21-c630494be4e1"
     },
     {
       "case": "dataset barber-defaults",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_2232d975-3f54-4d61-8683-811d5c0ba0b6"
+      "correlation_id": "qa_4e6a4d58-23cd-47f9-bb18-723341bed844"
     },
     {
       "case": "dataset beauty-defaults",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_049a24de-6617-4dab-8b22-91a48bd5d387"
+      "correlation_id": "qa_fb3f3b3d-153d-4872-81cd-3b169aed782c"
     },
     {
       "case": "dataset ambiguous-category",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_6eef9070-28b8-417b-818b-9ea81c94e262"
+      "correlation_id": "qa_7aa4aef3-b7fc-4b2a-8728-1f0718e5334a"
     },
     {
       "case": "dataset missing-category",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_445cdf70-8286-41e4-9150-42320c3fe99d"
+      "correlation_id": "qa_abbd8797-20da-4047-b549-480ceeb3f260"
     },
     {
-      "case": "dataset unsupported-plumber",
+      "case": "dataset open-plumber",
       "method": "POST",
       "route": "/v1/requests",
-      "status": 400,
-      "correlation_id": "qa_b8a00033-0f18-41f2-9480-615ca0a9bf48"
+      "status": 201,
+      "correlation_id": "qa_fef1a301-0e27-4efe-8885-b8132237e808"
     },
     {
-      "case": "dataset unsupported-restaurant",
+      "case": "dataset open-restaurant",
       "method": "POST",
       "route": "/v1/requests",
-      "status": 400,
-      "correlation_id": "qa_1810f278-f0e2-4c65-806f-c1effcd455ba"
+      "status": 201,
+      "correlation_id": "qa_82ee81c8-42f1-405e-93d3-22f171e87e0f"
     },
     {
       "case": "dataset guest batch 2",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_4a484c47-17fc-480d-9cd2-947aad899416"
+      "correlation_id": "qa_b0d68027-3fee-450e-8d8d-fb52ef2fa56d"
     },
     {
       "case": "dataset restricted-intent",
       "method": "POST",
       "route": "/v1/requests",
       "status": 422,
-      "correlation_id": "qa_2b1d9821-d0d2-4ac1-9f0c-94b14b07885f"
+      "correlation_id": "qa_b9b4e70f-991e-413d-a4a3-6510c51a7c0a"
     },
     {
       "case": "dataset explicit-category-wins",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_6ee62b31-84d4-487e-93e3-3f0ce51a8679"
+      "correlation_id": "qa_5f6d0b6a-e624-4ede-9f98-eb5be17950bb"
     },
     {
       "case": "dataset explicit-budget-wins",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_045e0172-0504-4648-a581-d0cbe0df2ca7"
+      "correlation_id": "qa_6c2359f8-9de4-4546-bc0c-4016f3ee5b77"
     },
     {
       "case": "dataset explicit-offset-time",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_c8e2f192-75eb-42bc-afbb-dd836b99260c"
+      "correlation_id": "qa_6334d8fd-129b-4b8a-acbd-6acd5fd29b51"
     },
     {
       "case": "dataset minimum-budget",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_1c0b859c-5694-4846-ad5a-967e1d6deb59"
+      "correlation_id": "qa_77bbeefe-e3be-4353-b0ce-f86eb7df49e6"
     },
     {
       "case": "dataset maximum-budget",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_15670ce3-fd9b-403f-9946-cae2d46cf7e0"
+      "correlation_id": "qa_d7b02edf-0058-420b-88f4-4cd0540d9240"
     },
     {
       "case": "dataset low-budget",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_fa12c892-a221-4b5c-a46b-770cef5673ae"
+      "correlation_id": "qa_147019dd-3343-48eb-9b1a-2c0cc23bcafb"
     },
     {
       "case": "dataset absurd-budget",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_cea5c956-dc8f-4c9f-a489-eaaf896b4d39"
+      "correlation_id": "qa_da91c4a8-ee0c-4c39-9e31-edc89f682d74"
     },
     {
       "case": "dataset guest batch 3",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_d8ba465b-67cc-4a2e-9d3a-bd723734ee89"
+      "correlation_id": "qa_7c224938-7d77-44d2-a840-8c8debe1abd4"
     },
     {
       "case": "dataset fractional-cents",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_69021ad8-59ed-47fc-9f51-87387b241cc1"
+      "correlation_id": "qa_9eef778b-7bef-4920-9e4f-97a301bc74fc"
     },
     {
       "case": "dataset negative-radius",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_31b694c0-cc82-4c94-8934-00470df62943"
+      "correlation_id": "qa_1f83075b-0070-4da7-99b9-9e4ee7dc862d"
     },
     {
       "case": "dataset oversized-radius",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_617d9743-59c2-402b-b406-e8fb3a5701ed"
+      "correlation_id": "qa_b3b6274b-5f96-4bb5-95ac-d8fe9e1b91a1"
     },
     {
       "case": "dataset unknown-field",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_6f925eb1-87f0-4cbe-afcc-96e92c3d751c"
+      "correlation_id": "qa_bb1f80a4-6cb3-4b00-81ee-94e3d1fb91af"
     },
     {
-      "case": "dataset unsupported-structured-category",
+      "case": "dataset invalid-structured-category",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_f96bd064-2d5b-44a4-8eb0-0ebfdc1b86d0"
+      "correlation_id": "qa_839fe77c-51d8-4005-b549-fa574b2b806a"
     },
     {
       "case": "dataset invalid-latitude",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_22cfe970-db93-46a1-92aa-7add5b21b1e7"
+      "correlation_id": "qa_016906a6-c603-42f5-bcaf-f4d4119e2055"
     },
     {
       "case": "dataset invalid-longitude",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_b3579600-7609-4d37-8114-747945c3a7a8"
+      "correlation_id": "qa_fa4dbffc-1f2b-48a7-bd2c-f21ecdbcf754"
     },
     {
       "case": "dataset missing-precision",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_08262fa0-438a-4022-ac7e-eb7b0a81026b"
+      "correlation_id": "qa_b28b2971-fcc6-4158-92d9-0f9feaf91f7f"
     },
     {
       "case": "dataset guest batch 4",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_08f976a0-ede0-4d29-b0b3-462113d2c963"
+      "correlation_id": "qa_b4d13905-998a-4136-9a8e-f867ce007d2a"
     },
     {
       "case": "dataset malformed-timestamp",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_03ff616c-ec07-4ba3-b927-3039371945a5"
+      "correlation_id": "qa_d7628932-f575-4ba4-b28f-4412f2883260"
     },
     {
       "case": "dataset offset-missing",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_f677b761-1af5-42d2-9281-7c9861256d93"
+      "correlation_id": "qa_d42a4c37-2cfa-4792-bbc4-8af5b1fbc629"
     },
     {
       "case": "dataset empty-text",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_fd3772be-4e9f-4fec-9327-5dddf7c2604d"
+      "correlation_id": "qa_986164b3-19d2-4c77-a0f6-40332894e050"
     },
     {
       "case": "dataset overlong-text",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_09904025-7e4b-4889-9f67-e323f3981858"
+      "correlation_id": "qa_6b0f19d9-3630-4de3-8956-dd9aa4d652a2"
     },
     {
       "case": "dataset whitespace-text",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_2473ef3f-6b91-4dff-8c89-0be7bfa16cfd"
+      "correlation_id": "qa_c6289724-8e72-45fb-844d-9784580795b7"
     },
     {
       "case": "dataset control-character",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_bfbe1ce7-270b-4786-b00e-3c3ff7d9c5d1"
+      "correlation_id": "qa_22731e1e-4d4d-4cac-b483-c2b9f8878bdc"
     },
     {
       "case": "dataset past-time",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_72ac7fa0-4535-4ded-a047-2cc40628b71c"
+      "correlation_id": "qa_3d9e1aab-83a3-4647-bb85-978f84ce492b"
     },
     {
       "case": "dataset current-time",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_34d470b4-7bd0-41cb-934c-e53705a945e8"
+      "correlation_id": "qa_d87fa909-27c6-44a5-b82c-94bb81fdf48c"
     },
     {
       "case": "dataset guest batch 5",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_07b1ec23-dd23-4ede-b5c4-000883a2fe53"
+      "correlation_id": "qa_d712253b-a7c1-494f-a218-2d4f6d90232a"
     },
     {
       "case": "dataset beyond-horizon",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_d62410de-c02e-4c71-b457-711e835d2931"
+      "correlation_id": "qa_b1767c85-75eb-4b01-bdb4-3fb963e212e8"
     },
     {
       "case": "dataset unsupported-currency",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_1ebeae7c-d23d-4192-a14e-b7fc4f6ae3f6"
+      "correlation_id": "qa_a9e29697-0e76-465f-a51d-f36fd6625075"
     },
     {
       "case": "dataset budget-without-currency",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_751bab2d-e5df-4068-a102-f04380e3e73b"
+      "correlation_id": "qa_5e16a1d3-6764-4908-a9fd-c13ad2c0ec24"
     },
     {
       "case": "dataset seven-day-boundary",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_63b2a995-9d62-4753-bc05-dab808bae5b6"
+      "correlation_id": "qa_853101bf-6b54-486d-a537-6dbf0e65c7a8"
+    },
+    {
+      "case": "dataset shoe-repair-tomorrow",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_bbdda898-698f-4757-a7ba-835555a334de"
+    },
+    {
+      "case": "dataset open-locksmith",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_c8c35b1c-065a-4cc0-9320-1686aa54ada6"
+    },
+    {
+      "case": "dataset thousands-budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_4c100289-e120-41cb-978a-adee912f9293"
+    },
+    {
+      "case": "dataset over-cap-budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_f28344e0-457d-4c8a-9434-eabc047e948b"
     },
     {
       "case": "abuse schema guest",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_7386f0af-e919-4f02-a24b-4069a862efaa"
+      "correlation_id": "qa_3ca1c7ea-2dd3-40b2-8cd0-fa21093a3734"
     },
     {
       "case": "abuse numeric text",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_9343640d-76d9-478e-adc6-15644300d37b"
+      "correlation_id": "qa_3ea8e62f-9e9b-46b4-b903-1e3bf1adb1d9"
     },
     {
       "case": "abuse null text",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_17548711-a8f0-42ae-a80c-513ed5d08e80"
+      "correlation_id": "qa_597b02dc-6eb8-4935-8995-125835a98f3f"
     },
     {
       "case": "abuse null location",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_b66630a4-aa95-4e88-9586-927ff2c711a3"
+      "correlation_id": "qa_6db971f5-44ca-47b3-a333-b2a3caea6a16"
     },
     {
       "case": "abuse unknown nested field",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_6e0feb3d-de88-478e-a5a8-11228ac9a42c"
+      "correlation_id": "qa_d3d7075d-c28e-4d1b-8c0e-6ec93b250db0"
     },
     {
       "case": "abuse string coordinate",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_8ac95fb8-5620-464c-ba9a-90d362d92c13"
+      "correlation_id": "qa_8585af47-75fa-41ae-9c62-023d04bd764f"
     },
     {
       "case": "abuse fractional radius",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_c4687786-94dc-454e-b6d6-293fb3372528"
+      "correlation_id": "qa_86f300af-4b03-4e1d-a898-58f0debec7d8"
     },
     {
       "case": "abuse invalid precision",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_74b593ba-b73e-4ab2-9857-2dbf0cb9f040"
+      "correlation_id": "qa_a367cda5-cd74-4a7d-974a-52e84abcb688"
     },
     {
       "case": "abuse missing category remains untrusted",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_d0f3d191-fccb-4986-986d-8b1baf873d42"
+      "correlation_id": "qa_5c6a20c1-3510-405c-93f9-9385c0162390"
     },
     {
       "case": "abuse boolean budget",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_a5a4ea06-6c5d-4340-8bcd-9a67b9bf82b5"
+      "correlation_id": "qa_a393014f-f932-4f10-9bc8-585671b2554b"
     },
     {
       "case": "abuse grammar guest",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_195ffca9-3d18-47fa-a698-17337c05f389"
+      "correlation_id": "qa_b385617b-c9ba-4769-abea-8f82aa1e7614"
     },
     {
       "case": "abuse fractional-cent text",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_5072daec-dd07-47f3-b35d-cb4accb0583a"
+      "correlation_id": "qa_85f7fb61-1ca9-4f7f-9ab7-1b37162fa8a9"
     },
     {
       "case": "abuse negative text budget",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_967d56b7-27ff-4797-8c63-53af077f17f7"
+      "correlation_id": "qa_373fdd95-cd86-4ec7-a792-6bcb235b850b"
     },
     {
-      "case": "abuse comma text budget",
+      "case": "abuse malformed comma text budget",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_c5c6bd82-d7c8-4717-b3f2-ec4081b7b630"
+      "correlation_id": "qa_b16fe2b2-35fd-48c2-8810-3612084ba925"
     },
     {
       "case": "abuse conflicting text budgets",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_4d2e5030-6b8d-4b6e-aaee-d61439996c67"
+      "correlation_id": "qa_0b6699af-743a-4670-ae69-b0fcaa95cb44"
     },
     {
       "case": "abuse fractional relative time",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_f3215bce-56f3-4201-818f-4188294bd149"
+      "correlation_id": "qa_3a26537b-031f-4252-924d-50bfae2aa3e3"
     },
     {
       "case": "abuse negative relative time",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_769d7a18-d527-4081-8819-90c1869796a1"
+      "correlation_id": "qa_e0fcb0e6-9fe4-444a-aa14-a256e56604ef"
     },
     {
       "case": "abuse zero relative time",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_3d76d62b-2f98-40d4-9776-9d9d74a4f0f1"
+      "correlation_id": "qa_92aae6a5-72f2-4052-8859-99373b41977f"
     },
     {
       "case": "abuse oversized relative time",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_ddccf42a-c97f-470b-aae9-b1663448c25b"
+      "correlation_id": "qa_e92b5c7a-c0dc-4d2b-b902-cfccc29392cd"
     },
     {
       "case": "abuse conflicting relative times",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_42f4f910-7df6-49a3-8d8f-654258747985"
+      "correlation_id": "qa_b438bee5-b253-4165-912c-c4d4fc3be2b8"
     },
     {
       "case": "abuse overrides guest",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_44e5a6cc-e1ec-4454-9884-96755df88ed3"
+      "correlation_id": "qa_9824d028-85aa-4c17-bf17-98d1114f64a1"
     },
     {
       "case": "authoritative budget overrides invalid extraction",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_a9fd709a-179a-40e5-a556-43fb53320683"
+      "correlation_id": "qa_bcf4086a-494f-41d7-aa17-fcadae5fe296"
     },
     {
       "case": "authoritative deadline overrides invalid extraction",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_fc408d5f-b315-4ab7-a220-b28f4a4b34b9"
+      "correlation_id": "qa_d24225f6-64b1-486a-b9a9-117e2d711492"
     },
     {
       "case": "abuse transport guest",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_dce33c2e-8a52-46f0-9733-43904627b90c"
+      "correlation_id": "qa_1f69c99b-1217-478d-a95c-d105756d2b21"
     },
     {
       "case": "missing idempotency",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_fc953672-afcf-4924-a321-bb8d348eb126"
+      "correlation_id": "qa_8331515c-f958-49a3-88c3-e5c6fadd72f1"
     },
     {
       "case": "malformed idempotency space",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_5c74fd0d-8ef8-4210-9769-07a094d59fd3"
+      "correlation_id": "qa_b08ede9e-f2b3-4df8-b963-b10241cbdc32"
     },
     {
       "case": "malformed idempotency short",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_76bdaffc-9f23-4875-a244-40d9911276fc"
+      "correlation_id": "qa_84e72074-600e-45b9-93f5-6f90917ca51b"
     },
     {
       "case": "malformed idempotency long",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_248c5d52-0abc-45cb-8646-916b41459c03"
+      "correlation_id": "qa_45538545-96d1-4b19-9389-c907ef7af1bd"
     },
     {
       "case": "malformed idempotency punctuation",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_5f189f3d-fa64-4aed-baf1-841d5f901405"
+      "correlation_id": "qa_aacc7fa2-0d34-4e78-ab1d-7e6ebdcf82f5"
     },
     {
       "case": "oversized body",
       "method": "POST",
       "route": "/v1/requests",
       "status": 413,
-      "correlation_id": "qa_4189f478-f89a-4773-b730-0c84ff02f983"
+      "correlation_id": "qa_7bc108e0-a38c-45ae-87f4-abde975158ce"
     },
     {
       "case": "malformed JSON",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_4a921f27-6439-48b4-86ac-a42b4b58727c"
+      "correlation_id": "qa_1bec92df-f4a2-4543-a9ca-3e8521880ad4"
     },
     {
       "case": "duplicate JSON property",
       "method": "POST",
       "route": "/v1/requests",
       "status": 400,
-      "correlation_id": "qa_92a90ac6-e8d9-41e8-924c-6821f2164f0b"
+      "correlation_id": "qa_94254de5-2e62-4291-b918-b8ac44e95da6"
     },
     {
       "case": "wrong media type",
       "method": "POST",
       "route": "/v1/requests",
       "status": 415,
-      "correlation_id": "qa_8d28e517-b920-4e92-98a8-02edb2d65679"
-    },
-    {
-      "case": "rate D",
-      "method": "POST",
-      "route": "/v1/auth/guest",
-      "status": 201,
-      "correlation_id": "qa_7a74ed50-d0c3-4844-9d2a-1c43b79e5f42"
-    },
-    {
-      "case": "rate B",
-      "method": "POST",
-      "route": "/v1/auth/guest",
-      "status": 201,
-      "correlation_id": "qa_dd429a41-133e-471e-9d5a-e6ab0ba7e537"
+      "correlation_id": "qa_b2bf0370-3cc4-45fb-aad1-974c2aeb078d"
     },
     {
       "case": "rate C",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_256d0070-b9f5-4e20-99f4-5d36229ccbac"
+      "correlation_id": "qa_03b78bb7-8ee8-4693-bc13-1b9686d494f6"
     },
     {
       "case": "rate A",
       "method": "POST",
       "route": "/v1/auth/guest",
       "status": 201,
-      "correlation_id": "qa_122e6e8b-34db-4002-bdc8-8e81d81e2371"
+      "correlation_id": "qa_b379a0ec-9039-4b01-a43d-d99bb92415dc"
+    },
+    {
+      "case": "rate D",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_1134cfb0-3d39-4165-8214-df7fa2e8c813"
+    },
+    {
+      "case": "rate B",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_309a0985-cc02-4601-b970-6b3dadd94a28"
     },
     {
       "case": "account limit allowed 1",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_adf0c0cb-f463-4ada-8ba1-d783ac8969fd"
+      "correlation_id": "qa_85126165-c795-4803-a368-409baf92629b"
     },
     {
       "case": "account limit allowed 2",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_656fd37e-3efc-4895-bc13-376527e9c98d"
+      "correlation_id": "qa_60c49924-6cad-4cc8-8a04-318b51446f8c"
     },
     {
       "case": "account limit allowed 3",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_057d1df4-ffe2-4a0b-83e5-53e8572a8229"
+      "correlation_id": "qa_19bfb882-7a15-4c81-9a44-f589440ad904"
     },
     {
       "case": "account limit allowed 4",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_ae26b281-2da2-4bc4-b598-fcb36898060e"
+      "correlation_id": "qa_41a232a9-6b51-413d-adfc-677f69eb6283"
     },
     {
       "case": "account limit allowed 5",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_028e1942-e82e-4990-a214-be06160b9fbc"
+      "correlation_id": "qa_5d0baa47-88bc-4379-ae2a-b260a90d2267"
     },
     {
       "case": "account limit allowed 6",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_ec6f1d08-9e6c-4e73-872e-8e6d9398b53b"
+      "correlation_id": "qa_415399c0-5e16-4d46-b14f-5b89aae4328c"
     },
     {
       "case": "account limit allowed 7",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_dca3b423-7f1e-4a8a-acb2-f54bb374cd21"
+      "correlation_id": "qa_c2910c01-3ea8-4555-a671-960cc851450f"
     },
     {
       "case": "account limit allowed 8",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_d802d749-1dac-40f7-a662-6a1521be86d3"
+      "correlation_id": "qa_42178ba6-3d0a-471a-ae40-6693db52514f"
     },
     {
       "case": "account limit allowed 9",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_a13b3429-d7e0-4979-98f8-daf9b8a19941"
+      "correlation_id": "qa_6d38ebb1-6600-453a-9504-d9bea07d1afd"
     },
     {
       "case": "account limit allowed 10",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_06e8167b-438c-4065-9a1f-7f36e628da47"
+      "correlation_id": "qa_0ee1251e-87c9-410f-b1fa-40ecf40a84d4"
     },
     {
       "case": "account creation limit",
       "method": "POST",
       "route": "/v1/requests",
       "status": 429,
-      "correlation_id": "qa_c08ed0ac-9b7e-40d6-96a6-a85b587d26da"
+      "correlation_id": "qa_bb757929-6b9f-42d1-8f89-af53cb3fb589"
     },
     {
       "case": "address limit allowed 1",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_e21bc13c-b5f9-459e-851d-f50fc2a6b635"
+      "correlation_id": "qa_c2c5d9d3-e4c8-4e1c-aba1-d589f3f98e95"
     },
     {
       "case": "address limit allowed 2",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_3faaa930-2aa0-4486-a649-9e310deffcfc"
+      "correlation_id": "qa_d0c1d029-66cd-4f0c-bd98-5f935e605344"
     },
     {
       "case": "address limit allowed 3",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_27723d3a-3a94-4076-ad59-9bbabf7a695b"
+      "correlation_id": "qa_dda8b072-952a-40a3-b085-e4f11fc5ed42"
     },
     {
       "case": "address limit allowed 4",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_f8f20a13-ee79-48e3-b72e-57ca56bc3250"
+      "correlation_id": "qa_9da9c8e8-4257-4ebe-bc37-bd08f962eab5"
     },
     {
       "case": "address limit allowed 5",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_0f8b74aa-c6c2-46e9-b9ab-963924f25f0a"
+      "correlation_id": "qa_3bef85c7-fa6e-4424-9929-f65f894ef2ed"
     },
     {
       "case": "address limit allowed 6",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_afcfd3c4-dfe6-4a33-8fae-124a7fa87082"
+      "correlation_id": "qa_072b4518-f17b-47ca-b4b9-0f40bddb3382"
     },
     {
       "case": "address limit allowed 7",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_75381b19-f2fb-4d8f-bd5d-480e51ff76ab"
+      "correlation_id": "qa_9ad39f3a-cbe3-4f42-8840-5eef1049488c"
     },
     {
       "case": "address limit allowed 8",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_e61ebf14-3f33-4a01-b30e-3639b84fe866"
+      "correlation_id": "qa_f9afe20b-f2e3-47b5-aae8-e74a38b86bbe"
     },
     {
       "case": "address limit allowed 9",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_7545f350-cbac-46c4-ad4f-07a346fdbd8e"
+      "correlation_id": "qa_c9b311fe-9ca1-4900-a2f4-07e97aed4a75"
     },
     {
       "case": "address limit allowed 10",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_3a313739-ad89-4cb4-ac1b-04fae3c038ab"
+      "correlation_id": "qa_9753fb5c-4ca4-4a84-a9aa-b60339fd874d"
     },
     {
       "case": "address limit allowed 11",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_5c7b0e04-5b46-45ce-b11d-49bca65a0241"
+      "correlation_id": "qa_a6722bb3-a846-412b-8540-2024eb667b4d"
     },
     {
       "case": "address limit allowed 12",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_88d69873-4e20-4225-b1c0-e4dee4e17ddf"
+      "correlation_id": "qa_4bae704f-e169-4fee-8d60-dd0a35f3c121"
     },
     {
       "case": "address limit allowed 13",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_1fce88cf-8db3-4271-bfb2-be03018a0611"
+      "correlation_id": "qa_dfdb37ba-d020-4268-a72b-116dd0eadc3a"
     },
     {
       "case": "address limit allowed 14",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_fbb66654-61fa-4b40-b975-7400d904cc3f"
+      "correlation_id": "qa_bda3c4af-309f-4562-8149-54bf24f76295"
     },
     {
       "case": "address limit allowed 15",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_cf9b2f5d-b80e-4939-9bee-8e73f7a7154e"
+      "correlation_id": "qa_c6dab04d-225e-4067-aa17-86474d33c121"
     },
     {
       "case": "address limit allowed 16",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_ac562fc7-e80c-41bb-a38f-450f0933b1e8"
+      "correlation_id": "qa_decc22c0-2b97-4e63-8af8-d1f6bbc409bd"
     },
     {
       "case": "address limit allowed 17",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_32972db2-6bd4-4c6d-af03-7380fffea2d1"
+      "correlation_id": "qa_5fdae0af-4671-484c-807c-780e34abf504"
     },
     {
       "case": "address limit allowed 18",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_0ee980cb-0060-4f5d-902b-61d9bbea440c"
+      "correlation_id": "qa_b57cbc9f-3678-4dfa-8e14-50b0226b1b2c"
     },
     {
       "case": "address limit allowed 19",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_0659ff03-93e1-487f-ac15-dee84bd18190"
+      "correlation_id": "qa_de5b8712-0b03-4f03-aa59-7446f03b7795"
     },
     {
       "case": "address limit allowed 20",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_c9739223-9a14-451e-8efc-5b90b0aa38b2"
+      "correlation_id": "qa_fb316e01-3a04-4f4b-af81-4e4af910b4db"
     },
     {
       "case": "address limit allowed 21",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_04f075f5-1f67-422a-84ec-1ebd6c7242be"
+      "correlation_id": "qa_87abcc96-2ffa-49e4-b7cd-d22a8bf1997a"
     },
     {
       "case": "address limit allowed 22",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_242ce2ea-1a68-4e5c-9b76-a8464590fbda"
+      "correlation_id": "qa_12c2ba33-7a83-4bcd-8cfe-e238e8fb94f4"
     },
     {
       "case": "address limit allowed 23",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_f0ae02bd-91df-472f-94b1-cc6ea5455aee"
+      "correlation_id": "qa_cd84fcf5-4f79-4c95-a34d-ef85f87d8497"
     },
     {
       "case": "address limit allowed 24",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_110b3504-6f6a-4244-9903-678ff1184be4"
+      "correlation_id": "qa_6f300d58-a598-4eac-b987-7d757b2a6c89"
     },
     {
       "case": "address limit allowed 25",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_790a031b-86c8-4797-876f-98fa9911f57c"
+      "correlation_id": "qa_97f31ec5-70e3-424e-9a33-788177eefbdc"
     },
     {
       "case": "address limit allowed 26",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_63ff0d2f-75c4-4d42-8f05-4f5e6a9a43b0"
+      "correlation_id": "qa_75729289-f713-4d2d-b882-105d96108c4c"
     },
     {
       "case": "address limit allowed 27",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_e60ffeb6-f64d-4e1f-9eeb-1cb0be824374"
+      "correlation_id": "qa_23212b54-1b70-4913-a7fe-45defd458159"
     },
     {
       "case": "address limit allowed 28",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_38a1a232-0984-4682-971b-d1dc5986b887"
+      "correlation_id": "qa_a20ccf93-c854-40fd-84fe-8af73aa5609c"
     },
     {
       "case": "address limit allowed 29",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_df9e985a-655d-4d53-91cf-01c624552b30"
+      "correlation_id": "qa_ba797953-ac0d-427e-909a-ca787586cf12"
     },
     {
       "case": "address limit allowed 30",
       "method": "POST",
       "route": "/v1/requests",
       "status": 201,
-      "correlation_id": "qa_b829cce7-342f-49d1-916f-890ed125addf"
+      "correlation_id": "qa_f3e30129-b0e2-4ff9-bc70-0cb083b661b0"
     },
     {
       "case": "caller address creation limit",
       "method": "POST",
       "route": "/v1/requests",
       "status": 429,
-      "correlation_id": "qa_40e49aad-608c-41c9-9c5f-16c3e3fbbfc1"
+      "correlation_id": "qa_50a6b58b-1b33-46c4-aa74-a1abbf209982"
     },
     {
       "case": "read limit allowed 1",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_874c05ab-5be0-414d-a096-32be4a15aed8"
+      "correlation_id": "qa_0d6c7375-11da-43a2-9f9b-95d248cc069e"
     },
     {
       "case": "read limit allowed 2",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_6ca3cede-0be9-40a1-b5d4-fe2357bd461c"
+      "correlation_id": "qa_33fd11c0-886d-4c96-9bc8-08e50eabdac3"
     },
     {
       "case": "read limit allowed 3",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_68baa6fa-daa2-4828-9438-328a49f339e4"
+      "correlation_id": "qa_911d0ed6-ccbb-493c-a826-d33b07edd2f7"
     },
     {
       "case": "read limit allowed 4",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_9c087380-cab2-4394-8304-83c4bc3eff0d"
+      "correlation_id": "qa_477b9b85-a1e8-4eb3-8f7a-011cd8404d0a"
     },
     {
       "case": "read limit allowed 5",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_7e570493-e588-46af-9476-d64e41b9fa86"
+      "correlation_id": "qa_828e4d82-7505-43ea-a4f6-22bc2815aa13"
     },
     {
       "case": "read limit allowed 6",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_4b9448fb-522b-434b-bde4-56fca589bc66"
+      "correlation_id": "qa_3492a388-9ea3-4d8a-ad85-e1b35f8126f4"
     },
     {
       "case": "read limit allowed 7",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_da6bec7b-51aa-4f7c-916e-41545088c61b"
+      "correlation_id": "qa_cc7048ff-a1aa-4f1c-8906-35486f224f93"
     },
     {
       "case": "read limit allowed 8",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_e3c3f93f-ff75-4672-baa2-1e946af030bc"
+      "correlation_id": "qa_e3f8b93d-2024-4b4b-b718-63a91dedd325"
     },
     {
       "case": "read limit allowed 9",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_e795a129-2621-452a-9d79-136e2388f9db"
+      "correlation_id": "qa_d6e183a9-099c-41a1-89dd-db291ce7467d"
     },
     {
       "case": "read limit allowed 10",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_c2867193-f062-4be8-a856-94d2bc773157"
+      "correlation_id": "qa_5b3edee7-ed65-40bb-af0d-6ce0dfb60e6b"
     },
     {
       "case": "read limit allowed 11",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_4eb97108-253f-4cf2-968f-3e90ff550fbc"
+      "correlation_id": "qa_4a528b46-41e9-41f8-98b6-6ecbcd65018d"
     },
     {
       "case": "read limit allowed 12",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_35409648-d7ef-4994-bbd3-15caf6333dd7"
+      "correlation_id": "qa_9dbd56ab-de56-4edd-b565-fb8c98589d39"
     },
     {
       "case": "read limit allowed 13",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_83fa2d52-c67b-4b05-9b66-607e139c8f73"
+      "correlation_id": "qa_8d109ccf-32e4-4c0f-b166-62bc035765f1"
     },
     {
       "case": "read limit allowed 14",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_79348289-71a4-4d3a-84ce-5091308123f2"
+      "correlation_id": "qa_5d58e8af-3a83-4d2f-a12a-6e1f3b1a9454"
     },
     {
       "case": "read limit allowed 15",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_6e6fe00b-0b50-420e-8c37-c25a1aaf20d8"
+      "correlation_id": "qa_c9c27fdc-a533-4369-884b-29f8d20018a6"
     },
     {
       "case": "read limit allowed 16",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_f017e7c5-6ce0-4c59-9502-faf9d54680a0"
+      "correlation_id": "qa_8001691a-8d9c-41c1-82aa-4eaa9bf7d99c"
     },
     {
       "case": "read limit allowed 17",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_b590f7f8-d8d5-4b86-962e-0ff080bec4c2"
+      "correlation_id": "qa_625a1427-5342-4fb9-a229-cf08761914ee"
     },
     {
       "case": "read limit allowed 18",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_4260d59c-9356-4b41-ba1c-f6a9ed53c741"
+      "correlation_id": "qa_8c9d37fb-3e8a-479b-ba40-922d4b6162e1"
     },
     {
       "case": "read limit allowed 19",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_9271e85b-611d-4b5a-9d67-551abaa3926d"
+      "correlation_id": "qa_bd6136f5-7d52-4ab9-9130-fb258a8bd14c"
     },
     {
       "case": "read limit allowed 20",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_834d3efd-1bf6-4a0c-b881-8d4eceaa21b8"
+      "correlation_id": "qa_95c9b8a8-3db0-4a1f-a7af-19b40ed846b9"
     },
     {
       "case": "read limit allowed 21",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_94ddc576-54a9-4bce-aa2d-b3cf19f1fff4"
+      "correlation_id": "qa_dd9daa7d-f356-46ec-8312-a1859e9caf27"
     },
     {
       "case": "read limit allowed 22",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_dfffa8ad-6c6d-47de-ac0e-7ef0d679cc3e"
+      "correlation_id": "qa_b58d9b88-bee4-4d87-89c1-79bc31658282"
     },
     {
       "case": "read limit allowed 23",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_e937c22a-cf85-429d-b61f-72c88de5b982"
+      "correlation_id": "qa_6bd1c647-2921-4ccb-aa70-9c66bde12b73"
     },
     {
       "case": "read limit allowed 24",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_9d9041aa-7bae-46df-b262-4d6824a35165"
+      "correlation_id": "qa_facd672c-5514-4c66-9d3b-81388b8edf9f"
     },
     {
       "case": "read limit allowed 25",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_7c18a2df-9138-4529-ba2b-33e62937f994"
+      "correlation_id": "qa_cd5d3ff6-f1fd-40cd-861e-d97ab920a1fe"
     },
     {
       "case": "read limit allowed 26",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_1dd2e92c-b697-48d8-8dd1-6f1cf982a15f"
+      "correlation_id": "qa_4143236c-94ac-4cbb-9ccb-fd1021a9c840"
     },
     {
       "case": "read limit allowed 27",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_f69c96ee-b7f9-433a-a58b-b19b5b125b98"
+      "correlation_id": "qa_266030d7-d215-474a-8959-e6c8dd3494a9"
     },
     {
       "case": "read limit allowed 28",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_ea95615b-c533-4826-8093-c2b967e1a8b3"
+      "correlation_id": "qa_3806f511-e20e-4cc1-bc55-e04bac425121"
     },
     {
       "case": "read limit allowed 29",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_933f200b-f10b-4847-acb8-63e2fc7705b1"
+      "correlation_id": "qa_97c47bbb-ec2e-49fb-9846-29ca07cd4679"
     },
     {
       "case": "read limit allowed 30",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_9e0312c1-ca35-4c44-96c6-c41d2c7ce146"
+      "correlation_id": "qa_5b1eb85c-8697-433c-aa70-95ce360b50c5"
     },
     {
       "case": "read limit allowed 31",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_3af06b29-d420-4251-8629-f1360a46247a"
+      "correlation_id": "qa_72c59c74-5ef2-4b60-8c33-be1c870252d3"
     },
     {
       "case": "read limit allowed 32",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_5f964b7a-29d6-4c7d-871b-f78c5c797b70"
+      "correlation_id": "qa_ce251838-891b-4133-a784-10b40ae68cf3"
     },
     {
       "case": "read limit allowed 33",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_3eb166bf-b011-4786-9f0d-79b23f39dc7b"
+      "correlation_id": "qa_3a957ed7-81d3-4b1a-889d-9f851d343eb9"
     },
     {
       "case": "read limit allowed 34",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_7a039d34-b7df-4b35-8b44-746457cb1ba8"
+      "correlation_id": "qa_6f9e8a3f-a8a0-42b0-b7fd-de42e46cb71b"
     },
     {
       "case": "read limit allowed 35",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_7a1e47de-bc7c-4970-a1fc-29c393bbac66"
+      "correlation_id": "qa_e373bfb2-f85d-4605-b24a-147f214b2fee"
     },
     {
       "case": "read limit allowed 36",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_bf78f9bd-56e3-4bf0-9d18-055f70d32418"
+      "correlation_id": "qa_0184e254-5c4c-4980-82fb-b1fb623f12b5"
     },
     {
       "case": "read limit allowed 37",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_b710b64c-e6a5-490e-bac2-05291acf9250"
+      "correlation_id": "qa_3360a20f-4b86-4ec4-90ac-08ac2ae5c91d"
     },
     {
       "case": "read limit allowed 38",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_d47fff13-cd57-40c6-ae6d-ddb04761db06"
+      "correlation_id": "qa_040c819c-c946-4b7c-abe9-968b63a0864a"
     },
     {
       "case": "read limit allowed 39",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_4f780758-64cf-454d-abcc-a3a40e85efb3"
+      "correlation_id": "qa_c1468d2a-e6ad-4148-8cba-99dbe89338af"
     },
     {
       "case": "read limit allowed 40",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_942c5178-99d7-430c-9008-f720b89e0c9d"
+      "correlation_id": "qa_2241deba-4824-468d-b732-1f30a0ab17fb"
     },
     {
       "case": "read limit allowed 41",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_4982a9c1-1510-42d3-998f-5c40e8b8fdd8"
+      "correlation_id": "qa_e4c8764d-eeaa-4d15-9102-dd537647e2c9"
     },
     {
       "case": "read limit allowed 42",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_988942d4-6326-4569-a396-0dc2d545e74b"
+      "correlation_id": "qa_5c7f5ae3-b836-46d8-acef-311cdebb4f77"
     },
     {
       "case": "read limit allowed 43",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_3485f5b5-5264-4717-8d14-a83e615d4876"
+      "correlation_id": "qa_2b4e0b1b-6499-4652-86dc-f9b0cd2edfae"
     },
     {
       "case": "read limit allowed 44",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_87aa22db-027d-44de-938b-c358abe9d142"
+      "correlation_id": "qa_9432e725-b210-42ff-85a5-53cae633957b"
     },
     {
       "case": "read limit allowed 45",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_e616b69b-3194-43a1-85e6-160cd08c9cba"
+      "correlation_id": "qa_7a5dda57-a139-45c6-a108-be3d5396b75f"
     },
     {
       "case": "read limit allowed 46",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_fd9704d1-0a7c-4ab4-9585-4998d30ab8ee"
+      "correlation_id": "qa_7a00b831-e292-4960-988d-b2acacd21760"
     },
     {
       "case": "read limit allowed 47",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_d5a51890-1479-42b0-b7f2-2a34de9fcbd6"
+      "correlation_id": "qa_8fc2c290-e86e-4331-aed7-6f69dccc6b4c"
     },
     {
       "case": "read limit allowed 48",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_42e1a262-2c60-4078-91a2-dfecd53a1fac"
+      "correlation_id": "qa_eff84ff5-05f5-441b-9df5-0dad746198c0"
     },
     {
       "case": "read limit allowed 49",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_cf22653f-1334-47d6-8dd3-18e2585fb2ab"
+      "correlation_id": "qa_b1c6b8cc-4859-4f40-bd24-4f189b5ec381"
     },
     {
       "case": "read limit allowed 50",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_1732a889-edf8-4e73-81ee-06174538ecdf"
+      "correlation_id": "qa_d2a9bb2b-2a80-4b50-8bb8-ab95627d8cc0"
     },
     {
       "case": "read limit allowed 51",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_010e04e2-1ec2-4732-aa60-e72fddabdfde"
+      "correlation_id": "qa_b088ba36-77b2-485c-8fe7-fb7068a1e119"
     },
     {
       "case": "read limit allowed 52",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_56796b1d-f02a-4a22-ba38-157df784adbe"
+      "correlation_id": "qa_2ddcd8c8-04a5-4558-9ab0-8556e64ac101"
     },
     {
       "case": "read limit allowed 53",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_fe0c1618-8a31-4b49-a071-8cd5ab0f03a3"
+      "correlation_id": "qa_2d679fc1-da3f-4dac-9378-6b8bc89b8add"
     },
     {
       "case": "read limit allowed 54",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_c20fff45-2e9a-4d63-932e-8bbb671e816a"
+      "correlation_id": "qa_2116b88b-6f31-40f5-bf17-fb1e5a1cd18b"
     },
     {
       "case": "read limit allowed 55",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_be136566-2436-437f-9dc1-bb74865035ba"
+      "correlation_id": "qa_a0af70ec-aceb-411d-bb5c-a8a6eaad6aba"
     },
     {
       "case": "read limit allowed 56",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_00943409-ce73-42eb-b8eb-8a6a0557f106"
+      "correlation_id": "qa_ce6d45b9-d5ec-4349-aaf8-14e00c65f5c7"
     },
     {
       "case": "read limit allowed 57",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_a5c218a6-7439-4c17-9c43-2af4ddb6dece"
+      "correlation_id": "qa_05690615-4b72-4d5f-9072-74f3dec47d72"
     },
     {
       "case": "read limit allowed 58",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_56e45fe0-a189-4f31-93a0-fee0d7741da1"
+      "correlation_id": "qa_2d5acbce-0f79-49f2-a167-4071cb695614"
     },
     {
       "case": "read limit allowed 59",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_5bee9c90-5290-44da-95de-5e5ec3a6895e"
+      "correlation_id": "qa_ec0fb405-fa55-46d6-aef8-f0f875bd808b"
     },
     {
       "case": "read limit allowed 60",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 200,
-      "correlation_id": "qa_ff21a8a5-c875-4266-980d-2d80a40e344e"
+      "correlation_id": "qa_e9abb01d-498e-4902-b361-8b3e9aa741df"
     },
     {
       "case": "caller read limit",
       "method": "GET",
       "route": "/v1/requests/{request_id}",
       "status": 429,
-      "correlation_id": "qa_62179823-678b-4131-a07d-9482cc7418f8"
+      "correlation_id": "qa_217b86c5-d711-4a4f-8379-a6ed6c3db50c"
     },
     {
       "case": "offers read limit",
       "method": "GET",
       "route": "/v1/requests/{request_id}/offers",
       "status": 429,
-      "correlation_id": "qa_3ea3483c-9e7e-4ffc-b5f0-b544fb449180"
+      "correlation_id": "qa_91a5f78d-d2c2-4dde-a967-038bd0107887"
     },
     {
       "case": "cancel mutation limit",
       "method": "POST",
       "route": "/v1/requests/{request_id}/cancel",
       "status": 429,
-      "correlation_id": "qa_8cbfaf65-6876-478f-89c3-9fe8b07c6cdb"
+      "correlation_id": "qa_360245a2-26f6-451f-b9f0-78c5ed2dc1bc"
     },
     {
       "case": "clarification mutation limit",
       "method": "POST",
       "route": "/v1/requests/{request_id}/clarifications",
       "status": 429,
-      "correlation_id": "qa_eecc6079-8ef3-4cba-bb0d-ecba3420e7b1"
+      "correlation_id": "qa_d0fdd4b6-d0a5-4900-8338-acf48bae417f"
     }
   ],
   "limitations": [
@@ -5185,14 +5277,14 @@
     "Provider-fault injection, terminal-clock transitions, scope/consent mutation, audit rows and no-outreach persistence require separate backend database-test evidence."
   ],
   "dataset": {
-    "normal_provider_cases": 36,
+    "normal_provider_cases": 40,
     "injected_provider_cases": "Backend deterministic adapter tests; not simulated by this HTTP suite."
   },
-  "finished_at": "2026-10-01T22:47:50.770Z",
+  "finished_at": "2026-10-02T00:35:34.194Z",
   "passed": true,
   "summary": {
-    "passed": 863,
+    "passed": 879,
     "failed": 0,
-    "exchanges": 246
+    "exchanges": 250
   }
 }

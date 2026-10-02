@@ -12,6 +12,17 @@ export PLUG_DATABASE_PASSWORD="${PLUG_DATABASE_PASSWORD:-phase2-local-validation
 export PLUG_IDENTITY_PEPPER="${PLUG_IDENTITY_PEPPER:-phase2-local-test-pepper-not-for-real-use}"
 export PLUG_REQUESTS_V2_ENABLED=true
 export PLUG_IDENTITY_PHONE_DELIVERY=none
+# ADR-009: Claude extraction needs only ANTHROPIC_API_KEY. Read that one line, never the
+# whole file, so no other provider secret reaches this isolated runtime. Unset: rules only.
+if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+    for plug_key_file in secrets/anthropic.env .env.local; do
+        [ -f "$plug_key_file" ] || continue
+        plug_key=$(sed -n 's/^ANTHROPIC_API_KEY=//p' "$plug_key_file" | tail -n 1 | sed -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        if [ -n "$plug_key" ]; then export ANTHROPIC_API_KEY="$plug_key"; break; fi
+    done
+fi
+if [ -n "${ANTHROPIC_API_KEY:-}" ]; then echo 'Intent extraction: Claude (rules on any failure).'
+else echo 'Intent extraction: built-in rules (set ANTHROPIC_API_KEY in secrets/anthropic.env for Claude).'; fi
 
 case "$PLUG_DATABASE_URL" in
     jdbc:postgresql://127.0.0.1:*/plug_phase2_live) ;;

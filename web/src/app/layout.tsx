@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import Link from "next/link";
-import { PlugMark } from "./_components/brand-art";
+import { SiteFooter, SiteHeader } from "./_components/site-chrome";
 
 // tokens.json._rules: "Web uses IBM Plex Sans. Inter as a default is banned."
 const plexSans = localFont({
@@ -16,30 +15,23 @@ const plexSans = localFont({
   ],
 });
 
+// manual.docx §15.2 title pattern: "<Page> — PLUG".
 export const metadata: Metadata = {
-  title: "PLUG",
-  description: "Ask for what you need; get real, verified availability back.",
+  title: { default: "PLUG", template: "%s — PLUG" },
+  description:
+    "Tell PLUG what you need, your budget and when. It shows who nearby can help, and labels anything it does not know as Unknown.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={plexSans.variable}>
       <body>
-        {children}
-        <footer className="site-footer">
-          <div className="site-footer-inner">
-            <p className="footer-brand">
-              <PlugMark className="footer-mark" />
-              <span>PLUG</span>
-            </p>
-            <nav aria-label="Information">
-              <Link href="/">PLUG home</Link>
-              <Link href="/privacy">Privacy</Link>
-              <Link href="/terms">Terms</Link>
-              <Link href="/support">Support</Link>
-            </nav>
-          </div>
-        </footer>
+        <a href="#main" className="skip-link">Skip to content</a>
+        <SiteHeader />
+        <div id="main" className="site-main" tabIndex={-1}>
+          {children}
+        </div>
+        <SiteFooter />
       </body>
     </html>
   );

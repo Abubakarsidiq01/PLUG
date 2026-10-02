@@ -59,7 +59,8 @@ class ContractTest {
         }
         ContractSchemas.validateExample("OfferList", "requests-offers.json");
         ContractSchemas.validateExample("OfferList", "requests-offers-empty.json");
-        for (String error : List.of("requests-validation-error.json", "requests-unsupported-category-error.json",
+        ContractSchemas.validateExample("CreateRequestBody", "requests-create-open-service.json");
+        for (String error : List.of("requests-validation-error.json",
                 "requests-restricted-intent-error.json", "requests-consent-required-error.json",
                 "requests-idempotency-conflict-error.json", "requests-not-awaiting-clarification-error.json",
                 "requests-not-cancelable-error.json", "requests-not-found-error.json")) {

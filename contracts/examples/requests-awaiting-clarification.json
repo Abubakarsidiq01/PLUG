@@ -5,20 +5,36 @@
   "text": "Need a fresh cut and my nails done under $35",
   "constraints": {
     "category": null,
+    "service_name": null,
+    "search_terms": [],
     "budget_cents": 3500,
     "currency": "USD",
     "needed_by": null,
     "max_distance_m": 3200,
-    "location": { "latitude": 32.528, "longitude": -92.714, "precision": "coarse" }
+    "location": {
+      "latitude": 32.528,
+      "longitude": -92.714,
+      "precision": "coarse"
+    }
   },
-  "progress": { "contacted": 0, "replied": 0, "offers_ready": 0 },
+  "progress": {
+    "contacted": 0,
+    "replied": 0,
+    "offers_ready": 0
+  },
   "clarification": {
     "clarification_id": "cla_01J9Z6R0C1P5Q9R3S7T1V5W9X3",
     "field": "category",
     "question": "Which should PLUG look for first?",
     "options": [
-      { "value": "barber", "label": "Barber" },
-      { "value": "beauty", "label": "Beauty" }
+      {
+        "value": "barber",
+        "label": "Barber"
+      },
+      {
+        "value": "beauty",
+        "label": "Beauty"
+      }
     ]
   },
   "created_at": "2026-10-01T20:00:00Z",

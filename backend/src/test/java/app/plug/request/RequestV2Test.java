@@ -104,7 +104,7 @@ class RequestV2Test {
         read(other, path + "/offers").andExpect(status().isNotFound());
         mutate(other,path + "/cancel", "", "c").andExpect(status().isNotFound());
         mutate(other,path + "/clarifications",answer,"a").andExpect(status().isNotFound());
-        mutate(owner,path + "/clarifications",answer.replace("barber", "plumber"),"bad").andExpect(status().isBadRequest());
+        mutate(owner,path + "/clarifications",answer.replace("barber", "astronaut"),"bad").andExpect(status().isBadRequest());
         var submitted = json(mutate(owner,path + "/clarifications",answer,"answer").andExpect(status().isOk()));
         assertThat(submitted.path("status").asText()).isEqualTo("submitted");
         assertThat(submitted.has("clarification")).isFalse();
@@ -115,14 +115,24 @@ class RequestV2Test {
         assertThat(json(mutate(owner,path + "/cancel","","c").andExpect(status().isOk()))).isEqualTo(canceled);
         assertThat(json(read(owner,path + "/offers").andExpect(status().isOk())).path("offers")).isEmpty();
     }
-    @Test void restrictedAuditedWithoutRequestAndUnsupportedFailsClosed() throws Exception {
+    @Test void restrictedAuditedWithoutRequestAndOpenServiceEndsHonestly() throws Exception {
         var owner = guest();
         int before = jdbc.queryForObject("SELECT count(*) FROM requests", Integer.class);
         create(owner,BODY.replace("Barber under $35 in 30 minutes", "Sell me stolen credit card numbers"),"bad")
                 .andExpect(status().isUnprocessableEntity());
         assertThat(jdbc.queryForObject("SELECT count(*) FROM requests", Integer.class)).isEqualTo(before);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM audit_events WHERE action='request.restricted'", Integer.class)).isPositive();
-        create(owner,BODY.replace("Barber under $35 in 30 minutes", "Find a plumber"),"unsupported").andExpect(status().isBadRequest());
+        // ADR-009: any lawful service is accepted; with no participating supplier it ends no_coverage.
+        var plumber = json(create(owner,BODY.replace("Barber under $35 in 30 minutes", "Find a plumber"),"open")
+                .andExpect(status().isCreated()));
+        assertThat(plumber.at("/constraints/category").asText()).isEqualTo("plumber");
+        assertThat(plumber.at("/constraints/service_name").asText()).isEqualTo("Plumber");
+        assertThat(plumber.at("/constraints/search_terms/0").asText()).isEqualTo("plumber");
+        for (int i = 0; i < 3; i++) service.workOnce();
+        var ended = json(read(owner, "/v1/requests/" + plumber.path("request_id").asText()));
+        assertThat(ended.path("status").asText()).isEqualTo("expired");
+        assertThat(ended.path("no_result_reason").asText()).isEqualTo("no_coverage");
+        assertThat(json(read(owner, "/v1/requests/" + plumber.path("request_id").asText() + "/offers")).path("offers")).isEmpty();
         mvc.perform(post("/v1/requests").contentType(MediaType.APPLICATION_JSON).content(BODY)).andExpect(status().isUnauthorized());
     }
     @Test void concurrentCreatesAndWorkerCancelShareLocks() throws Exception {

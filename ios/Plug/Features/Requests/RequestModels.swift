@@ -11,6 +11,69 @@ struct RequestLocation: Codable, Equatable {
 struct CreateServiceRequest: Encodable, Equatable {
     let text: String
     let location: RequestLocation
+    /// The person's IANA zone, so "tomorrow" means their tomorrow (ADR-009).
+    var timeZone: String = TimeZone.current.identifier
+    // Chip choices are sent as exact values and win over the words (§9.1). Nil is omitted,
+    // never sent as null, so the server reads that constraint from the text instead.
+    var budgetCents: Int? = nil
+    var currency: String? = nil
+    var neededBy: Date? = nil
+    var maxDistanceM: Int? = nil
+}
+
+/// Structured controls for the composer (§9.1: chips first, typing is the fallback).
+/// `.fromRequest` sends nothing, so PLUG reads that constraint from the person's words.
+struct RequestFilters: Equatable {
+    enum Budget: Int, CaseIterable, Identifiable {
+        case fromRequest = 0, under25 = 2500, under50 = 5000, under100 = 10000, under250 = 25000
+        var id: Int { rawValue }
+        var cents: Int? { self == .fromRequest ? nil : rawValue }
+        var title: String {
+            switch self {
+            case .fromRequest: return "From my words"
+            default: return "Under " + (Decimal(rawValue) / 100).formatted(.currency(code: "USD").precision(.fractionLength(0)))
+            }
+        }
+    }
+    enum Time: String, CaseIterable, Identifiable {
+        case fromRequest, withinHour, today, tomorrow
+        var id: String { rawValue }
+        var title: String {
+            switch self {
+            case .fromRequest: return "From my words"
+            case .withinHour: return "Within 1 hour"
+            case .today: return "Today"
+            case .tomorrow: return "Tomorrow"
+            }
+        }
+        /// The latest acceptable time, in the person's calendar. Today means by 11:59 PM.
+        func deadline(now: Date, calendar: Calendar = .current) -> Date? {
+            switch self {
+            case .fromRequest: return nil
+            case .withinHour: return now.addingTimeInterval(3600)
+            case .today, .tomorrow:
+                let day = calendar.startOfDay(for: now).addingTimeInterval(self == .today ? 0 : 86_400)
+                return calendar.date(bySettingHour: 23, minute: 59, second: 0, of: day)
+            }
+        }
+    }
+    enum Distance: Int, CaseIterable, Identifiable {
+        case fromRequest = 0, mile1 = 1609, miles3 = 4828, miles10 = 16093, miles25 = 40234
+        var id: Int { rawValue }
+        var metres: Int? { self == .fromRequest ? nil : rawValue }
+        var title: String {
+            switch self {
+            case .fromRequest: return "From my words"
+            case .mile1: return "1 mi"
+            case .miles3: return "3 mi"
+            case .miles10: return "10 mi"
+            case .miles25: return "25 mi"
+            }
+        }
+    }
+    var budget = Budget.fromRequest
+    var time = Time.fromRequest
+    var distance = Distance.fromRequest
 }
 
 struct ServiceRequest: Decodable, Equatable {
@@ -37,19 +100,24 @@ struct ServiceRequest: Decodable, Equatable {
         case chooseOffer = "choose_offer", awaitSupplierConfirmation = "await_supplier_confirmation"
         case showResult = "show_result", showNoResult = "show_no_result", none
     }
-    enum Category: String, Decodable { case barber, beauty }
+    /// Any lawful service (ADR-009). A snake_case identifier; display `serviceName` instead.
+    static func isServiceIdentifier(_ value: String) -> Bool {
+        value.range(of: "^[a-z][a-z0-9_]{1,39}$", options: .regularExpression) != nil
+    }
     enum NoResultReason: String, Decodable {
         case noCoverage = "no_coverage", noOffers = "no_offers", clarificationUnanswered = "clarification_unanswered"
         var explanation: String {
             switch self {
-            case .noCoverage: return "There are no participating suppliers for this service in your search area."
+            case .noCoverage: return "No participating PLUG suppliers cover this service near you yet."
             case .noOffers: return "No current offers meet this request. Your request has expired."
             case .clarificationUnanswered: return "This request expired before the clarifying question was answered."
             }
         }
     }
     struct Constraints: Decodable, Equatable {
-        let category: Category?
+        let category: String?
+        let serviceName: String?
+        let searchTerms: [String]
         let budgetCents: Int?
         let currency: String
         let neededBy: Date?
@@ -79,7 +147,10 @@ struct ServiceRequest: Decodable, Equatable {
               mapping[status] == nextAction, text.unicodeScalars.count <= 500,
               constraints.location.isValid, constraints.currency == "USD",
               (100...50_000).contains(constraints.maxDistanceM),
-              constraints.budgetCents.map({ (500...50_000).contains($0) }) ?? true,
+              constraints.budgetCents.map({ (500...500_000).contains($0) }) ?? true,
+              constraints.category.map(ServiceRequest.isServiceIdentifier) ?? true,
+              (constraints.category == nil) == (constraints.serviceName == nil),
+              (constraints.category == nil) == constraints.searchTerms.isEmpty, constraints.searchTerms.count <= 5,
               (0...50).contains(progress.contacted), (0...progress.contacted).contains(progress.replied),
               (0...min(progress.replied, 20)).contains(progress.offersReady),
               (nextAction == .answerClarification) == (clarification != nil),
@@ -92,7 +163,7 @@ struct ServiceRequest: Decodable, Equatable {
             guard clarification.field == "category", !clarification.question.isEmpty,
                   (1...8).contains(clarification.options.count),
                   Set(clarification.options.map(\.value)).count == clarification.options.count,
-                  clarification.options.allSatisfy({ ServiceRequest.Category(rawValue: $0.value) != nil && !$0.label.isEmpty })
+                  clarification.options.allSatisfy({ ServiceRequest.isServiceIdentifier($0.value) && !$0.label.isEmpty })
             else { throw APIError.contractViolation(requestID: nil) }
         }
         return self

@@ -17,7 +17,15 @@
 | **Other lane** | `docs/phases/P2-ONE.md` |
 
 **Outcome this phase must reach**
-“Barber under $35 in 30 minutes” produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
+“I need to repair my shoe for $45 tomorrow, who is available?” — or “Barber under $35 in 30 minutes” — produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
+
+> **Amended by [ADR-009](../decisions/ADR-009-open-service-scope.md) (2026-10-01, owner decision).**
+> PLUG serves any lawful service, not only barbers and beauty. Claude extracts the
+> service, budget, time and distance (untrusted output, validated, rules as fallback).
+> Participating suppliers produce offers; when none cover a service the request ends
+> `no_coverage` and the app lists real nearby businesses from Apple Maps with price and
+> availability **Unknown**. Budgets run $5–$5,000. The Ask experience is bold and warm.
+> Contract 0.4.0 supersedes the unmerged 0.3.0 category model.
 
 **Why it matters**
 This is where the product becomes itself. It is also where the temptation to let the model decide things is strongest, and where a single fabricated price would undermine the entire premise.
@@ -104,6 +112,7 @@ verbal description.
 - [ ] Race and cancellation tests: cancelling mid-flight is safe and idempotent.
 - [ ] Model-provider failure test: a timeout or invalid schema produces the deterministic fallback, not a 500.
 - [ ] Restricted-intent test: a prohibited request creates no outreach and writes an audit event.
+- [ ] Open-service test: any lawful service (e.g. shoe repair) is accepted, and Claude output that fails validation falls back to the rules.
 
 Verify with:
 
@@ -138,7 +147,7 @@ phase requires the connected evidence listed below, beyond these local checks.
 
 - [ ] A supported request produces validated structured offers on a real device.
 - [ ] Progress counts are real and visibly change as the server works.
-- [ ] An unsupported category fails closed with a clear message.
+- [ ] A service with no participating supplier ends `no_coverage` honestly, and the app lists nearby businesses labelled Unknown — never invented prices or availability.
 - [ ] A provider failure degrades to the deterministic path without an error screen.
 - [ ] `PROJECT_STATE.json` carries a signed `G2` entry.
 

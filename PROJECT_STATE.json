@@ -1,11 +1,11 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-01T23:04:35.425085+00:00",
+  "updated_at": "2026-10-02T03:06:20.865643+00:00",
   "updated_by": "owner-authorized multi-agent Phase 2 implementation",
   "current_phase": "P2",
   "current_step": "P2.implementation",
-  "current_step_title": "Phase 2 implemented and verified locally end to end (tools/phase2-verify-all.sh) and running on the owner's iPhone via tools/run-phase2-phone.sh. Contract 0.3.0 approval, device evidence, Windows run and G2 signatures remain.",
+  "current_step_title": "ADR-009 implemented and verified locally: any lawful service, Claude extraction (rules fallback, no key yet), Apple Maps nearby businesses labelled Unknown, $5-$5,000, iOS Ask flow and public website rebuilt to manual Figures 7/8/10/14. Contract 0.4.0 approval, device evidence, Windows run and G2 signatures remain.",
   "manual_section": "27.3",
   "readme": "docs/phases/P2-ONE.md",
   "owner": "both",
@@ -60,7 +60,7 @@
   "contracts": {
     "GET /health": "frozen@0.1.0",
     "GET /health/ready": "frozen@0.1.0",
-    "POST /v1/requests": "proposed@0.3.0 (served as Phase 0 stub frozen@0.1.0 until requests_v2)",
+    "POST /v1/requests": "proposed@0.4.0 (served as Phase 0 stub frozen@0.1.0 until requests_v2)",
     "POST /v1/auth/apple": "frozen@0.2.2",
     "POST /v1/auth/phone/start": "frozen@0.2.2",
     "POST /v1/auth/phone/verify": "frozen@0.2.2",
@@ -73,15 +73,16 @@
     "GET /v1/me/sessions/{session_id}": "frozen@0.2.2",
     "DELETE /v1/me/sessions/{session_id}": "frozen@0.2.2",
     "POST /v1/auth/google": "frozen@0.2.2",
-    "GET /v1/requests/{request_id}": "proposed@0.3.0",
-    "POST /v1/requests/{request_id}/clarifications": "proposed@0.3.0",
-    "GET /v1/requests/{request_id}/offers": "proposed@0.3.0",
-    "POST /v1/requests/{request_id}/cancel": "proposed@0.3.0"
+    "GET /v1/requests/{request_id}": "proposed@0.4.0",
+    "POST /v1/requests/{request_id}/clarifications": "proposed@0.4.0",
+    "GET /v1/requests/{request_id}/offers": "proposed@0.4.0",
+    "POST /v1/requests/{request_id}/cancel": "proposed@0.4.0"
   },
   "feature_flags": {
     "identity": "staging_only",
     "phone_code_delivery": "off",
-    "requests_v2": "off"
+    "requests_v2": "off",
+    "intent_provider": "claude when ANTHROPIC_API_KEY is set; built-in rules otherwise"
   },
   "next_actions": [
     {
@@ -122,7 +123,7 @@
     "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available.",
     "Phone evidence includes a Google notification naming Aura; verify whether it belongs to this PLUG sign-in and correct the selected OAuth project branding if so. Original personal email notification remains private.",
     "Apple/SMS budget deferral accepted in ADR-008. Starter legal wording cannot immunize the operator from claims and is not evidence of implemented retention, erasure or teen controls.",
-    "Contract 0.3.0 open questions for the \u00a77.1 session: (1) category enum is [barber, beauty] from \u00a72.1/\u00a725.6 although \u00a71 also says 'one category'; (2) the request resource and the correlation ID both use the req_ prefix, which support can confuse; (3) draft -> expired is added to the \u00a719.6 transition table so an unanswered clarification can lapse; (4) consent_required (403) is a new gate on request creation; (5) 7-day needed_by horizon and 24-hour idempotency retention are proposals, not manual values."
+    "ADR-009 open scope: (1) Claude extraction is a paid call per request and no ANTHROPIC_API_KEY is configured yet, so the phone currently runs on the built-in rules; (2) nearby businesses come from Apple Maps on the device and are listings, not offers, with price and availability Unknown; (3) restricted-intent policy is still a deterministic word list and must be reviewed for open scope before any external beta; (4) the req_ prefix is shared by request resources and correlation IDs; (5) 7-day needed_by horizon and 24-hour idempotency retention remain proposals."
   ],
   "environments": {
     "staging": "ephemeral \u2014 cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
@@ -440,6 +441,50 @@
       },
       "phone": "Signed Debug build installed and launched on the paired iPhone 13 Pro Max against the isolated backend via Quick Tunnel; guest sign-in 201 and GET /v1/me 200 in the backend log.",
       "environment_repairs": "Stopped stale 18080/18082 backends; restarted infra-postgres-1 and the 8080 Phase 1 backend (guest sign-in 201)."
+    },
+    "phase2_open_scope_design": {
+      "date": "2026-10-01",
+      "report": "docs/testing/phase2-open-scope-design-2026-10-01.md",
+      "adr": "docs/decisions/ADR-009-open-service-scope.md",
+      "contract": "proposed@0.4.0",
+      "backend": "unit + database (PostGIS, V5, 46-vector dataset) + Checkstyle + JAR passed",
+      "static_contract_tests": {
+        "passed": 135,
+        "failed": 0
+      },
+      "live_api_checks": {
+        "passed": 879,
+        "failed": 0,
+        "exchanges": 250,
+        "report": "evidence/P2/security/phase2-live-2026-10-01.json"
+      },
+      "bruno_phase2": {
+        "requests": 39,
+        "failed": 0
+      },
+      "ios_unit_tests": {
+        "executed": 58,
+        "failed": 0
+      },
+      "website": {
+        "playwright": "81/81 incl. axe at 360/768/1280",
+        "evidence": "evidence/P2/web"
+      },
+      "design_source": "manual \u00a79-\u00a711, \u00a716, Figures 7, 8, 10, 14; invented warm palette reverted",
+      "claude_live": "not tested: no ANTHROPIC_API_KEY configured",
+      "g2_passed": false,
+      "owner_followups": [
+        "Privacy Policy draft says no AI/maps processing; ADR-009 makes that untrue - legal update needed",
+        "Confirm website facts: invite-only, iPhone, United States, free while testing, Ruston demo zone",
+        "Join call-to-action routes to support email; a real interest form needs a backend route"
+      ],
+      "ios_ui_screenshot_tests": {
+        "passed": 2,
+        "screenshots": 20,
+        "evidence": "evidence/P2/simulator/2026-10-01",
+        "source": "synthetic fixture server, not G2 device evidence"
+      },
+      "phone": "Signed blueprint-design build installed and launched on the paired iPhone against the isolated backend via Quick Tunnel."
     }
   },
   "implementation_authorization": {
@@ -452,5 +497,13 @@
       "live user accounts and Phase 1 services"
     ],
     "gate": "G2 remains unsigned until its actual evidence and approvals exist."
+  },
+  "decisions": {
+    "ADR-009": {
+      "date": "2026-10-01",
+      "title": "Any lawful service, Claude extraction, nearby-business discovery",
+      "file": "docs/decisions/ADR-009-open-service-scope.md",
+      "accepted_by": "owner"
+    }
   }
 }

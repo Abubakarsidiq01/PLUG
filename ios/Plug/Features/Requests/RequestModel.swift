@@ -18,7 +18,10 @@ final class RequestModel: ObservableObject {
     private let sleep: (Int) async throws -> Void
     private var revision = UUID()
     private var polling: Task<Void, Never>?
-    private var createAttempt: (body: CreateServiceRequest, key: String)?
+    /// Keyed by what the person chose, not the computed body: a retry of "Within 1 hour"
+    /// must resend the same deadline and key, or a slow network could create two requests.
+    private var createAttempt: (draft: Draft, body: CreateServiceRequest, key: String)?
+    private struct Draft: Equatable { let text: String; let location: RequestLocation; let filters: RequestFilters }
     private var answerAttempt: (id: String, value: String, key: String)?
     private var active = true
 
@@ -41,14 +44,21 @@ final class RequestModel: ObservableObject {
     }
     var canRetry: Bool { retryAfter.map { now() >= $0 } ?? true }
 
-    func submit(location: RequestLocation) async {
+    func submit(location: RequestLocation, filters: RequestFilters = RequestFilters()) async {
         guard !isWorking, canRetry else { return }
         guard textError == nil, location.isValid else {
             errorMessage = textError ?? "Choose a valid search location."
             return
         }
-        let body = CreateServiceRequest(text: text.trimmingCharacters(in: .whitespacesAndNewlines), location: location)
-        if createAttempt?.body != body { createAttempt = (body, UUID().uuidString) }
+        let draft = Draft(text: text.trimmingCharacters(in: .whitespacesAndNewlines), location: location, filters: filters)
+        if createAttempt?.draft != draft {
+            var body = CreateServiceRequest(text: draft.text, location: location)
+            body.budgetCents = filters.budget.cents
+            body.currency = filters.budget.cents == nil ? nil : "USD"
+            body.neededBy = filters.time.deadline(now: now())
+            body.maxDistanceM = filters.distance.metres
+            createAttempt = (draft, body, UUID().uuidString)
+        }
         guard let attempt = createAttempt else { return }
         let token = begin()
         do {
@@ -177,8 +187,6 @@ final class RequestModel: ObservableObject {
                 errorMessage = "Too many requests. Try again after \(delay) seconds."
             } else if api.code == "restricted_intent" {
                 errorMessage = "PLUG cannot help with this request. No suppliers were contacted."
-            } else if api.fieldCode == "unsupported_category" {
-                errorMessage = "PLUG currently supports barber and beauty requests. Nothing was created."
             } else if api.fieldCode == "consent_required" {
                 errorMessage = "Accept the current terms in your account before making a request. Nothing was created."
             } else if api.code == "unauthenticated" {
@@ -193,7 +201,9 @@ final class RequestModel: ObservableObject {
                 isCached = false
                 errorMessage = "This request is no longer available to your account."
             } else if api.code == "validation_failed" {
-                errorMessage = "Check your request and location. Nothing was created."
+                errorMessage = api.fieldCode == "out_of_range"
+                    ? "Budgets can be from $5 to $5,000 and distances up to about 30 miles. Nothing was created."
+                    : "Check your request and location. Nothing was created."
             } else if api.code == "conflict" {
                 errorMessage = "This request changed on the server. Refresh to see its current state."
             } else {

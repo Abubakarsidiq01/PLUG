@@ -136,17 +136,24 @@ xcodebuild -project ios/Plug.xcodeproj -scheme Plug -configuration Debug \
 app="$run_dir/DerivedData/Build/Products/Debug-iphoneos/Plug.app"
 xcrun devicectl device install app --device "$core" "$app" >/dev/null
 bundle=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")
-xcrun devicectl device process launch --terminate-existing --device "$core" "$bundle" >/dev/null
-echo 'Installed and launched PLUG on the iPhone.'
+# A locked phone refuses the launch; the install already succeeded, so keep everything running.
+if xcrun devicectl device process launch --terminate-existing --device "$core" "$bundle" >/dev/null 2>&1; then
+    echo 'Installed and launched PLUG on the iPhone.'
+else
+    echo 'Installed PLUG on the iPhone. It was locked, so unlock it and open PLUG yourself.'
+fi
 
 cat <<EOF
 
 PLUG Phase 2 is running on your iPhone.
   1. Continue as guest (Google needs provider configuration this isolated backend omits).
-  2. Ask tab: "Barber under \$35 in 30 minutes". Seeded results exist only in the synthetic
-     Ruston, LA demo zone — if you are elsewhere, type a Ruston address such as
-     "Railroad Ave, Ruston, LA" instead of using your location.
-  3. Try "Need a cut and my nails done" for the one clarifying question, and cancel mid-request.
+  2. Ask: "I need to repair my shoe for \$45 tomorrow". Any lawful service works (ADR-009).
+     With no participating supplier, the request ends No matches and the app lists nearby
+     businesses from Apple Maps with price and availability Unknown.
+  3. Seeded offers exist only for barber and beauty in the synthetic Ruston, LA zone. Type a
+     Ruston address such as "Railroad Ave, Ruston, LA" to see them. Try "Need a cut and my
+     nails done" for the one question, and cancel while it is searching.
+  Extraction uses Claude when ANTHROPIC_API_KEY is in secrets/anthropic.env, else the rules.
 If the phone cannot reach $url on Wi-Fi, switch to mobile data for a minute.
 Logs: $run_dir. Keep this terminal and the lid open; Control-C stops everything.
 EOF

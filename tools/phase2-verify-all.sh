@@ -57,7 +57,8 @@ jar="$work/plug-api.jar"
 cp backend/build/libs/plug-api-0.0.1-SNAPSHOT.jar "$jar"
 java=$(ls -d .tools/jdk-*/Contents/Home/bin/java 2>/dev/null | head -n 1)
 [ -n "$java" ] || java=$(command -v java)
-PLUG_ENVIRONMENT=local PLUG_BIND_ADDRESS=127.0.0.1 PLUG_REQUESTS_V2_ENABLED=true PLUG_IDENTITY_PHONE_DELIVERY=none \
+# No ANTHROPIC_API_KEY: the labelled dataset asserts the deterministic rules, reproducibly.
+ANTHROPIC_API_KEY= PLUG_ENVIRONMENT=local PLUG_BIND_ADDRESS=127.0.0.1 PLUG_REQUESTS_V2_ENABLED=true PLUG_IDENTITY_PHONE_DELIVERY=none \
     PLUG_DATABASE_URL="jdbc:postgresql://127.0.0.1:55433/$live_db" PLUG_DATABASE_USER=plug \
     PLUG_DATABASE_PASSWORD="$password" PLUG_IDENTITY_PEPPER="$pepper" \
     "$java" -jar "$jar" --spring.profiles.active=db --server.port="$live_port" >"$work/live-backend.log" 2>&1 &
@@ -73,8 +74,10 @@ echo 'healthy'
 step 'Live API acceptance suite (observes real rate windows; several minutes)'
 mkdir -p evidence/P2/security
 report="evidence/P2/security/phase2-live-$(date +%Y-%m-%d).json"
+# Exit status of the suite itself, not of a pipe: a failed check must stop the run.
 PHASE2_DISPOSABLE=1 PHASE2_BASE_URL="http://127.0.0.1:$live_port" PHASE2_REPORT="$report" \
-    node tools/phase2-live.mjs | tail -n 1
+    node tools/phase2-live.mjs >"$work/live.log" 2>&1 || { tail -n 3 "$work/live.log" >&2; exit 1; }
+tail -n 1 "$work/live.log"
 echo "Report: $report"
 
 step 'Phase 2 Bruno collection'

@@ -47,8 +47,8 @@ class Handler(BaseHTTPRequestHandler):
                 "consent": {"current_version": "2026-09-01", "accepted_version": "2026-09-01", "accepted_at": stamp(now)}}, 201)
         if path == "/v1/requests":
             text = body["text"]
-            if "unsupported" in text.lower():
-                return self.respond(fixture("requests.create", "unsupported-category"), 400)
+            if "restricted" in text.lower():
+                return self.respond(fixture("requests.create", "restricted-intent"), 422)
             Handler.counter += 1
             identifier = f"req_ui-{Handler.counter}"
             state = "draft" if "clarify" in text.lower() else "submitted"

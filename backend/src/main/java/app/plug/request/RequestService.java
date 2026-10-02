@@ -70,15 +70,19 @@ public class RequestService {
             Resource replay = replay(caller, "create", key, input);
             if (replay != null) return replay;
             if (!limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
-            Constraints constraints = intent.extract(input);
+            IntentAdapter.Result extracted = intent.extract(input);
+            Constraints constraints = extracted.constraints();
             Instant now = clock.instant();
             String id = "req_" + UUID.randomUUID();
             String clarification = constraints.category() == null ? "cla_" + UUID.randomUUID() : null;
             Instant expires = constraints.neededBy() == null ? now.plus(Duration.ofMinutes(30)) : constraints.neededBy();
-            jdbc.update("INSERT INTO requests(id,user_id,text,status,clarification_id,created_at,updated_at,expires_at)"
-                    + " VALUES(?,?,?,?,?,?,?,?)", id, caller.userId(), input.text(),
-                    clarification == null ? "submitted" : "draft", clarification, time(now), time(now), time(expires));
-            jdbc.update("INSERT INTO request_constraints VALUES(?,?,?,?,?,?,?,?,?)", id, constraints.category(),
+            jdbc.update("INSERT INTO requests(id,user_id,text,status,clarification_id,clarification_options,"
+                    + "created_at,updated_at,expires_at) VALUES(?,?,?,?,?,?::jsonb,?,?,?)", id, caller.userId(), input.text(),
+                    clarification == null ? "submitted" : "draft", clarification,
+                    clarification == null ? null : json(extracted.clarificationOptions()), time(now), time(now), time(expires));
+            jdbc.update("INSERT INTO request_constraints(request_id,category,service_name,search_terms,budget_cents,currency,"
+                    + "needed_by,max_distance_m,latitude,longitude,precision) VALUES(?,?,?,?,?,?,?,?,?,?,?)", id,
+                    constraints.category(), constraints.serviceName(), constraints.searchTerms().toArray(String[]::new),
                     constraints.budgetCents(), constraints.currency(), time(constraints.neededBy()),
                     constraints.maxDistanceM(), constraints.location().latitude(), constraints.location().longitude(),
                     constraints.location().precision());
@@ -102,10 +106,11 @@ public class RequestService {
             if (!current.status().equals("draft") || !current.clarification().clarificationId().equals(answer.clarificationId())) {
                 throw stateConflict("clarification_id", "not_awaiting_clarification", "This request is not awaiting that clarification.");
             }
-            if (!List.of("barber", "beauty").contains(answer.value())) {
-                throw ApiException.validation("value", "not_an_option", "Choose one of the offered options.");
-            }
-            jdbc.update("UPDATE request_constraints SET category=? WHERE request_id=?", answer.value(), id);
+            Option chosen = current.clarification().options().stream()
+                    .filter(option -> option.value().equals(answer.value())).findFirst()
+                    .orElseThrow(() -> ApiException.validation("value", "not_an_option", "Choose one of the offered options."));
+            jdbc.update("UPDATE request_constraints SET category=?,service_name=?,search_terms=? WHERE request_id=?",
+                    chosen.value(), chosen.label(), new String[] {chosen.label().toLowerCase(java.util.Locale.ROOT)}, id);
             transition(id, "submitted", null);
             Resource result = read(id);
             remember(caller, "clarify:" + id, key, answer, result);
@@ -201,16 +206,17 @@ public class RequestService {
         transition(id, "expired", reason);
     }
     private Resource read(String id) {
-        return jdbc.queryForObject("SELECT r.*,c.category,c.budget_cents,c.currency,c.needed_by,c.max_distance_m,"
+        return jdbc.queryForObject("SELECT r.*,c.category,c.service_name,c.search_terms,c.budget_cents,c.currency,c.needed_by,c.max_distance_m,"
                 + "c.latitude,c.longitude,c.precision FROM requests r JOIN request_constraints c ON c.request_id=r.id WHERE r.id=?",
                 (rs, row) -> {
                     String state = rs.getString("status");
                     String action = RequestStateMachine.action(state);
-                    Constraints constraints = new Constraints(rs.getString("category"), (Integer) rs.getObject("budget_cents"),
+                    Constraints constraints = new Constraints(rs.getString("category"), rs.getString("service_name"),
+                            List.of((String[]) rs.getArray("search_terms").getArray()), (Integer) rs.getObject("budget_cents"),
                             rs.getString("currency"), instant(rs, "needed_by"), rs.getInt("max_distance_m"),
                             new Location(rs.getDouble("latitude"), rs.getDouble("longitude"), rs.getString("precision")));
                     Clarification question = state.equals("draft") ? new Clarification(rs.getString("clarification_id"), "category",
-                            "Which service do you need?", List.of(new Option("barber", "Barber"), new Option("beauty", "Beauty"))) : null;
+                            "What should PLUG look for?", options(rs.getString("clarification_options"))) : null;
                     return new Resource(id, state, action, rs.getString("text"), constraints, progress(id), question,
                             rs.getString("no_result_reason"), action.equals("wait_for_offers") ? 1 : null,
                             instant(rs, "created_at"), instant(rs, "updated_at"), instant(rs, "expires_at"));
@@ -230,6 +236,14 @@ public class RequestService {
                         rs.getString("address"), rs.getInt("distance_m")), rs.getString("service_name"), rs.getInt("price_cents"),
                         rs.getString("currency"), instant(rs, "available_at"), instant(rs, "expires_at"), instant(rs, "observed_at"),
                         rs.getString("truth_label"), rs.getString("source")), id, time(clock.instant()));
+    }
+    private String json(List<Option> options) {
+        try { return mapper.writeValueAsString(options); }
+        catch (com.fasterxml.jackson.core.JsonProcessingException failure) { throw new IllegalStateException("options"); }
+    }
+    private List<Option> options(String stored) {
+        try { return List.of(mapper.readValue(stored, Option[].class)); }
+        catch (com.fasterxml.jackson.core.JsonProcessingException failure) { throw new IllegalStateException("options"); }
     }
     static Timestamp time(Instant instant) { return instant == null ? null : Timestamp.from(instant); }
     private static Instant instant(ResultSet rs, String name) throws SQLException {

@@ -11,6 +11,25 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.4.0 — 2026-10-01 — BREAKING vs proposed 0.3.0 (unmerged) — ADR-009
+Owner decision: PLUG serves any lawful service, not only barber and beauty. `Category`
+becomes a snake_case identifier (`^[a-z][a-z0-9_]{1,39}$`) instead of the enum
+`[barber, beauty]`; `RequestConstraints` gains required `service_name` (null exactly when
+category is null) and `search_terms` (0–5 phrases, empty exactly when category is null);
+`CreateRequestBody` gains optional `time_zone` (IANA) so "tomorrow" is the person's day;
+budget limits widen to 500–500000 cents ($5–$5,000). The `unsupported_category` refusal
+is removed: a service no participating supplier covers is created and ends `expired` /
+`no_coverage`, and the iOS app may list real nearby businesses from Apple Maps with price
+and availability shown as Unknown. Clarification options are chosen per request. Error
+codes, routes, status/next_action enums and auth@0.2.2 are unchanged.
+Fixtures updated: every `fixtures/requests.*` resource and `contracts/examples/requests-*`
+gains `service_name`/`search_terms`; `requests.create/unsupported-category.json` and
+`requests-unsupported-category-error.json` removed; `requests-create-open-service.json`
+added; `fixtures/intents/p2.jsonl` now 46 vectors (open services, $1,200, over-cap).
+Migration note: `V5__open_service_scope.sql` is expand-only (relaxed checks, new nullable
+columns, backfill of V4 barber/beauty rows). Backend first, then the iOS build.
+Rollback: `requests_v2` off; V5 leaves V4 data valid.
+
 ### 0.3.0 — 2026-10-01 — BREAKING (POST /v1/requests only) — P2.S1
 Proposes the Phase 2 request contract (manual.docx §18.3, §19.5, §19.6, §27.3).
 Still awaiting both engineers' approval and merge; it is not frozen or implemented.

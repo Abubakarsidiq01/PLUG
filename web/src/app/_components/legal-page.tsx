@@ -1,24 +1,51 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Brand } from "./brand-art";
+import { LegalCopy, sectionId, type LegalSection } from "./legal-copy";
 
-// Shared brand shell for the private-test legal drafts and support copy.
-// The content source and review status are shared across the three routes.
-export function LegalPage({ title, lede, children }: { title: string; lede: string; children: ReactNode }) {
+// Shared shell for the private-test legal drafts and support copy: a page head,
+// an on-this-page index on wide screens, and the text at a readable measure.
+export function LegalPage({
+  title,
+  lede,
+  sections,
+  action,
+  children,
+}: {
+  title: string;
+  lede: string;
+  sections: LegalSection[];
+  action?: ReactNode;
+  children?: ReactNode;
+}) {
   return (
-    <main className="public-shell">
-      <Brand />
-      <article className="card">
-        <p className="eyebrow">Private development</p>
-        <h1>{title}</h1>
-        <p className="lede">{lede}</p>
-        <div className="legal-copy">{children}</div>
-      </article>
-      <nav aria-label="Back" className="legal-back">
-        <Link href="/">
-          <span aria-hidden="true">←</span> Back to home
-        </Link>
-      </nav>
+    <main className="legal">
+      <header className="page-head">
+        <div className="container">
+          <p className="overline">Private-test draft</p>
+          <h1 className="title1">{title}</h1>
+          <p className="page-lede">{lede}</p>
+          {action ? <div className="page-action">{action}</div> : null}
+        </div>
+      </header>
+      <div className="container legal-grid">
+        <nav aria-label="On this page" className="legal-index">
+          <p className="overline">On this page</p>
+          <ul>
+            {sections.map((section) => (
+              <li key={section.heading}>
+                <a href={`#${sectionId(section.heading)}`}>{section.heading}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <article className="legal-copy">
+          {children}
+          <LegalCopy sections={sections} />
+          <p className="legal-back">
+            <Link href="/" className="button button-secondary">Back to home</Link>
+          </p>
+        </article>
+      </div>
     </main>
   );
 }

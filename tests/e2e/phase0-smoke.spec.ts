@@ -7,8 +7,10 @@ import { test, expect } from "@playwright/test";
 test("public shell loads and states its purpose honestly", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(
-    "Ask for what you need. Get real, verified availability back."
+    "Find a local service that fits your budget and your time."
   );
+  // §15: the page states its limitation honestly rather than implying a live service.
+  await expect(page.getByText("Nobody is contacted and nothing is booked yet.")).toBeVisible();
 });
 
 test("an unauthenticated request to /admin is redirected, never rendered", async ({ page }) => {

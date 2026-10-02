@@ -13,16 +13,17 @@ final class RequestScreenshotTests: XCTestCase {
         let app = launch(largest: largest)
         enterGuest(app)
         capture("ask-\(suffix)")
+        openComposer(app)
+        capture("composer-\(suffix)")
         try submit(app, text: "clarify barber", suffix: suffix)
         let barber = app.buttons["Barber"]
         XCTAssertTrue(barber.waitForExistence(timeout: 12))
         reveal(barber, in: app)
         capture("clarification-\(suffix)")
         barber.tap()
-        XCTAssertTrue(app.staticTexts["Your options"].waitForExistence(timeout: 20))
-        reveal(app.staticTexts["Your options"], in: app)
+        XCTAssertTrue(app.navigationBars["Top options"].waitForExistence(timeout: 20))
         capture("results-\(suffix)")
-        let details = app.staticTexts["View details"].firstMatch
+        let details = app.buttons["View details"].firstMatch
         reveal(details, in: app)
         details.tap()
         XCTAssertTrue(app.navigationBars["Offer details"].waitForExistence(timeout: 5))
@@ -31,8 +32,8 @@ final class RequestScreenshotTests: XCTestCase {
         cancelAndRestart(app, suffix: suffix)
 
         try submit(app, text: "progress barber", suffix: suffix)
-        XCTAssertTrue(app.staticTexts["Checking participating suppliers"].waitForExistence(timeout: 10))
-        reveal(app.staticTexts["Checking participating suppliers"], in: app)
+        XCTAssertTrue(app.staticTexts["Checking participating providers"].waitForExistence(timeout: 10))
+        app.swipeDown() // The progress card sits at the top of the page; show it rather than tap it.
         capture("progress-\(suffix)")
         cancelAndRestart(app, suffix: suffix)
 
@@ -43,16 +44,16 @@ final class RequestScreenshotTests: XCTestCase {
         let restart = app.buttons["Start a new request"]
         reveal(restart, in: app); restart.tap()
 
-        try submit(app, text: "unsupported service", suffix: suffix)
-        let error = app.staticTexts["PLUG currently supports barber and beauty requests. Nothing was created."]
+        try submit(app, text: "restricted request", suffix: suffix)
+        let error = app.staticTexts["PLUG cannot help with this request. No suppliers were contacted."]
         XCTAssertTrue(error.waitForExistence(timeout: 10))
         reveal(error, in: app)
         capture("parser-error-\(suffix)")
 
         try submit(app, text: "cached barber", suffix: suffix)
-        XCTAssertTrue(app.staticTexts["Your options"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.navigationBars["Top options"].waitForExistence(timeout: 20))
         app.buttons["Refresh"].tap()
-        let cached = app.staticTexts["Cached result — refresh to check availability"]
+        let cached = app.staticTexts["Cached result. Refresh to check availability."]
         XCTAssertTrue(cached.waitForExistence(timeout: 10))
         reveal(cached, in: app)
         capture("cached-error-\(suffix)")
@@ -72,9 +73,18 @@ final class RequestScreenshotTests: XCTestCase {
         let guest = app.buttons["Continue as guest"]
         reveal(guest, in: app)
         guest.tap()
-        XCTAssertTrue(app.navigationBars["Ask PLUG"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.navigationBars["Ask"].waitForExistence(timeout: 15))
+    }
+    /// Home prompt to "New request" (Figure 10 screens 4 and 5). A failed submit stays on the composer.
+    private func openComposer(_ app: XCUIApplication) {
+        let start = app.buttons["request-start"]
+        guard start.waitForExistence(timeout: 2) else { return }
+        reveal(start, in: app, upward: false)
+        start.tap()
+        XCTAssertTrue(app.navigationBars["New request"].waitForExistence(timeout: 5))
     }
     private func submit(_ app: XCUIApplication, text: String, suffix: String) throws {
+        openComposer(app)
         let field = app.descendants(matching: .any).matching(identifier: "request-text").firstMatch
         reveal(field, in: app, upward: false)
         XCTAssertTrue(field.exists)
@@ -85,6 +95,8 @@ final class RequestScreenshotTests: XCTestCase {
             field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: value.count))
         }
         field.typeText(text)
+        let done = app.toolbars.buttons["Done"]
+        if done.waitForExistence(timeout: 2) { done.tap() }
         app.swipeUp()
         let location = app.buttons["Use my approximate location"]
         reveal(location, in: app)

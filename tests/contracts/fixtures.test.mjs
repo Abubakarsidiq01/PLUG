@@ -67,7 +67,8 @@ test('clarification preserves the draft identity and fills only the answered cat
   assert.equal(answered.request_id, draft.request_id);
   assert.equal(answered.text, draft.text);
   assert.equal(answered.created_at, draft.created_at);
-  assert.deepEqual(answered.constraints, { ...draft.constraints, category: 'barber' });
+  assert.deepEqual(answered.constraints,
+    { ...draft.constraints, category: 'barber', service_name: 'Barber', search_terms: ['barber'] });
   assert.equal(answered.status, 'submitted');
   assert.equal(answered.clarification, undefined);
   for (const body of [readFixture('cancel', 'draft-canceled'), readFixture('get', 'clarification-unanswered')]) {
@@ -124,7 +125,7 @@ const cases = readFileSync(new URL('fixtures/intents/p2.jsonl', root), 'utf8').t
 test('intent dataset has unique labels and covers the required parser and abuse cases', () => {
   assert.equal(new Set(cases.map(item => item.id)).size, cases.length);
   for (const id of ['barber-budget-relative-time', 'ambiguous-category', 'missing-category',
-    'restricted-intent', 'unsupported-plumber', 'explicit-category-wins', 'explicit-budget-wins',
+    'restricted-intent', 'open-plumber', 'shoe-repair-tomorrow', 'explicit-category-wins', 'explicit-budget-wins',
     'overlong-text', 'invalid-latitude', 'invalid-longitude', 'absurd-budget', 'malformed-timestamp',
     'offset-missing', 'past-time', 'beyond-horizon', 'fallback-timeout', 'fallback-invalid-json',
     'fallback-unknown-model-field', 'fallback-invalid-model-budget', 'fallback-invalid-model-category']) {
@@ -136,14 +137,14 @@ for (const item of cases) {
     assert.equal(typeof item.schema_valid, 'boolean');
     if (item.schema_valid) validateSchema('CreateRequestBody', item.input);
     else assert.throws(() => validateSchema('CreateRequestBody', item.input));
-    assert.ok(['normal', 'timeout', 'invalid_json', 'unknown_field', 'out_of_range_budget', 'unsupported_category'].includes(item.provider));
+    assert.ok(['normal', 'timeout', 'invalid_json', 'unknown_field', 'out_of_range_budget', 'invalid_category'].includes(item.provider));
     assert.ok(['submitted', 'draft', 'rejected'].includes(item.expected.outcome));
     assert.match(item.now, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
     if (item.expected.outcome === 'draft') {
       assert.equal(item.expected.category, null);
       assert.equal(item.expected.clarification_field, 'category');
     } else if (item.expected.outcome === 'submitted') {
-      assert.ok(contract.components.schemas.Category.enum.includes(item.expected.category));
+      assert.match(item.expected.category, new RegExp(contract.components.schemas.Category.pattern));
     } else {
       assert.ok([400, 422].includes(item.expected.status));
       assert.equal(item.expected.error_code, item.expected.status === 422 ? 'restricted_intent' : 'validation_failed');
