@@ -5,6 +5,10 @@
   "text": "Need a fresh cut and my nails done under $35",
   "constraints": {
     "category": "barber",
+    "service_name": "Barber",
+    "search_terms": [
+      "barber"
+    ],
     "budget_cents": 3500,
     "currency": "USD",
     "needed_by": null,

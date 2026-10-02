@@ -5,13 +5,26 @@
   "text": "Barber under $35 in 30 minutes",
   "constraints": {
     "category": "barber",
+    "service_name": "Barber",
+    "search_terms": [
+      "barber",
+      "barbershop"
+    ],
     "budget_cents": 3500,
     "currency": "USD",
     "needed_by": "2026-10-01T20:30:00Z",
     "max_distance_m": 3200,
-    "location": { "latitude": 32.528, "longitude": -92.714, "precision": "coarse" }
+    "location": {
+      "latitude": 32.528,
+      "longitude": -92.714,
+      "precision": "coarse"
+    }
   },
-  "progress": { "contacted": 0, "replied": 0, "offers_ready": 0 },
+  "progress": {
+    "contacted": 0,
+    "replied": 0,
+    "offers_ready": 0
+  },
   "poll_after_seconds": 2,
   "created_at": "2026-10-01T20:00:00Z",
   "updated_at": "2026-10-01T20:00:00Z",

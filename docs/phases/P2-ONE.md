@@ -17,7 +17,15 @@
 | **Other lane** | `docs/phases/P2-TWO.md` |
 
 **Outcome this phase must reach**
-“Barber under $35 in 30 minutes” produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
+“I need to repair my shoe for $45 tomorrow, who is available?” — or “Barber under $35 in 30 minutes” — produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
+
+> **Amended by [ADR-009](../decisions/ADR-009-open-service-scope.md) (2026-10-01, owner decision).**
+> PLUG serves any lawful service, not only barbers and beauty. Claude extracts the
+> service, budget, time and distance (untrusted output, validated, rules as fallback).
+> Participating suppliers produce offers; when none cover a service the request ends
+> `no_coverage` and the app lists real nearby businesses from Apple Maps with price and
+> availability **Unknown**. Budgets run $5–$5,000. The Ask experience is bold and warm.
+> Contract 0.4.0 supersedes the unmerged 0.3.0 category model.
 
 **Why it matters**
 This is where the product becomes itself. It is also where the temptation to let the model decide things is strongest, and where a single fabricated price would undermine the entire premise.
@@ -94,14 +102,14 @@ Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
 
 - [ ] **P2.S1** — Freeze the Request, constraints, status, next_action, location, money and timestamp contracts.
-- [ ] **P2.S2** — Implement the intent adapter with strict structured output and deterministic validation, per §19.5. Treat model output as untrusted.
+- [ ] **P2.S2** — Implement the intent adapter with strict structured output and deterministic validation, per §19.5 and ADR-009 (Claude, any service, rules fallback). Treat model output as untrusted.
 - [ ] **P2.S3** — Create the request state machine with legal-transition tests and idempotent cancellation, per §19.6.
 - [ ] **P2.S4** — Create the `requests`, `request_constraints`, `places` and supplier-seed migrations with the required indexes.
 - [ ] **P2.S5** — Implement the clarification decision: ask only when a missing field genuinely blocks execution, and never more than one question.
 - [ ] **P2.S6** — Expose real progress counts and `next_action`. No client-side timers pretending to be progress.
 - [ ] **P2.S7** — Return only structured, validated seeded offers. The app never fabricates price, availability, wait or confirmation.
 - [ ] **P2.S8** — Add request-creation rate limits, request-size limits and restricted-intent policy enforcement.
-- [ ] **P2.S9** — Build the SwiftUI Ask, clarification, progress, results and offer-detail screens from Figma, including the offline, no-match, parser-error and cached states.
+- [ ] **P2.S9** — Build the SwiftUI Ask, clarification, progress, results and offer-detail screens (bold, warm — ADR-009), including the offline, no-match, nearby-businesses (Apple Maps, Unknown labels), parser-error and cached states.
 
 ---
 
@@ -126,6 +134,7 @@ verbal description.
 - [ ] Race and cancellation tests: cancelling mid-flight is safe and idempotent.
 - [ ] Model-provider failure test: a timeout or invalid schema produces the deterministic fallback, not a 500.
 - [ ] Restricted-intent test: a prohibited request creates no outreach and writes an audit event.
+- [ ] Open-service test: any lawful service (e.g. shoe repair) is accepted, and Claude output that fails validation falls back to the rules.
 
 Verify with:
 
@@ -153,7 +162,7 @@ xcodebuild test -scheme PLUG-Staging -destination 'platform=iOS Simulator,name=i
 
 - [ ] A supported request produces validated structured offers on a real device.
 - [ ] Progress counts are real and visibly change as the server works.
-- [ ] An unsupported category fails closed with a clear message.
+- [ ] A service with no participating supplier ends `no_coverage` honestly, and the app lists nearby businesses labelled Unknown — never invented prices or availability.
 - [ ] A provider failure degrades to the deterministic path without an error screen.
 - [ ] `PROJECT_STATE.json` carries a signed `G2` entry.
 

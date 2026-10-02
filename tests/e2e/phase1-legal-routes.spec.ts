@@ -5,9 +5,9 @@ import { test, expect } from "@playwright/test";
 // must never sit behind the admin redirect.
 
 const routes = [
-  { path: "/privacy", heading: "Privacy Policy", title: "Privacy Policy | PLUG" },
-  { path: "/terms", heading: "Terms of Service", title: "Terms of Service | PLUG" },
-  { path: "/support", heading: "Support", title: "Support | PLUG" },
+  { path: "/privacy", heading: "Privacy Policy", title: "Privacy Policy — PLUG" },
+  { path: "/terms", heading: "Terms of Service", title: "Terms of Service — PLUG" },
+  { path: "/support", heading: "Support", title: "Support — PLUG" },
 ];
 
 // design/tokens.json target.minTouch.
@@ -59,26 +59,22 @@ test("every public page has one shared footer linking all three routes", async (
   await expect(nav.getByRole("link", { name: "Support", exact: true })).toHaveAttribute("href", "/support");
 });
 
-// The app's name is the largest and boldest text on every public page, centred above
-// the page's own heading.
-test("the PLUG name is centred, bold and larger than the page heading", async ({ page }) => {
+// manual.docx Figure 14: every public page carries the same header, whose logo
+// links home, and exactly one h1 that is the largest text in the page's main content.
+test("the PLUG logo links home and each page has one dominant h1", async ({ page }) => {
   for (const path of ["/", "/admin/login", ...routes.map(route => route.path)]) {
     await page.goto(path);
-    const brand = page.locator("main .brand");
-    await expect(brand, path).toHaveText("PLUG");
-    const style = await brand.evaluate(element => {
-      const css = getComputedStyle(element);
-      const heading = getComputedStyle(document.querySelector("main h1")!);
-      return {
-        size: parseFloat(css.fontSize),
-        headingSize: parseFloat(heading.fontSize),
-        weight: Number(css.fontWeight),
-        align: css.textAlign,
-      };
+    const logo = page.getByRole("banner").getByRole("link", { name: "PLUG home" });
+    await expect(logo, path).toHaveAttribute("href", "/");
+    await expect(page.getByRole("heading", { level: 1 }), path).toHaveCount(1);
+    const sizes = await page.evaluate(() => {
+      const h1 = parseFloat(getComputedStyle(document.querySelector("main h1")!).fontSize);
+      const others = [...document.querySelectorAll("main *:not(h1)")]
+        .filter(element => element.childNodes.length && [...element.childNodes].some(node => node.nodeType === 3 && node.textContent!.trim()))
+        .map(element => parseFloat(getComputedStyle(element).fontSize));
+      return { h1, max: Math.max(...others) };
     });
-    expect(style.size, path).toBeGreaterThan(style.headingSize);
-    expect(style.weight, path).toBeGreaterThanOrEqual(700);
-    expect(style.align, path).toBe("center");
+    expect(sizes.h1, path).toBeGreaterThan(sizes.max);
   }
 });
 

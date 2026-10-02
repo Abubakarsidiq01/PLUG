@@ -1,0 +1,5 @@
+{
+  "text": "I need to repair my shoe for 45 dollars tomorrow, who is available?",
+  "location": { "latitude": 32.528, "longitude": -92.714, "precision": "coarse" },
+  "time_zone": "America/Chicago"
+}

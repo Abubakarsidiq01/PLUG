@@ -1,4 +1,5 @@
 import CoreLocation
+import MapKit
 import Foundation
 
 @MainActor
@@ -97,4 +98,60 @@ final class RequestLocationModel: NSObject, ObservableObject, @preconcurrency CL
         isWorking = false
         errorMessage = "Location access is off. You can still search by entering an address below."
     }
+}
+
+/// A real business found by Apple Maps near the request (ADR-009). It is a listing, not an
+/// offer: PLUG has not contacted it, so price and availability are always shown as Unknown.
+struct NearbyBusiness: Identifiable, Equatable {
+    let id: String
+    let name: String
+    let address: String?
+    let distanceM: Int
+    let phone: String?
+    let mapItem: MKMapItem
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+}
+
+/// Searches Apple Maps on the device with the server's validated search terms. Nothing is
+/// sent to PLUG and nothing is stored; the search is repeated only when the request changes.
+@MainActor
+final class NearbyBusinessesModel: ObservableObject {
+    enum Phase: Equatable { case idle, searching, loaded, empty, failed }
+    @Published private(set) var businesses: [NearbyBusiness] = []
+    @Published private(set) var phase: Phase = .idle
+    private var searchedKey: String?
+
+    func search(terms: [String], around location: RequestLocation, radiusM: Int, force: Bool = false) async {
+        let key = "\(terms.joined(separator: "|"))@\(location.latitude),\(location.longitude)/\(radiusM)"
+        guard !terms.isEmpty, force || key != searchedKey else { return }
+        searchedKey = key
+        phase = .searching
+        let origin = CLLocation(latitude: location.latitude, longitude: location.longitude)
+        let region = MKCoordinateRegion(center: origin.coordinate,
+                                        latitudinalMeters: Double(radiusM) * 2, longitudinalMeters: Double(radiusM) * 2)
+        var found: [String: NearbyBusiness] = [:]
+        var failures = 0
+        for term in terms.prefix(3) {
+            let request = MKLocalSearch.Request()
+            request.naturalLanguageQuery = term
+            request.resultTypes = .pointOfInterest
+            request.region = region
+            do {
+                let response = try await MKLocalSearch(request: request).start()
+                for item in response.mapItems {
+                    guard let name = item.name, let place = item.placemark.location else { continue }
+                    let distance = Int(place.distance(from: origin).rounded())
+                    guard distance <= radiusM else { continue }
+                    let id = "\(name)|\(Int(place.coordinate.latitude * 10_000))|\(Int(place.coordinate.longitude * 10_000))"
+                    found[id] = NearbyBusiness(id: id, name: name, address: item.placemark.title,
+                                               distanceM: distance, phone: item.phoneNumber, mapItem: item)
+                }
+            } catch { failures += 1 }
+            guard searchedKey == key else { return }
+        }
+        businesses = found.values.sorted { ($0.distanceM, $0.name) < ($1.distanceM, $1.name) }.prefix(12).map { $0 }
+        phase = !businesses.isEmpty ? .loaded : failures == min(terms.count, 3) ? .failed : .empty
+    }
+
+    func reset() { businesses = []; phase = .idle; searchedKey = nil }
 }

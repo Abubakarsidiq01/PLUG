@@ -108,21 +108,49 @@ struct PlugTextField: View {
     }
 }
 
-// Base sizes come from the manual's shared type scale; Dynamic Type remains native.
+// The manual's type scale (§10.1, Figure 7) on Apple system typography. Each step scales
+// with Dynamic Type relative to the closest text style, so token sizes are a base, not a cap.
 enum PlugTextStyle {
-    case title, body, action, label
+    case title, title2, title3, body, bodySmall, action, label, caption, overline
     var size: CGFloat {
         switch self {
         case .title: return PlugTokens.TypeSize.title1
+        case .title2: return PlugTokens.TypeSize.title2
+        case .title3: return PlugTokens.TypeSize.title3
         case .body, .action: return PlugTokens.TypeSize.bodyLg
+        case .bodySmall: return PlugTokens.TypeSize.body
         case .label: return PlugTokens.TypeSize.label
+        case .caption: return PlugTokens.TypeSize.caption
+        case .overline: return PlugTokens.TypeSize.overline
         }
     }
     var weight: Font.Weight {
         switch self {
-        case .title: return .bold
-        case .action, .label: return .semibold
-        case .body: return .regular
+        case .title, .title2, .overline: return .bold
+        case .title3, .action, .label: return .semibold
+        case .caption: return .medium
+        case .body, .bodySmall: return .regular
+        }
+    }
+    /// Figure 7 tracking, in points at the base size.
+    var tracking: CGFloat {
+        switch self {
+        case .title: return -0.4
+        case .title2: return -0.2
+        case .caption: return 0.22
+        case .overline: return 0.9
+        default: return 0
+        }
+    }
+    var relativeTo: Font.TextStyle {
+        switch self {
+        case .title: return .title
+        case .title2: return .title2
+        case .title3: return .headline
+        case .body, .action: return .body
+        case .bodySmall: return .subheadline
+        case .label: return .footnote
+        case .caption, .overline: return .caption
         }
     }
 }
@@ -132,13 +160,103 @@ private struct PlugTextModifier: ViewModifier {
     @ScaledMetric private var size: CGFloat
     init(style: PlugTextStyle) {
         self.style = style
-        _size = ScaledMetric(wrappedValue: style.size, relativeTo: style == .title ? .title : .body)
+        _size = ScaledMetric(wrappedValue: style.size, relativeTo: style.relativeTo)
     }
     func body(content: Content) -> some View {
         content.font(.system(size: size, weight: style.weight))
+            .tracking(style.tracking)
+            .textCase(style == .overline ? .uppercase : nil)
     }
 }
 
 extension View {
     func plugText(_ style: PlugTextStyle) -> some View { modifier(PlugTextModifier(style: style)) }
+}
+
+// MARK: - Figure 8 components shared by request screens
+
+/// §11.4: cards are flat, 1px line.200 border, radius.lg, no shadow.
+struct PlugCardModifier: ViewModifier {
+    func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(PlugTokens.Space.s4)
+            .background(PlugTokens.Color.surface0, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.lg))
+            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.lg).strokeBorder(PlugTokens.Color.line200))
+    }
+}
+
+extension View {
+    func plugCard() -> some View { modifier(PlugCardModifier()) }
+}
+
+/// §11.4 filter chip: radius.sm; selected is brand.50 fill with a brand.600 border and label.
+struct PlugChip: View {
+    let title: String
+    let selected: Bool
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .plugText(.label)
+                .padding(.horizontal, PlugTokens.Space.s3)
+                .frame(minHeight: PlugTokens.minTouchTarget)
+                .foregroundStyle(selected ? PlugTokens.Color.brand600 : PlugTokens.Color.ink900)
+                .background(selected ? PlugTokens.Color.brand50 : PlugTokens.Color.surface0,
+                            in: RoundedRectangle(cornerRadius: PlugTokens.Radius.sm))
+                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.sm)
+                    .strokeBorder(selected ? PlugTokens.Color.brand600 : PlugTokens.Color.line300,
+                                  lineWidth: selected ? 1.5 : 1))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
+/// Figure 8 destructive button: white fill, danger border and label; pressed fills danger.50.
+struct PlugDestructiveStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .plugText(.action)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, PlugTokens.Space.s4)
+            .padding(.vertical, PlugTokens.Space.s3)
+            .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
+            .foregroundStyle(PlugTokens.Color.danger600)
+            .background(configuration.isPressed ? PlugTokens.Color.danger50 : PlugTokens.Color.surface0,
+                        in: RoundedRectangle(cornerRadius: PlugTokens.Radius.md))
+            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.md).strokeBorder(PlugTokens.Color.dangerBorder))
+            .opacity(enabled ? 1 : 0.5)
+    }
+}
+
+/// Wraps chips onto as many lines as the width and Dynamic Type size need.
+struct PlugFlowLayout: Layout {
+    var spacing: CGFloat = PlugTokens.Space.s2
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, row: CGFloat = 0, widest: CGFloat = 0
+        for view in subviews {
+            let size = view.sizeThatFits(ProposedViewSize(width: width, height: nil))
+            if x > 0, x + size.width > width { x = 0; y += row + spacing; row = 0 }
+            x += size.width + spacing
+            row = max(row, size.height)
+            widest = max(widest, min(x - spacing, width))
+        }
+        return CGSize(width: widest, height: y + row)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX, y = bounds.minY, row: CGFloat = 0
+        for view in subviews {
+            let size = view.sizeThatFits(ProposedViewSize(width: bounds.width, height: nil))
+            if x > bounds.minX, x + size.width > bounds.maxX { x = bounds.minX; y += row + spacing; row = 0 }
+            view.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(width: min(size.width, bounds.width), height: size.height))
+            x += size.width + spacing
+            row = max(row, size.height)
+        }
+    }
 }

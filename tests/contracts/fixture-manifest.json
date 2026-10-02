@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.3.0",
+  "contract_version": "0.4.0",
   "status": "proposed",
   "clock": "2026-10-01T20:00:10Z",
   "responses": [
@@ -306,21 +306,6 @@
           "field": "needed_by",
           "code": "in_the_past",
           "message": "Choose a time later than now."
-        }
-      ]
-    },
-    {
-      "file": "fixtures/requests.create/unsupported-category.json",
-      "method": "post",
-      "path": "/v1/requests",
-      "status": 400,
-      "example": "requests-unsupported-category-error.json",
-      "error_code": "validation_failed",
-      "details": [
-        {
-          "field": "text",
-          "code": "unsupported_category",
-          "message": "PLUG can help with barbers and beauty right now."
         }
       ]
     },

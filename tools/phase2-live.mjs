@@ -149,7 +149,7 @@ async function functional() {
   check('no offers before clarification', () => assert.deepEqual(empty.offers, []));
   const body = { clarification_id: draft.clarification.clarification_id, value: 'barber' };
   await answer('missing clarification idempotency', owner, draft, body, { idempotency: undefined, expected: 400, error: 'validation_failed' });
-  await answer('invalid option', owner, draft, { ...body, value: 'plumber' }, { expected: 400, error: 'validation_failed', detail: 'not_an_option' });
+  await answer('invalid option', owner, draft, { ...body, value: 'astronaut' }, { expected: 400, error: 'validation_failed', detail: 'not_an_option' });
   await answer('wrong clarification identifier', owner, draft, { ...body, clarification_id: 'cla_wrong' }, { expected: 409, error: 'conflict', detail: 'not_awaiting_clarification' });
   const answerKey = key();
   const answered = await answer('answer category', owner, draft, body, { idempotency: answerKey });
@@ -249,7 +249,7 @@ async function abuse() {
   owner = await guest('abuse grammar guest');
   for (const [name, text] of [
     ['fractional-cent text', 'Barber under $35.999'], ['negative text budget', 'Barber under $-5'],
-    ['comma text budget', 'Barber under $1,000'], ['conflicting text budgets', 'Barber under $35 or $40'],
+    ['malformed comma text budget', 'Barber under $1,00'], ['conflicting text budgets', 'Barber under $35 or $40'],
     ['fractional relative time', 'Barber in 1.5 minutes'], ['negative relative time', 'Barber in -1 hours'],
     ['zero relative time', 'Barber in 0 minutes'], ['oversized relative time', 'Barber in 9999999 hours'],
     ['conflicting relative times', 'Barber in 20 minutes or in 30 minutes'],

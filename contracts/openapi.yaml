@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.3.0
+  version: 0.4.0
   description: >
     Phase 0, Phase 1 and Phase 2 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
@@ -52,16 +52,19 @@ paths:
         produces an error: the server falls back to deterministic extraction.
 
 
-        Only a missing category blocks execution, so it is the only thing PLUG ever asks
+        Any lawful service is accepted (ADR-009): shoe repair, plumbing, tutoring, a barber.
+        Only a missing service blocks execution, so it is the only thing PLUG ever asks
         about, and it asks at most once per request (§27.3 ClarificationPolicy). When it
         must ask, the 201 response has status `draft`, next_action `answer_clarification`
         and a `clarification`. Location is never asked: the client sends it, from the device
         or from an address the person typed, so the permission-denied path still works.
 
 
-        A category PLUG recognises but does not serve is refused with 400 validation_failed,
-        `details[0]` = { field: text, code: unsupported_category }; nothing is persisted and
-        nobody is contacted. A prohibited request is refused with 422 restricted_intent; it
+        A service no participating supplier covers is not an error: the request ends
+        expired with no_result_reason no_coverage, and the iOS app may search Apple Maps on
+        the device with constraints.search_terms to list real nearby businesses whose price
+        and availability it shows as Unknown. Those listings are not offers and nobody is
+        contacted. A prohibited request is refused with 422 restricted_intent; it
         creates no outreach, writes an audit event, and the response names no rule and
         carries no created request resource identifier. error.request_id is still the
         correlation ID required by the shared error envelope.
@@ -741,13 +744,13 @@ components:
           description: >
             The person's own words. Must contain a non-whitespace character; control
             characters other than newline are rejected. Never written to a log.
-          example: "Barber under $35 in 30 minutes"
+          example: "I need to repair my shoe for $45 tomorrow"
         category: { $ref: '#/components/schemas/Category' }
         budget_cents:
           type: integer
           minimum: 500
-          maximum: 50000
-          description: Upper price limit in integer cents, $5.00–$500.00. Requires currency.
+          maximum: 500000
+          description: Upper price limit in integer cents, $5.00–$5,000.00. Requires currency.
         currency: { $ref: '#/components/schemas/Currency' }
         needed_by:
           type: string
@@ -760,6 +763,15 @@ components:
           minimum: 100
           maximum: 50000
         location: { $ref: '#/components/schemas/RequestLocation' }
+        time_zone:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: '^[A-Za-z0-9_+/-]+$'
+          example: America/Chicago
+          description: >
+            The person's IANA time zone, so "tomorrow" or "tonight" mean their day. An
+            unknown zone is 400 with code invalid. Absent means UTC.
     RequestLocation:
       description: >
         Where to search from. Sent by the client from the device or from an address the
@@ -775,11 +787,13 @@ components:
         precision: { type: string, enum: [coarse, fine] }
     Category:
       type: string
-      enum: [barber, beauty]
+      pattern: '^[a-z][a-z0-9_]{1,39}$'
+      example: shoe_repair
       description: >
-        The V1 allow-list (manual.docx §2.1, §25.6). Any other value sent here is 400
-        validation_failed. A category recognised in `text` but not on this list is 400 with
-        details code unsupported_category; it is never silently routed.
+        A free-form service identifier in snake_case (ADR-009) — barber, nail_salon,
+        shoe_repair, plumber. Clients must not assume a closed list; display service_name.
+        Participating-supplier coverage exists only for some categories (seeded barber and
+        beauty in Phase 2).
     Currency:
       type: string
       pattern: '^[A-Z]{3}$'
@@ -831,8 +845,23 @@ components:
         value: the client shows "Any price" or "As soon as possible", never a guess.
       type: object
       additionalProperties: false
-      required: [category, budget_cents, currency, needed_by, max_distance_m, location]
+      required: [category, service_name, search_terms, budget_cents, currency, needed_by,
+                 max_distance_m, location]
       properties:
+        service_name:
+          oneOf:
+            - { type: string, minLength: 1, maxLength: 80 }
+            - { type: 'null' }
+          description: >
+            Human-readable service ("Shoe repair"), safe to display. Null exactly when
+            category is null.
+        search_terms:
+          type: array
+          maxItems: 5
+          items: { type: string, minLength: 1, maxLength: 60 }
+          description: >
+            Server-validated phrases a client may use to search a maps provider for nearby
+            businesses ("shoe repair", "cobbler"). Empty exactly when category is null.
         category:
           oneOf:
             - { $ref: '#/components/schemas/Category' }
@@ -844,7 +873,7 @@ components:
             an unanswered request. All other states require a concrete category.
         budget_cents:
           oneOf:
-            - { type: integer, minimum: 500, maximum: 50000 }
+            - { type: integer, minimum: 500, maximum: 500000 }
             - { type: 'null' }
           description: Null means no budget filter.
         currency: { $ref: '#/components/schemas/Currency' }

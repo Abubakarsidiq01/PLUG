@@ -17,11 +17,12 @@ public final class RequestPayloads {
     private RequestPayloads() {}
     @com.fasterxml.jackson.databind.annotation.JsonDeserialize(using = CreateDeserializer.class)
     public record Create(@NotBlank String text,
-            @Pattern(regexp = "barber|beauty") String category,
-            @Min(500) @Max(50000) Integer budgetCents,
+            @Pattern(regexp = "[a-z][a-z0-9_]{1,39}") String category,
+            @Min(500) @Max(500000) Integer budgetCents,
             @Pattern(regexp = "[A-Z]{3}") String currency,
             Instant neededBy,
-            @Min(100) @Max(50000) Integer maxDistanceM, @NotNull @Valid Location location) {
+            @Min(100) @Max(50000) Integer maxDistanceM, @NotNull @Valid Location location,
+            @Size(min = 1, max = 64) @Pattern(regexp = "[A-Za-z0-9_+/-]+") String timeZone) {
         @com.fasterxml.jackson.annotation.JsonIgnore
         @jakarta.validation.constraints.AssertTrue(message = "Text must contain at most 500 characters.")
         public boolean isTextLengthValid() { return text == null || text.codePointCount(0, text.length()) <= 500; }
@@ -29,12 +30,12 @@ public final class RequestPayloads {
     }
     public static class CreateDeserializer extends com.fasterxml.jackson.databind.JsonDeserializer<Create> {
         private record Fields(String text, String category, Integer budgetCents, String currency,
-                Instant neededBy, Integer maxDistanceM, Location location) {}
+                Instant neededBy, Integer maxDistanceM, Location location, String timeZone) {}
         @Override public Create deserialize(com.fasterxml.jackson.core.JsonParser parser,
                 com.fasterxml.jackson.databind.DeserializationContext context) throws java.io.IOException {
             com.fasterxml.jackson.databind.JsonNode tree = parser.getCodec().readTree(parser);
             if (!tree.isObject()) throw com.fasterxml.jackson.databind.JsonMappingException.from(parser, "Expected an object");
-            for (String field : List.of("category", "budget_cents", "currency", "needed_by", "max_distance_m")) {
+            for (String field : List.of("category", "budget_cents", "currency", "needed_by", "max_distance_m", "time_zone")) {
                 if (tree.has(field) && tree.get(field).isNull()) {
                     throw com.fasterxml.jackson.databind.JsonMappingException.from(parser, "Explicit null is not permitted");
                 }
@@ -44,7 +45,7 @@ public final class RequestPayloads {
             }
             Fields fields = parser.getCodec().treeToValue(tree, Fields.class);
             return new Create(fields.text(), fields.category(), fields.budgetCents(), fields.currency(),
-                    fields.neededBy(), fields.maxDistanceM(), fields.location());
+                    fields.neededBy(), fields.maxDistanceM(), fields.location(), fields.timeZone());
         }
     }
     public record Location(@NotNull @DecimalMin("-90") @DecimalMax("90") Double latitude,
@@ -57,8 +58,8 @@ public final class RequestPayloads {
         }
     }
     @JsonInclude(JsonInclude.Include.ALWAYS)
-    public record Constraints(String category, Integer budgetCents, String currency, Instant neededBy,
-            int maxDistanceM, Location location) {}
+    public record Constraints(String category, String serviceName, List<String> searchTerms, Integer budgetCents,
+            String currency, Instant neededBy, int maxDistanceM, Location location) {}
     public record Answer(@NotBlank @Size(max = 64) @Pattern(regexp = "cla_[A-Za-z0-9-]+") String clarificationId,
             @NotBlank @Size(max = 64) @Pattern(regexp = "[a-z0-9_]+") String value) {}
     public record Progress(int contacted, int replied, int offersReady) {}

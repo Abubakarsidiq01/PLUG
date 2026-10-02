@@ -5,6 +5,11 @@
   "text": "Barber under $35 in 30 minutes",
   "constraints": {
     "category": "barber",
+    "service_name": "Barber",
+    "search_terms": [
+      "barber",
+      "barbershop"
+    ],
     "budget_cents": 3500,
     "currency": "USD",
     "needed_by": "2026-10-01T20:30:00Z",
