@@ -6,10 +6,10 @@
   "constraints": {
     "category": "barber",
     "service_name": "Barber",
-    "search_terms": [
-      "barber",
-      "barbershop"
+    "skill_tags": [
+      "barber"
     ],
+    "licence_required": false,
     "budget_cents": 3500,
     "currency": "USD",
     "needed_by": "2026-10-01T20:30:00Z",

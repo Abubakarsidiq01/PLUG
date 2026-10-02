@@ -1,0 +1,32 @@
+meta {
+  name: Private place refused
+  type: http
+  seq: 40
+}
+
+post {
+  url: {{baseUrl}}/v1/asks
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Owner}}
+  Idempotency-Key: {{p2Run}}-Ask-private
+}
+
+body:json {
+  {"text":"How busy is it at her apartment right now?","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"}}
+}
+
+assert {
+  res.status: eq 422
+  res.body.error.code: eq restricted_intent
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+}

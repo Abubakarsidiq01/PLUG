@@ -1,0 +1,38 @@
+meta {
+  name: Ask a service request (manual v4)
+  type: http
+  seq: 38
+}
+
+post {
+  url: {{baseUrl}}/v1/asks
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Owner}}
+  Idempotency-Key: {{p2Run}}-Ask-service
+}
+
+body:json {
+  {"text":"Someone to do knotless braids, $120 max","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"},"time_zone":"America/Chicago"}
+}
+
+assert {
+  res.status: eq 201
+  res.body.ask_type: eq service_request
+  res.body.request.constraints.budget_cents: eq 12000
+}
+
+script:post-response {
+  bru.setVar("p2Ask", res.getBody().ask_id);
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("skills come from the vocabulary", function () { expect(res.getBody().request.constraints.skill_tags).to.include("braids"); });
+}

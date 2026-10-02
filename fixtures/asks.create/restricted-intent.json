@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "restricted_intent",
+    "message": "PLUG can't help with this request.",
+    "request_id": "req_1f1ad394-7bc2-4880-9951-2ceb1fb4a5c0"
+  }
+}

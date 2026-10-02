@@ -4,6 +4,8 @@
 Run: python3 ios/PlugUITests/Support/request_fixture_server.py
 Point RequestScreenshotTests at http://127.0.0.1:18084.
 Data comes from the shared contract fixtures; test-only state selection stays outside the app.
+The words of the ask choose the state: "clarify", "progress", "empty", "restricted",
+"cached", and "line"/"busy" for a place question. Anything else is a service request.
 """
 import json
 from datetime import datetime, timedelta, timezone
@@ -18,8 +20,14 @@ def fixture(folder, name):
     return json.loads((FIXTURES / folder / (name + ".json")).read_text())
 
 
+def stamp(value):
+    return value.isoformat().replace("+00:00", "Z")
+
+
 class Handler(BaseHTTPRequestHandler):
-    records = {}
+    requests = {}
+    asks = {}
+    provider = None
     counter = 0
 
     def log_message(self, *args):
@@ -34,37 +42,85 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(data)
 
+    def new_request(self, text, state):
+        Handler.counter += 1
+        identifier = f"req_ui-{Handler.counter}"
+        request = fixture("requests.get", state)
+        request.update(request_id=identifier, text=text)
+        Handler.requests[identifier] = {"request": request, "polls": 0, "mode": text.lower()}
+        return request
+
+    def service_ask(self, ask_id, request):
+        return {"ask_id": ask_id, "ask_type": "service_request", "request": request,
+                "place_question": None, "clarification": None, "created_at": request["created_at"]}
+
+    def place_ask(self, ask_id, text, status):
+        now = datetime.now(timezone.utc)
+        place = {"question_id": f"plq_ui-{Handler.counter}", "text": text,
+                 "place_name": "Walmart on Ben White", "status": status,
+                 "progress": {"notified": 3, "opened": 1, "answered": 0}, "answer": None,
+                 "web_answer": None, "created_at": stamp(now - timedelta(minutes=1)),
+                 "expires_at": stamp(now + timedelta(minutes=9))}
+        if status == "unknown":
+            # Figure A1 screen 4: what the web says, never promoted above Not verified.
+            place["web_answer"] = {"headline": "Usually busy at this hour",
+                                   "summary": "Popular-times data says weekday evenings are the busiest. Nobody checked today.",
+                                   "source_name": "Synthetic web summary", "retrieved_at": stamp(now - timedelta(minutes=2)),
+                                   "truth_label": "not_verified"}
+        return {"ask_id": ask_id, "ask_type": "place_question", "request": None, "place_question": place,
+                "clarification": None, "created_at": place["created_at"]}
+
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))) or b"{}")
         path = urlparse(self.path).path
         if path == "/v1/auth/guest":
             now = datetime.now(timezone.utc)
-            stamp = lambda value: value.isoformat().replace("+00:00", "Z")
+            Handler.provider = None
             return self.respond({"access_token": "pat_fixture", "refresh_token": "prt_fixture",
                 "access_token_expires_at": stamp(now + timedelta(hours=1)),
                 "refresh_token_expires_at": stamp(now + timedelta(days=1)),
                 "account": {"user_id": "usr_ios-fixture", "type": "guest", "scopes": ["guest"]},
                 "consent": {"current_version": "2026-09-01", "accepted_version": "2026-09-01", "accepted_at": stamp(now)}}, 201)
-        if path == "/v1/requests":
+        if path == "/v1/asks":
             text = body["text"]
-            if "restricted" in text.lower():
-                return self.respond(fixture("requests.create", "restricted-intent"), 422)
+            mode = text.lower()
+            if "restricted" in mode:
+                return self.respond(fixture("asks.create", "restricted-intent"), 422)
             Handler.counter += 1
-            identifier = f"req_ui-{Handler.counter}"
-            state = "draft" if "clarify" in text.lower() else "submitted"
-            request = fixture("requests.get", state)
-            request.update(request_id=identifier, text=text)
-            Handler.records[identifier] = {"request": request, "polls": 0, "mode": text.lower()}
-            return self.respond(request, 201)
-        identifier = path.split("/")[-2]
-        record = self.records[identifier]
+            ask_id = f"ask_ui-{Handler.counter}"
+            if "clarify" in mode:
+                result = fixture("asks.create", "clarification")
+                result["ask_id"] = ask_id
+                Handler.asks[ask_id] = {"text": text, "result": result, "polls": 0}
+                return self.respond(result, 201)
+            if "line" in mode or "busy" in mode:
+                result = self.place_ask(ask_id, text, "asking")
+                Handler.asks[ask_id] = {"text": text, "result": result, "polls": 0}
+                return self.respond(result, 201)
+            result = self.service_ask(ask_id, self.new_request(text, "submitted"))
+            Handler.asks[ask_id] = {"text": text, "result": result, "polls": 0}
+            return self.respond(result, 201)
+        if path.startswith("/v1/asks/") and path.endswith("/clarifications"):
+            ask_id = path.split("/")[3]
+            record = Handler.asks[ask_id]
+            result = self.service_ask(ask_id, self.new_request(record["text"], "submitted"))
+            record["result"] = result
+            return self.respond(result)
+        if path == "/v1/providers/skills/propose":
+            return self.respond(fixture("providers.propose", "success"))
+        if path == "/v1/providers/skills":
+            profile = fixture("providers.skills", "success")
+            known = {skill["tag"]: skill for skill in fixture("providers.propose", "success")["skills"]}
+            profile.update(skills=[known.get(tag, {"tag": tag, "display": tag.replace("_", " ").capitalize(),
+                                                   "requires_licence": False}) for tag in body["skill_tags"]],
+                           travel_radius_m=body["travel_radius_m"], availability=body["availability"],
+                           accepting=body.get("accepting", True))
+            Handler.provider = profile
+            return self.respond(profile)
+        identifier = path.split("/")[3]
+        record = self.requests[identifier]
         if path.endswith("/cancel"):
             result = fixture("requests.get", "canceled")
-            result.update(request_id=identifier, text=record["request"]["text"])
-            record["request"] = result
-            return self.respond(result)
-        if path.endswith("/clarifications"):
-            result = fixture("requests.get", "submitted")
             result.update(request_id=identifier, text=record["request"]["text"])
             record["request"] = result
             return self.respond(result)
@@ -74,8 +130,20 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path == "/health":
             return self.respond({"status": "UP", "version": "synthetic-ui-fixtures"})
+        if path == "/v1/providers/me":
+            if Handler.provider is None:
+                return self.respond(fixture("providers.me", "not-a-provider"), 404)
+            return self.respond(Handler.provider)
+        if path.startswith("/v1/asks/"):
+            ask_id = path.split("/")[3]
+            record = Handler.asks[ask_id]
+            record["polls"] += 1
+            result = record["result"]
+            if result.get("place_question") and result["place_question"]["status"] == "asking" and record["polls"] > 1:
+                record["result"] = result = self.place_ask(ask_id, record["text"], "unknown")
+            return self.respond(result)
         identifier = path.split("/")[3]
-        record = self.records[identifier]
+        record = self.requests[identifier]
         if path.endswith("/offers"):
             result = fixture("requests.offers", "success")
             result["request_id"] = identifier

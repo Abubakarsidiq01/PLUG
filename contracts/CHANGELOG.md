@@ -11,6 +11,35 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.5.0 — 2026-10-02 — BREAKING vs proposed 0.4.0 (unmerged) — proposed — manual v4 / ADR-010
+Manual v4 Part V (P2.S10–P2.S17). One ask field serves two kinds of ask: `POST /v1/asks`
+classifies into `service_request` or `place_question` and returns `AskResult` (exactly one of
+`request`, `place_question`, or a single `clarification` with `field: ask`), with
+`GET /v1/asks/{ask_id}` and `POST /v1/asks/{ask_id}/clarifications`. Skills come only from
+the new controlled vocabulary `contracts/skills.yaml` (35 tags, owned by Person Two, changed
+by pull request plus migration): `RequestConstraints.search_terms` is removed and replaced by
+required `skill_tags` (vocabulary tags) and `licence_required`. Any lawful service is in
+scope; the restricted-intent policy is now the only refusal path and runs before any model
+call (refusals are audited; place questions about a private place are refused the same way).
+Provider capability is added to the caller's existing account: `POST
+/v1/providers/skills/propose`, `POST /v1/providers/skills`, `GET /v1/providers/me` (404 until
+the caller offers a service); a `requires_licence` tag needs `licence_ref`
+(`details[].code` `licence_required`) and an invented tag is refused (`unknown_skill`).
+`ServiceOffer` gains required `provider_score` (`new` below three completed jobs, never 0).
+`TruthLabel` gains `not_verified`, reserved for `WebAnswer`, which can never carry a human
+label. The Apple Maps listing from ADR-009 is withdrawn. `POST /v1/asks` shares the creation
+rate budget with `POST /v1/requests`. Error codes and auth@0.2.2 are unchanged.
+Fixtures updated: new `fixtures/asks.create|asks.get|asks.clarify|providers.propose|
+providers.skills|providers.me` (captured from the real backend, errors from templates);
+every `fixtures/requests.*` resource and `contracts/examples/requests-*` migrated from
+`search_terms` to `skill_tags`/`licence_required`/`provider_score`; `fixtures/intents/p2.jsonl`
+46 vectors re-labelled against the vocabulary; manifest at 117 rows.
+Migration note: `V6__asks_skills_providers.sql` adds `skill_vocabulary` (seeded from
+skills.yaml; the backend refuses to start if the two disagree), `asks`, `place_questions`,
+`provider_profiles`, `provider_skills`, `provider_availability`, `provider_scores`,
+`request_matches` and `vocabulary_gaps`. Expand-only. Backend first, then the iOS build.
+Rollback: `requests_v2` off removes every route above; the Phase 0 stub stays.
+
 ### 0.4.0 — 2026-10-01 — BREAKING vs proposed 0.3.0 (unmerged) — ADR-009
 Owner decision: PLUG serves any lawful service, not only barber and beauty. `Category`
 becomes a snake_case identifier (`^[a-z][a-z0-9_]{1,39}$`) instead of the enum

@@ -27,6 +27,83 @@ final class RequestTests: XCTestCase {
         XCTAssertEqual(checked, 19)
     }
 
+    func testEveryAskAndProviderFixtureDecodesAndValidates() throws {
+        var checked = 0
+        for folder in ["asks.create", "asks.get", "asks.clarify", "providers.propose", "providers.skills", "providers.me"] {
+            let directory = try XCTUnwrap(Bundle(for: Self.self).resourceURL?.appendingPathComponent(folder))
+            for url in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) where url.pathExtension == "json" {
+                let data = try Data(contentsOf: url)
+                let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+                if json["error"] != nil { continue }
+                switch folder {
+                case "providers.propose": _ = try PlugJSON.decoder.decode(SkillProposal.self, from: data)
+                case "providers.skills", "providers.me":
+                    let profile = try PlugJSON.decoder.decode(ProviderProfile.self, from: data)
+                    XCTAssertTrue(profile.score.isValid)
+                default: _ = try PlugJSON.decoder.decode(AskResult.self, from: data).validated()
+                }
+                checked += 1
+            }
+        }
+        XCTAssertEqual(checked, 8)
+    }
+
+    func testWebAnswerCannotBePromotedAboveNotVerified() throws {
+        var json = try object("asks.create", "place-question")
+        var place = try XCTUnwrap(json["place_question"] as? [String: Any])
+        place["web_answer"] = ["headline": "Usually busy", "summary": "Pattern", "source_name": "Example",
+                               "retrieved_at": "2026-05-01T12:00:00Z", "truth_label": "confirmed"]
+        json["place_question"] = place
+        let result = try PlugJSON.decoder.decode(AskResult.self, from: JSONSerialization.data(withJSONObject: json))
+        XCTAssertThrowsError(try result.validated())
+    }
+
+    func testAskingPlaceQuestionPollsWithoutInventingAnswers() async throws {
+        let service = StubRequests()
+        var json = try object("asks.create", "place-question")
+        var place = try XCTUnwrap(json["place_question"] as? [String: Any])
+        place["status"] = "asking"
+        place["answer"] = NSNull()
+        json["place_question"] = place
+        let asking = try PlugJSON.decoder.decode(AskResult.self, from: JSONSerialization.data(withJSONObject: json))
+        service.onAsk = { _, _ in asking }
+        var interval: Int?
+        let model = RequestModel(service: service, sleep: { value in interval = value; throw CancellationError() })
+        model.text = "How long is the line at Walmart right now?"
+        await model.submit(location: location)
+        while interval == nil { await Task.yield() }
+        XCTAssertEqual(interval, RequestModel.placePollSeconds)
+        XCTAssertNil(model.request)
+        XCTAssertNil(model.placeQuestion?.answer)
+        model.setActive(false)
+    }
+
+    func testAskServicePostsToAsksWithIdempotencyHeader() async throws {
+        let data = try fixture("asks.create", "service-request")
+        TestTransport.handler = { request in
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.path, "/v1/asks")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Idempotency-Key"), "ask-key")
+            return (try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 201,
+                httpVersion: nil, headerFields: ["Content-Type": "application/json"])), data)
+        }
+        let service = try await liveService()
+        let result = try await service.ask(AskBody(text: "Barber", location: location), key: "ask-key")
+        XCTAssertEqual(result.askType, .serviceRequest)
+    }
+
+    func testMissingProviderProfileIsNotAnError() async throws {
+        let data = try fixture("providers.me", "not-a-provider")
+        TestTransport.handler = { request in
+            XCTAssertEqual(request.url?.path, "/v1/providers/me")
+            return (try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 404,
+                httpVersion: nil, headerFields: ["Content-Type": "application/json"])), data)
+        }
+        let service = try await liveService()
+        let profile = try await service.providerProfile()
+        XCTAssertNil(profile)
+    }
+
     func testMalformedServerProgressAndNextActionFailClosed() throws {
         var json = try object("requests.get", "submitted")
         json["progress"] = ["contacted": 1, "replied": 2, "offers_ready": 1]
@@ -284,4 +361,20 @@ private final class StubRequests: RequestServing {
     }
     func offers(_ id: String) async throws -> ServiceOfferList { try await XCTUnwrap(onOffers)(id) }
     func cancel(_ id: String) async throws -> ServiceRequest { try await XCTUnwrap(onCancel)(id) }
+
+    var onAsk: ((AskBody, String) async throws -> AskResult)?
+    /// Without onAsk, an ask is routed through onCreate, so a request test reads as before.
+    func ask(_ body: AskBody, key: String) async throws -> AskResult {
+        if let onAsk { return try await onAsk(body, key) }
+        let request = try await XCTUnwrap(onCreate)(CreateServiceRequest(text: body.text, location: body.location), key)
+        return AskResult(askId: "ask_test", askType: .serviceRequest, request: request, placeQuestion: nil,
+                         clarification: nil, createdAt: request.createdAt)
+    }
+    func getAsk(_ id: String) async throws -> AskResult { throw URLError(.notConnectedToInternet) }
+    func answerAsk(_ id: String, clarificationId: String, value: String, key: String) async throws -> AskResult {
+        throw URLError(.notConnectedToInternet)
+    }
+    func proposeSkills(_ description: String) async throws -> SkillProposal { SkillProposal(skills: [], unmatched: []) }
+    func setProvider(_ setup: ProviderSetup) async throws -> ProviderProfile { throw URLError(.notConnectedToInternet) }
+    func providerProfile() async throws -> ProviderProfile? { nil }
 }

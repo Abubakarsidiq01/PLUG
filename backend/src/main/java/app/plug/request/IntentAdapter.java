@@ -3,6 +3,7 @@ package app.plug.request;
 import app.plug.foundation.ApiException;
 import app.plug.request.RequestPayloads.Constraints;
 import app.plug.request.RequestPayloads.Create;
+import app.plug.request.RequestPayloads.Location;
 import app.plug.request.RequestPayloads.Option;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
@@ -23,11 +24,11 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-// Turns the person's words into constraints for any lawful service (ADR-009).
-// Precedence: explicit client fields, then unambiguous rule-based parses of numbers and times,
-// then the provider (Claude) for the service, then the built-in service dictionary. Provider
-// output is untrusted: it is strictly parsed and range-checked, and it can never set status,
-// offers, prices or truth labels. Any provider failure falls back to the rules, never a 500.
+/// Classifies an ask and extracts its structure (manual v4 §12A, §19A.1, P2.S11/S12).
+/// The model only classifies, points at vocabulary tags and reads numbers; it never sets
+/// a fact. Precedence: explicit client fields, then unambiguous rule-based parses of money,
+/// time and distance, then the model. Skill tags exist only if contracts/skills.yaml has
+/// them. Any provider failure falls back to the rules, never a 500.
 public class IntentAdapter implements AutoCloseable {
     private final java.util.concurrent.ExecutorService providerPool = new java.util.concurrent.ThreadPoolExecutor(
             0, 2, 30, java.util.concurrent.TimeUnit.SECONDS, new java.util.concurrent.SynchronousQueue<>(),
@@ -38,77 +39,63 @@ public class IntentAdapter implements AutoCloseable {
         /** The provider's raw JSON, or null when none is configured or it declined. */
         String extract(String text, Instant now, ZoneId zone, Duration deadline) throws Exception;
     }
-    public record Extracted(String category, String serviceName, List<String> searchTerms, Integer budgetCents,
-            Instant neededBy, Integer maxDistanceM, List<Option> candidates) {}
-    /** Constraints plus, when the service is unknown, the one question's options. */
-    public record Result(Constraints constraints, List<Option> clarificationOptions) {}
+    /** The model's untrusted output. Every field is validated before use. */
+    public record Extracted(String askType, List<String> skillTags, String placeName, Integer budgetCents,
+            Instant neededBy, Integer maxDistanceM) {}
+    public enum AskType { SERVICE_REQUEST, PLACE_QUESTION, UNCLEAR }
+    /** The classification: constraints for a service ask, the place for a place question, or the one question. */
+    public record Result(AskType askType, Constraints constraints, String clarificationField,
+            List<Option> clarificationOptions, String placeName) {
+        public List<Option> clarificationOptionsOrNull() { return clarificationOptions; }
+    }
 
     public static final int MIN_BUDGET = 500;
     public static final int MAX_BUDGET = 500_000;
     static final int DEFAULT_DISTANCE_M = 10_000;
-    private static final Pattern CATEGORY = Pattern.compile("[a-z][a-z0-9_]{1,39}");
-    private static final Pattern LABEL = Pattern.compile("[\\p{L}\\p{N} &'(),./+-]{1,80}");
-    private static final Pattern TERM = Pattern.compile("[\\p{L}\\p{N} &'./+-]{1,60}");
-    private static final Pattern RESTRICTED = Pattern.compile("\\b(stolen|credit card numbers|cocaine|heroin|meth|fentanyl|weapon|gun|kill|murder|assassin|prostitut|escort|fake id|forged|fraud|hack|explosive|bomb)\\w*\\b");
-
-    record Service(String category, String name, List<String> terms, Pattern pattern) {
-        Service(String category, String name, List<String> terms, String regex) {
-            this(category, name, terms, Pattern.compile("\\b(" + regex + ")\\b"));
-        }
-    }
-    // The rule-based fallback when no provider is configured or it fails. Barber and beauty
-    // keep the identifiers the seeded suppliers use; everything else is open (ADR-009).
-    static final List<Service> SERVICES = List.of(
-            new Service("barber", "Barber", List.of("barber", "barbershop"), "barber\\w*|haircut|hair cut|fresh cut|fade|beard|trim"),
-            new Service("beauty", "Beauty & nails", List.of("nail salon", "beauty salon"), "beauty|manicure|pedicure|nails?|salon|lashes|makeup|braids|brows"),
-            new Service("shoe_repair", "Shoe repair", List.of("shoe repair", "cobbler"), "cobbler|shoe repair|(repair|fix|resole)\\w* (my |a |the )?(shoes?|boots?|sneakers?|heels?)"),
-            new Service("plumber", "Plumber", List.of("plumber", "plumbing"), "plumb\\w*|leak\\w*|clogged|toilet|drain"),
-            new Service("electrician", "Electrician", List.of("electrician"), "electrician|electrical|wiring|outlet|breaker"),
-            new Service("auto_repair", "Auto repair", List.of("auto repair", "mechanic"), "mechanic|car repair|auto repair|oil change|brakes?|flat tire|engine"),
-            new Service("locksmith", "Locksmith", List.of("locksmith"), "locksmith|locked out|lockout|rekey"),
-            new Service("house_cleaning", "House cleaning", List.of("house cleaning", "cleaning service"), "cleaner|cleaning|maid|housekeep\\w*"),
-            new Service("tailor", "Tailor", List.of("tailor", "alterations"), "tailor\\w*|alterations?|hem|hemming"),
-            new Service("phone_repair", "Phone repair", List.of("phone repair", "cell phone repair"), "phone repair|iphone repair|cracked screen|(fix|repair) (my )?(phone|iphone)"),
-            new Service("computer_repair", "Computer repair", List.of("computer repair", "laptop repair"), "(computer|laptop|pc) repair|(fix|repair) (my )?(computer|laptop|pc)"),
-            new Service("tutor", "Tutor", List.of("tutor", "tutoring"), "tutor\\w*|homework help"),
-            new Service("handyman", "Handyman", List.of("handyman"), "handyman|handy man|furniture assembly|mount (a |my )?tv"),
-            new Service("movers", "Movers", List.of("movers", "moving company"), "movers?|moving help"),
-            new Service("laundry", "Laundry & dry cleaning", List.of("dry cleaning", "laundry"), "laundry|laundromat|dry clean\\w*"),
-            new Service("car_wash", "Car wash", List.of("car wash", "auto detailing"), "car wash|detailing"),
-            new Service("pet_grooming", "Pet grooming", List.of("pet grooming", "dog groomer"), "(dog|pet|cat) groom\\w*|groomer"),
-            new Service("veterinarian", "Veterinarian", List.of("veterinarian", "animal hospital"), "vet|veterinar\\w*"),
-            new Service("dentist", "Dentist", List.of("dentist"), "dentist|dental|toothache"),
-            new Service("doctor", "Doctor", List.of("urgent care", "doctor"), "doctor|clinic|urgent care"),
-            new Service("pharmacy", "Pharmacy", List.of("pharmacy"), "pharmacy|prescription"),
-            new Service("massage", "Massage", List.of("massage"), "massage"),
-            new Service("photographer", "Photographer", List.of("photographer"), "photographer|photo ?shoot"),
-            new Service("towing", "Towing", List.of("towing", "tow truck"), "tow truck|towing|tow my"),
-            new Service("restaurant", "Restaurant", List.of("restaurant"), "restaurant|dinner|lunch|breakfast|pizza|food"));
-    /** Offered when the service could not be determined at all. */
-    static final List<Option> POPULAR = SERVICES.stream().limit(8).map(s -> new Option(s.category(), s.name())).toList();
+    static final Option PLACE_OPTION = new Option("place_question", "Something happening at a place");
+    /** Offered when nothing could be resolved: common asks first. */
+    static final List<String> POPULAR = List.of("barber", "braids", "nails", "plumbing_minor", "laptop_repair",
+            "house_cleaning", "moving_help", "auto_repair");
+    // "How long is the line", "is it busy", "is it open": a question about a place's state.
+    private static final Pattern PLACE = Pattern.compile("\\b(how (long|busy|crowded|packed|full) (is|are)|"
+            + "how long is the (line|wait|queue)|(line|queue|wait|traffic) (at|in|on)|"
+            + "is (it|the|there|\\w+) .{0,40}\\b(busy|crowded|packed|quiet|open|closed|full)\\b|"
+            + "(busy|crowded|packed) (right )?now|parking (at|near)|any (seats|tables|parking) (at|in))");
+    private static final Pattern PLACE_NAME = Pattern.compile("\\b(?:at|in|on)\\s+(?:the\\s+)?([^?.!,]{2,80})");
 
     private final ObjectMapper mapper;
     private final Clock clock;
     private final Provider provider;
     private final Duration deadline;
+    private final SkillVocabulary vocabulary;
 
     public IntentAdapter(ObjectMapper mapper, Clock clock, Provider provider) {
-        this(mapper, clock, provider, Duration.ofSeconds(6));
+        this(mapper, clock, provider, Duration.ofSeconds(6), SkillVocabulary.load());
     }
-    public IntentAdapter(ObjectMapper mapper, Clock clock, Provider provider, Duration deadline) {
+    public IntentAdapter(ObjectMapper mapper, Clock clock, Provider provider, Duration deadline, SkillVocabulary vocabulary) {
         this.mapper = mapper.copy();
         this.clock = clock;
         this.provider = provider;
         this.deadline = deadline;
+        this.vocabulary = vocabulary;
     }
 
-    public boolean restricted(String text) {
-        return RESTRICTED.matcher(normalize(text)).find();
-    }
+    public SkillVocabulary vocabulary() { return vocabulary; }
 
+    /// POST /v1/requests: a service request by definition. A missing skill is the one question.
     public Result extract(Create input) {
+        Result result = classify(input, true);
+        return result;
+    }
+
+    /// POST /v1/asks: classify, then extract for the pipeline that will run.
+    public Result classify(String text, Location location, String timeZone) {
+        return classify(new Create(text, null, null, null, null, null, location, timeZone), false);
+    }
+
+    private Result classify(Create input, boolean serviceOnly) {
         if (input.text().isBlank() || input.text().codePoints().anyMatch(c -> Character.isISOControl(c) && c != '\n')) {
-            throw ApiException.validation("text", "invalid", "Describe the service using plain text.");
+            throw ApiException.validation("text", "invalid", "Describe what you need using plain text.");
         }
         if (input.currency() != null && !input.currency().equals("USD")) {
             throw ApiException.validation("currency", "unsupported", "Only USD is supported.");
@@ -116,48 +103,71 @@ public class IntentAdapter implements AutoCloseable {
         if (input.budgetCents() != null && input.currency() == null) {
             throw ApiException.validation("currency", "required", "Choose a currency for the budget.");
         }
+        if (input.category() != null && !vocabulary.contains(input.category())) {
+            throw ApiException.validation("category", "unknown_skill", "Choose a service PLUG lists.");
+        }
         ZoneId zone = zone(input.timeZone());
         checkTime(input.neededBy());
         String text = normalize(input.text());
-        Integer ruleBudget = input.budgetCents() == null ? budget(text) : null;
-        Instant ruleTime = input.neededBy() == null ? neededBy(text, zone) : null;
-        Integer ruleDistance = input.maxDistanceM() == null ? distance(text) : null;
         Extracted model = provided(input.text(), zone);
 
-        String category = null;
-        String name = null;
-        List<String> terms = List.of();
-        List<Option> options = null;
-        List<Service> matches = SERVICES.stream().filter(s -> s.pattern().matcher(text).find()).toList();
-        if (input.category() != null) {
-            category = input.category();
-            name = SERVICES.stream().filter(s -> s.category().equals(input.category())).map(Service::name).findFirst()
-                    .orElse(humanize(input.category()));
-            terms = List.of(name.toLowerCase(Locale.ROOT));
-        } else if (model != null && model.category() != null) {
-            category = model.category();
-            name = model.serviceName() != null ? model.serviceName() : humanize(model.category());
-            terms = model.searchTerms() == null || model.searchTerms().isEmpty()
-                    ? List.of(name.toLowerCase(Locale.ROOT)) : model.searchTerms();
-        } else if (matches.size() == 1) {
-            category = matches.getFirst().category();
-            name = matches.getFirst().name();
-            terms = matches.getFirst().terms();
-        } else {
-            // The one blocking question (manual §27.3): which service. Never two questions.
-            options = model != null && model.candidates() != null && model.candidates().size() >= 2 ? model.candidates()
-                    : matches.size() >= 2 ? matches.stream().limit(8).map(s -> new Option(s.category(), s.name())).toList()
-                    : POPULAR;
+        boolean placeByRules = PLACE.matcher(text).find();
+        List<SkillVocabulary.Skill> ruleSkills = vocabulary.findIn(text);
+        List<SkillVocabulary.Skill> modelSkills = model == null ? List.of() : vocabulary.resolve(model.skillTags());
+        AskType type;
+        if (serviceOnly || input.category() != null) type = AskType.SERVICE_REQUEST;
+        else if (model != null && "place_question".equals(model.askType())) type = AskType.PLACE_QUESTION;
+        else if (model != null && "service_request".equals(model.askType())) type = AskType.SERVICE_REQUEST;
+        else if (placeByRules) type = AskType.PLACE_QUESTION;
+        else if (!ruleSkills.isEmpty() || !modelSkills.isEmpty()) type = AskType.SERVICE_REQUEST;
+        else type = AskType.UNCLEAR;
+
+        if (type == AskType.PLACE_QUESTION) {
+            String place = model != null && model.placeName() != null ? model.placeName() : placeName(input.text());
+            return new Result(type, null, null, null, place);
         }
-        Integer budget = input.budgetCents() != null ? input.budgetCents() : ruleBudget != null ? ruleBudget
-                : model == null ? null : model.budgetCents();
-        Instant needed = input.neededBy() != null ? input.neededBy() : ruleTime != null ? ruleTime
-                : model == null ? null : model.neededBy();
+
+        List<SkillVocabulary.Skill> skills = input.category() != null ? List.of(vocabulary.get(input.category()))
+                : !modelSkills.isEmpty() ? modelSkills : ruleSkills;
+        skills = skills.stream().distinct().limit(5).toList();
+        // Money, time and distance only matter once a service ask exists.
+        Integer budget = input.budgetCents() != null ? input.budgetCents() : budget(text);
+        if (budget == null && model != null) budget = model.budgetCents();
+        Instant needed = input.neededBy() != null ? input.neededBy() : neededBy(text, zone);
+        if (needed == null && model != null) needed = model.neededBy();
         checkTime(needed);
+        Integer ruleDistance = input.maxDistanceM() == null ? distance(text) : null;
         int distance = input.maxDistanceM() != null ? input.maxDistanceM() : ruleDistance != null ? ruleDistance
                 : model != null && model.maxDistanceM() != null ? model.maxDistanceM() : DEFAULT_DISTANCE_M;
-        return new Result(new Constraints(category, name, terms, budget, "USD", needed, distance,
-                input.location().rounded()), options);
+
+        SkillVocabulary.Skill primary = skills.isEmpty() ? null : skills.getFirst();
+        Constraints constraints = new Constraints(primary == null ? null : primary.tag(),
+                primary == null ? null : primary.display(), skills.stream().map(SkillVocabulary.Skill::tag).toList(),
+                skills.stream().anyMatch(SkillVocabulary.Skill::requiresLicence), budget, "USD", needed, distance,
+                input.location().rounded());
+        if (primary != null) return new Result(AskType.SERVICE_REQUEST, constraints, null, null, null);
+        // The one blocking question (manual §27.3, v4 §19A.1). For an unclassifiable ask it also
+        // offers the place pipeline, so one answer resolves both and PLUG never asks twice.
+        List<Option> options = new ArrayList<>(POPULAR.stream().limit(type == AskType.UNCLEAR ? 6 : 8)
+                .map(tag -> new Option(tag, vocabulary.get(tag).display())).toList());
+        if (type == AskType.UNCLEAR) options.add(PLACE_OPTION);
+        return new Result(type, constraints, type == AskType.UNCLEAR ? "ask" : "category", List.copyOf(options), null);
+    }
+
+    /// The model's reading of a provider's own description, as vocabulary tags only.
+    public List<SkillVocabulary.Skill> proposedSkills(String description) {
+        Extracted model = provided(description, ZoneOffset.UTC);
+        return model == null ? List.of() : vocabulary.resolve(model.skillTags());
+    }
+
+    static String placeName(String text) {
+        Matcher matcher = PLACE_NAME.matcher(text);
+        String found = null;
+        while (matcher.find()) {
+            String candidate = matcher.group(1).replaceAll("\\s+(right )?now$", "").trim();
+            if (!candidate.matches("(?i)(right )?now|the moment|line|queue")) { found = candidate; break; }
+        }
+        return found == null || found.isBlank() ? null : found.length() > 120 ? found.substring(0, 120) : found;
     }
 
     private Extracted provided(String text, ZoneId zone) {
@@ -176,16 +186,13 @@ public class IntentAdapter implements AutoCloseable {
     }
 
     private boolean valid(Extracted value) {
-        if (value == null) return false;
-        boolean named = value.category() != null;
-        if (named && (!CATEGORY.matcher(value.category()).matches()
-                || value.serviceName() == null || !LABEL.matcher(value.serviceName()).matches())) return false;
-        if (!named && value.serviceName() != null) return false;
-        if (value.searchTerms() != null && (value.searchTerms().size() > 5
-                || value.searchTerms().stream().anyMatch(t -> t == null || !TERM.matcher(t).matches()))) return false;
-        if (value.candidates() != null && (value.candidates().size() > 8 || value.candidates().stream().anyMatch(o -> o == null
-                || o.value() == null || !CATEGORY.matcher(o.value()).matches()
-                || o.label() == null || !LABEL.matcher(o.label()).matches()))) return false;
+        if (value == null || value.askType() == null
+                || !List.of("service_request", "place_question", "unclear").contains(value.askType())) return false;
+        // Tags the vocabulary does not have are dropped later; a malformed list is rejected outright.
+        if (value.skillTags() != null && (value.skillTags().size() > 10
+                || value.skillTags().stream().anyMatch(tag -> tag == null || tag.length() > 60))) return false;
+        if (value.placeName() != null && (value.placeName().isBlank() || value.placeName().length() > 120
+                || value.placeName().codePoints().anyMatch(Character::isISOControl))) return false;
         if (value.budgetCents() != null && (value.budgetCents() < MIN_BUDGET || value.budgetCents() > MAX_BUDGET)) return false;
         if (value.maxDistanceM() != null && (value.maxDistanceM() < 100 || value.maxDistanceM() > 50_000)) return false;
         try { checkTime(value.neededBy()); } catch (ApiException invalid) { return false; }
@@ -275,11 +282,6 @@ public class IntentAdapter implements AutoCloseable {
         if (value.isAfter(clock.instant().plus(Duration.ofDays(7)))) {
             throw ApiException.validation("needed_by", "too_far_ahead", "Choose a time within seven days.");
         }
-    }
-
-    static String humanize(String category) {
-        String words = category.replace('_', ' ');
-        return Character.toUpperCase(words.charAt(0)) + words.substring(1);
     }
 
     private static String normalize(String text) {

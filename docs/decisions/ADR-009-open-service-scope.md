@@ -1,6 +1,10 @@
 # ADR-009: Any lawful service, Claude extraction, nearby-business discovery
 
-- Status: Accepted by the project owner on 2026-10-01
+- Status: Accepted by the project owner on 2026-10-01. **Superseded in part by
+  [ADR-010](ADR-010-manual-v4-asks-skills-providers.md) on 2026-10-02:** free-form
+  categories and `search_terms` are replaced by the controlled skill vocabulary, and the
+  Apple Maps nearby-business listing (point 3) is withdrawn. Points 2 (Claude extracts,
+  output untrusted, rules fallback) and 4 (budgets and time) still stand.
 - Scope: amends manual.docx §1.3 rule 5, §2.1 (Launch: "one category"; Truth), §19.5,
   §25.6 (category allow-list) and §27.3 for Phase 2 onward
 

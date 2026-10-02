@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "Add your licence number for licensed work.",
+    "request_id": "req_032d7388-3c5f-43d8-9906-95f4446114bd",
+    "details": [
+      {
+        "field": "licence_ref",
+        "code": "licence_required",
+        "message": "Add your licence number for licensed work."
+      }
+    ]
+  }
+}

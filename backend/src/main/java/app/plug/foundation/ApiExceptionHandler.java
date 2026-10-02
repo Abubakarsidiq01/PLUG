@@ -106,6 +106,10 @@ public class ApiExceptionHandler {
     }
 
     public record ErrorEnvelope(ErrorBody error) {}
-    public record ErrorBody(String code, String message, String requestId, List<FieldError> details, Integer retryAfterSeconds) {}
+    // details carries field-level problems only (contract Error schema); an empty list is omitted,
+    // so a refusal such as restricted_intent is exactly code, message and request_id.
+    public record ErrorBody(String code, String message, String requestId,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_EMPTY)
+            List<FieldError> details, Integer retryAfterSeconds) {}
     public record FieldError(String field, String code, String message) {}
 }

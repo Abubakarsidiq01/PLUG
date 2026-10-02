@@ -19,13 +19,11 @@
 **Outcome this phase must reach**
 “I need to repair my shoe for $45 tomorrow, who is available?” — or “Barber under $35 in 30 minutes” — produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
 
-> **Amended by [ADR-009](../decisions/ADR-009-open-service-scope.md) (2026-10-01, owner decision).**
-> PLUG serves any lawful service, not only barbers and beauty. Claude extracts the
-> service, budget, time and distance (untrusted output, validated, rules as fallback).
-> Participating suppliers produce offers; when none cover a service the request ends
-> `no_coverage` and the app lists real nearby businesses from Apple Maps with price and
-> availability **Unknown**. Budgets run $5–$5,000. The Ask experience is bold and warm.
-> Contract 0.4.0 supersedes the unmerged 0.3.0 category model.
+> **Redesigned to manual v4 ([ADR-010](../decisions/ADR-010-manual-v4-asks-skills-providers.md), 2026-10-02, proposed).**
+> Two kinds of ask in one field, a controlled skill vocabulary you own, providers on the
+> same account. ADR-009's Apple Maps listing and free-form categories are withdrawn.
+> Person One drafted some of your v4 artefacts so neither lane waits; each is marked below
+> and is yours to review, change or reject in the 0.5.0 contract session.
 
 **Why it matters**
 This is where the product becomes itself. It is also where the temptation to let the model decide things is strongest, and where a single fabricated price would undermine the entire premise.
@@ -88,6 +86,13 @@ you go, and open one pull request per step or per small group of related steps.
 - [ ] **P2.S4** — Build a web-based internal request inspector only if QA needs it; it must consume real staging data and must not duplicate canonical logic.
 - [ ] **P2.S5** — Document the exact supported launch request grammar and the unsupported-category behaviour, for QA and support.
 - [ ] **P2.S6** — Run the API abuse cases: overlong prompt, invalid coordinates, absurd budget, malformed timestamps, repeated submissions, and rate-limit behaviour.
+- [ ] **P2.S7** — Build the labelled classification dataset: service asks, place questions, ambiguous asks and restricted asks, with the expected `ask_type`. *Drafted by Person One: `fixtures/intents/p2.jsonl` (46 vectors, re-labelled against the vocabulary) — review and extend.*
+- [ ] **P2.S8** — Own the skill vocabulary in `contracts/skills.yaml`. *Drafted by Person One: 35 tags; childcare, elder care, medical, legal and financial advice deliberately absent. Yours from here; every change is a PR plus a migration.*
+- [ ] **P2.S9** — Bruno suite for the two-pipeline classifier, including refusals and clarifications. *Drafted by Person One: `tests/phase2/38`–`47` (asks, private place, restricted, foreign ask, provider propose/licence/unknown tag/save).*
+- [ ] **P2.S10** — Review the Ask screen against Figure A1 and the design gate. Simulator captures: `evidence/P2/simulator/2026-10-02/`.
+- [ ] **P2.S11** — Abuse cases the open scope requires: illegal goods or services, targeting a private person, surveillance in disguise, regulated professions.
+- [ ] **P2.S12** — Admin view for the skill vocabulary and recent classifier decisions (`vocabulary_gaps` and the `restricted_intent:<rule>` audit events are the data).
+- [ ] **Web v4 retheme** — The site still uses the v3 look through token aliases (`design/token-aliases.json`), including tracked uppercase overlines that v4 bans. A partial draft (Public Sans, dashed Not-verified badge, copy for both ask types) is in `docs/handoff/web-v4-retheme-draft.patch` (`git apply` it on this branch); the CSS half is not done. Person One will not build `/web` (§6.6).
 
 ---
 

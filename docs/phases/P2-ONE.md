@@ -19,13 +19,13 @@
 **Outcome this phase must reach**
 “I need to repair my shoe for $45 tomorrow, who is available?” — or “Barber under $35 in 30 minutes” — produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
 
-> **Amended by [ADR-009](../decisions/ADR-009-open-service-scope.md) (2026-10-01, owner decision).**
-> PLUG serves any lawful service, not only barbers and beauty. Claude extracts the
-> service, budget, time and distance (untrusted output, validated, rules as fallback).
-> Participating suppliers produce offers; when none cover a service the request ends
-> `no_coverage` and the app lists real nearby businesses from Apple Maps with price and
-> availability **Unknown**. Budgets run $5–$5,000. The Ask experience is bold and warm.
-> Contract 0.4.0 supersedes the unmerged 0.3.0 category model.
+> **Redesigned to manual v4 ([ADR-010](../decisions/ADR-010-manual-v4-asks-skills-providers.md), 2026-10-02, proposed).**
+> One field takes two kinds of ask: a service request or a question about a public place.
+> Skills come only from `contracts/skills.yaml`; the restricted-intent policy is the only
+> refusal; any account can add provider skills. Design follows manual v4 §10 and Figures
+> A1–A3: ink on paper, no brand colour. Contract 0.5.0 supersedes the unmerged 0.4.0.
+> [ADR-009](../decisions/ADR-009-open-service-scope.md)'s Apple Maps listing and free-form
+> categories are withdrawn; its Claude extraction and budget rules stand.
 
 **Why it matters**
 This is where the product becomes itself. It is also where the temptation to let the model decide things is strongest, and where a single fabricated price would undermine the entire premise.
@@ -102,14 +102,29 @@ Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
 
 - [ ] **P2.S1** — Freeze the Request, constraints, status, next_action, location, money and timestamp contracts.
-- [ ] **P2.S2** — Implement the intent adapter with strict structured output and deterministic validation, per §19.5 and ADR-009 (Claude, any service, rules fallback). Treat model output as untrusted.
+- [ ] **P2.S2** — Implement the intent adapter with strict structured output and deterministic validation, per §19.5. Treat model output as untrusted.
 - [ ] **P2.S3** — Create the request state machine with legal-transition tests and idempotent cancellation, per §19.6.
 - [ ] **P2.S4** — Create the `requests`, `request_constraints`, `places` and supplier-seed migrations with the required indexes.
 - [ ] **P2.S5** — Implement the clarification decision: ask only when a missing field genuinely blocks execution, and never more than one question.
 - [ ] **P2.S6** — Expose real progress counts and `next_action`. No client-side timers pretending to be progress.
 - [ ] **P2.S7** — Return only structured, validated seeded offers. The app never fabricates price, availability, wait or confirmation.
 - [ ] **P2.S8** — Add request-creation rate limits, request-size limits and restricted-intent policy enforcement.
-- [ ] **P2.S9** — Build the SwiftUI Ask, clarification, progress, results and offer-detail screens (bold, warm — ADR-009), including the offline, no-match, nearby-businesses (Apple Maps, Unknown labels), parser-error and cached states.
+- [ ] **P2.S9** — Build the SwiftUI Ask, clarification, progress, results and offer-detail screens from Figma, including the offline, no-match, parser-error and cached states.
+
+Manual v4 adds ten steps. Implemented and verified locally on 2026-10-02 behind
+`requests_v2`; every box stays open until contract 0.5.0 is approved by both engineers and
+G2 is signed. Evidence: `docs/testing/phase2-v4-verification-2026-10-02.md`.
+
+- [ ] **P2.S10** — Freeze the AskEnvelope: one endpoint accepts both kinds of ask. The server classifies into `service_request` or `place_question` and returns `ask_type`. *(Proposed in 0.5.0: `POST /v1/asks`, `GET /v1/asks/{ask_id}`, `POST /v1/asks/{ask_id}/clarifications`.)*
+- [ ] **P2.S11** — Classifier with strict structured output and a deterministic fallback. An unclassifiable ask returns one clarifying question, never a guess. *(`IntentAdapter`, `ClaudeIntentProvider`.)*
+- [ ] **P2.S12** — Extract skill tags against the controlled vocabulary; it grows by migration, never by model invention. *(`SkillVocabulary`, V6 seeds `skill_vocabulary`; startup fails if it disagrees with `skills.yaml`.)*
+- [ ] **P2.S13** — Remove every remaining category allow-list. Scope is any lawful service and any public place.
+- [ ] **P2.S14** — Restricted-intent policy as the only block, stricter because scope is open. Runs before any model call; refusals are audited. *(`RestrictedIntentPolicy`.)*
+- [ ] **P2.S15** — `POST /v1/providers/skills`: a normal user adds skills, radius and availability to the same account. *(`ProviderService`; also `/propose` and `/me`.)*
+- [ ] **P2.S16** — `provider_profiles`, `provider_skills`, `skill_vocabulary`, `provider_availability` migrations. *(V6, with `provider_scores`, `request_matches`, `asks`, `place_questions`, `vocabulary_gaps`.)*
+- [ ] **P2.S17** — Matching: skill overlap, inside the provider's own radius, inside their availability; ranked per §19A; fanout 6, cap 16; never the asker. *(`MatchService`.)*
+- [ ] **P2.S18** — SwiftUI Ask screen: both ask types in one field, grouped examples, the four answer states of Figure A1. *(`AskView.swift`.)*
+- [ ] **P2.S19** — Provider onboarding in SwiftUI: plain words in, editable tag chips out, radius and availability. *(`ProviderView.swift`, Inbox tab once a profile exists.)*
 
 ---
 
@@ -134,7 +149,9 @@ verbal description.
 - [ ] Race and cancellation tests: cancelling mid-flight is safe and idempotent.
 - [ ] Model-provider failure test: a timeout or invalid schema produces the deterministic fallback, not a 500.
 - [ ] Restricted-intent test: a prohibited request creates no outreach and writes an audit event.
-- [ ] Open-service test: any lawful service (e.g. shoe repair) is accepted, and Claude output that fails validation falls back to the rules.
+- [ ] Open-service test: any lawful service (e.g. shoe repair) maps onto vocabulary tags, and model output that fails validation or invents a tag falls back to the rules.
+- [ ] Classification tests: service asks, place questions, unclear asks (one question) and refused asks, including private places.
+- [ ] Provider tests: licence required, invented tag refused, same `user_id`, never matched to their own ask, `new` score never 0.
 
 Verify with:
 
@@ -162,7 +179,10 @@ xcodebuild test -scheme PLUG-Staging -destination 'platform=iOS Simulator,name=i
 
 - [ ] A supported request produces validated structured offers on a real device.
 - [ ] Progress counts are real and visibly change as the server works.
-- [ ] A service with no participating supplier ends `no_coverage` honestly, and the app lists nearby businesses labelled Unknown — never invented prices or availability.
+- [ ] A service with no participating supplier ends `no_coverage` honestly — never invented prices or availability.
+- [ ] A place question nobody nearby can answer shows Unknown with real counts; a web answer, if any, is dashed and Not verified.
+- [ ] A person can offer a service from the same account and sees the Inbox tab.
+- [ ] The §16.8 design gate passes on every screen built in this phase.
 - [ ] A provider failure degrades to the deterministic path without an error screen.
 - [ ] `PROJECT_STATE.json` carries a signed `G2` entry.
 
@@ -178,6 +198,14 @@ Store everything under `evidence/P2/`:
 - [ ] `a11y/` — VoiceOver walkthrough of the primary flow
 - [ ] `logs/` — the request ID from the connected checkpoint, in the backend log
 - [ ] The correlation ID from the connected checkpoint, quoted in the tracker
+
+---
+
+## 7a. Design gate (§16.8)
+
+Run on every screen built in this phase before G2. The 2026-10-02 run is recorded in
+`docs/testing/phase2-v4-verification-2026-10-02.md`; the physical-device and greyscale
+review by a second person is still required.
 
 ---
 

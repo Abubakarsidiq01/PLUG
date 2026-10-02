@@ -33,6 +33,8 @@ dependencies {
     implementation 'org.flywaydb:flyway-core'
     // Intent extraction only (ADR-009). Output is untrusted and validated by IntentAdapter.
     implementation 'com.anthropic:anthropic-java:2.34.0'
+    // contracts/skills.yaml is read at startup (manual v4 §19A.2).
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     implementation 'org.flywaydb:flyway-database-postgresql'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -66,3 +68,13 @@ tasks.register('contractTest', Test) {
     useJUnitPlatform { excludeTags 'database' }
     filter { includeTestsMatching '*ContractTest' }
 }
+
+// The skill vocabulary is a contract artefact (contracts/skills.yaml). Ship that exact file
+// inside the application so runtime and contract cannot drift.
+tasks.named('processResources') {
+    from('../contracts') {
+        include 'skills.yaml'
+        into 'contracts'
+    }
+}
+

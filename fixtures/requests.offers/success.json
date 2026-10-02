@@ -16,7 +16,11 @@
       "expires_at": "2026-10-01T20:30:00Z",
       "observed_at": "2026-10-01T18:00:00Z",
       "truth_label": "estimated",
-      "source": "seed"
+      "source": "seed",
+      "provider_score": {
+        "state": "new",
+        "completed_jobs": 0
+      }
     },
     {
       "offer_id": "off_01J9Z6T2K2M6N0P4Q8R2S6T0V4",
@@ -33,7 +37,11 @@
       "expires_at": "2026-10-01T20:30:00Z",
       "observed_at": "2026-10-01T17:30:00Z",
       "truth_label": "estimated",
-      "source": "seed"
+      "source": "seed",
+      "provider_score": {
+        "state": "new",
+        "completed_jobs": 0
+      }
     }
   ]
 }

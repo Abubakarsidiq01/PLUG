@@ -2,6 +2,8 @@ import XCTest
 
 /// Synthetic fixture-server screenshots exercise real SwiftUI and HTTP decoding. They
 /// are explicitly separate from the connected backend and physical-device G2 evidence.
+/// The walk follows manual v4 Figures A1 to A3: ask, working, offers, unknown, the web
+/// answer, and offering a service from the same account.
 final class RequestScreenshotTests: XCTestCase {
     override func setUp() { super.setUp(); continueAfterFailure = false }
 
@@ -13,49 +15,96 @@ final class RequestScreenshotTests: XCTestCase {
         let app = launch(largest: largest)
         enterGuest(app)
         capture("ask-\(suffix)")
-        openComposer(app)
-        capture("composer-\(suffix)")
-        try submit(app, text: "clarify barber", suffix: suffix)
+
+        // Figure A2: offer a service on this same account; the Inbox tab appears after.
+        let offer = app.buttons["offer-service"]
+        reveal(offer, in: app)
+        offer.tap()
+        let describe = app.descendants(matching: .any).matching(identifier: "provider-description").firstMatch
+        XCTAssertTrue(describe.waitForExistence(timeout: 5))
+        describe.tap()
+        describe.typeText("I do knotless braids, wig installs and crochet locs")
+        dismissKeyboard(app)
+        let find = app.buttons["Find my skills"]
+        reveal(find, in: app)
+        find.tap()
+        XCTAssertTrue(app.buttons["Braids"].waitForExistence(timeout: 10))
+        capture("provider-skills-\(suffix)")
+        let base = app.buttons["Use my approximate location"]
+        reveal(base, in: app)
+        base.tap()
+        allowLocation()
+        let located = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS 'Current approximate location'")).firstMatch
+        // The simulator's one-shot location occasionally answers "unknown"; ask again before failing.
+        for _ in 0..<2 where !located.waitForExistence(timeout: 10) {
+            reveal(base, in: app)
+            base.tap()
+        }
+        XCTAssertTrue(located.waitForExistence(timeout: 10))
+        let save = app.buttons["provider-save"]
+        reveal(save, in: app)
+        capture("provider-setup-\(suffix)")
+        save.tap()
+        let inbox = app.tabBars.buttons["Inbox"]
+        XCTAssertTrue(inbox.waitForExistence(timeout: 10))
+        inbox.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["inbox-empty"].waitForExistence(timeout: 5))
+        capture("inbox-\(suffix)")
+        app.tabBars.buttons["Ask"].tap()
+
+        // One clarifying question, then offers with their evidence.
+        try submit(app, text: "clarify this for me")
         let barber = app.buttons["Barber"]
         XCTAssertTrue(barber.waitForExistence(timeout: 12))
         reveal(barber, in: app)
         capture("clarification-\(suffix)")
         barber.tap()
-        XCTAssertTrue(app.navigationBars["Top options"].waitForExistence(timeout: 20))
-        capture("results-\(suffix)")
         let details = app.buttons["View details"].firstMatch
+        XCTAssertTrue(details.waitForExistence(timeout: 20))
+        capture("results-\(suffix)")
         reveal(details, in: app)
         details.tap()
-        XCTAssertTrue(app.navigationBars["Offer details"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Offer"].waitForExistence(timeout: 5))
         capture("offer-detail-\(suffix)")
         app.navigationBars.buttons.firstMatch.tap()
-        cancelAndRestart(app, suffix: suffix)
+        stopAndRestart(app, suffix: suffix)
 
-        try submit(app, text: "progress barber", suffix: suffix)
-        XCTAssertTrue(app.staticTexts["Checking participating providers"].waitForExistence(timeout: 10))
-        app.swipeDown() // The progress card sits at the top of the page; show it rather than tap it.
+        try submit(app, text: "progress barber")
+        let progress = app.descendants(matching: .any)["request-progress"]
+        XCTAssertTrue(progress.waitForExistence(timeout: 10))
+        app.swipeDown()
         capture("progress-\(suffix)")
-        cancelAndRestart(app, suffix: suffix)
+        stopAndRestart(app, suffix: suffix)
 
-        try submit(app, text: "empty barber", suffix: suffix)
-        XCTAssertTrue(app.staticTexts["No matches this time"].waitForExistence(timeout: 20))
-        reveal(app.staticTexts["No matches this time"], in: app)
+        try submit(app, text: "empty barber")
+        XCTAssertTrue(app.staticTexts["No offers"].waitForExistence(timeout: 20))
         capture("empty-\(suffix)")
-        let restart = app.buttons["Start a new request"]
-        reveal(restart, in: app); restart.tap()
+        askAgain(app)
 
-        try submit(app, text: "restricted request", suffix: suffix)
+        try submit(app, text: "restricted request")
         let error = app.staticTexts["PLUG cannot help with this request. No suppliers were contacted."]
         XCTAssertTrue(error.waitForExistence(timeout: 10))
         reveal(error, in: app)
-        capture("parser-error-\(suffix)")
+        capture("restricted-\(suffix)")
 
-        try submit(app, text: "cached barber", suffix: suffix)
-        XCTAssertTrue(app.navigationBars["Top options"].waitForExistence(timeout: 20))
+        // Figure A1 screens 2 and 4 for a place question: real counts, then Unknown and the dashed web answer.
+        try submit(app, text: "How long is the line at Walmart right now?")
+        XCTAssertTrue(app.descendants(matching: .any)["place-progress"].waitForExistence(timeout: 10))
+        capture("place-asking-\(suffix)")
+        XCTAssertTrue(app.staticTexts["No answers"].waitForExistence(timeout: 20))
+        capture("place-unknown-\(suffix)")
+        let web = app.staticTexts["Usually busy at this hour"]
+        reveal(web, in: app)
+        capture("place-web-\(suffix)")
+        askAgain(app)
+
+        try submit(app, text: "cached barber")
+        XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
         app.buttons["Refresh"].tap()
-        let cached = app.staticTexts["Cached result. Refresh to check availability."]
+        let cached = app.staticTexts["Saved result. Refresh to check it is still current."]
         XCTAssertTrue(cached.waitForExistence(timeout: 10))
-        reveal(cached, in: app)
+        reveal(cached, in: app, upward: false)
         capture("cached-error-\(suffix)")
     }
 
@@ -73,64 +122,62 @@ final class RequestScreenshotTests: XCTestCase {
         let guest = app.buttons["Continue as guest"]
         reveal(guest, in: app)
         guest.tap()
-        XCTAssertTrue(app.navigationBars["Ask"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["What do you need to know?"].waitForExistence(timeout: 15))
     }
-    /// Home prompt to "New request" (Figure 10 screens 4 and 5). A failed submit stays on the composer.
-    private func openComposer(_ app: XCUIApplication) {
-        let start = app.buttons["request-start"]
-        guard start.waitForExistence(timeout: 2) else { return }
-        reveal(start, in: app, upward: false)
-        start.tap()
-        XCTAssertTrue(app.navigationBars["New request"].waitForExistence(timeout: 5))
-    }
-    private func submit(_ app: XCUIApplication, text: String, suffix: String) throws {
-        openComposer(app)
+    private func submit(_ app: XCUIApplication, text: String) throws {
         let field = app.descendants(matching: .any).matching(identifier: "request-text").firstMatch
+        XCTAssertTrue(field.waitForExistence(timeout: 10))
         reveal(field, in: app, upward: false)
-        XCTAssertTrue(field.exists)
-        // The app keeps the previous request's words after "Start a new request". A plain tap
-        // can leave the cursor at the start, where deletes remove nothing, so tap the end.
+        // "Ask something else" keeps the previous words. A plain tap can leave the cursor at
+        // the start, where deletes remove nothing, so tap the end.
         field.coordinate(withNormalizedOffset: CGVector(dx: 0.95, dy: 0.9)).tap()
-        if let value = field.value as? String, !value.isEmpty {
+        if let value = field.value as? String, !value.isEmpty, value != "Type anything, or tap an example" {
             field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: value.count))
         }
         field.typeText(text)
-        let done = app.toolbars.buttons["Done"]
-        if done.waitForExistence(timeout: 2) { done.tap() }
-        app.swipeUp()
-        let location = app.buttons["Use my approximate location"]
-        reveal(location, in: app)
-        location.tap()
+        dismissKeyboard(app)
+        let ask = app.buttons["ask-submit"]
+        reveal(ask, in: app, upward: false)
+        ask.tap()
+        allowLocation()
+        // The simulator's location service occasionally answers a one-shot request with
+        // "unknown"; the app then offers the address path. Ask again before failing.
+        let address = app.descendants(matching: .any).matching(identifier: "request-address").firstMatch
+        if address.waitForExistence(timeout: 3) {
+            reveal(ask, in: app, upward: false)
+            ask.tap()
+        }
+    }
+    private func allowLocation() {
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         if springboard.buttons["Allow While Using App"].waitForExistence(timeout: 2) {
             springboard.buttons["Allow While Using App"].tap()
         }
-        // The simulator's location service occasionally answers a one-shot request with
-        // "unknown"; the app then correctly offers the address path. Ask again before failing.
-        let current = app.staticTexts["Current approximate location"]
-        for _ in 0..<2 where !current.waitForExistence(timeout: 10) {
-            reveal(location, in: app)
-            location.tap()
-        }
-        XCTAssertTrue(current.waitForExistence(timeout: 10))
-        let submit = app.buttons["Find options"]
-        reveal(submit, in: app)
-        submit.tap()
     }
-    private func cancelAndRestart(_ app: XCUIApplication, suffix: String) {
-        let cancel = app.buttons["request-cancel"]
-        reveal(cancel, in: app)
-        cancel.tap()
-        XCTAssertTrue(app.staticTexts["Request canceled"].waitForExistence(timeout: 10))
-        reveal(app.staticTexts["Request canceled"], in: app)
-        capture("canceled-\(suffix)")
-        let restart = app.buttons["Start a new request"]
-        reveal(restart, in: app); restart.tap()
+    private func dismissKeyboard(_ app: XCUIApplication) {
+        let done = app.toolbars.buttons["Done"]
+        if done.waitForExistence(timeout: 2) { done.tap() }
+    }
+    private func stopAndRestart(_ app: XCUIApplication, suffix: String) {
+        let stop = app.buttons["request-cancel"]
+        reveal(stop, in: app)
+        stop.tap()
+        let stopped = app.staticTexts["You stopped asking"]
+        XCTAssertTrue(stopped.waitForExistence(timeout: 10))
+        reveal(stopped, in: app, upward: false)
+        capture("stopped-\(suffix)")
+        askAgain(app)
+    }
+    private func askAgain(_ app: XCUIApplication) {
+        let again = app.buttons["Ask something else"]
+        reveal(again, in: app)
+        again.tap()
+        XCTAssertTrue(app.staticTexts["What do you need to know?"].waitForExistence(timeout: 5))
     }
     /// Scrolls in the preferred direction first, then the other: at the largest text size a
     /// control that is normally on screen can sit on either side of the viewport.
     private func reveal(_ element: XCUIElement, in app: XCUIApplication, upward: Bool = true) {
-        // Polling re-renders the progress screen; asking for hittability while a control has
+        // Polling re-renders the answer screen; asking for hittability while a control has
         // no frame yet fails outright instead of returning false.
         let settled = XCTNSPredicateExpectation(
             predicate: NSPredicate { candidate, _ in

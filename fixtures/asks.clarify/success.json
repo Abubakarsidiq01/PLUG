@@ -1,0 +1,20 @@
+{
+  "ask_id": "ask_05c9a7f2-e1d9-4df9-b61a-a2124e2715be",
+  "ask_type": "place_question",
+  "place_question": {
+    "question_id": "plq_c16e3045-55be-4cd0-bc91-e9ed431c547e",
+    "text": "Something",
+    "place_name": null,
+    "status": "unknown",
+    "progress": {
+      "notified": 0,
+      "opened": 0,
+      "answered": 0
+    },
+    "answer": null,
+    "web_answer": null,
+    "created_at": "2026-10-02T05:11:13.803529Z",
+    "expires_at": "2026-10-02T05:21:13.803529Z"
+  },
+  "created_at": "2026-10-02T05:11:13.700666Z"
+}

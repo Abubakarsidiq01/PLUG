@@ -6,7 +6,8 @@
   "constraints": {
     "category": null,
     "service_name": null,
-    "search_terms": [],
+    "skill_tags": [],
+    "licence_required": false,
     "budget_cents": 3500,
     "currency": "USD",
     "needed_by": null,
@@ -32,8 +33,8 @@
         "label": "Barber"
       },
       {
-        "value": "beauty",
-        "label": "Beauty"
+        "value": "nails",
+        "label": "Nails"
       }
     ]
   },

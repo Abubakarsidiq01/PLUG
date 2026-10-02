@@ -1,0 +1,26 @@
+meta {
+  name: Foreign ask is not found
+  type: http
+  seq: 42
+}
+
+get {
+  url: {{baseUrl}}/v1/asks/{{p2Ask}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p2Other}}
+}
+
+assert {
+  res.status: eq 404
+  res.body.error.code: eq not_found
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+}

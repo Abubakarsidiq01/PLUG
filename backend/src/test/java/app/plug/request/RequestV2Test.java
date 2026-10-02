@@ -125,9 +125,9 @@ class RequestV2Test {
         // ADR-009: any lawful service is accepted; with no participating supplier it ends no_coverage.
         var plumber = json(create(owner,BODY.replace("Barber under $35 in 30 minutes", "Find a plumber"),"open")
                 .andExpect(status().isCreated()));
-        assertThat(plumber.at("/constraints/category").asText()).isEqualTo("plumber");
-        assertThat(plumber.at("/constraints/service_name").asText()).isEqualTo("Plumber");
-        assertThat(plumber.at("/constraints/search_terms/0").asText()).isEqualTo("plumber");
+        assertThat(plumber.at("/constraints/category").asText()).isEqualTo("plumbing_minor");
+        assertThat(plumber.at("/constraints/service_name").asText()).isEqualTo("Minor plumbing");
+        assertThat(plumber.at("/constraints/skill_tags/0").asText()).isEqualTo("plumbing_minor");
         for (int i = 0; i < 3; i++) service.workOnce();
         var ended = json(read(owner, "/v1/requests/" + plumber.path("request_id").asText()));
         assertThat(ended.path("status").asText()).isEqualTo("expired");

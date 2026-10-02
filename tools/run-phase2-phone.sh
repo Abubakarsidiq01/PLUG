@@ -147,12 +147,13 @@ cat <<EOF
 
 PLUG Phase 2 is running on your iPhone.
   1. Continue as guest (Google needs provider configuration this isolated backend omits).
-  2. Ask: "I need to repair my shoe for \$45 tomorrow". Any lawful service works (ADR-009).
-     With no participating supplier, the request ends No matches and the app lists nearby
-     businesses from Apple Maps with price and availability Unknown.
-  3. Seeded offers exist only for barber and beauty in the synthetic Ruston, LA zone. Type a
-     Ruston address such as "Railroad Ave, Ruston, LA" to see them. Try "Need a cut and my
-     nails done" for the one question, and cancel while it is searching.
+  2. Ask a service: "I need to repair my shoe for \$45 tomorrow". Skills come from
+     contracts/skills.yaml (manual v4). With no provider nearby it ends No offers, honestly.
+  3. Ask a place: "How long is the line at Walmart right now?" shows real counts, then Unknown.
+  4. Seeded offers exist for barber and beauty in the synthetic Ruston, LA zone. Type a Ruston
+     address such as "Railroad Ave, Ruston, LA". "Something" gets the one question; tap
+     Stop asking while it searches.
+  5. Offer a service: describe what you do, keep the chips, save; the Inbox tab appears.
   Extraction uses Claude when ANTHROPIC_API_KEY is in secrets/anthropic.env, else the rules.
 If the phone cannot reach $url on Wi-Fi, switch to mobile data for a minute.
 Logs: $run_dir. Keep this terminal and the lid open; Control-C stops everything.
