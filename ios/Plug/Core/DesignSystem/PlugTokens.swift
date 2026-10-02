@@ -261,3 +261,11 @@ struct PlugFlowLayout: Layout {
         }
     }
 }
+
+/// Manual v4 §10.1 and §16.3: motion only explains a change the person caused or the server
+/// reported, uses the token durations and easing, and resolves to none under Reduce Motion.
+extension Animation {
+    static func plug(_ duration: Double = PlugTokens.Motion.base, reduceMotion: Bool) -> Animation? {
+        reduceMotion ? nil : .timingCurve(0.2, 0, 0, 1, duration: duration)
+    }
+}
