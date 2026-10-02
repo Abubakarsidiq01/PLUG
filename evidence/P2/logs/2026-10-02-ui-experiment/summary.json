@@ -1,0 +1,32 @@
+{
+  "environment": "local disposable PostGIS, no live model credentials; simulator fixture screenshots are synthetic",
+  "full_validation": {
+    "backend_unit": 55,
+    "backend_database": 82,
+    "contracts": 180,
+    "live_checks": 972,
+    "bruno_requests": 49,
+    "ios_tests": 65,
+    "ui_walks": 2
+  },
+  "final_followups": {
+    "contracts_with_answered_fixture": 181,
+    "ios_request_tests": 22,
+    "largest_text_walk": "passed",
+    "answered_source_walk_both_sizes": "passed",
+    "simulator_images": 36
+  },
+  "web": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "production_build": "passed",
+    "playwright": 81,
+    "screenshot_widths": [
+      320,
+      360,
+      768,
+      1280
+    ]
+  },
+  "gate": "G2 remains open; see docs/testing/phase2-hardening-ui-experiment-2026-10-02.md"
+}

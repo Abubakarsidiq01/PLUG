@@ -64,13 +64,14 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
         // Read one extra byte to detect oversized chunked requests as well as declared lengths.
         // "payload_too_large" is not in the frozen error-code vocabulary (manual.docx §18.2), so this
         // maps to validation_failed with a details entry that names the actual problem.
-        if (request.getContentLengthLong() > MAX_BODY) {
+        int bodyLimit = requestsV2 && path.equals("/v1/providers/skills") ? 98_304 : MAX_BODY;
+        if (request.getContentLengthLong() > bodyLimit) {
             HttpErrors.write(request, response, 413, "validation_failed", "The request body is too large.",
                     java.util.List.of(java.util.Map.of("field", "body", "code", "too_large")), null);
             return;
         }
-        byte[] body = request.getInputStream().readNBytes(MAX_BODY + 1);
-        if (body.length > MAX_BODY) {
+        byte[] body = request.getInputStream().readNBytes(bodyLimit + 1);
+        if (body.length > bodyLimit) {
             HttpErrors.write(request, response, 413, "validation_failed", "The request body is too large.",
                     java.util.List.of(java.util.Map.of("field", "body", "code", "too_large")), null);
             return;

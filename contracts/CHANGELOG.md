@@ -11,6 +11,23 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.5.0 amendment — 2026-10-02 — additive — proposed — optional business profiles
+Owner-authorized (implemented with Codex, completed by Person One). A provider may add
+optional public details: `BusinessProfile` (`name` ≤80, `about` ≤300, `photo_base64` a JPEG
+of at most 48 KiB decoded and 512×512, re-encoded server-side so EXIF/GPS is dropped, and
+up to five `BusinessLink`s of `label` plus a public `https://` URL with no credentials,
+no IP or `.local` host). `ProviderSetup.business`: omitted keeps the stored details, `{}`
+removes them. `ProviderProfile.business` and `ServiceOffer.business` return them; an offer
+carries them only through an explicit `provider_id`, never by matching a name or place.
+Nothing is fetched server-side and links open only on a customer tap. `POST
+/v1/providers/skills` accepts up to 96 KiB for the thumbnail; every other route keeps 16 KiB.
+`ServiceOffer.provider_score` now reflects the provider's real completed jobs and trust.
+Fixtures updated: `fixtures/requests.offers/business-profile.json`, `fixtures/asks.get/answered.json`
+(answered place question with source initials); manifest regenerated.
+Migration note: `V7__optional_business_profiles.sql` adds `provider_profiles.business`
+(JSONB, default `{}`, ≤75 000 bytes) and nullable `request_offers.provider_id`. Expand-only.
+Rollback: `requests_v2` off removes the routes; the columns are inert without them.
+
 ### 0.5.0 — 2026-10-02 — BREAKING vs proposed 0.4.0 (unmerged) — proposed — manual v4 / ADR-010
 Manual v4 Part V (P2.S10–P2.S17). One ask field serves two kinds of ask: `POST /v1/asks`
 classifies into `service_request` or `place_question` and returns `AskResult` (exactly one of

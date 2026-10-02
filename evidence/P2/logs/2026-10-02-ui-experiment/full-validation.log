@@ -1,0 +1,42 @@
+
+== Disposable PostGIS
+
+== Backend: unit, database, Checkstyle, boot JAR
+passed
+
+== Contracts, fixtures and labelled dataset
+# pass 180
+# fail 0
+
+== Web typecheck and lint
+passed
+
+== OpenAPI lint (Spectral, CI settings)
+No results with a severity of 'warn' or higher found!
+
+== Fresh isolated backend on 127.0.0.1:18083
+healthy
+
+== Live API acceptance suite (observes real rate windows; several minutes)
+{"suite":"phase2-live","passed":true,"checks_passed":972,"checks_failed":0,"exchanges":274}
+Report: evidence/P2/security/phase2-hardening-2026-10-02.json
+
+== Phase 2 Bruno collection
+│ Status │ ✓ PASS │
+│ Requests │ 49 (49 Passed) │
+│ Tests │ 64/64 │
+│ Assertions │ 88/88 │
+
+== iOS unit tests, live sign-in against the fresh backend
+	 Executed 65 tests, with 0 failures (0 unexpected) in 0.219 (0.234) seconds
+
+== iOS simulator state screenshots
+Parsed 40 waypoints
+Running request screenshot tests on iPhone 17 Pro (about ten minutes).
+32 state screenshots written to evidence/P2/simulator/2026-10-02/ui-experiment
+
+All automated Phase 2 checks passed. Logs: /var/folders/4_/r37l0rj13lg1zdw6nk3l208w0000gn/T//plug-phase2-verify.N0gTbW
+Not provable here, and still required for G2:
+  - Physical-device screenshots and VoiceOver walkthrough (tools/run-phase2-phone.sh, then capture)
+  - Figma review, Person Two's Windows run, contract 0.5.0 approval by both engineers
+  - The two-person connected checkpoint and both G2 signatures

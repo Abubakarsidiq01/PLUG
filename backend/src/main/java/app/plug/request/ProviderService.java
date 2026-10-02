@@ -69,7 +69,7 @@ public class ProviderService {
             if (skill == null) throw ApiException.validation("skill_tags", "unknown_skill", "Choose skills PLUG lists.");
             skills.add(skill);
         }
-        if (skills.stream().anyMatch(SkillVocabulary.Skill::requiresLicence) && setup.licenceRef() == null) {
+        if (skills.stream().anyMatch(SkillVocabulary.Skill::requiresLicence) && (setup.licenceRef() == null || setup.licenceRef().isBlank())) {
             throw ApiException.validation("licence_ref", "licence_required", "Add your licence number for licensed work.");
         }
         try { ZoneId.of(setup.timeZone()); }
@@ -79,6 +79,7 @@ public class ProviderService {
                 throw ApiException.validation("availability", "invalid", "Each window must end after it starts.");
             }
         }
+        var business = BusinessProfiles.validated(setup.business());
         var location = setup.baseLocation().rounded();
         return transaction.execute(ignored -> {
             requests.lockAccount(caller);
@@ -94,6 +95,8 @@ public class ProviderService {
                     """, caller.userId(), setup.travelRadiusM(), location.longitude(), location.latitude(),
                     location.precision(), setup.timeZone(), setup.accepting() == null || setup.accepting(),
                     setup.licenceRef(), now, now);
+            if (business != null) jdbc.update("UPDATE provider_profiles SET business=?::jsonb WHERE user_id=?",
+                    BusinessProfiles.json(business), caller.userId());
             jdbc.update("DELETE FROM provider_skills WHERE user_id=?", caller.userId());
             for (var skill : skills) jdbc.update("INSERT INTO provider_skills VALUES(?,?)", caller.userId(), skill.tag());
             jdbc.update("DELETE FROM provider_availability WHERE user_id=?", caller.userId());
@@ -128,7 +131,7 @@ public class ProviderService {
         return jdbc.queryForObject("SELECT * FROM provider_profiles WHERE user_id=?", (rs, n) -> new ProviderProfile(userId,
                 skills, rs.getInt("travel_radius_m"), availability, rs.getString("time_zone"), rs.getBoolean("accepting"),
                 rs.getString("licence_ref") != null, RequestPayloads.ProviderScore.of(completed, trust),
-                rs.getTimestamp("created_at").toInstant()), userId);
+                rs.getTimestamp("created_at").toInstant(), BusinessProfiles.read(rs.getString("business"))), userId);
     }
 
     static int minutes(String clockText) {

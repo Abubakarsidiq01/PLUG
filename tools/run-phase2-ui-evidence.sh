@@ -9,7 +9,7 @@ device="${PLUG_SIMULATOR:-iPhone 17 Pro}"
 udid=$(xcrun simctl list devices available | sed -nE "s/^ +$device \(([0-9A-F-]+)\).*/\1/p" | head -n 1)
 [ -n "$udid" ] || { echo "No available simulator named '$device'. Set PLUG_SIMULATOR." >&2; exit 1; }
 work=$(mktemp -d "${TMPDIR:-/tmp}/plug-phase2-ui.XXXXXX")
-out="evidence/P2/simulator/$(date +%Y-%m-%d)"
+out="${PLUG_UI_EVIDENCE_DIR:-evidence/P2/simulator/$(date +%Y-%m-%d)}"
 server_pid=''
 cleanup() { if [ -n "$server_pid" ]; then kill "$server_pid" 2>/dev/null || true; fi; }
 trap cleanup EXIT INT TERM
@@ -40,7 +40,7 @@ echo "Running request screenshot tests on $device (about ten minutes)."
 # Signed for the simulator: an unsigned build has no keychain entitlement, so the
 # session cannot be stored and guest sign-in fails before any request screen.
 if ! xcodebuild test -project ios/Plug.xcodeproj -scheme PlugUI -destination "id=$udid" \
-        -only-testing:PlugUITests/RequestScreenshotTests -resultBundlePath "$work/ui.xcresult" \
+        -only-testing:"${PLUG_UI_TEST_FILTER:-PlugUITests/RequestScreenshotTests}" -resultBundlePath "$work/ui.xcresult" \
         >"$work/xcodebuild.log" 2>&1; then
     grep -E 'error:|Executed [0-9]+ tests' "$work/xcodebuild.log" | tail -6 >&2
     echo "Screenshot tests failed; see $work/xcodebuild.log" >&2

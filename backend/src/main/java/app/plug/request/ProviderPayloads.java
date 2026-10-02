@@ -31,10 +31,16 @@ public final class ProviderPayloads {
             @NotEmpty @Size(max = 6) List<@NotNull @Valid AvailabilityWindow> availability,
             @NotBlank @Size(max = 64) @Pattern(regexp = "[A-Za-z0-9_+/-]+") String timeZone,
             @Size(min = 3, max = 64) @Pattern(regexp = "[A-Za-z0-9 ./-]+") String licenceRef,
-            Boolean accepting) {
+            Boolean accepting, @Valid BusinessProfile business) {
         @Override public String toString() { return "ProviderSetup[redacted]"; }
+    }
+    public record BusinessLink(@NotBlank @Size(max = 30) String label, @NotBlank @Size(max = 500) String url) {}
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record BusinessProfile(@Size(min = 1, max = 80) String name, @Size(min = 1, max = 300) String about,
+            @Size(min = 1, max = 65536) String photoBase64, @Size(max = 5) List<@NotNull @Valid BusinessLink> links) {
+        @Override public String toString() { return "BusinessProfile[redacted]"; }
     }
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record ProviderProfile(String userId, List<SkillTag> skills, int travelRadiusM, List<AvailabilityWindow> availability,
-            String timeZone, boolean accepting, boolean licenceOnFile, RequestPayloads.ProviderScore score, Instant createdAt) {}
+            String timeZone, boolean accepting, boolean licenceOnFile, RequestPayloads.ProviderScore score, Instant createdAt, BusinessProfile business) {}
 }

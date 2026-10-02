@@ -61,7 +61,7 @@ struct RequestService: RequestServing {
     func offers(_ id: String) async throws -> ServiceOfferList {
         var endpoint = Endpoint.get(try path(id) + "/offers", accessToken: try await token())
         // Twenty valid offers can exceed the identity API's original 16 KB bound.
-        endpoint.maximumResponseBytes = 131_072
+        endpoint.maximumResponseBytes = 2_097_152
         return try await owned(endpoint, as: ServiceOfferList.self).validated(for: id)
     }
     func cancel(_ id: String) async throws -> ServiceRequest {
@@ -100,11 +100,15 @@ struct RequestService: RequestServing {
             accessToken: await token()), as: SkillProposal.self)
     }
     func setProvider(_ setup: ProviderSetup) async throws -> ProviderProfile {
-        try await owned(try Endpoint.post("v1/providers/skills", body: setup, accessToken: await token()), as: ProviderProfile.self)
+        var endpoint = try Endpoint.post("v1/providers/skills", body: setup, accessToken: await token())
+        endpoint.maximumResponseBytes = 98_304
+        return try await owned(endpoint, as: ProviderProfile.self)
     }
     /// Nil when the caller has not offered a service yet (the server answers 404).
     func providerProfile() async throws -> ProviderProfile? {
-        do { return try await owned(Endpoint.get("v1/providers/me", accessToken: try await token()), as: ProviderProfile.self) }
+        var endpoint = Endpoint.get("v1/providers/me", accessToken: try await token())
+        endpoint.maximumResponseBytes = 98_304
+        do { return try await owned(endpoint, as: ProviderProfile.self) }
         catch let error as APIError where error.code == "not_found" { return nil }
     }
 }

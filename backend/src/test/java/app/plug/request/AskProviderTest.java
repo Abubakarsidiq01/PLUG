@@ -81,6 +81,57 @@ class AskProviderTest {
         return body(send(who, "/v1/providers/skills", body, false).andExpect(status().isOk()), "ProviderProfile");
     }
 
+    @org.springframework.transaction.annotation.Transactional
+    @Test void publicBusinessDetailsAreOptionalOwnedPreservedAndRemovable() throws Exception {
+        var owner = guest();
+        var other = guest();
+        provide(owner, "[\"barber\"]", 4828, HERE, "every_day", null);
+        var setup = mapper.createObjectNode();
+        setup.putArray("skill_tags").add("barber");
+        setup.put("travel_radius_m", 4828);
+        setup.set("base_location", mapper.readTree(HERE));
+        setup.set("availability", mapper.readTree("[{\"days\":\"every_day\",\"from\":\"09:00\",\"to\":\"24:00\"}]"));
+        setup.put("time_zone", "America/Chicago");
+        setup.set("business", mapper.readTree("{\"name\":\"Studio B\",\"about\":\"Cuts and styling\","
+                + "\"links\":[{\"label\":\"Website\",\"url\":\"https://example.com/work\"}]}"));
+        var pixels = new java.awt.image.BufferedImage(256, 256, java.awt.image.BufferedImage.TYPE_INT_RGB);
+        var random = new java.util.Random(42);
+        for (int y = 0; y < 256; y++) for (int x = 0; x < 256; x++) pixels.setRGB(x, y, random.nextInt());
+        var photoBytes = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(pixels, "jpeg", photoBytes);
+        setup.withObject("/business").put("photo_base64", java.util.Base64.getEncoder().encodeToString(photoBytes.toByteArray()));
+        assertThat(setup.toString().length()).isGreaterThan(16384);
+        var saved = body(send(owner, "/v1/providers/skills", setup.toString(), false).andExpect(status().isOk()), "ProviderProfile");
+        assertThat(saved.at("/business/name").asText()).isEqualTo("Studio B");
+        assertThat(body(read(owner, "/v1/providers/me").andExpect(status().isOk()), "ProviderProfile").get("business"))
+                .isEqualTo(saved.get("business"));
+        read(other, "/v1/providers/me").andExpect(status().isNotFound());
+        // Old clients that don't send business must never erase it.
+        assertThat(provide(owner, "[\"barber\"]", 5000, HERE, "every_day", null).get("business")).isEqualTo(saved.get("business"));
+        var asked = ask(other, "Barber under $35 in 30 minutes");
+        String requestId = asked.at("/request/request_id").asText();
+        for (int n = 0; n < 10; n++) service.workOnce();
+        String offersPath = "/v1/requests/" + requestId + "/offers";
+        var before = body(read(other, offersPath).andExpect(status().isOk()), "OfferList");
+        assertThat(before.path("offers").size()).isGreaterThan(0);
+        assertThat(before.at("/offers/0").has("business")).isFalse();
+        jdbc.update("UPDATE request_offers SET provider_id=? WHERE request_id=?", owner.at("/account/user_id").asText(), requestId);
+        var visible = body(read(other, offersPath).andExpect(status().isOk()), "OfferList");
+        assertThat(visible.at("/offers/0/business")).isEqualTo(saved.get("business"));
+        assertThat(visible.at("/offers/0").has("licence_ref")).isFalse();
+        setup.withObject("/business").put("photo_base64", "not-an-image");
+        send(owner, "/v1/providers/skills", setup.toString(), false).andExpect(status().isBadRequest());
+        setup.withObject("/business").remove("photo_base64");
+        ((com.fasterxml.jackson.databind.node.ObjectNode) setup.at("/business/links/0")).put("url", "javascript:alert(1)");
+        send(owner, "/v1/providers/skills", setup.toString(), false).andExpect(status().isBadRequest());
+        assertThat(body(read(owner, "/v1/providers/me").andExpect(status().isOk()), "ProviderProfile").get("business"))
+                .isEqualTo(saved.get("business"));
+        setup.putObject("business");
+        var cleared = body(send(owner, "/v1/providers/skills", setup.toString(), false).andExpect(status().isOk()), "ProviderProfile");
+        assertThat(cleared.get("business").size()).isZero();
+        assertThat(body(read(other, offersPath).andExpect(status().isOk()), "OfferList").at("/offers/0/business").size()).isZero();
+    }
+
     @Test void oneFieldTakesBothKindsOfAskAndTheServerDecides() throws Exception {
         var person = guest();
         var service = ask(person, "Someone to do knotless braids, $120 max");
@@ -151,6 +202,16 @@ class AskProviderTest {
         assertThat(licenceMissing.at("/error/details/0/code").asText()).isEqualTo("licence_required");
         send(person, "/v1/providers/skills/propose", "{\"description\":\"I sell stolen phones\"}", false)
                 .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test void blankLicenceCannotEnableRegulatedMatching() throws Exception {
+        var person = guest();
+        var error = body(send(person, "/v1/providers/skills", "{\"skill_tags\":[\"electrical\"],\"travel_radius_m\":4828,"
+                + "\"base_location\":" + HERE + ",\"availability\":[{\"days\":\"weekdays\",\"from\":\"09:00\",\"to\":\"17:00\"}],"
+                + "\"time_zone\":\"America/Chicago\",\"licence_ref\":\"   \"}", false)
+                .andExpect(status().isBadRequest()), "Error");
+        assertThat(error.at("/error/details/0/code").asText()).isEqualTo("licence_required");
+        read(person, "/v1/providers/me").andExpect(status().isNotFound());
     }
 
     @Test void matchingRespectsEachProvidersOwnRadiusAvailabilityAndLicence() throws Exception {

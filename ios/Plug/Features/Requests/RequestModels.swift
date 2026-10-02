@@ -196,6 +196,8 @@ struct ServiceOffer: Decodable, Equatable, Identifiable {
     let truthLabel: TruthLabel
     let source: Source
     let providerScore: ProviderScore
+    var business: BusinessProfile? = nil
+    var businessName: String { business?.name ?? place.name }
     var id: String { offerId }
     struct Place: Decodable, Equatable {
         let placeId: String
@@ -292,7 +294,8 @@ struct PlaceQuestion: Decodable, Equatable {
     let createdAt: Date
     let expiresAt: Date
     var isValid: Bool {
-        progress.notified >= 0 && progress.opened <= progress.notified && progress.answered <= max(progress.notified, progress.answered)
+        progress.notified >= 0 && progress.opened >= 0 && progress.answered >= 0
+            && progress.opened <= progress.notified && progress.answered <= progress.notified
             && (status == .answered) == (answer != nil) && expiresAt > createdAt
             && (webAnswer?.truthLabel ?? .notVerified) == .notVerified
     }
@@ -346,6 +349,7 @@ struct ProviderSetup: Encodable, Equatable {
     var timeZone: String = TimeZone.current.identifier
     var licenceRef: String? = nil
     var accepting: Bool = true
+    var business: BusinessProfile? = nil
 }
 
 struct ProviderProfile: Decodable, Equatable {
@@ -358,4 +362,24 @@ struct ProviderProfile: Decodable, Equatable {
     let licenceOnFile: Bool
     let score: ProviderScore
     let createdAt: Date
+    var business: BusinessProfile? = nil
+}
+
+/// All public details are optional and supplied by the business itself.
+struct BusinessProfile: Codable, Equatable {
+    var name: String? = nil
+    var about: String? = nil
+    var photoBase64: String? = nil
+    var links: [BusinessLink]? = nil
+}
+
+struct BusinessLink: Codable, Equatable, Identifiable {
+    let label: String
+    let url: String
+    var id: String { label + url }
+    var destination: URL? {
+        guard let value = URL(string: url), value.scheme == "https", value.host != nil,
+              value.user == nil, value.password == nil else { return nil }
+        return value
+    }
 }

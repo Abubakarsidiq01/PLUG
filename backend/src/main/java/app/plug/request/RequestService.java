@@ -252,15 +252,17 @@ public class RequestService {
         return new Progress(contacted, replied, offers);
     }
     private List<Offer> listOffers(String id) {
-        return jdbc.query("SELECT o.*,p.name,p.address,w.distance_m FROM request_offers o JOIN places p ON p.id=o.place_id"
+        return jdbc.query("SELECT o.*,p.name,p.address,w.distance_m,b.business,ps.completed_jobs,ps.trust_score FROM request_offers o JOIN places p ON p.id=o.place_id"
                 + " JOIN request_seed_work w ON w.request_id=o.request_id AND w.place_id=o.place_id"
+                + " LEFT JOIN provider_profiles b ON b.user_id=o.provider_id LEFT JOIN provider_scores ps ON ps.user_id=o.provider_id"
                 + " WHERE o.request_id=? AND o.expires_at>? ORDER BY o.available_at,o.price_cents,w.distance_m,o.id LIMIT 20",
                 (rs, row) -> new Offer(rs.getString("id"), new Place(rs.getString("place_id"), rs.getString("name"),
                         rs.getString("address"), rs.getInt("distance_m")), rs.getString("service_name"), rs.getInt("price_cents"),
                         rs.getString("currency"), instant(rs, "available_at"), instant(rs, "expires_at"), instant(rs, "observed_at"),
                         rs.getString("truth_label"), rs.getString("source"),
                         // Seeded demo suppliers have no completed PLUG jobs: New, never a zero.
-                        RequestPayloads.ProviderScore.of(0, null)), id, time(clock.instant()));
+                        RequestPayloads.ProviderScore.of(rs.getInt("completed_jobs"), (Integer) rs.getObject("trust_score")),
+                        BusinessProfiles.read(rs.getString("business"))), id, time(clock.instant()));
     }
     private String json(List<Option> options) {
         try { return mapper.writeValueAsString(options); }

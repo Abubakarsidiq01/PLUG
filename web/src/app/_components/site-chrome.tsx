@@ -64,7 +64,7 @@ export function SiteFooter() {
         <div className="footer-about">
           <p className="footer-name">PLUG</p>
           <p>
-            Private test in the United States ·{" "}
+            Private test in the United States. {" "}
             <a href={`mailto:${CONTACT_EMAIL}`} className="text-link">{CONTACT_EMAIL}</a>
           </p>
           <p className="footer-fine">© {year} PLUG. Test software; features may change or stop.</p>

@@ -12,6 +12,7 @@ final class RequestModel: ObservableObject {
     @Published private(set) var placeQuestion: PlaceQuestion?
     @Published private(set) var askQuestion: ServiceRequest.Clarification?
     var hasAsk: Bool { request != nil || placeQuestion != nil || askQuestion != nil }
+    var hasActiveAsk: Bool { request?.status.canCancel == true || placeQuestion?.status == .asking }
     @Published private(set) var offers: [ServiceOffer] = []
     @Published private(set) var isWorking = false
     @Published private(set) var errorMessage: String?
@@ -50,11 +51,12 @@ final class RequestModel: ObservableObject {
     var canRetry: Bool { retryAfter.map { now() >= $0 } ?? true }
 
     func submit(location: RequestLocation) async {
-        guard !isWorking, canRetry else { return }
+        guard !isWorking, canRetry, !hasActiveAsk else { return }
         guard textError == nil, location.isValid else {
             errorMessage = textError ?? "Choose a valid search location."
             return
         }
+        if let request, !request.status.canCancel { createAttempt = nil }
         let body = AskBody(text: text.trimmingCharacters(in: .whitespacesAndNewlines), location: location)
         if createAttempt?.body != body { createAttempt = (body, UUID().uuidString) }
         guard let attempt = createAttempt else { return }
@@ -138,7 +140,7 @@ final class RequestModel: ObservableObject {
     }
 
     func startAgain() {
-        guard !isWorking, request?.status.canCancel != true else { return }
+        guard !isWorking, !hasActiveAsk else { return }
         polling?.cancel()
         revision = UUID()
         request = nil
@@ -158,7 +160,7 @@ final class RequestModel: ObservableObject {
         self.active = active
         polling?.cancel()
         if active { schedulePolling() }
-        else if request != nil { isCached = true }
+        else if hasAsk { isCached = true }
     }
 
     private func begin() -> UUID {
@@ -224,7 +226,7 @@ final class RequestModel: ObservableObject {
     }
     private func fail(_ error: Error, token: UUID, creating: Bool = false) {
         guard revision == token else { return }
-        isCached = request != nil
+        isCached = hasAsk
         if let api = error as? APIError {
             correlationId = api.requestID
             if api.code == "rate_limited" {

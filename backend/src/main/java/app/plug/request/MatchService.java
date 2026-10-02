@@ -8,6 +8,7 @@ import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
@@ -103,8 +104,9 @@ public class MatchService {
                 String days = candidate.days().get(i);
                 if (days.equals("weekdays") && weekend || days.equals("weekends") && !weekend) continue;
                 int[] window = candidate.availability().get(i);
-                ZonedDateTime open = day.atStartOfDay(zone).plusMinutes(window[0]);
-                ZonedDateTime close = day.atStartOfDay(zone).plusMinutes(window[1]);
+                ZonedDateTime open = day.atTime(LocalTime.ofSecondOfDay(window[0] * 60L)).atZone(zone);
+                ZonedDateTime close = window[1] == 1440 ? day.plusDays(1).atStartOfDay(zone)
+                        : day.atTime(LocalTime.ofSecondOfDay(window[1] * 60L)).atZone(zone);
                 if (open.toInstant().isBefore(end) && close.toInstant().isAfter(start)) return true;
             }
         }
