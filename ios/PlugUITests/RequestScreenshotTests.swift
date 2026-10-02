@@ -62,12 +62,17 @@ final class RequestScreenshotTests: XCTestCase {
         barber.tap()
         let details = app.buttons["View details"].firstMatch
         XCTAssertTrue(details.waitForExistence(timeout: 20))
+        // Counts tick to the server's numbers; capture once they have settled.
+        let settled = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH 'Providers notified' AND NOT (label ENDSWITH ' 0')")).firstMatch
+        _ = settled.waitForExistence(timeout: 5)
         capture("results-\(suffix)")
         reveal(details, in: app)
         details.tap()
         XCTAssertTrue(app.navigationBars["Offer"].waitForExistence(timeout: 5))
         capture("offer-detail-\(suffix)")
-        app.navigationBars.buttons.firstMatch.tap()
+        swipeBack(app)
+        XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 5))
         stopAndRestart(app, suffix: suffix)
 
         try submit(app, text: "progress barber")
@@ -75,6 +80,14 @@ final class RequestScreenshotTests: XCTestCase {
         XCTAssertTrue(progress.waitForExistence(timeout: 10))
         app.swipeDown()
         capture("progress-\(suffix)")
+        // Swiping back from a request that is still asking keeps it running and reachable.
+        swipeBack(app)
+        let resume = app.buttons["ask-resume"]
+        XCTAssertTrue(resume.waitForExistence(timeout: 5))
+        capture("resume-\(suffix)")
+        reveal(resume, in: app, upward: false)
+        resume.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["request-progress"].waitForExistence(timeout: 10))
         stopAndRestart(app, suffix: suffix)
 
         try submit(app, text: "empty barber")
@@ -147,6 +160,11 @@ final class RequestScreenshotTests: XCTestCase {
             reveal(ask, in: app, upward: false)
             ask.tap()
         }
+    }
+    /// The system back gesture: a drag from the left edge of the screen.
+    private func swipeBack(_ app: XCUIApplication) {
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
+        start.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5)))
     }
     private func allowLocation() {
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")

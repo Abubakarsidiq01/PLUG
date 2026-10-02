@@ -11,10 +11,14 @@ struct AskView: View {
     @StateObject private var location = RequestLocationModel()
     @StateObject private var voice = VoiceDictation()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var textFocused: Bool
     @State private var askWhenLocated = false
     @State private var showValidation = false
     @State private var offeringService = false
+    /// The answer is a pushed page, so the system back button and edge swipe both return home.
+    @State private var path: [Page] = []
+    private enum Page: Hashable { case answer }
     private let service: RequestServing
     private let onProviderChange: (ProviderProfile) -> Void
 
@@ -25,9 +29,27 @@ struct AskView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if model.hasAsk { answerScreen } else { home }
+        NavigationStack(path: $path) {
+            home
+            .navigationDestination(for: Page.self) { _ in
+                answerScreen
+                    .background(PlugTokens.Color.paper)
+                    .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
+            }
+            .onChange(of: model.hasAsk) { _, hasAsk in
+                if hasAsk, path.isEmpty { path = [.answer] }
+                if !hasAsk { path = [] }
+            }
+            .onChange(of: model.askId) { _, id in
+                if id != nil, path.isEmpty { path = [.answer] }
+            }
+            .onChange(of: path) { _, pages in
+                // Back from the answer. Anything finished is cleared; a request still asking
+                // people keeps running and stays one tap away, never silently abandoned.
+                guard pages.isEmpty, model.hasAsk, model.request?.status.canCancel != true else { return }
+                model.startAgain()
+                showValidation = false
             }
             .background(PlugTokens.Color.paper)
             .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
@@ -67,30 +89,36 @@ struct AskView: View {
                 Text("Ask for a service, or ask what's happening at a place. Real people nearby answer.")
                     .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
             }
+            if model.hasAsk { resumeCard }
             VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                TextField("Type anything, or tap an example", text: $model.text, axis: .vertical)
-                    .plugText(.body)
-                    .lineLimit(1...5)
-                    .focused($textFocused)
-                    .padding(PlugTokens.Space.s3)
-                    .frame(minHeight: PlugTokens.minTouchTarget)
-                    .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                    .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control)
-                        .strokeBorder(textFocused ? PlugTokens.Color.ink900 : PlugTokens.Color.rule300,
-                                      lineWidth: textFocused ? 2 : 1))
-                    .accessibilityLabel("What do you need to know?")
-                    .accessibilityIdentifier("request-text")
-                    .disabled(model.isWorking)
-                HStack(spacing: PlugTokens.Space.s2) {
-                    Button(model.isWorking ? "Asking…" : "Ask") { ask() }
-                        .buttonStyle(AuthActionStyle(primary: true))
-                        .disabled(model.isWorking || location.isWorking)
-                        .accessibilityIdentifier("ask-submit")
-                    Button(voice.isListening ? "Stop" : "Voice") { voice.toggle() }
-                        .buttonStyle(AuthActionStyle())
-                        .frame(maxWidth: 104)
-                        .disabled(model.isWorking || !voice.isAvailable)
-                        .accessibilityLabel(voice.isListening ? "Stop dictation" : "Ask by voice")
+                ZStack(alignment: .topLeading) {
+                    // A wrapping placeholder: the system one truncates at large text sizes.
+                    if model.text.isEmpty {
+                        Text("Type anything, or tap an example").plugText(.body)
+                            .foregroundStyle(PlugTokens.Color.ink600)
+                            .padding(PlugTokens.Space.s3)
+                            .allowsHitTesting(false)
+                            .accessibilityHidden(true)
+                    }
+                    TextField("", text: $model.text, axis: .vertical)
+                        .plugText(.body)
+                        .lineLimit(1...5)
+                        .focused($textFocused)
+                        .padding(PlugTokens.Space.s3)
+                        .accessibilityLabel("What do you need to know?")
+                        .accessibilityIdentifier("request-text")
+                        .disabled(model.isWorking)
+                }
+                .frame(minHeight: PlugTokens.minTouchTarget)
+                .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control)
+                    .strokeBorder(textFocused || voice.isListening ? PlugTokens.Color.ink900 : PlugTokens.Color.rule300,
+                                  lineWidth: textFocused || voice.isListening ? 2 : 1))
+                .animation(.plug(PlugTokens.Motion.fast, reduceMotion: reduceMotion), value: textFocused)
+                // Side by side while they fit; stacked at the largest text sizes instead of breaking words.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: PlugTokens.Space.s2) { askButton; voiceButton.fixedSize(horizontal: true, vertical: false) }
+                    VStack(spacing: PlugTokens.Space.s2) { askButton; voiceButton }
                 }
                 if let note = voice.message { caption(note) }
                 if showValidation, let error = model.textError { fieldError(error) }
@@ -111,12 +139,61 @@ struct AskView: View {
             caption("Private test. Nobody is contacted and nothing is booked.")
         }
         .toolbar(.hidden, for: .navigationBar)
+        // No bar on home, so give the status bar a paper backing that scrolled text passes under.
+        .overlay {
+            GeometryReader { geometry in
+                VStack(spacing: 0) {
+                    PlugTokens.Color.paper.frame(height: geometry.safeAreaInsets.top)
+                    Spacer(minLength: 0)
+                }
+                .ignoresSafeArea(edges: .top)
+            }
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+        }
         .toolbar {
             ToolbarItemGroup(placement: .keyboard) {
                 Spacer()
                 Button("Done") { textFocused = false }
             }
         }
+    }
+
+    private var stillAsking: Bool { model.request?.status.canCancel == true }
+
+    /// Shown after swiping back from a request that is still asking people.
+    private var resumeCard: some View {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+            Text(stillAsking ? "Still asking" : "Your last ask").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            Text(askedText).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
+            if let progress = model.request?.progress {
+                Text("\(progress.contacted) notified, \(progress.replied) replied")
+                    .plugText(.bodySmall).monospacedDigit().foregroundStyle(PlugTokens.Color.ink600)
+            }
+            Button("Open this ask") { path = [.answer] }
+                .buttonStyle(AuthActionStyle())
+                .accessibilityIdentifier("ask-resume")
+            if stillAsking { caption("Stop it or let it finish before asking something new.") }
+        }
+        .plugCard()
+    }
+
+    private var askButton: some View {
+        Button(model.isWorking ? "Asking…" : "Ask") { ask() }
+            .buttonStyle(AuthActionStyle(primary: true))
+            .disabled(model.isWorking || location.isWorking || stillAsking)
+            .accessibilityIdentifier("ask-submit")
+    }
+
+    private var voiceButton: some View {
+        Button { voice.toggle() } label: {
+            Label(voice.isListening ? "Listening… Stop" : "Voice",
+                  systemImage: voice.isListening ? "mic.fill" : "mic")
+        }
+        .buttonStyle(AuthActionStyle())
+        .disabled(model.isWorking || !voice.isAvailable)
+        .accessibilityLabel(voice.isListening ? "Stop dictation" : "Ask by voice")
+        .sensoryFeedback(.start, trigger: voice.isListening) { _, listening in listening }
     }
 
     private func ask() {
@@ -189,25 +266,42 @@ struct AskView: View {
                     .accessibilityIdentifier("request-cached")
             }
             failure
-            if let question = model.askQuestion {
-                questionCard(question)
-            } else if let place = model.placeQuestion {
-                placeAnswer(place)
-            } else if let request = model.request {
-                serviceAnswer(request)
+            Group {
+                if let question = model.askQuestion {
+                    questionCard(question)
+                } else if let place = model.placeQuestion {
+                    placeAnswer(place)
+                } else if let request = model.request {
+                    serviceAnswer(request)
+                }
             }
+            // Motion explains a change the server reported (§16.3); none on first render or scroll.
+            .transition(.opacity)
+            .animation(.plug(reduceMotion: reduceMotion), value: answerState)
             actions
             if let reference = model.request?.requestId ?? model.askId {
                 Text("Reference \(reference)").plugText(.caption)
                     .foregroundStyle(PlugTokens.Color.ink600).textSelection(.enabled)
             }
         }
+        .navigationTitle("Your ask")
+        .refreshable { await model.refresh() }
+        .sensoryFeedback(.success, trigger: model.offers.count) { old, new in new > old }
+        .sensoryFeedback(.error, trigger: model.errorMessage) { _, new in new != nil }
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("Refresh") { Task { await model.refresh() } }.disabled(model.isWorking)
             }
         }
+    }
+
+    /// Which answer is on screen, so a server-reported change animates and nothing else does.
+    private var answerState: String {
+        if let question = model.askQuestion { return "question-\(question.clarificationId)" }
+        if let place = model.placeQuestion { return "place-\(place.status.rawValue)" }
+        if let request = model.request { return "request-\(request.nextAction.rawValue)-\(model.offers.count)" }
+        return "none"
     }
 
     private var askedText: String {
@@ -260,6 +354,7 @@ struct AskView: View {
             }
             ProgressView(value: Double(p.replied), total: Double(max(p.contacted, 1)))
                 .tint(PlugTokens.Color.ink900)
+                .animation(.plug(PlugTokens.Motion.slow, reduceMotion: reduceMotion), value: p.replied)
                 .accessibilityLabel("Replies received")
                 .accessibilityValue("\(p.replied) of \(p.contacted)")
             VStack(spacing: 0) {
@@ -267,6 +362,8 @@ struct AskView: View {
                 valueRow("Replied", "\(p.replied)")
                 valueRow("Offers ready", "\(p.offersReady)", last: true)
             }
+            .contentTransition(.numericText())
+            .animation(.plug(reduceMotion: reduceMotion), value: p)
             caption("Counts are real. We never guess, and we never run a timer and call it progress.")
         }
         .plugCard()
@@ -295,7 +392,7 @@ struct AskView: View {
             ForEach(model.offers) { offer in
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                     HStack(alignment: .top) {
-                        Text(offer.price).plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
+                        Text(money(offer.priceCents, offer.currency)).plugText(.display).monospacedDigit().foregroundStyle(PlugTokens.Color.ink900)
                         Spacer(minLength: PlugTokens.Space.s2)
                         TruthBadge(label: offer.truthLabel)
                     }
@@ -392,8 +489,10 @@ struct AskView: View {
                 .buttonStyle(PlugDestructiveStyle())
                 .accessibilityIdentifier("request-cancel")
         } else {
+            // While the one question is open, answering it is the task; starting over is secondary.
             Button("Ask something else") { model.startAgain(); showValidation = false }
-                .buttonStyle(AuthActionStyle(primary: true)).disabled(model.isWorking)
+                .buttonStyle(AuthActionStyle(primary: model.askQuestion == nil && model.request?.clarification == nil))
+                .disabled(model.isWorking)
         }
     }
 
@@ -462,12 +561,12 @@ func valueRow(_ label: String, _ value: String, last: Bool = false) -> some View
             HStack(alignment: .firstTextBaseline) {
                 Text(label).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                 Spacer(minLength: PlugTokens.Space.s2)
-                Text(value).plugText(.body).fontWeight(.bold).foregroundStyle(PlugTokens.Color.ink900)
+                Text(value).plugText(.body).fontWeight(.bold).monospacedDigit().foregroundStyle(PlugTokens.Color.ink900)
                     .multilineTextAlignment(.trailing)
             }
             VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                 Text(label).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                Text(value).plugText(.body).fontWeight(.bold).foregroundStyle(PlugTokens.Color.ink900)
+                Text(value).plugText(.body).fontWeight(.bold).monospacedDigit().foregroundStyle(PlugTokens.Color.ink900)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -537,7 +636,7 @@ private struct OfferDetailView: View {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                     HStack(alignment: .top) {
-                        Text(offer.price).plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
+                        Text(money(offer.priceCents, offer.currency)).plugText(.display).monospacedDigit().foregroundStyle(PlugTokens.Color.ink900)
                         Spacer(minLength: PlugTokens.Space.s2)
                         TruthBadge(label: offer.truthLabel)
                     }

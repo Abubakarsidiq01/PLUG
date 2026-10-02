@@ -38,7 +38,7 @@ New coverage added for v4:
   "not a provider", not an error.
 - **iOS UI**: the walk covers offer a service, skills chips, provider setup, Inbox, the one
   question, offers, offer detail, stop asking, progress, no offers, restricted, place
-  asking, place Unknown with the dashed web answer, and the saved-result error. 15 states
+  asking, place Unknown with the dashed web answer, and the saved-result error. 16 states
   × 2 text sizes in `evidence/P2/simulator/2026-10-02/`, with greyscale copies in
   `greyscale/`.
 
@@ -85,6 +85,29 @@ Person One did not rebuild it; the partial draft is `docs/handoff/web-v4-retheme
   fixes older than two minutes; the evidence script now plays a slow route so every fix is
   fresh. A real phone is unaffected.
 - The removed ADR-009 Apple Maps model and its imports are gone.
+
+## iOS polish pass (same day, after the run above)
+
+Checked against the frontend-design plugin's guidance (Anthropic, `claude-plugins-official`),
+with the manual winning wherever the two differ. Unit tests (63) and both simulator walks
+pass again.
+
+- The answer is now a pushed page: the system back button and the left-edge swipe return
+  home. A request still asking people keeps running and shows a "Still asking" card with
+  "Open this ask"; Ask is disabled until it is stopped or finishes, so nothing runs unseen.
+- At the largest text size the Ask and Voice buttons stack instead of breaking "Voice" across
+  two lines; the placeholder wraps instead of truncating. Voice has a microphone symbol and a
+  "Listening… Stop" state.
+- Motion only on a server-reported change: the answer cross-fades when its state changes,
+  counts tick with a numeric transition, the reply bar eases to its new value. Token
+  durations and easing; none under Reduce Motion; nothing on load or scroll.
+- Haptics: success when offers arrive, error when a failure appears, selection on chips.
+- Prices are whole dollars when whole ("$30"), and values use tabular digits so columns
+  align (not a monospace face).
+- With the question open, "Ask something else" is secondary, so the screen has one task.
+- Provider setup: once the base is set, "Update location" steps back so the save leads.
+  Inbox times read "12 PM to 5 PM", not "12:00 to 17:00".
+- The home screen gives the status bar a paper backing, so scrolled text never runs under it.
 
 ## Not proven here
 

@@ -72,6 +72,10 @@ struct ProviderOnboardingView: View {
             }
         }
         .tint(PlugTokens.Color.ink900)
+        .sensoryFeedback(.selection, trigger: chosen)
+        .sensoryFeedback(.selection, trigger: radius)
+        .sensoryFeedback(.selection, trigger: slots)
+        .sensoryFeedback(.success, trigger: proposed.count) { old, new in new > old }
         .onAppear(perform: prefill)
     }
 
@@ -177,11 +181,16 @@ struct ProviderOnboardingView: View {
             Text("Where do you work from?").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
             if let label = location.label, location.location != nil {
                 valueRow("Base", label, last: true)
+                // Set already: the way to change it steps back so the save action leads.
+                Button(location.isWorking ? "Finding location…" : "Update location") { location.useDeviceLocation() }
+                    .plugText(.action).foregroundStyle(PlugTokens.Color.ink900).underline()
+                    .frame(minHeight: PlugTokens.minTouchTarget)
+                    .disabled(location.isWorking)
             } else {
                 caption("Approximate only. People who ask never see your address.")
+                Button(location.isWorking ? "Finding location…" : "Use my approximate location") { location.useDeviceLocation() }
+                    .buttonStyle(AuthActionStyle()).disabled(location.isWorking)
             }
-            Button(location.isWorking ? "Finding location…" : "Use my approximate location") { location.useDeviceLocation() }
-                .buttonStyle(AuthActionStyle()).disabled(location.isWorking)
             if let error = location.errorMessage {
                 Text(error).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.alert600)
                 PlugTextField(title: "Street address and city", text: $location.address)
@@ -378,5 +387,17 @@ struct InboxView: View {
 }
 
 extension AvailabilityWindow {
-    var summary: String { "\(days.title), \(from) to \(to)" }
+    /// "Every day, 12 PM to 5 PM" in the person's own clock style, from the server's HH:mm.
+    var summary: String { "\(days.title), \(Self.clock(from)) to \(Self.clock(to))" }
+
+    private static func clock(_ value: String) -> String {
+        let parts = value.split(separator: ":").compactMap { Int($0) }
+        guard parts.count == 2 else { return value }
+        if parts[0] == 24 { return "midnight" }
+        var components = DateComponents()
+        components.hour = parts[0]
+        components.minute = parts[1]
+        guard let date = Calendar.current.date(from: components) else { return value }
+        return parts[1] == 0 ? date.formatted(.dateTime.hour()) : date.formatted(.dateTime.hour().minute())
+    }
 }
