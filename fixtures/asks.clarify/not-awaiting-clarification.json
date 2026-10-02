@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "This ask is not awaiting that answer.",
+    "request_id": "req_55328c45-4f24-435c-bc7b-63fa13c7d3ff",
+    "details": [
+      {
+        "field": "clarification_id",
+        "code": "not_awaiting_clarification",
+        "message": "This ask is not awaiting that answer."
+      }
+    ]
+  }
+}

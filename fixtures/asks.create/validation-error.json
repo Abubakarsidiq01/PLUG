@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "The request was invalid.",
+    "request_id": "req_1fbf560b-1306-488c-8620-91ba90fc0675",
+    "details": [
+      {
+        "field": "text",
+        "code": "notblank",
+        "message": "must not be blank"
+      }
+    ]
+  }
+}

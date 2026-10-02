@@ -6,6 +6,12 @@ import Foundation
 final class RequestModel: ObservableObject {
     @Published var text = ""
     @Published private(set) var request: ServiceRequest?
+    /// Manual v4 §12A: one field, two kinds of ask. Exactly one of request, placeQuestion or
+    /// askQuestion describes the current ask; the server decided which.
+    @Published private(set) var askId: String?
+    @Published private(set) var placeQuestion: PlaceQuestion?
+    @Published private(set) var askQuestion: ServiceRequest.Clarification?
+    var hasAsk: Bool { request != nil || placeQuestion != nil || askQuestion != nil }
     @Published private(set) var offers: [ServiceOffer] = []
     @Published private(set) var isWorking = false
     @Published private(set) var errorMessage: String?
@@ -18,12 +24,11 @@ final class RequestModel: ObservableObject {
     private let sleep: (Int) async throws -> Void
     private var revision = UUID()
     private var polling: Task<Void, Never>?
-    /// Keyed by what the person chose, not the computed body: a retry of "Within 1 hour"
-    /// must resend the same deadline and key, or a slow network could create two requests.
-    private var createAttempt: (draft: Draft, body: CreateServiceRequest, key: String)?
-    private struct Draft: Equatable { let text: String; let location: RequestLocation; let filters: RequestFilters }
+    /// A retry resends the same body under the same key, so a slow network cannot create two asks.
+    private var createAttempt: (body: AskBody, key: String)?
     private var answerAttempt: (id: String, value: String, key: String)?
     private var active = true
+    static let placePollSeconds = 5
 
     init(service: RequestServing, now: @escaping () -> Date = Date.init,
          sleep: @escaping (Int) async throws -> Void = { try await Task.sleep(for: .seconds($0)) }) {
@@ -35,8 +40,8 @@ final class RequestModel: ObservableObject {
 
     var textError: String? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty { return "Describe the service you need." }
-        if text.unicodeScalars.count > 500 { return "Keep your request to 500 characters or fewer." }
+        if trimmed.isEmpty { return "Type what you need, or tap an example." }
+        if text.unicodeScalars.count > 500 { return "Keep it to 500 characters or fewer." }
         if text.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) && $0 != "\n" }) {
             return "Use plain text without control characters."
         }
@@ -44,25 +49,18 @@ final class RequestModel: ObservableObject {
     }
     var canRetry: Bool { retryAfter.map { now() >= $0 } ?? true }
 
-    func submit(location: RequestLocation, filters: RequestFilters = RequestFilters()) async {
+    func submit(location: RequestLocation) async {
         guard !isWorking, canRetry else { return }
         guard textError == nil, location.isValid else {
             errorMessage = textError ?? "Choose a valid search location."
             return
         }
-        let draft = Draft(text: text.trimmingCharacters(in: .whitespacesAndNewlines), location: location, filters: filters)
-        if createAttempt?.draft != draft {
-            var body = CreateServiceRequest(text: draft.text, location: location)
-            body.budgetCents = filters.budget.cents
-            body.currency = filters.budget.cents == nil ? nil : "USD"
-            body.neededBy = filters.time.deadline(now: now())
-            body.maxDistanceM = filters.distance.metres
-            createAttempt = (draft, body, UUID().uuidString)
-        }
+        let body = AskBody(text: text.trimmingCharacters(in: .whitespacesAndNewlines), location: location)
+        if createAttempt?.body != body { createAttempt = (body, UUID().uuidString) }
         guard let attempt = createAttempt else { return }
         let token = begin()
         do {
-            let result = try await service.create(attempt.body, key: attempt.key)
+            let result = try await service.ask(attempt.body, key: attempt.key)
             guard revision == token else { return }
             try await accept(result, token: token)
         } catch { fail(error, token: token, creating: true) }
@@ -70,6 +68,10 @@ final class RequestModel: ObservableObject {
     }
 
     func answer(_ value: String) async {
+        if let askId, let question = askQuestion {
+            await answerAsk(askId, question: question, value: value)
+            return
+        }
         guard !isWorking, canRetry, let request, let question = request.clarification,
               question.options.contains(where: { $0.value == value }) else { return }
         if answerAttempt?.id != question.clarificationId || answerAttempt?.value != value {
@@ -86,7 +88,32 @@ final class RequestModel: ObservableObject {
         finish(token)
     }
 
+    private func answerAsk(_ id: String, question: ServiceRequest.Clarification, value: String) async {
+        guard !isWorking, canRetry, question.options.contains(where: { $0.value == value }) else { return }
+        if answerAttempt?.id != question.clarificationId || answerAttempt?.value != value {
+            answerAttempt = (question.clarificationId, value, UUID().uuidString)
+        }
+        guard let attempt = answerAttempt else { return }
+        let token = begin()
+        do {
+            let result = try await service.answerAsk(id, clarificationId: attempt.id, value: attempt.value, key: attempt.key)
+            guard revision == token else { return }
+            try await accept(result, token: token)
+        } catch { fail(error, token: token) }
+        finish(token)
+    }
+
     func refresh() async {
+        if request == nil, let askId, !isWorking, canRetry {
+            let token = begin()
+            do {
+                let result = try await service.getAsk(askId)
+                guard revision == token else { return }
+                try await accept(result, token: token)
+            } catch { fail(error, token: token) }
+            finish(token)
+            return
+        }
         guard !isWorking, canRetry, let request else { return }
         let token = begin()
         do {
@@ -115,6 +142,9 @@ final class RequestModel: ObservableObject {
         polling?.cancel()
         revision = UUID()
         request = nil
+        askId = nil
+        placeQuestion = nil
+        askQuestion = nil
         offers = []
         errorMessage = nil
         correlationId = nil
@@ -140,6 +170,16 @@ final class RequestModel: ObservableObject {
         retryAfter = nil
         return revision
     }
+    private func accept(_ result: AskResult, token: UUID) async throws {
+        _ = try result.validated()
+        askId = result.askId
+        placeQuestion = result.placeQuestion
+        askQuestion = result.clarification
+        refreshedAt = now()
+        isCached = !active
+        if let request = result.request { try await accept(request, token: token) }
+        else { request = nil; offers = [] }
+    }
     private func accept(_ result: ServiceRequest, token: UUID) async throws {
         _ = try result.validated()
         if request?.requestId != result.requestId { offers = [] }
@@ -161,8 +201,14 @@ final class RequestModel: ObservableObject {
         if errorMessage == nil { schedulePolling() }
     }
     private func schedulePolling() {
-        guard active, !isWorking, errorMessage == nil, request?.nextAction == .waitForOffers,
-              let interval = request?.pollAfterSeconds else { return }
+        guard active, !isWorking, errorMessage == nil else { return }
+        let interval: Int
+        if request?.nextAction == .waitForOffers, let serverInterval = request?.pollAfterSeconds {
+            interval = serverInterval
+        } else if request == nil, placeQuestion?.status == .asking {
+            // Place questions carry no poll interval; check at the same cadence as requests.
+            interval = Self.placePollSeconds
+        } else { return }
         let token = revision
         let sleep = self.sleep
         polling = Task { [weak self] in
@@ -192,11 +238,17 @@ final class RequestModel: ObservableObject {
             } else if api.code == "unauthenticated" {
                 // A revoked or switched account must never keep displaying the previous account's snapshot.
                 request = nil
+                askId = nil
+                placeQuestion = nil
+                askQuestion = nil
                 offers = []
                 isCached = false
                 errorMessage = "Your session ended. Sign in again to continue."
             } else if api.code == "not_found" {
                 request = nil
+                askId = nil
+                placeQuestion = nil
+                askQuestion = nil
                 offers = []
                 isCached = false
                 errorMessage = "This request is no longer available to your account."

@@ -40,12 +40,16 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
         // Match the decoded application path, as the controller does. Comparing the
         // raw URI lets /v1/%72equests reach the same controller without these limits.
         String path = UrlPathHelper.defaultInstance.getPathWithinApplication(request);
-        if (!path.equals("/v1/requests") && !(requestsV2 && path.startsWith("/v1/requests/"))) {
+        boolean v2Route = requestsV2 && (path.startsWith("/v1/requests/") || path.equals("/v1/asks")
+                || path.startsWith("/v1/asks/") || path.startsWith("/v1/providers/"));
+        if (!path.equals("/v1/requests") && !v2Route) {
             chain.doFilter(request, response);
             return;
         }
         // Do not trust caller-supplied forwarded addresses. The ingress adds its own rate limit in staging.
-        boolean creation = requestsV2 && path.equals("/v1/requests") && request.getMethod().equals("POST");
+        // Both entry points share one creation budget, so switching endpoints cannot double it.
+        boolean creation = requestsV2 && (path.equals("/v1/requests") || path.equals("/v1/asks"))
+                && request.getMethod().equals("POST");
         if (!limiter.tryConsume(request.getRemoteAddr() + (creation ? ":create" : ":read"),
                 creation ? 30 : limit, WINDOW)) {
             response.setHeader("Retry-After", "60");

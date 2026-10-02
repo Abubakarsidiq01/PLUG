@@ -38,6 +38,7 @@ struct PlugApp: App {
 /// in one place is what stops a screen from being reachable without a session later.
 struct RootView: View {
     @State private var hasRestored = false
+    @State private var provider: ProviderProfile?
     @ObservedObject var model: AuthenticationModel
     let environment: AppEnvironment
 
@@ -59,27 +60,41 @@ struct RootView: View {
     }
 
     private func signedIn(_ session: Session) -> some View {
-        TabView {
+        let requests = RequestService(client: APIClient(environment: environment),
+                                      sessions: model.sessions, userId: session.account.userId)
+        return TabView {
             Group {
                 if environment.requestsEnabled {
-                    AskView(service: RequestService(client: APIClient(environment: environment),
-                        sessions: model.sessions, userId: session.account.userId))
+                    AskView(service: requests) { provider = $0 }
                         .id(session.account.userId)
                 } else {
                     foundationPage("Ask", detail: "Request intake is not enabled in this environment.")
                 }
             }
                 .tabItem { Label("Ask", systemImage: "magnifyingglass") }
+            // Manual v4 §2.3: the Inbox appears only once this same account offers a service.
+            if environment.requestsEnabled, let provider {
+                InboxView(service: requests, profile: provider) { self.provider = $0 }
+                    .tabItem { Label("Inbox", systemImage: "tray") }
+            }
             foundationPage("Activity", detail: "Your requests will appear here once request history is implemented.")
                 .tabItem { Label("Activity", systemImage: "clock") }
-            foundationPage("Contribute", detail: "Scout contributions will be available in Phase 4.")
-                .tabItem { Label("Contribute", systemImage: "plus.circle") }
+            // Five tabs fit without a More tab; the Phase 4 placeholder gives way to a real Inbox.
+            if provider == nil {
+                foundationPage("Contribute", detail: "Scout contributions will be available in Phase 4.")
+                    .tabItem { Label("Contribute", systemImage: "plus.circle") }
+            }
             ProfileView(model: model, session: session)
                 .tabItem { Label("Profile", systemImage: "person") }
             HealthView(client: APIClient(environment: environment))
                 .tabItem { Label("Engineering", systemImage: "wrench") }
         }
         .tint(PlugColor.brand)
+        .task(id: session.account.userId) {
+            provider = nil
+            guard environment.requestsEnabled else { return }
+            provider = try? await requests.providerProfile()
+        }
     }
 
     private func foundationPage(_ title: String, detail: String) -> some View {

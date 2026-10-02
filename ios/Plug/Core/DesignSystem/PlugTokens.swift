@@ -108,12 +108,13 @@ struct PlugTextField: View {
     }
 }
 
-// The manual's type scale (§10.1, Figure 7) on Apple system typography. Each step scales
-// with Dynamic Type relative to the closest text style, so token sizes are a base, not a cap.
+// The manual v4 type scale (§10.1, Figure 7) on Apple system typography, sentence case only:
+// v4 bans tracked-out capital labels. Each step scales with Dynamic Type from its base size.
 enum PlugTextStyle {
-    case title, title2, title3, body, bodySmall, action, label, caption, overline
+    case display, title, title2, title3, body, bodySmall, action, label, caption
     var size: CGFloat {
         switch self {
+        case .display: return PlugTokens.TypeSize.display
         case .title: return PlugTokens.TypeSize.title1
         case .title2: return PlugTokens.TypeSize.title2
         case .title3: return PlugTokens.TypeSize.title3
@@ -121,13 +122,12 @@ enum PlugTextStyle {
         case .bodySmall: return PlugTokens.TypeSize.body
         case .label: return PlugTokens.TypeSize.label
         case .caption: return PlugTokens.TypeSize.caption
-        case .overline: return PlugTokens.TypeSize.overline
         }
     }
     var weight: Font.Weight {
         switch self {
-        case .title, .title2, .overline: return .bold
-        case .title3, .action, .label: return .semibold
+        case .display, .title, .title2, .title3, .label: return .bold
+        case .action: return .semibold
         case .caption: return .medium
         case .body, .bodySmall: return .regular
         }
@@ -135,22 +135,23 @@ enum PlugTextStyle {
     /// Figure 7 tracking, in points at the base size.
     var tracking: CGFloat {
         switch self {
-        case .title: return -0.4
-        case .title2: return -0.2
-        case .caption: return 0.22
-        case .overline: return 0.9
+        case .display: return -0.8
+        case .title: return -0.6
+        case .title2: return -0.45
+        case .title3: return -0.25
         default: return 0
         }
     }
     var relativeTo: Font.TextStyle {
         switch self {
+        case .display: return .largeTitle
         case .title: return .title
         case .title2: return .title2
         case .title3: return .headline
         case .body, .action: return .body
         case .bodySmall: return .subheadline
         case .label: return .footnote
-        case .caption, .overline: return .caption
+        case .caption: return .caption
         }
     }
 }
@@ -165,7 +166,6 @@ private struct PlugTextModifier: ViewModifier {
     func body(content: Content) -> some View {
         content.font(.system(size: size, weight: style.weight))
             .tracking(style.tracking)
-            .textCase(style == .overline ? .uppercase : nil)
     }
 }
 
@@ -175,14 +175,15 @@ extension View {
 
 // MARK: - Figure 8 components shared by request screens
 
-/// §11.4: cards are flat, 1px line.200 border, radius.lg, no shadow.
+/// Manual v4 §10: a card is brighter than the paper page, with a 1px rule border, radius.card
+/// and no shadow. Elevation is brightness.
 struct PlugCardModifier: ViewModifier {
     func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(PlugTokens.Space.s4)
-            .background(PlugTokens.Color.surface0, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.lg))
-            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.lg).strokeBorder(PlugTokens.Color.line200))
+            .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
+            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.card).strokeBorder(PlugTokens.Color.rule200))
     }
 }
 
@@ -190,7 +191,8 @@ extension View {
     func plugCard() -> some View { modifier(PlugCardModifier()) }
 }
 
-/// §11.4 filter chip: radius.sm; selected is brand.50 fill with a brand.600 border and label.
+/// Manual v4 Figure A2 chip: radius.badge; selected is an ink fill with a card label, the
+/// way the approved screens draw a chosen skill or radius. Colour stays out of it.
 struct PlugChip: View {
     let title: String
     let selected: Bool
@@ -201,12 +203,11 @@ struct PlugChip: View {
                 .plugText(.label)
                 .padding(.horizontal, PlugTokens.Space.s3)
                 .frame(minHeight: PlugTokens.minTouchTarget)
-                .foregroundStyle(selected ? PlugTokens.Color.brand600 : PlugTokens.Color.ink900)
-                .background(selected ? PlugTokens.Color.brand50 : PlugTokens.Color.surface0,
-                            in: RoundedRectangle(cornerRadius: PlugTokens.Radius.sm))
-                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.sm)
-                    .strokeBorder(selected ? PlugTokens.Color.brand600 : PlugTokens.Color.line300,
-                                  lineWidth: selected ? 1.5 : 1))
+                .foregroundStyle(selected ? PlugTokens.Color.card : PlugTokens.Color.ink900)
+                .background(selected ? PlugTokens.Color.ink900 : PlugTokens.Color.card,
+                            in: RoundedRectangle(cornerRadius: PlugTokens.Radius.badge))
+                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.badge)
+                    .strokeBorder(selected ? PlugTokens.Color.ink900 : PlugTokens.Color.rule300))
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -224,10 +225,10 @@ struct PlugDestructiveStyle: ButtonStyle {
             .padding(.horizontal, PlugTokens.Space.s4)
             .padding(.vertical, PlugTokens.Space.s3)
             .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
-            .foregroundStyle(PlugTokens.Color.danger600)
-            .background(configuration.isPressed ? PlugTokens.Color.danger50 : PlugTokens.Color.surface0,
-                        in: RoundedRectangle(cornerRadius: PlugTokens.Radius.md))
-            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.md).strokeBorder(PlugTokens.Color.dangerBorder))
+            .foregroundStyle(PlugTokens.Color.alert600)
+            .background(configuration.isPressed ? PlugTokens.Color.alert50 : PlugTokens.Color.card,
+                        in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control).strokeBorder(PlugTokens.Color.alertBorder))
             .opacity(enabled ? 1 : 0.5)
     }
 }

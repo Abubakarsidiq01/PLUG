@@ -58,8 +58,8 @@ public final class RequestPayloads {
         }
     }
     @JsonInclude(JsonInclude.Include.ALWAYS)
-    public record Constraints(String category, String serviceName, List<String> searchTerms, Integer budgetCents,
-            String currency, Instant neededBy, int maxDistanceM, Location location) {}
+    public record Constraints(String category, String serviceName, List<String> skillTags, boolean licenceRequired,
+            Integer budgetCents, String currency, Instant neededBy, int maxDistanceM, Location location) {}
     public record Answer(@NotBlank @Size(max = 64) @Pattern(regexp = "cla_[A-Za-z0-9-]+") String clarificationId,
             @NotBlank @Size(max = 64) @Pattern(regexp = "[a-z0-9_]+") String value) {}
     public record Progress(int contacted, int replied, int offersReady) {}
@@ -71,7 +71,37 @@ public final class RequestPayloads {
         @Override public String toString() { return "Resource[redacted]"; }
     }
     public record Place(String placeId, String name, String address, int distanceM) {}
+    /** Manual v4 §12C: fewer than three completed jobs is "new", never a zero. */
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record ProviderScore(String state, Integer value, int completedJobs) {
+        public static ProviderScore of(int completedJobs, Integer trustScore) {
+            return completedJobs < 3 || trustScore == null ? new ProviderScore("new", null, completedJobs)
+                    : new ProviderScore("scored", trustScore, completedJobs);
+        }
+    }
     public record Offer(String offerId, Place place, String serviceName, int priceCents, String currency,
-            Instant availableAt, Instant expiresAt, Instant observedAt, String truthLabel, String source) {}
+            Instant availableAt, Instant expiresAt, Instant observedAt, String truthLabel, String source,
+            ProviderScore providerScore) {}
     public record Offers(String requestId, List<Offer> offers) {}
+
+    // Manual v4 §12A: the single ask entry point.
+    public record AskBody(@NotBlank String text, @NotNull @Valid Location location,
+            @Size(min = 1, max = 64) @Pattern(regexp = "[A-Za-z0-9_+/-]+") String timeZone) {
+        @com.fasterxml.jackson.annotation.JsonIgnore
+        @jakarta.validation.constraints.AssertTrue(message = "Text must contain at most 500 characters.")
+        public boolean isTextLengthValid() { return text == null || text.codePointCount(0, text.length()) <= 500; }
+        @Override public String toString() { return "AskBody[redacted]"; }
+    }
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    public record PlaceProgress(int notified, int opened, int answered) {}
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    public record PlaceQuestion(String questionId, String text, String placeName, String status, PlaceProgress progress,
+            Object answer, Object webAnswer, Instant createdAt, Instant expiresAt) {
+        @Override public String toString() { return "PlaceQuestion[redacted]"; }
+    }
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record AskResult(String askId, @JsonInclude(JsonInclude.Include.ALWAYS) String askType, Resource request,
+            PlaceQuestion placeQuestion, Clarification clarification, Instant createdAt) {
+        @Override public String toString() { return "AskResult[redacted]"; }
+    }
 }

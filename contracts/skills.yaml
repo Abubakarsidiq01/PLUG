@@ -1,0 +1,173 @@
+# contracts/skills.yaml — the controlled skill vocabulary (manual v4 §12B.3, §19A.2).
+# Owned by Person Two, changed by pull request with both approvals, like any contract.
+# The model maps free text onto these tags. It never creates one. An unmatched term is
+# surfaced to the person and recorded as a vocabulary gap; it is never matched on.
+#
+# Rules
+#  1. A new tag is a pull request with both approvals, plus a migration that inserts it
+#     into skill_vocabulary (the backend refuses to start if the two disagree).
+#  2. Removing a tag requires a migration for providers who hold it.
+#  3. A tag that needs a licence carries `requires_licence: true` and is matched only
+#     against providers who have supplied one.
+#  4. Tags are snake_case, 2-40 characters. Synonyms are lowercase phrases.
+#
+# Deliberately absent until a safety policy exists for them: childcare, elder care,
+# medical, legal and financial advice. Asks for those are refused, not guessed.
+
+# Hair and beauty
+- tag: barber
+  display: Barber
+  synonyms: [barber, barbershop, haircut, hair cut, fresh cut, fade, taper, line up, lineup, beard trim, shape up]
+  parent: hair
+- tag: braids
+  display: Braids
+  synonyms: [braids, knotless, box braids, cornrows, feed-in, plaits, twists, locs retwist]
+  parent: hair
+- tag: wig_install
+  display: Wig install
+  synonyms: [wig install, closure install, frontal, lace install, wig fitting]
+  parent: hair
+- tag: hair_styling
+  display: Hair styling
+  synonyms: [hair styling, silk press, blowout, hair salon, updo, trim and style]
+  parent: hair
+- tag: nails
+  display: Nails
+  synonyms: [nails, manicure, pedicure, nail set, acrylics, gel nails, nail tech]
+  parent: beauty
+- tag: lashes
+  display: Lashes
+  synonyms: [lashes, lash extensions, lash fill, lash lift]
+  parent: beauty
+- tag: makeup
+  display: Makeup
+  synonyms: [makeup, make up, makeup artist, mua, glam]
+  parent: beauty
+- tag: brows
+  display: Brows
+  synonyms: [brows, eyebrows, brow shaping, threading, brow tint]
+  parent: beauty
+
+# Repairs
+- tag: laptop_repair
+  display: Laptop repair
+  synonyms: [laptop repair, computer repair, screen replacement, pc fix, macbook repair]
+  parent: tech
+- tag: phone_repair
+  display: Phone repair
+  synonyms: [phone repair, cracked screen, iphone repair, phone screen, battery replacement]
+  parent: tech
+- tag: shoe_repair
+  display: Shoe repair
+  synonyms: [shoe repair, cobbler, resole, heel repair, fix my shoe, fix my shoes, repair my shoe, repair my shoes, shoes repaired, boot repair, sneaker repair, fix my boots]
+  parent: repair
+- tag: tailoring
+  display: Tailoring
+  synonyms: [tailor, tailoring, alterations, hemming, hem, take in, sew a button]
+  parent: repair
+- tag: bike_repair
+  display: Bike repair
+  synonyms: [bike repair, bicycle repair, flat bike tire, bike chain, bike tune up]
+  parent: repair
+
+# Home
+- tag: plumbing_minor
+  display: Minor plumbing
+  synonyms: [plumber, plumbing, leaking sink, leaky sink, leaking tap, blocked drain, clogged drain, running toilet, clogged toilet, tap replacement]
+  parent: home
+  note: >
+    Minor work only. Anything requiring a licence routes to the licensed-trade policy in
+    the restricted-intent rules, which asks for the licence number before a match is made.
+- tag: electrical
+  display: Electrical work
+  synonyms: [electrician, electrical, wiring, rewire, outlet, breaker, light fitting]
+  parent: home
+  requires_licence: true
+- tag: handyman
+  display: Handyman
+  synonyms: [handyman, handy man, odd jobs, small repairs, fix a door, patch a wall]
+  parent: home
+- tag: furniture_assembly
+  display: Furniture assembly
+  synonyms: [furniture assembly, assemble furniture, ikea, flat pack, build a bed]
+  parent: home
+- tag: tv_mounting
+  display: TV mounting
+  synonyms: [tv mounting, mount a tv, mount my tv, wall mount tv]
+  parent: home
+- tag: house_cleaning
+  display: House cleaning
+  synonyms: [cleaner, cleaning, house cleaning, deep clean, maid, move out clean]
+  parent: home
+- tag: moving_help
+  display: Moving help
+  synonyms: [movers, moving help, help moving, move my stuff, loading truck]
+  parent: home
+- tag: painting
+  display: Painting
+  synonyms: [painter, painting, paint a room, interior painting]
+  parent: home
+- tag: lawn_care
+  display: Lawn care
+  synonyms: [lawn care, mow, mowing, yard work, leaf removal, gardening]
+  parent: home
+- tag: locksmith
+  display: Locksmith
+  synonyms: [locksmith, locked out, lockout, rekey, spare key]
+  parent: home
+  requires_licence: true
+
+# Vehicles
+- tag: auto_repair
+  display: Auto repair
+  synonyms: [mechanic, car repair, auto repair, oil change, brakes, flat tire, flat tyre, car battery, check engine]
+  parent: vehicle
+- tag: car_wash
+  display: Car wash
+  synonyms: [car wash, detailing, car detail, wash my car]
+  parent: vehicle
+- tag: towing
+  display: Towing
+  synonyms: [tow truck, towing, tow my car, jump start, jumpstart]
+  parent: vehicle
+
+# Lessons and creative
+- tag: tutoring
+  display: Tutoring
+  synonyms: [tutor, tutoring, homework help, math tutor, essay help, test prep]
+  parent: lessons
+- tag: music_lessons
+  display: Music lessons
+  synonyms: [music lessons, guitar lessons, piano lessons, singing lessons, voice lessons]
+  parent: lessons
+- tag: photography
+  display: Photography
+  synonyms: [photographer, photography, photo shoot, photoshoot, headshots, portraits]
+  parent: creative
+- tag: personal_training
+  display: Personal training
+  synonyms: [personal trainer, personal training, workout coach, fitness coach]
+  parent: lessons
+
+# Pets and errands
+- tag: pet_grooming
+  display: Pet grooming
+  synonyms: [dog groomer, pet grooming, dog grooming, cat grooming, groomer]
+  parent: pets
+- tag: dog_walking
+  display: Dog walking
+  synonyms: [dog walker, dog walking, walk my dog]
+  parent: pets
+- tag: pet_sitting
+  display: Pet sitting
+  synonyms: [pet sitter, pet sitting, cat sitter, watch my dog]
+  parent: pets
+- tag: errands
+  display: Errands
+  synonyms: [errand, errands, pick up groceries, drop off a package, queue for me]
+  parent: errands
+- tag: massage
+  display: Massage
+  synonyms: [massage, massage therapist, deep tissue, sports massage]
+  parent: wellness
+  requires_licence: true

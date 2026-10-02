@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "Choose skills PLUG lists.",
+    "request_id": "req_ddd350c8-da75-4b6d-929f-4148e755545c",
+    "details": [
+      {
+        "field": "skill_tags",
+        "code": "unknown_skill",
+        "message": "Choose skills PLUG lists."
+      }
+    ]
+  }
+}

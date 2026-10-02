@@ -3,30 +3,43 @@ import SwiftUI
 
 enum PlugTokens {
     enum Color {
-        static let brand50 = SwiftUI.Color(hex: "EAF1FE")
-        static let brand600 = SwiftUI.Color(hex: "0B57E3")
-        static let brand700 = SwiftUI.Color(hex: "0842AE")
-        static let brandBorder = SwiftUI.Color(hex: "BCD3FB")
-        static let ink400 = SwiftUI.Color(hex: "767D88")
-        static let ink600 = SwiftUI.Color(hex: "4A5058")
-        static let ink900 = SwiftUI.Color(hex: "0B0C0E")
-        static let line200 = SwiftUI.Color(hex: "E3E6EB")
-        static let line300 = SwiftUI.Color(hex: "D2D7DE")
-        static let surface0 = SwiftUI.Color(hex: "FFFFFF")
-        static let surface50 = SwiftUI.Color(hex: "F7F8FA")
-        static let truthConfirmed = SwiftUI.Color(hex: "0E7A3C")
-        static let truthRecent = SwiftUI.Color(hex: "0B57E3")
-        static let truthEstimated = SwiftUI.Color(hex: "8A5A00")
-        static let truthUnknown = SwiftUI.Color(hex: "5C636E")
-        static let truthSurfaceConfirmed = SwiftUI.Color(hex: "E7F5EC")
-        static let truthSurfaceRecent = SwiftUI.Color(hex: "EAF1FE")
-        static let truthSurfaceEstimated = SwiftUI.Color(hex: "FBF1DF")
-        static let truthSurfaceUnknown = SwiftUI.Color(hex: "F0F1F3")
-        static let danger50 = SwiftUI.Color(hex: "FCEBEA")
-        static let danger600 = SwiftUI.Color(hex: "B3241F")
-        static let dangerBorder = SwiftUI.Color(hex: "F0C2BF")
-        static let success50 = SwiftUI.Color(hex: "E7F5EC")
-        static let success600 = SwiftUI.Color(hex: "0E7A3C")
+        static let paper = SwiftUI.Color(hex: "F1F3F0")
+        static let card = SwiftUI.Color(hex: "FFFFFF")
+        static let sunk = SwiftUI.Color(hex: "E8EBE6")
+        static let ink400 = SwiftUI.Color(hex: "7C8480")
+        static let ink600 = SwiftUI.Color(hex: "4D544E")
+        static let ink900 = SwiftUI.Color(hex: "161A17")
+        static let rule200 = SwiftUI.Color(hex: "DCE0DA")
+        static let rule300 = SwiftUI.Color(hex: "C7CDC4")
+        static let truthConfirmed = SwiftUI.Color(hex: "1A6B3C")
+        static let truthRecent = SwiftUI.Color(hex: "0E6E78")
+        static let truthEstimated = SwiftUI.Color(hex: "8A5A14")
+        static let truthUnknown = SwiftUI.Color(hex: "5F6660")
+        static let truthSurfaceConfirmed = SwiftUI.Color(hex: "E3EFE6")
+        static let truthSurfaceRecent = SwiftUI.Color(hex: "DFEDEF")
+        static let truthSurfaceEstimated = SwiftUI.Color(hex: "F5EDDC")
+        static let truthSurfaceUnknown = SwiftUI.Color(hex: "E9ECE8")
+        static let truthBorderConfirmed = SwiftUI.Color(hex: "B5D4BF")
+        static let truthBorderRecent = SwiftUI.Color(hex: "AFD0D4")
+        static let truthBorderEstimated = SwiftUI.Color(hex: "E0CCA2")
+        static let truthBorderUnknown = SwiftUI.Color(hex: "CBD1C9")
+        static let alert50 = SwiftUI.Color(hex: "F8E7E3")
+        static let alert600 = SwiftUI.Color(hex: "B4311C")
+        static let alertBorder = SwiftUI.Color(hex: "EBC0B7")
+        // Transitional v3 names for frozen Phase 0/1 code (design/token-aliases.json).
+        static let brand600 = ink900
+        static let brand700 = ink600
+        static let brand50 = sunk
+        static let brandBorder = rule300
+        static let line200 = rule200
+        static let line300 = rule300
+        static let surface0 = card
+        static let surface50 = paper
+        static let danger600 = alert600
+        static let danger50 = alert50
+        static let dangerBorder = alertBorder
+        static let success600 = ink900
+        static let success50 = sunk
     }
     enum Space {
         static let s1: CGFloat = 4
@@ -39,21 +52,24 @@ enum PlugTokens {
         static let s16: CGFloat = 64
     }
     enum Radius {
-        static let sm: CGFloat = 6
-        static let md: CGFloat = 8
-        static let lg: CGFloat = 10
-        static let xl: CGFloat = 14
+        static let badge: CGFloat = 7
+        static let control: CGFloat = 9
+        static let card: CGFloat = 12
+        static let sheet: CGFloat = 20
+        static let sm: CGFloat = badge
+        static let md: CGFloat = control
+        static let lg: CGFloat = card
+        static let xl: CGFloat = sheet
     }
     enum TypeSize {
         static let display: CGFloat = 34
         static let title1: CGFloat = 26
         static let title2: CGFloat = 20
-        static let title3: CGFloat = 17
+        static let title3: CGFloat = 16
         static let bodyLg: CGFloat = 15
         static let body: CGFloat = 13
         static let label: CGFloat = 12
         static let caption: CGFloat = 11
-        static let overline: CGFloat = 10
     }
     enum Motion {
         static let fast: Double = 120 / 1000

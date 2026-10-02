@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
-  contract, nextActions, readJSON, responseSchema, root,
+  contract, nextActions, readJSON, responseSchema, root, vocabulary,
   validateOffers, validateResource, validateSchema,
 } from './validate.mjs';
 
@@ -13,13 +13,13 @@ const readFixture = (operation, outcome) => readJSON(`fixtures/requests.${operat
 test('every request fixture is registered exactly once and every documented response has coverage', () => {
   assert.equal(manifest.contract_version, contract.info.version);
   const files = readdirSync(new URL('fixtures/', root))
-    .filter(name => name.startsWith('requests.'))
+    .filter(name => /^(requests|asks|providers)\./.test(name))
     .flatMap(folder => readdirSync(new URL(`fixtures/${folder}/`, root))
       .filter(name => name.endsWith('.json')).map(name => `fixtures/${folder}/${name}`));
   assert.equal(new Set(rows.map(row => row.file)).size, rows.length);
   assert.deepEqual(rows.map(row => row.file).sort(), files.sort());
   for (const [path, item] of Object.entries(contract.paths)) {
-    if (!path.startsWith('/v1/requests')) continue;
+    if (!/^\/v1\/(requests|asks|providers)/.test(path)) continue;
     for (const method of ['get', 'post']) {
       if (!item[method]) continue;
       for (const status of Object.keys(item[method].responses)) {
@@ -68,7 +68,7 @@ test('clarification preserves the draft identity and fills only the answered cat
   assert.equal(answered.text, draft.text);
   assert.equal(answered.created_at, draft.created_at);
   assert.deepEqual(answered.constraints,
-    { ...draft.constraints, category: 'barber', service_name: 'Barber', search_terms: ['barber'] });
+    { ...draft.constraints, category: 'barber', service_name: 'Barber', skill_tags: ['barber'], licence_required: false });
   assert.equal(answered.status, 'submitted');
   assert.equal(answered.clarification, undefined);
   for (const body of [readFixture('cancel', 'draft-canceled'), readFixture('get', 'clarification-unanswered')]) {
@@ -144,7 +144,7 @@ for (const item of cases) {
       assert.equal(item.expected.category, null);
       assert.equal(item.expected.clarification_field, 'category');
     } else if (item.expected.outcome === 'submitted') {
-      assert.match(item.expected.category, new RegExp(contract.components.schemas.Category.pattern));
+      assert.ok(vocabulary.has(item.expected.category), `Expected category outside skills.yaml: ${item.expected.category}`);
     } else {
       assert.ok([400, 422].includes(item.expected.status));
       assert.equal(item.expected.error_code, item.expected.status === 422 ? 'restricted_intent' : 'validation_failed');

@@ -45,12 +45,19 @@
 		D20000000000000000001003 /* RequestModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000003; };
 		D20000000000000000001004 /* RequestLocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000004; };
 		D20000000000000000001005 /* AskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000005; };
+		D20000000000000000001006 /* ProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000006; };
 		D30000000000000000001001 /* RequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000001; };
 		D30000000000000000001002 /* requests.create in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000002; };
 		D30000000000000000001003 /* requests.get in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000003; };
 		D30000000000000000001004 /* requests.clarify in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000004; };
 		D30000000000000000001005 /* requests.cancel in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000005; };
 		D30000000000000000001006 /* requests.offers in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000006; };
+		D30000000000000000001007 /* asks.create in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000007; };
+		D30000000000000000001008 /* asks.get in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000008; };
+		D30000000000000000001009 /* asks.clarify in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000009; };
+		D30000000000000000001010 /* providers.propose in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000010; };
+		D30000000000000000001011 /* providers.skills in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000011; };
+		D30000000000000000001012 /* providers.me in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000012; };
 		D40000000000000000000101 /* RequestScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40000000000000000000001; };
 /* End PBXBuildFile section */
 
@@ -113,12 +120,19 @@
 		D20000000000000000000003 /* RequestModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Requests/RequestModel.swift"; sourceTree = "<group>"; };
 		D20000000000000000000004 /* RequestLocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Requests/RequestLocationModel.swift"; sourceTree = "<group>"; };
 		D20000000000000000000005 /* AskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Requests/AskView.swift"; sourceTree = "<group>"; };
+		D20000000000000000000006 /* ProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Features/Requests/ProviderView.swift"; sourceTree = "<group>"; };
 		D30000000000000000000001 /* RequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RequestTests.swift"; sourceTree = "<group>"; };
 		D30000000000000000000002 /* requests.create */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/requests.create"; sourceTree = "<group>"; };
 		D30000000000000000000003 /* requests.get */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/requests.get"; sourceTree = "<group>"; };
 		D30000000000000000000004 /* requests.clarify */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/requests.clarify"; sourceTree = "<group>"; };
 		D30000000000000000000005 /* requests.cancel */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/requests.cancel"; sourceTree = "<group>"; };
 		D30000000000000000000006 /* requests.offers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/requests.offers"; sourceTree = "<group>"; };
+		D30000000000000000000007 /* asks.create */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/asks.create"; sourceTree = "<group>"; };
+		D30000000000000000000008 /* asks.get */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/asks.get"; sourceTree = "<group>"; };
+		D30000000000000000000009 /* asks.clarify */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/asks.clarify"; sourceTree = "<group>"; };
+		D30000000000000000000010 /* providers.propose */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/providers.propose"; sourceTree = "<group>"; };
+		D30000000000000000000011 /* providers.skills */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/providers.skills"; sourceTree = "<group>"; };
+		D30000000000000000000012 /* providers.me */ = {isa = PBXFileReference; lastKnownFileType = folder; path = "../../fixtures/providers.me"; sourceTree = "<group>"; };
 		D40000000000000000000001 /* RequestScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "RequestScreenshotTests.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -166,6 +180,7 @@
 			isa = PBXGroup;
 			children = (
 				D20000000000000000000005 /* AskView.swift */,
+				D20000000000000000000006 /* ProviderView.swift */,
 				D20000000000000000000004 /* RequestLocationModel.swift */,
 				D20000000000000000000003 /* RequestModel.swift */,
 				D20000000000000000000002 /* RequestService.swift */,
@@ -198,6 +213,12 @@
 			isa = PBXGroup;
 			children = (
 				D30000000000000000000006 /* requests.offers */,
+				D30000000000000000000007 /* asks.create */,
+				D30000000000000000000008 /* asks.get */,
+				D30000000000000000000009 /* asks.clarify */,
+				D30000000000000000000010 /* providers.propose */,
+				D30000000000000000000011 /* providers.skills */,
+				D30000000000000000000012 /* providers.me */,
 				D30000000000000000000005 /* requests.cancel */,
 				D30000000000000000000004 /* requests.clarify */,
 				D30000000000000000000003 /* requests.get */,
@@ -396,6 +417,12 @@
 			buildActionMask = 2147483647;
 			files = (
 				D30000000000000000001006 /* requests.offers in Resources */,
+				D30000000000000000001007 /* asks.create in Resources */,
+				D30000000000000000001008 /* asks.get in Resources */,
+				D30000000000000000001009 /* asks.clarify in Resources */,
+				D30000000000000000001010 /* providers.propose in Resources */,
+				D30000000000000000001011 /* providers.skills in Resources */,
+				D30000000000000000001012 /* providers.me in Resources */,
 				D30000000000000000001005 /* requests.cancel in Resources */,
 				D30000000000000000001004 /* requests.clarify in Resources */,
 				D30000000000000000001003 /* requests.get in Resources */,
@@ -419,6 +446,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D20000000000000000001005 /* AskView.swift in Sources */,
+				D20000000000000000001006 /* ProviderView.swift in Sources */,
 				D20000000000000000001004 /* RequestLocationModel.swift in Sources */,
 				D20000000000000000001003 /* RequestModel.swift in Sources */,
 				D20000000000000000001002 /* RequestService.swift in Sources */,

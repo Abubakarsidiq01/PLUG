@@ -54,6 +54,12 @@ public class SecurityConfiguration {
             auth.requestMatchers(HttpMethod.POST, "/v1/requests", "/v1/requests/*/clarifications", "/v1/requests/*/cancel")
                     .hasAnyAuthority("SCOPE_guest", "SCOPE_member")
                 .requestMatchers(HttpMethod.GET, "/v1/requests/*", "/v1/requests/*/offers")
+                    .hasAnyAuthority("SCOPE_guest", "SCOPE_member")
+                // Manual v4 Phase 2: the single ask entry point and provider capability.
+                .requestMatchers(HttpMethod.POST, "/v1/asks", "/v1/asks/*/clarifications",
+                        "/v1/providers/skills", "/v1/providers/skills/propose")
+                    .hasAnyAuthority("SCOPE_guest", "SCOPE_member")
+                .requestMatchers(HttpMethod.GET, "/v1/asks/*", "/v1/providers/me")
                     .hasAnyAuthority("SCOPE_guest", "SCOPE_member");
         }
         auth.requestMatchers(HttpMethod.POST, "/v1/auth/apple", "/v1/auth/google", "/v1/auth/phone/start", "/v1/auth/phone/verify",

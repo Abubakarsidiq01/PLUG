@@ -8,6 +8,8 @@ import { parse } from 'yaml';
 export const root = new URL('../../', import.meta.url);
 export const readJSON = path => JSON.parse(readFileSync(new URL(path, root), 'utf8'));
 export const contract = parse(readFileSync(new URL('contracts/openapi.yaml', root), 'utf8'));
+// Manual v4 §12B.3: the only skill tags that may ever appear.
+export const vocabulary = new Set(parse(readFileSync(new URL('contracts/skills.yaml', root), 'utf8')).map(entry => entry.tag));
 const ajv = new Ajv2020({ allErrors: true, strictSchema: false });
 addFormats(ajv);
 const validators = new Map();
@@ -72,7 +74,9 @@ export function validateResource(body) {
   }
   // ADR-009: the display name and maps search terms exist exactly when the service is known.
   assert.equal(body.constraints.service_name === null, category === null, 'service_name tracks category');
-  assert.equal(body.constraints.search_terms.length === 0, category === null, 'search_terms track category');
+  assert.equal(body.constraints.skill_tags.length === 0, category === null, 'skill_tags track category');
+  if (category !== null) assert.equal(body.constraints.skill_tags[0], category, 'category is the first skill tag');
+  for (const tag of body.constraints.skill_tags) assert.ok(vocabulary.has(tag), `Skill tag outside the vocabulary: ${tag}`);
   const digits = location.precision === 'coarse' ? 3 : 4;
   for (const axis of ['latitude', 'longitude']) {
     assert.equal(location[axis], Number(location[axis].toFixed(digits)), 'Unrounded location');
@@ -91,6 +95,10 @@ export function validateOffers(body, clock) {
     assert.ok(!ids.has(offer.offer_id), 'Duplicate offer identifier');
     ids.add(offer.offer_id);
     assert.equal(offer.currency, 'USD');
+    // Manual v4 §12C.3: fewer than three completed jobs is New, never a number.
+    assert.equal(offer.provider_score.state === 'scored', offer.provider_score.value !== undefined, 'Score value only when scored');
+    if (offer.provider_score.completed_jobs < 3) assert.equal(offer.provider_score.state, 'new', 'New providers show New, never a zero');
+    assert.notEqual(offer.truth_label, 'not_verified', 'An offer is never a web answer');
     if (offer.source === 'seed') {
       assert.ok(['estimated', 'unknown'].includes(offer.truth_label), 'Seed data cannot be verified');
     }

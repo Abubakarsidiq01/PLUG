@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { responseSchema, validateSchema, validateResource, validateOffers } from '../tests/contracts/validate.mjs';
+import { responseSchema, validateSchema, validateResource, validateOffers, vocabulary } from '../tests/contracts/validate.mjs';
 
 const base = new URL(process.env.PHASE2_BASE_URL || 'http://127.0.0.1:18082');
 if (!['127.0.0.1', '[::1]', 'localhost'].includes(base.hostname) || base.protocol !== 'http:' || base.username || base.password || base.pathname !== '/' || base.search || base.hash) {
@@ -25,7 +25,7 @@ const perAccount = new Map();
 const created = [];
 const sessions = [];
 
-function route(path) { return path.replace(/\/requests\/[^/]+/, '/requests/{request_id}'); }
+function route(path) { return path.replace(/\/requests\/[^/]+/, '/requests/{request_id}').replace(/\/asks\/[^/]+/, '/asks/{ask_id}'); }
 function check(name, fn) {
   try { fn(); report.checks.push({ name, passed: true }); }
   catch { report.checks.push({ name, passed: false }); throw new Error(`Check failed: ${name}`); }
@@ -43,8 +43,10 @@ async function pace(token) {
   calls.push(Date.now()); account.push(Date.now()); perAccount.set(token, account);
 }
 async function http(name, path, { method = 'GET', token, body, raw, idempotency, expected, error, detail, paced = true, contentType = 'application/json', headers = {} } = {}) {
-  if (method === 'POST' && path === '/v1/requests' && paced) await pace(token);
-  if (path.startsWith('/v1/requests/') && paced) {
+  // POST /v1/asks shares the creation budget with POST /v1/requests (manual v4 §12A).
+  if (method === 'POST' && (path === '/v1/requests' || path === '/v1/asks') && paced) await pace(token);
+  // Every v2 resource route, providers included, draws on one per-address budget.
+  if (/^\/v1\/(requests\/|asks\/|providers\/)/.test(path) && paced) {
     resourceCalls = resourceCalls.filter(t => Date.now() - t < 61000);
     if (resourceCalls.length >= 55) {
       console.log('Waiting for the resource-route limit window.');
@@ -67,7 +69,7 @@ async function http(name, path, { method = 'GET', token, body, raw, idempotency,
   try { data = await response.json(); } catch { throw new Error(`Non-JSON response: ${name}`); }
   check(`${name}: HTTP ${expected}`, () => assert.equal(response.status, expected));
   check(`${name}: correlation`, () => assert.equal(id, correlation));
-  if (path.startsWith('/v1/requests')) {
+  if (/^\/v1\/(requests|asks|providers)/.test(path)) {
     check(`${name}: contract`, () => {
       const schema = responseSchema(route(path), method.toLowerCase(), expected);
       validateSchema(schema, data);
@@ -237,6 +239,70 @@ async function dataset() {
   report.dataset = { normal_provider_cases: rows.length, injected_provider_cases: 'Backend deterministic adapter tests; not simulated by this HTTP suite.' };
 }
 
+// Manual v4 P2.S10 to P2.S17: one ask field for both ask types, the restricted-intent policy,
+// public places only, one clarifying question, and provider capability on the same account.
+async function asks() {
+  const owner = await guest('ask owner');
+  const other = await guest('ask other');
+  const ask = (name, token, text, options = {}) => http(name, '/v1/asks', { method: 'POST', token, body: { text, location, time_zone: 'America/Chicago' }, idempotency: key(), expected: 201, ...options });
+  const askKey = key();
+  const service = await ask('ask service request', owner, 'Someone to do knotless braids, $120 max', { idempotency: askKey });
+  check('service ask is classified and extracted from the vocabulary', () => {
+    assert.equal(service.ask_type, 'service_request');
+    assert.ok(service.request.constraints.skill_tags.includes('braids'));
+    assert.ok(service.request.constraints.skill_tags.every(tag => vocabulary.has(tag)));
+    assert.equal(service.request.constraints.budget_cents, 12000);
+  });
+  const replay = await ask('ask replay', owner, 'Someone to do knotless braids, $120 max', { idempotency: askKey });
+  check('ask replay is the same canonical body', () => assert.deepEqual(replay, service));
+  await ask('ask key conflict', owner, 'Fix a leaking sink today', { idempotency: askKey, expected: 409, error: 'conflict', detail: 'idempotency_key_reused' });
+  const place = await ask('ask place question', owner, 'How long is the line at Walmart on Ben White?');
+  check('place question is classified, public, and never promotes the web', () => {
+    assert.equal(place.ask_type, 'place_question');
+    assert.ok(place.place_question.place_name);
+    assert.ok(['asking', 'unknown'].includes(place.place_question.status));
+    assert.equal(place.place_question.answer ?? null, null);
+    if (place.place_question.web_answer) assert.equal(place.place_question.web_answer.truth_label, 'not_verified');
+  });
+  await ask('restricted ask refused', owner, "Track my ex girlfriend's phone", { expected: 422, error: 'restricted_intent' });
+  await ask('private place refused', owner, 'How busy is it at her apartment right now?', { expected: 422, error: 'restricted_intent' });
+  await ask('anonymous ask', undefined, 'Barber', { expected: 401, error: 'unauthenticated' });
+  await http('read own ask', `/v1/asks/${service.ask_id}`, { token: owner, expected: 200 });
+  await http('foreign ask', `/v1/asks/${service.ask_id}`, { token: other, expected: 404, error: 'not_found' });
+  await http('anonymous ask read', `/v1/asks/${service.ask_id}`, { expected: 401, error: 'unauthenticated' });
+  const unclear = await ask('unclear ask', owner, 'Something');
+  check('unclear ask gets exactly one question', () => {
+    assert.equal(unclear.ask_type, null);
+    assert.equal(unclear.clarification.field, 'ask');
+    assert.ok(unclear.clarification.options.every(option => option.value === 'place_question' || vocabulary.has(option.value)));
+  });
+  const clarify = (name, token, value, options = {}) => http(name, `/v1/asks/${unclear.ask_id}/clarifications`, { method: 'POST', token, body: { clarification_id: unclear.clarification.clarification_id, value }, idempotency: key(), expected: 200, ...options });
+  await clarify('foreign clarification', other, 'barber', { expected: 404, error: 'not_found' });
+  await clarify('clarification outside the options', owner, 'wizardry', { expected: 400, error: 'validation_failed' });
+  const resolved = await clarify('answer the one question', owner, 'barber');
+  check('answer resolves the same ask', () => { assert.equal(resolved.ask_id, unclear.ask_id); assert.equal(resolved.ask_type, 'service_request'); assert.deepEqual(resolved.request.constraints.skill_tags, ['barber']); });
+  await clarify('no second question', owner, 'barber', { expected: 409, error: 'conflict' });
+
+  await http('not a provider yet', '/v1/providers/me', { token: other, expected: 404, error: 'not_found' });
+  const proposal = await http('propose skills', '/v1/providers/skills/propose', { method: 'POST', token: other, body: { description: 'I do knotless braids and wig installs, also crochet locs' }, expected: 200 });
+  check('proposal uses only vocabulary tags and reports the rest', () => {
+    assert.deepEqual(proposal.skills.map(skill => skill.tag).sort(), ['braids', 'wig_install']);
+    assert.ok(proposal.unmatched.length > 0);
+  });
+  await http('restricted skill description', '/v1/providers/skills/propose', { method: 'POST', token: other, body: { description: 'I sell stolen phones' }, expected: 422, error: 'restricted_intent' });
+  const setup = { skill_tags: ['braids', 'wig_install'], travel_radius_m: 4828, base_location: location, availability: [{ days: 'every_day', from: '08:00', to: '21:00' }], time_zone: 'America/Chicago' };
+  await http('licensed skill without licence', '/v1/providers/skills', { method: 'POST', token: other, body: { ...setup, skill_tags: ['electrical'] }, expected: 400, error: 'validation_failed', detail: 'licence_required' });
+  await http('invented skill tag', '/v1/providers/skills', { method: 'POST', token: other, body: { ...setup, skill_tags: ['wizardry'] }, expected: 400, error: 'validation_failed', detail: 'unknown_skill' });
+  const profile = await http('become a provider', '/v1/providers/skills', { method: 'POST', token: other, body: setup, expected: 200 });
+  check('same account, new provider is never scored zero', () => {
+    assert.equal(profile.score.state, 'new');
+    assert.notEqual(profile.score.value, 0);
+    assert.ok(profile.accepting);
+  });
+  const me = await http('read own provider profile', '/v1/providers/me', { token: other, expected: 200 });
+  check('provider profile reads back', () => assert.deepEqual(me, profile));
+}
+
 async function abuse() {
   let owner = await guest('abuse schema guest');
   const bad = [
@@ -294,6 +360,7 @@ async function limits() {
 
 try {
   await functional();
+  await asks();
   await dataset();
   await abuse();
   await limits();

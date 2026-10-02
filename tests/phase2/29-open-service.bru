@@ -1,5 +1,5 @@
 meta {
-  name: Open service (ADR-009)
+  name: Any lawful service maps onto the skill vocabulary (manual v4)
   type: http
   seq: 29
 }
@@ -22,8 +22,8 @@ body:json {
 
 assert {
   res.status: eq 201
-  res.body.constraints.category: eq plumber
-  res.body.constraints.service_name: eq Plumber
+  res.body.constraints.category: eq plumbing_minor
+  res.body.constraints.service_name: eq Minor plumbing
 }
 
 tests {

@@ -1,0 +1,40 @@
+{
+  "ask_id": "ask_05c9a7f2-e1d9-4df9-b61a-a2124e2715be",
+  "ask_type": null,
+  "clarification": {
+    "clarification_id": "cla_a36ccc89-d43a-4472-8dbb-fd3ecd428ffd",
+    "field": "ask",
+    "question": "What would you like PLUG to do?",
+    "options": [
+      {
+        "value": "barber",
+        "label": "Barber"
+      },
+      {
+        "value": "braids",
+        "label": "Braids"
+      },
+      {
+        "value": "nails",
+        "label": "Nails"
+      },
+      {
+        "value": "plumbing_minor",
+        "label": "Minor plumbing"
+      },
+      {
+        "value": "laptop_repair",
+        "label": "Laptop repair"
+      },
+      {
+        "value": "house_cleaning",
+        "label": "House cleaning"
+      },
+      {
+        "value": "place_question",
+        "label": "Something happening at a place"
+      }
+    ]
+  },
+  "created_at": "2026-10-02T05:11:13.700666Z"
+}

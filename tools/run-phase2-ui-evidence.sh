@@ -30,7 +30,11 @@ xcrun simctl boot "$udid" 2>/dev/null || true
 xcrun simctl bootstatus "$udid" -b >/dev/null
 # The synthetic results sit in the Ruston demo zone; a simulator without a location
 # reports "unavailable" and the flow takes the address path instead.
-xcrun simctl location "$udid" set 32.528,-92.714
+# A route that moves a few metres back and forth for about twenty minutes: a fixed point
+# keeps its original timestamp, and the app rejects fixes older than two minutes.
+route=$(python3 -c "print(' '.join(['32.5280,-92.7140', '32.5282,-92.7142'] * 20))")
+# shellcheck disable=SC2086
+xcrun simctl location "$udid" start --speed=1 --interval=1 $route >/dev/null
 
 echo "Running request screenshot tests on $device (about ten minutes)."
 # Signed for the simulator: an unsigned build has no keychain entitlement, so the

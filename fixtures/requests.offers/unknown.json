@@ -16,7 +16,11 @@
       "expires_at": "2026-10-01T20:30:00Z",
       "observed_at": "2026-10-01T18:00:00Z",
       "truth_label": "unknown",
-      "source": "seed"
+      "source": "seed",
+      "provider_score": {
+        "state": "new",
+        "completed_jobs": 0
+      }
     }
   ]
 }

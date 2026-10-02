@@ -42,54 +42,72 @@ public class RequestService {
     private final ObjectMapper mapper;
     private final Clock clock;
     private final IntentAdapter intent;
+    private final RestrictedIntentPolicy policy;
+    private final MatchService matches;
     private final String consent;
-    private final FixedWindowLimiter limiter = new FixedWindowLimiter(4096);
+    final FixedWindowLimiter limiter = new FixedWindowLimiter(4096);
     public RequestService(JdbcTemplate jdbc, PlatformTransactionManager manager, ObjectMapper mapper, RequestClock clock,
-            IntentAdapter intent, @Value("${plug.identity.consent-version}") String consent) {
+            IntentAdapter intent, RestrictedIntentPolicy policy, MatchService matches,
+            @Value("${plug.identity.consent-version}") String consent) {
         this.jdbc = jdbc;
         this.transaction = new TransactionTemplate(manager);
         this.mapper = mapper;
         this.clock = clock.clock();
         this.intent = intent;
+        this.policy = policy;
+        this.matches = matches;
         this.consent = consent;
     }
     public Resource create(PlugPrincipal caller, String key, Create input) {
         requireCaller(caller);
         requireConsent(caller);
-        // Restricted attempts leave an append-only event even though no request is created.
-        if (intent.restricted(input.text())) {
-            if (!limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
-            jdbc.update("INSERT INTO audit_events(actor_id,actor_role,action,resource,resource_id,reason,request_id)"
-                    + " VALUES(?,?,'request.restricted','request','none','restricted_intent',?)",
-                    caller.userId(), "customer", MDC.get("request_id"));
-            throw ApiException.requestError(422, "restricted_intent", null, null, "This request cannot be supported.");
-        }
+        refuseRestricted(caller, input.text());
         return transaction.execute(ignored -> {
             lockAccount(caller);
             requireConsent(caller);
-            Resource replay = replay(caller, "create", key, input);
+            Resource replay = replay(caller, "create", key, input, Resource.class);
             if (replay != null) return replay;
             if (!limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
-            IntentAdapter.Result extracted = intent.extract(input);
+            Resource result = insert(caller, input.text(), intent.extract(input));
+            remember(caller, "create", key, input, result);
+            return result;
+        });
+    }
+    /// The restricted-intent policy runs first, before any extraction (manual v4 §19A.1).
+    /// A refused ask creates nothing but its audit event, whose reason names the rule.
+    void refuseRestricted(PlugPrincipal caller, String text) {
+        var refusal = policy.refusal(text);
+        if (refusal.isPresent()) refuse(caller, refusal.get());
+    }
+    void refuse(PlugPrincipal caller, String rule) {
+        if (!limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
+        jdbc.update("INSERT INTO audit_events(actor_id,actor_role,action,resource,resource_id,reason,request_id)"
+                + " VALUES(?,?,'request.restricted','request','none',?,?)",
+                caller.userId(), "customer", "restricted_intent:" + rule, MDC.get("request_id"));
+        throw ApiException.requestError(422, "restricted_intent", null, null, "PLUG can't help with this request.");
+    }
+    /// Creates the request inside the caller's transaction. Used by POST /v1/requests and by
+    /// the ask entry point, so both produce exactly the same request.
+    Resource insert(PlugPrincipal caller, String text, IntentAdapter.Result extracted) {
+        {
             Constraints constraints = extracted.constraints();
             Instant now = clock.instant();
             String id = "req_" + UUID.randomUUID();
             String clarification = constraints.category() == null ? "cla_" + UUID.randomUUID() : null;
             Instant expires = constraints.neededBy() == null ? now.plus(Duration.ofMinutes(30)) : constraints.neededBy();
             jdbc.update("INSERT INTO requests(id,user_id,text,status,clarification_id,clarification_options,"
-                    + "created_at,updated_at,expires_at) VALUES(?,?,?,?,?,?::jsonb,?,?,?)", id, caller.userId(), input.text(),
+                    + "created_at,updated_at,expires_at) VALUES(?,?,?,?,?,?::jsonb,?,?,?)", id, caller.userId(), text,
                     clarification == null ? "submitted" : "draft", clarification,
                     clarification == null ? null : json(extracted.clarificationOptions()), time(now), time(now), time(expires));
-            jdbc.update("INSERT INTO request_constraints(request_id,category,service_name,search_terms,budget_cents,currency,"
-                    + "needed_by,max_distance_m,latitude,longitude,precision) VALUES(?,?,?,?,?,?,?,?,?,?,?)", id,
-                    constraints.category(), constraints.serviceName(), constraints.searchTerms().toArray(String[]::new),
+            jdbc.update("INSERT INTO request_constraints(request_id,category,service_name,skill_tags,licence_required,"
+                    + "budget_cents,currency,needed_by,max_distance_m,latitude,longitude,precision) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)", id,
+                    constraints.category(), constraints.serviceName(), constraints.skillTags().toArray(String[]::new),
+                    constraints.licenceRequired(),
                     constraints.budgetCents(), constraints.currency(), time(constraints.neededBy()),
                     constraints.maxDistanceM(), constraints.location().latitude(), constraints.location().longitude(),
                     constraints.location().precision());
-            Resource result = read(id);
-            remember(caller, "create", key, input, result);
-            return result;
-        });
+            return read(id);
+        }
     }
     public Resource get(PlugPrincipal caller, String id) {
         return transaction.execute(ignored -> { lockOwned(caller, id); expire(id); return read(id); });
@@ -99,7 +117,7 @@ public class RequestService {
             // Account first is the common lock ordering for all idempotency writers.
             lockAccount(caller);
             lockOwned(caller, id);
-            Resource replay = replay(caller, "clarify:" + id, key, answer);
+            Resource replay = replay(caller, "clarify:" + id, key, answer, Resource.class);
             if (replay != null) return replay;
             expire(id);
             Resource current = read(id);
@@ -109,8 +127,10 @@ public class RequestService {
             Option chosen = current.clarification().options().stream()
                     .filter(option -> option.value().equals(answer.value())).findFirst()
                     .orElseThrow(() -> ApiException.validation("value", "not_an_option", "Choose one of the offered options."));
-            jdbc.update("UPDATE request_constraints SET category=?,service_name=?,search_terms=? WHERE request_id=?",
-                    chosen.value(), chosen.label(), new String[] {chosen.label().toLowerCase(java.util.Locale.ROOT)}, id);
+            var skill = intent.vocabulary().get(chosen.value());
+            if (skill == null) throw ApiException.validation("value", "not_an_option", "Choose one of the offered options.");
+            jdbc.update("UPDATE request_constraints SET category=?,service_name=?,skill_tags=?,licence_required=? WHERE request_id=?",
+                    skill.tag(), skill.display(), new String[] {skill.tag()}, skill.requiresLicence(), id);
             transition(id, "submitted", null);
             Resource result = read(id);
             remember(caller, "clarify:" + id, key, answer, result);
@@ -138,17 +158,17 @@ public class RequestService {
             return new Offers(id, List.of("awaiting_responses", "ranked").contains(status) ? listOffers(id) : List.of());
         });
     }
-    private void requireCaller(PlugPrincipal caller) {
+    void requireCaller(PlugPrincipal caller) {
         if (caller == null) throw ApiException.unauthenticated("Sign in to continue.");
         if (!caller.hasScope("guest") && !caller.hasScope("member")) throw ApiException.forbidden("This operation is not allowed.");
     }
-    private void lockAccount(PlugPrincipal caller) {
+    void lockAccount(PlugPrincipal caller) {
         requireCaller(caller);
         if (jdbc.queryForList("SELECT id FROM users WHERE id=? AND status='active' FOR UPDATE", caller.userId()).isEmpty()) {
             throw ApiException.unauthenticated("Sign in to continue.");
         }
     }
-    private void requireConsent(PlugPrincipal caller) {
+    void requireConsent(PlugPrincipal caller) {
         if (jdbc.queryForObject("SELECT count(*) FROM consents WHERE user_id=? AND version=?", Integer.class,
                 caller.userId(), consent) == 0) {
             throw ApiException.requestError(403, "forbidden", "consent", "consent_required", "Accept the current terms to continue.");
@@ -161,7 +181,7 @@ public class RequestService {
             throw ApiException.notFound("Request not found.");
         }
     }
-    private Resource replay(PlugPrincipal caller, String operation, String key, Object input) {
+    <T> T replay(PlugPrincipal caller, String operation, String key, Object input, Class<T> type) {
         if (key == null) return null;
         jdbc.update("DELETE FROM request_idempotency WHERE user_id=? AND operation=? AND key_hash=? AND created_at<=?",
                 caller.userId(), operation, digest(key), time(clock.instant().minus(Duration.ofHours(24))));
@@ -171,10 +191,10 @@ public class RequestService {
         if (!rows.getFirst().get("body_hash").equals(digest(encode(input)))) {
             throw stateConflict("Idempotency-Key", "idempotency_key_reused", "Use a new idempotency key for a different request.");
         }
-        try { return mapper.readValue((String) rows.getFirst().get("response"), Resource.class); }
+        try { return mapper.readValue((String) rows.getFirst().get("response"), type); }
         catch (com.fasterxml.jackson.core.JsonProcessingException corrupt) { throw new IllegalStateException("Invalid stored response"); }
     }
-    private void remember(PlugPrincipal caller, String operation, String key, Object input, Resource response) {
+    void remember(PlugPrincipal caller, String operation, String key, Object input, Object response) {
         if (key != null) jdbc.update("INSERT INTO request_idempotency VALUES(?,?,?,?,?::jsonb,?)", caller.userId(),
                 operation, digest(key), digest(encode(input)), encode(response), time(clock.instant()));
     }
@@ -186,7 +206,7 @@ public class RequestService {
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8))); }
         catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
     }
-    private ApiException stateConflict(String field, String code, String message) {
+    ApiException stateConflict(String field, String code, String message) {
         return ApiException.requestError(409, "conflict", field, code, message);
     }
     private String status(String id) { return jdbc.queryForObject("SELECT status FROM requests WHERE id=?", String.class, id); }
@@ -205,14 +225,15 @@ public class RequestService {
                 : resource.progress().contacted() == 0 ? "no_coverage" : "no_offers";
         transition(id, "expired", reason);
     }
-    private Resource read(String id) {
-        return jdbc.queryForObject("SELECT r.*,c.category,c.service_name,c.search_terms,c.budget_cents,c.currency,c.needed_by,c.max_distance_m,"
+    Resource read(String id) {
+        return jdbc.queryForObject("SELECT r.*,c.category,c.service_name,c.skill_tags,c.licence_required,c.budget_cents,c.currency,c.needed_by,c.max_distance_m,"
                 + "c.latitude,c.longitude,c.precision FROM requests r JOIN request_constraints c ON c.request_id=r.id WHERE r.id=?",
                 (rs, row) -> {
                     String state = rs.getString("status");
                     String action = RequestStateMachine.action(state);
                     Constraints constraints = new Constraints(rs.getString("category"), rs.getString("service_name"),
-                            List.of((String[]) rs.getArray("search_terms").getArray()), (Integer) rs.getObject("budget_cents"),
+                            List.of((String[]) rs.getArray("skill_tags").getArray()), rs.getBoolean("licence_required"),
+                            (Integer) rs.getObject("budget_cents"),
                             rs.getString("currency"), instant(rs, "needed_by"), rs.getInt("max_distance_m"),
                             new Location(rs.getDouble("latitude"), rs.getDouble("longitude"), rs.getString("precision")));
                     Clarification question = state.equals("draft") ? new Clarification(rs.getString("clarification_id"), "category",
@@ -223,8 +244,10 @@ public class RequestService {
                 }, id);
     }
     private Progress progress(String id) {
-        Integer contacted = jdbc.queryForObject("SELECT count(*) FROM request_seed_work WHERE request_id=?", Integer.class, id);
-        Integer replied = jdbc.queryForObject("SELECT count(*) FROM request_seed_work WHERE request_id=? AND replied_at IS NOT NULL", Integer.class, id);
+        Integer contacted = jdbc.queryForObject("SELECT (SELECT count(*) FROM request_seed_work WHERE request_id=?)"
+                + " + (SELECT count(*) FROM request_matches WHERE request_id=?)", Integer.class, id, id);
+        Integer replied = jdbc.queryForObject("SELECT (SELECT count(*) FROM request_seed_work WHERE request_id=? AND replied_at IS NOT NULL)"
+                + " + (SELECT count(*) FROM request_matches WHERE request_id=? AND replied_at IS NOT NULL)", Integer.class, id, id);
         Integer offers = jdbc.queryForObject("SELECT count(*) FROM request_offers WHERE request_id=? AND expires_at>?", Integer.class, id, time(clock.instant()));
         return new Progress(contacted, replied, offers);
     }
@@ -235,7 +258,9 @@ public class RequestService {
                 (rs, row) -> new Offer(rs.getString("id"), new Place(rs.getString("place_id"), rs.getString("name"),
                         rs.getString("address"), rs.getInt("distance_m")), rs.getString("service_name"), rs.getInt("price_cents"),
                         rs.getString("currency"), instant(rs, "available_at"), instant(rs, "expires_at"), instant(rs, "observed_at"),
-                        rs.getString("truth_label"), rs.getString("source")), id, time(clock.instant()));
+                        rs.getString("truth_label"), rs.getString("source"),
+                        // Seeded demo suppliers have no completed PLUG jobs: New, never a zero.
+                        RequestPayloads.ProviderScore.of(0, null)), id, time(clock.instant()));
     }
     private String json(List<Option> options) {
         try { return mapper.writeValueAsString(options); }
@@ -275,11 +300,13 @@ public class RequestService {
         Constraints c = resource.constraints();
         jdbc.update("INSERT INTO request_seed_work(request_id,place_id,distance_m)"
                 + " SELECT ?,p.id,round(ST_Distance(p.location,ST_SetSRID(ST_MakePoint(?,?),4326)::geography))::integer"
-                + " FROM places p JOIN supplier_seeds s ON s.place_id=p.id WHERE p.category=? AND s.enabled"
+                + " FROM places p JOIN supplier_seeds s ON s.place_id=p.id WHERE p.category = ANY(?) AND s.enabled"
                 + " AND ST_DWithin(p.location,ST_SetSRID(ST_MakePoint(?,?),4326)::geography,?)"
                 + " ORDER BY p.location <-> ST_SetSRID(ST_MakePoint(?,?),4326)::geography,p.id LIMIT 50",
-                resource.requestId(), c.location().longitude(), c.location().latitude(), c.category(),
+                resource.requestId(), c.location().longitude(), c.location().latitude(), c.skillTags().toArray(String[]::new),
                 c.location().longitude(), c.location().latitude(), c.maxDistanceM(), c.location().longitude(), c.location().latitude());
+        // Real providers who opted in: their skills, inside their own radius, available in the window.
+        matches.notify(resource);
         transition(resource.requestId(), "routed", null);
         if (progress(resource.requestId()).contacted() == 0) transition(resource.requestId(), "expired", "no_coverage");
     }
@@ -306,8 +333,11 @@ public class RequestService {
             jdbc.update("UPDATE requests SET updated_at=? WHERE id=?", time(now), id);
         }
         Progress progress = progress(id);
-        if (progress.replied() == progress.contacted()) {
-            transition(id, progress.offersReady() > 0 ? "ranked" : "expired", progress.offersReady() > 0 ? null : "no_offers");
-        }
+        int seedsWaiting = jdbc.queryForObject("SELECT count(*) FROM request_seed_work WHERE request_id=? AND replied_at IS NULL",
+                Integer.class, id);
+        // Matched providers answer from their inbox in Phase 3; until then they count as
+        // contacted, not replied, and a request with no offers waits for its deadline.
+        if (seedsWaiting == 0 && progress.offersReady() > 0) transition(id, "ranked", null);
+        else if (progress.replied() == progress.contacted()) transition(id, "expired", "no_offers");
     }
 }

@@ -1,0 +1,24 @@
+{
+  "_note": "Transitional, manual v4 \u00a710: Phase 0 and 1 are frozen (completed_phases), so their v3 token names resolve to v4 tokens here instead of being edited. No alias maps onto a truth colour. New code uses v4 names only; remove an alias once nothing references it.",
+  "color": {
+    "brand600": "ink.900",
+    "brand700": "ink.600",
+    "brand50": "sunk",
+    "brandBorder": "rule.300",
+    "line200": "rule.200",
+    "line300": "rule.300",
+    "surface0": "card",
+    "surface50": "paper",
+    "danger600": "alert.600",
+    "danger50": "alert.50",
+    "dangerBorder": "alert.border",
+    "success600": "ink.900",
+    "success50": "sunk"
+  },
+  "radius": {
+    "sm": "badge",
+    "md": "control",
+    "lg": "card",
+    "xl": "sheet"
+  }
+}

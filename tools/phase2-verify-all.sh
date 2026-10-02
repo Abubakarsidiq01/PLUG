@@ -105,6 +105,6 @@ cat <<EOF
 All automated Phase 2 checks passed. Logs: $work
 Not provable here, and still required for G2:
   - Physical-device screenshots and VoiceOver walkthrough (tools/run-phase2-phone.sh, then capture)
-  - Figma review, Person Two's Windows run, contract 0.3.0 approval by both engineers
+  - Figma review, Person Two's Windows run, contract 0.5.0 approval by both engineers
   - The two-person connected checkpoint and both G2 signatures
 EOF
