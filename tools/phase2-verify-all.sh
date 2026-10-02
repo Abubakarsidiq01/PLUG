@@ -42,7 +42,9 @@ echo 'passed'
 
 step 'Contracts, fixtures and labelled dataset'
 pnpm install --frozen-lockfile >/dev/null
-pnpm test:contracts 2>&1 | grep -E '^# (pass|fail)'
+pnpm test:contracts >"$work/contracts.log" 2>&1 \
+    || { tail -30 "$work/contracts.log" >&2; exit 1; }
+grep -E '^# (pass|fail)' "$work/contracts.log"
 
 step 'Web typecheck and lint'
 pnpm --filter @plug/web typecheck >/dev/null
@@ -73,7 +75,7 @@ echo 'healthy'
 
 step 'Live API acceptance suite (observes real rate windows; several minutes)'
 mkdir -p evidence/P2/security
-report="evidence/P2/security/phase2-live-$(date +%Y-%m-%d).json"
+report="${PHASE2_REPORT:-evidence/P2/security/phase2-live-$(date +%Y-%m-%d).json}"
 # Exit status of the suite itself, not of a pipe: a failed check must stop the run.
 PHASE2_DISPOSABLE=1 PHASE2_BASE_URL="http://127.0.0.1:$live_port" PHASE2_REPORT="$report" \
     node tools/phase2-live.mjs >"$work/live.log" 2>&1 || { tail -n 3 "$work/live.log" >&2; exit 1; }

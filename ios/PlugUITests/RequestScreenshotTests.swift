@@ -10,6 +10,50 @@ final class RequestScreenshotTests: XCTestCase {
     func testRequestStatesDefaultText() throws { try walk(largest: false) }
     func testRequestStatesLargestText() throws { try walk(largest: true) }
 
+    func testAnsweredPlaceEvidence() throws {
+        for largest in [false, true] {
+            let suffix = largest ? "largest" : "default"
+            let app = launch(largest: largest)
+            enterGuest(app)
+            try submit(app, text: "How busy is the demo place? answered place")
+            XCTAssertTrue(app.staticTexts["12–15 min"].waitForExistence(timeout: 10))
+            capture("place-answered-\(suffix)")
+            let sources = app.staticTexts["Who answered"]
+            reveal(sources, in: app)
+            XCTAssertTrue(app.staticTexts["Who answered"].exists)
+            capture("place-sources-\(suffix)")
+        }
+    }
+
+    func testBusinessProfilesAndHomeCancellation() throws {
+        for largest in [false, true] {
+            let suffix = largest ? "largest" : "default"
+            let app = launch(largest: largest)
+            enterGuest(app)
+            try submit(app, text: "business barber under $35")
+            let details = app.buttons["View details"].firstMatch
+            XCTAssertTrue(details.waitForExistence(timeout: 20))
+            capture("business-results-\(suffix)")
+            reveal(details, in: app)
+            details.tap()
+            XCTAssertTrue(app.staticTexts["Studio B · Test profile"].waitForExistence(timeout: 5))
+            let links = app.staticTexts["See their work"]
+            reveal(links, in: app)
+            XCTAssertTrue(links.exists)
+            capture("business-detail-\(suffix)")
+            swipeBack(app)
+            swipeBack(app)
+            let stop = app.buttons["ask-stop"]
+            XCTAssertTrue(stop.waitForExistence(timeout: 5))
+            reveal(stop, in: app)
+            capture("business-home-active-\(suffix)")
+            stop.tap()
+            XCTAssertTrue(app.staticTexts["Ask stopped"].waitForExistence(timeout: 10))
+            XCTAssertFalse(app.buttons["ask-stop"].exists)
+            capture("business-home-stopped-\(suffix)")
+        }
+    }
+
     private func walk(largest: Bool) throws {
         let suffix = largest ? "largest" : "default"
         let app = launch(largest: largest)

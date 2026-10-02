@@ -1,4 +1,6 @@
 import SwiftUI
+import PhotosUI
+import ImageIO
 
 /// Manual v4 Figure A2: becoming a provider is adding a capability to this same account. The
 /// person describes what they do in plain words, the server maps it onto the controlled
@@ -11,6 +13,13 @@ struct ProviderOnboardingView: View {
     let onSaved: (ProviderProfile) -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @State private var businessName = ""
+    @State private var about = ""
+    @State private var photo: String?
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var photoLoading = false
+    @State private var photoError: String?
+    @State private var links: [BusinessLinkDraft] = ["Website", "Instagram", "Facebook"].map { BusinessLinkDraft(label: $0) }
     @State private var description = ""
     @State private var proposed: [SkillTag] = []
     @State private var chosen: Set<String> = []
@@ -20,6 +29,8 @@ struct ProviderOnboardingView: View {
     @State private var slots: Set<Slot> = [.afternoons]
     @State private var licence = ""
     @State private var accepting = true
+    @State private var radiusChanged = false
+    @State private var availabilityChanged = false
     @State private var isWorking = false
     @State private var errorMessage: String?
     @FocusState private var describing: Bool
@@ -29,13 +40,14 @@ struct ProviderOnboardingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                        Text(current == nil ? "Offer a service" : "What you offer").plugText(.title).foregroundStyle(PlugTokens.Color.ink900)
-                        Text("Same account. You keep asking as normal and also receive requests that match what you do.")
+                        Text(current == nil ? "Offer a service" : "What you offer").plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
+                        Text("Your skills. Your area. Your hours. Add what you offer to the account you already use.")
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                     }
                     describeStep
                     if !proposed.isEmpty || !unmatched.isEmpty { skillsStep }
                     if !chosen.isEmpty {
+                        businessStep
                         radiusStep
                         availabilityStep
                         if needsLicence { licenceStep }
@@ -56,34 +68,118 @@ struct ProviderOnboardingView: View {
                     if !chosen.isEmpty {
                         Button(isWorking ? "Saving…" : saveTitle) { Task { await save() } }
                             .buttonStyle(AuthActionStyle(primary: true))
-                            .disabled(isWorking || location.location == nil || slots.isEmpty || (needsLicence && !licenceValid))
+                            .disabled(isWorking || photoLoading || location.location == nil || slots.isEmpty || (needsLicence && !licenceValid))
                             .accessibilityIdentifier("provider-save")
-                        caption("Private test. Requests you receive here come from other testers, and nothing is booked.")
+                        caption("Private test. Your settings are saved for matching. Inbox delivery and booking are not available yet.")
                     }
                 }
+                .disabled(isWorking)
                 .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
                 .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
             }
             .scrollDismissesKeyboard(.interactively)
             .background(PlugTokens.Color.paper)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(isWorking) }
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { describing = false } }
             }
         }
+        .interactiveDismissDisabled(isWorking)
         .tint(PlugTokens.Color.ink900)
         .sensoryFeedback(.selection, trigger: chosen)
         .sensoryFeedback(.selection, trigger: radius)
         .sensoryFeedback(.selection, trigger: slots)
         .sensoryFeedback(.success, trigger: proposed.count) { old, new in new > old }
         .onAppear(perform: prefill)
+        .task(id: selectedPhoto) { await loadPhoto() }
     }
 
     // MARK: Steps
 
+    private func optional(_ text: String) -> String? {
+        let value = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
+
+    private var businessStep: some View {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                Text("Let people meet your business").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+                Text("Everything here is optional. Add a photo and links to your work, or keep it simple. What you add is visible to customers.")
+                    .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+            }
+            HStack(alignment: .center, spacing: PlugTokens.Space.s4) {
+                BusinessPortrait(name: optional(businessName) ?? "Your business", photo: photo, size: 88)
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                        Text(photoLoading ? "Preparing photo…" : photo == nil ? "Add business photo" : "Change photo")
+                            .plugText(.action).underline().frame(minHeight: PlugTokens.minTouchTarget)
+                    }
+                    .disabled(photoLoading)
+                    if photo != nil {
+                        Button("Remove photo") { photo = nil; selectedPhoto = nil }
+                            .plugText(.bodySmall).frame(minHeight: PlugTokens.minTouchTarget)
+                    }
+                }
+                .foregroundStyle(PlugTokens.Color.ink900)
+            }
+            if let photoError { Text(photoError).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.alert600) }
+            PlugTextField(title: "Business name (optional)", text: $businessName)
+                .onChange(of: businessName) { _, value in businessName = String(value.prefix(80)) }
+                .accessibilityIdentifier("provider-business-name")
+            PlugTextField(title: "About your work (optional)", text: $about)
+                .onChange(of: about) { _, value in about = String(value.prefix(300)) }
+            Text("Where can people see your work?").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            ForEach($links) { $link in
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                    if !["Website", "Instagram", "Facebook"].contains(link.label) {
+                        PlugTextField(title: "Link name", text: $link.label)
+                    }
+                    PlugTextField(title: "\(link.label.isEmpty ? "Link" : link.label) URL (optional)", text: $link.url)
+                        .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
+                    if !link.url.isEmpty {
+                        Button("Remove \(link.label.isEmpty ? "link" : link.label)") { link.url = "" }
+                            .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                            .frame(minHeight: PlugTokens.minTouchTarget)
+                    }
+                }
+            }
+            if links.count < 5 {
+                Button("Add another link") { links.append(BusinessLinkDraft(label: "")) }
+                    .plugText(.action).foregroundStyle(PlugTokens.Color.ink900)
+                    .frame(minHeight: PlugTokens.minTouchTarget)
+            }
+            caption("Use a full https:// link. Clear any field to stop sharing it.")
+        }
+        .plugCard()
+    }
+
+    private func loadPhoto() async {
+        guard let selectedPhoto else { return }
+        photoLoading = true
+        photoError = nil
+        defer { photoLoading = false }
+        do {
+            guard let data = try await selectedPhoto.loadTransferable(type: Data.self),
+                  data.count <= 50_000_000,
+                  let source = CGImageSourceCreateWithData(data as CFData, nil),
+                  let thumbnail = CGImageSourceCreateThumbnailAtIndex(source, 0, [
+                    kCGImageSourceCreateThumbnailFromImageAlways: true,
+                    kCGImageSourceCreateThumbnailWithTransform: true,
+                    kCGImageSourceThumbnailMaxPixelSize: 256
+                  ] as CFDictionary),
+                  let jpeg = UIImage(cgImage: thumbnail).jpegData(compressionQuality: 0.75), jpeg.count <= 49_152
+            else { photoError = "That photo couldn't be prepared. Try a different image."; return }
+            try Task.checkCancellation()
+            photo = jpeg.base64EncodedString()
+        } catch {
+            if !Task.isCancelled { photoError = "The photo couldn't be opened. Try again." }
+        }
+    }
+
     private var describeStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("What do you do?").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            Text("What do you do?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             TextField("For example: I do knotless braids and wig installs", text: $description, axis: .vertical)
                 .plugText(.body).lineLimit(2...5).focused($describing)
                 .padding(PlugTokens.Space.s3)
@@ -102,7 +198,7 @@ struct ProviderOnboardingView: View {
 
     private var skillsStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("Your skills").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            Text("Confirm your skills").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             if proposed.isEmpty {
                 Text("None of that matched a skill PLUG can route yet. Try other words.")
                     .plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
@@ -130,35 +226,44 @@ struct ProviderOnboardingView: View {
 
     private var radiusStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("How far will you go?").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            Text("How far will you go?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             PlugFlowLayout {
                 ForEach(Radius.allCases) { option in
-                    PlugChip(title: option.title, selected: radius == option) { radius = option }
+                    PlugChip(title: option.title, selected: selectedRadius == option.rawValue) {
+                        radius = option
+                        radiusChanged = true
+                    }
                 }
             }
+            if let current, !radiusChanged { caption("Current radius: \(distance(current.travelRadiusM)). Kept unless you choose a new distance.") }
             caption("You only receive requests from people inside this distance.")
         }
-        .plugCard()
+        .padding(.vertical, PlugTokens.Space.s2)
     }
 
     private var availabilityStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("When are you usually free?").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            Text("When are you usually free?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             PlugFlowLayout {
                 ForEach([AvailabilityWindow.Days.weekdays, .weekends, .everyDay], id: \.self) { option in
-                    PlugChip(title: option.title, selected: days == option) { days = option }
+                    PlugChip(title: option.title, selected: days == option) { days = option; availabilityChanged = true }
                 }
             }
             PlugFlowLayout {
                 ForEach(Slot.allCases) { slot in
                     PlugChip(title: slot.title, selected: slots.contains(slot)) {
+                        availabilityChanged = true
                         if slots.contains(slot) { slots.remove(slot) } else { slots.insert(slot) }
                     }
                 }
             }
+            if let current, !availabilityChanged {
+                caption("Current hours: \(current.availability.map(\.summary).joined(separator: "; ")). Kept unless you choose new hours.")
+            }
+            caption("Times are in \(current?.timeZone ?? TimeZone.current.identifier).")
             if slots.isEmpty { Text("Choose at least one time.").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.alert600) }
         }
-        .plugCard()
+        .padding(.vertical, PlugTokens.Space.s2)
     }
 
     private var licenceStep: some View {
@@ -178,7 +283,7 @@ struct ProviderOnboardingView: View {
 
     private var baseStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("Where do you work from?").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            Text("Where do you work from?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             if let label = location.label, location.location != nil {
                 valueRow("Base", label, last: true)
                 // Set already: the way to change it steps back so the save action leads.
@@ -199,11 +304,12 @@ struct ProviderOnboardingView: View {
                     .buttonStyle(AuthActionStyle()).disabled(location.isWorking || location.address.isEmpty)
             }
         }
-        .plugCard()
+        .padding(.vertical, PlugTokens.Space.s2)
     }
 
     // MARK: Behaviour
 
+    private var selectedRadius: Int { radiusChanged ? radius.rawValue : (current?.travelRadiusM ?? radius.rawValue) }
     private var needsLicence: Bool { proposed.contains { chosen.contains($0.tag) && $0.requiresLicence } }
     private var licensedNames: String {
         proposed.filter { chosen.contains($0.tag) && $0.requiresLicence }.map(\.display).joined(separator: " and ")
@@ -222,6 +328,12 @@ struct ProviderOnboardingView: View {
         chosen = Set(current.skills.map(\.tag))
         radius = Radius.nearest(current.travelRadiusM)
         accepting = current.accepting
+        businessName = current.business?.name ?? ""
+        about = current.business?.about ?? ""
+        photo = current.business?.photoBase64
+        if let savedLinks = current.business?.links, !savedLinks.isEmpty {
+            links = savedLinks.map { BusinessLinkDraft(label: $0.label, url: $0.url) }
+        }
         if let first = current.availability.first { days = first.days }
         let saved = Set(Slot.allCases.filter { slot in current.availability.contains { $0.from == slot.from && $0.to == slot.to } })
         if !saved.isEmpty { slots = saved }
@@ -234,10 +346,8 @@ struct ProviderOnboardingView: View {
         defer { isWorking = false }
         do {
             let result = try await service.proposeSkills(description.trimmingCharacters(in: .whitespacesAndNewlines))
-            var merged = proposed.filter { chosen.contains($0.tag) }
-            for skill in result.skills where !merged.contains(skill) { merged.append(skill) }
-            proposed = merged
-            chosen.formUnion(result.skills.map(\.tag))
+            proposed = result.skills
+            chosen = Set(result.skills.map(\.tag))
             unmatched = result.unmatched
         } catch {
             errorMessage = message(for: error, saving: false)
@@ -245,15 +355,23 @@ struct ProviderOnboardingView: View {
     }
 
     private func save() async {
-        guard let base = location.location else { return }
+        guard let base = location.location, !photoLoading else { return }
         isWorking = true
         errorMessage = nil
         defer { isWorking = false }
         let windows = Slot.allCases.filter(slots.contains).map { AvailabilityWindow(days: days, from: $0.from, to: $0.to) }
-        var setup = ProviderSetup(skillTags: proposed.map(\.tag).filter(chosen.contains), travelRadiusM: radius.rawValue,
-                                  baseLocation: base, availability: windows)
+        var setup = ProviderSetup(skillTags: proposed.map(\.tag).filter(chosen.contains),
+                                  travelRadiusM: radiusChanged ? radius.rawValue : (current?.travelRadiusM ?? radius.rawValue),
+                                  baseLocation: base,
+                                  availability: availabilityChanged ? windows : (current?.availability ?? windows))
+        setup.timeZone = current?.timeZone ?? TimeZone.current.identifier
         if needsLicence { setup.licenceRef = licence.trimmingCharacters(in: .whitespaces) }
         setup.accepting = accepting
+        setup.business = BusinessProfile(name: optional(businessName), about: optional(about), photoBase64: photo,
+                                         links: links.filter { optional($0.url) != nil }.map {
+            BusinessLink(label: $0.label.trimmingCharacters(in: .whitespacesAndNewlines),
+                         url: $0.url.trimmingCharacters(in: .whitespacesAndNewlines))
+        })
         do {
             onSaved(try await service.setProvider(setup))
             dismiss()
@@ -273,7 +391,7 @@ struct ProviderOnboardingView: View {
             default: break
             }
         }
-        return saving ? "Your skills were not saved. Check your connection and try again."
+        return saving ? "We could not confirm whether your changes were saved. Retry these same settings when you are connected."
                       : "Your description could not be read. Nothing was saved; try again."
     }
 
@@ -286,7 +404,7 @@ struct ProviderOnboardingView: View {
             case .miles3: return "3 mi"
             case .miles10: return "10 mi"
             case .miles25: return "25 mi"
-            case .any: return "Any (50 mi)"
+            case .any: return "50 mi"
             }
         }
         static func nearest(_ metres: Int) -> Radius {
@@ -335,22 +453,21 @@ struct InboxView: View {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                         Text("Inbox").plugText(.title).foregroundStyle(PlugTokens.Color.ink900)
-                        Text(profile.accepting ? "Matching requests near you arrive here."
+                        Text(profile.accepting ? "Your provider profile is ready."
                                                : "You are not receiving requests right now.")
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                     }
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                        HStack(alignment: .top) {
-                            Text("No requests yet").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-                            Spacer(minLength: PlugTokens.Space.s2)
-                            TruthBadge(label: .unknown)
-                        }
-                        Text("Nobody nearby has asked for what you offer since you joined. When someone does, you will see their ask, the price they named and when they need it.")
+                        Text("Requests aren't delivered here yet").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+                        Text("Your skills and hours are saved. This private test checks matching; receiving and replying to requests in your Inbox comes next.")
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
                     }
                     .plugCard()
                     .accessibilityIdentifier("inbox-empty")
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+                        BusinessIdentity(name: profile.business?.name ?? "Your business", business: profile.business, score: profile.score)
+                        if let about = profile.business?.about { Text(about).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600) }
+                        if let links = profile.business?.links { BusinessLinks(links: links) }
                         Text("What you offer").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
                         PlugFlowLayout {
                             ForEach(profile.skills) { skill in
@@ -365,7 +482,7 @@ struct InboxView: View {
                             valueRow("Licence", profile.licenceOnFile ? "On file" : "None given")
                             valueRow("Score", scoreText(profile.score), last: true)
                         }
-                        Button(profile.accepting ? "Change skills or stop receiving" : "Start receiving again") { editing = true }
+                        Button("Edit business & services") { editing = true }
                             .buttonStyle(AuthActionStyle())
                             .accessibilityIdentifier("provider-edit")
                     }
@@ -400,4 +517,11 @@ extension AvailabilityWindow {
         guard let date = Calendar.current.date(from: components) else { return value }
         return parts[1] == 0 ? date.formatted(.dateTime.hour()) : date.formatted(.dateTime.hour().minute())
     }
+}
+
+
+private struct BusinessLinkDraft: Identifiable {
+    let id = UUID()
+    var label: String
+    var url = ""
 }

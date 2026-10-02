@@ -3,15 +3,15 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { SiteFooter, SiteHeader } from "./_components/site-chrome";
 
-// tokens.json._rules: "Web uses IBM Plex Sans. Inter as a default is banned."
-const plexSans = localFont({
-  variable: "--font-plex-sans",
+// Manual v4 §10: Public Sans, bundled locally so builds need no font service.
+const publicSans = localFont({
+  variable: "--font-public-sans",
   display: "swap",
   src: [
-    { path: "./fonts/IBMPlexSans-Regular.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/IBMPlexSans-Medium.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/IBMPlexSans-SemiBold.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/IBMPlexSans-Bold.woff2", weight: "700", style: "normal" },
+    { path: "./fonts/public-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/public-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/public-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
+    { path: "./fonts/public-sans-latin-700-normal.woff2", weight: "700", style: "normal" },
   ],
 });
 
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={plexSans.variable}>
+    <html lang="en" className={publicSans.variable}>
       <body>
         <a href="#main" className="skip-link">Skip to content</a>
         <SiteHeader />

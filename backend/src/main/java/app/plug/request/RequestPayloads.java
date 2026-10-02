@@ -81,7 +81,7 @@ public final class RequestPayloads {
     }
     public record Offer(String offerId, Place place, String serviceName, int priceCents, String currency,
             Instant availableAt, Instant expiresAt, Instant observedAt, String truthLabel, String source,
-            ProviderScore providerScore) {}
+            ProviderScore providerScore, ProviderPayloads.BusinessProfile business) {}
     public record Offers(String requestId, List<Offer> offers) {}
 
     // Manual v4 §12A: the single ask entry point.

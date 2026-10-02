@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CONTACT_EMAIL, JOIN_HREF, JOIN_LABEL } from "./_components/site-chrome";
 import { TruthBadge, type TruthLabel } from "./_components/truth-badge";
 
-// manual.docx §15 and Figure 14, updated for ADR-009 (any lawful local service).
+// Manual v4 §12A and §15: both ask types, with private-test limitations explicit.
 // Every sentence here must be true of the private test today: no metrics,
 // testimonials, logos, counters, ratings or stock imagery (§15.1, §16.4).
 export const metadata: Metadata = {
@@ -23,15 +23,16 @@ const steps = [
   },
   {
     title: "You see who can help",
-    body: "Participating suppliers answer with a price and a time. If none cover your service, you see nearby businesses from Apple Maps, with price and availability marked Unknown.",
+    body: "Service asks are matched to skills, distance and available hours. Place questions have their own answer state. In this private test, offers are synthetic and live place answers are not available yet.",
   },
 ];
 
 const truthRows: { label: TruthLabel; meaning: string }[] = [
   { label: "confirmed", meaning: "A supplier or scout verified this within the freshness window." },
-  { label: "recent", meaning: "Verified 2 to 10 minutes ago. Still reliable." },
+  { label: "recent", meaning: "Checked recently. The result shows the age of that evidence." },
   { label: "estimated", meaning: "Based on patterns or older evidence. Approximate." },
   { label: "unknown", meaning: "No usable evidence, so PLUG says so instead of guessing." },
+  { label: "not_verified", meaning: "A web source that no person checked. Always dashed, never promoted to human evidence." },
 ];
 
 const example = [
@@ -48,16 +49,16 @@ export default function Home() {
         <div className="container hero-grid">
           <div className="hero-copy">
             <h1 id="home-title" className="display">
-              Find a local service that fits your budget and your time.
+              Ask for a service. Ask about a place.
             </h1>
             <p className="lede">
-              Tell PLUG what you need in plain words. It works out the service, your budget and
-              when you need it, then shows who nearby can help. A price or an opening appears
-              only when a business actually gave it.
+              Find someone to fix a sink, do your braids or repair your laptop. Or ask
+              how busy a public place is right now. One field, in your own words.
+              PLUG makes clear what has been checked and what is still unknown.
             </p>
             <div className="hero-action">
               <Link href={JOIN_HREF} className="button button-primary">{JOIN_LABEL}</Link>
-              <p className="hero-facts">Invite-only · iPhone · United States · free while testing</p>
+              <p className="hero-facts">An invite-only iPhone test in the United States. Free while testing.</p>
             </div>
           </div>
 
@@ -72,6 +73,7 @@ export default function Home() {
                 </div>
               ))}
             </dl>
+            <p className="example-caption">An example of an ask, not a live offer.</p>
           </figure>
         </div>
       </section>
@@ -81,11 +83,9 @@ export default function Home() {
           <p className="overline">How it works</p>
           <h2 id="how-title" className="title2">What happens when you ask</h2>
           <ol className="steps">
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <li key={step.title}>
                 <h3 className="title3">
-                  <span>{index + 1}</span>
-                  <span aria-hidden="true"> · </span>
                   {step.title}
                 </h3>
                 <p>{step.body}</p>
@@ -98,7 +98,6 @@ export default function Home() {
       <section id="truth-labels" className="band" aria-labelledby="truth-title">
         <div className="container split">
           <div className="split-intro">
-            <p className="overline">Truth labels</p>
             <h2 id="truth-title" className="title2">Every result says how PLUG knows it</h2>
             <p>
               Each result carries one label, set by the PLUG server from the evidence it has.
@@ -131,7 +130,6 @@ export default function Home() {
       <section id="status" className="band band-ruled" aria-labelledby="status-title">
         <div className="container split">
           <div className="split-intro">
-            <p className="overline">Where things stand</p>
             <h2 id="status-title" className="title2">What the private test does today</h2>
             <ul className="plain-list">
               <li>PLUG is in private testing with invited people on iPhone.</li>
@@ -140,16 +138,18 @@ export default function Home() {
                 They are not real businesses.
               </li>
               <li>
-                When no participating supplier covers your service, the app lists real nearby
-                businesses from Apple Maps. PLUG has not heard from them, so their price and
-                availability show as Unknown.
+                A service without matching coverage ends with no offers. Place questions
+                show Unknown until live answers are available. PLUG does not invent either.
               </li>
               <li>Nobody is contacted and nothing is booked yet.</li>
             </ul>
-            <p className="aside-note">
-              Run a local business? Supplier sign-up is not open yet. You can ask about it
-              at <a href={`mailto:${CONTACT_EMAIL}`} className="text-link">{CONTACT_EMAIL}</a>.
-            </p>
+            <div id="offer" className="aside-note offer-section">
+              <h3 className="title2">Put your skills on PLUG</h3>
+              <p>Invited testers can offer a service from the same account. Describe what
+                you do, confirm your skills and choose your travel area and hours.
+                Inbox delivery and booking come later.</p>
+              <p>Ask about testing at <a href={`mailto:${CONTACT_EMAIL}`} className="text-link">{CONTACT_EMAIL}</a>.</p>
+            </div>
           </div>
           <aside className="card rules-card" aria-labelledby="rules-title">
             <h3 id="rules-title" className="overline">What PLUG does not do</h3>

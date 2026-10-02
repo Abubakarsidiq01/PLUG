@@ -301,6 +301,15 @@ async function asks() {
   });
   const me = await http('read own provider profile', '/v1/providers/me', { token: other, expected: 200 });
   check('provider profile reads back', () => assert.deepEqual(me, profile));
+  // Optional public business details (provider-supplied, never verified, links opened only on a tap).
+  const business = { name: 'Studio B', about: 'Knotless braids and wig installs.', links: [{ label: 'Website', url: 'https://example.com/studio-b' }] };
+  await http('business link must be https', '/v1/providers/skills', { method: 'POST', token: other, body: { ...setup, business: { ...business, links: [{ label: 'Website', url: 'http://example.com' }] } }, expected: 400, error: 'validation_failed' });
+  const withBusiness = await http('save business details', '/v1/providers/skills', { method: 'POST', token: other, body: { ...setup, business }, expected: 200 });
+  check('business details read back as sent', () => assert.deepEqual(withBusiness.business, business));
+  const kept = await http('omitting business keeps it', '/v1/providers/skills', { method: 'POST', token: other, body: setup, expected: 200 });
+  check('omitted business is preserved', () => assert.deepEqual(kept.business, business));
+  const cleared = await http('empty business removes it', '/v1/providers/skills', { method: 'POST', token: other, body: { ...setup, business: {} }, expected: 200 });
+  check('empty business removes every public detail', () => assert.ok(!cleared.business || Object.keys(cleared.business).length === 0));
 }
 
 async function abuse() {

@@ -4,12 +4,6 @@
    grid": 1200px web container, 24px gutters (16px on phones), 72ch measure. */
 @import "../../../design/generated/tokens.css";
 
-/* tokens.json gives overline tracking as 0.09 and Figure 7 specifies it in em; the
-   generator currently emits 0.09px, so the em value is aliased here once. */
-:root {
-  --tracking-overline: 0.09em;
-}
-
 /* ---- Base --------------------------------------------------------------------- */
 
 *,
@@ -30,9 +24,9 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  background: var(--color-surface-0);
+  background: var(--color-paper);
   color: var(--color-ink-900);
-  font-family: var(--font-plex-sans), system-ui, sans-serif;
+  font-family: var(--font-public-sans), system-ui, sans-serif;
   font-size: var(--type-bodyLg-size);
   line-height: var(--type-bodyLg-line);
   font-weight: var(--type-bodyLg-weight);
@@ -150,13 +144,13 @@ ol {
   letter-spacing: var(--type-title3-tracking);
 }
 
-/* Section eyebrow. ink.600 rather than ink.400: 10px text needs 4.5:1. */
+/* Sentence-case labels from the v4 type scale. */
 .overline {
-  font-size: var(--type-overline-size);
-  line-height: var(--type-overline-line);
-  font-weight: var(--type-overline-weight);
-  letter-spacing: var(--tracking-overline);
-  text-transform: uppercase;
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: 0;
+  text-transform: none;
   color: var(--color-ink-600);
 }
 
@@ -179,7 +173,7 @@ ol {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 40px;
+  min-height: var(--target-min-touch);
   padding: 0 var(--space-4);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
@@ -231,8 +225,8 @@ ol {
   font-size: var(--type-label-size);
   line-height: var(--type-label-line);
   font-weight: var(--type-label-weight);
-  letter-spacing: var(--tracking-overline);
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   white-space: nowrap;
 }
 
@@ -409,9 +403,9 @@ ol {
   margin-top: var(--space-3);
   padding-bottom: var(--space-4);
   border-bottom: var(--elevation-flat);
-  font-size: var(--type-title3-size);
-  line-height: var(--type-title3-line);
-  font-weight: var(--type-title3-weight);
+  font-size: var(--type-title2-size);
+  line-height: var(--type-title2-line);
+  font-weight: var(--type-title2-weight);
 }
 
 .kv-row {
@@ -517,11 +511,11 @@ ol {
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-line-300);
   background: var(--color-surface-50);
-  font-size: var(--type-overline-size);
-  line-height: var(--type-overline-line);
-  font-weight: var(--type-overline-weight);
-  letter-spacing: var(--tracking-overline);
-  text-transform: uppercase;
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  letter-spacing: 0;
+  text-transform: none;
   text-align: left;
   color: var(--color-ink-600);
 }
@@ -849,4 +843,24 @@ ol {
     animation-duration: 0ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* v4 evidence: web sources can never take the filled human badge. */
+.truth-not_verified {
+  color: var(--color-truth-unknown);
+  background: transparent;
+  border: 1px dashed var(--color-truthBorder-unknown);
+}
+
+.hero-copy, .hero-grid > *, .split > * { min-width: 0; }
+.hero h1 { max-width: 15ch; }
+.example-card { background: var(--color-card); }
+.example-caption { margin-top: var(--space-4); color: var(--color-ink-600); }
+.offer-section { padding: var(--space-6); background: var(--color-sunk); border-radius: var(--radius-card); }
+.offer-section p { margin-top: var(--space-3); }
+.steps li { padding-top: var(--space-4); border-top: 1px solid var(--color-rule-300); }
+@media (max-width: 359px) {
+  .truth-table tbody th, .truth-table tbody td { padding: var(--space-3) var(--space-2); }
+  .footer-nav { gap: var(--space-3); }
+  .button { white-space: normal; padding-block: var(--space-2); text-align: center; }
 }

@@ -927,6 +927,18 @@
       "path": "/v1/providers/me",
       "status": 500,
       "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/asks.get/answered.json",
+      "path": "/v1/asks/{ask_id}",
+      "method": "get",
+      "status": 200
+    },
+    {
+      "file": "fixtures/requests.offers/business-profile.json",
+      "method": "get",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 200
     }
   ],
   "not_applicable": {

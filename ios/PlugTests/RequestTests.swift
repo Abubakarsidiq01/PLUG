@@ -24,7 +24,7 @@ final class RequestTests: XCTestCase {
                 checked += 1
             }
         }
-        XCTAssertEqual(checked, 19)
+        XCTAssertEqual(checked, 20)
     }
 
     func testEveryAskAndProviderFixtureDecodesAndValidates() throws {
@@ -45,7 +45,7 @@ final class RequestTests: XCTestCase {
                 checked += 1
             }
         }
-        XCTAssertEqual(checked, 8)
+        XCTAssertEqual(checked, 9)
     }
 
     func testWebAnswerCannotBePromotedAboveNotVerified() throws {
@@ -76,6 +76,45 @@ final class RequestTests: XCTestCase {
         XCTAssertNil(model.request)
         XCTAssertNil(model.placeQuestion?.answer)
         model.setActive(false)
+    }
+
+    func testActivePlaceAskSurvivesBackAndCannotBeReplaced() async throws {
+        let service = StubRequests()
+        var json = try object("asks.create", "place-question")
+        var place = try XCTUnwrap(json["place_question"] as? [String: Any])
+        place["status"] = "asking"
+        place["answer"] = NSNull()
+        json["place_question"] = place
+        let result = try PlugJSON.decoder.decode(AskResult.self, from: JSONSerialization.data(withJSONObject: json))
+        var submissions = 0
+        service.onAsk = { _, _ in submissions += 1; return result }
+        let model = RequestModel(service: service)
+        model.setActive(false)
+        model.text = "Is the DMV busy?"
+        await model.submit(location: location)
+        XCTAssertTrue(model.hasActiveAsk)
+        model.startAgain()
+        XCTAssertEqual(model.askId, result.askId)
+        model.text = "A different ask"
+        await model.submit(location: location)
+        XCTAssertEqual(submissions, 1)
+        await model.refresh() // Offline place reads must label the saved snapshot.
+        XCTAssertTrue(model.isCached)
+        XCTAssertNotNil(model.errorMessage)
+        XCTAssertEqual(model.placeQuestion, result.placeQuestion)
+    }
+
+    func testMalformedPlaceProgressCannotBecomeVisible() throws {
+        for counts in [["notified": 2, "opened": -1, "answered": 0],
+                       ["notified": 2, "opened": 1, "answered": -1],
+                       ["notified": 2, "opened": 1, "answered": 3]] {
+            var json = try object("asks.create", "place-question")
+            var place = try XCTUnwrap(json["place_question"] as? [String: Any])
+            place["progress"] = counts
+            json["place_question"] = place
+            let result = try PlugJSON.decoder.decode(AskResult.self, from: JSONSerialization.data(withJSONObject: json))
+            XCTAssertThrowsError(try result.validated())
+        }
     }
 
     func testAskServicePostsToAsksWithIdempotencyHeader() async throws {
@@ -159,6 +198,35 @@ final class RequestTests: XCTestCase {
         await model.submit(location: location)
         XCTAssertEqual(keys.count, 2)
         XCTAssertNotEqual(keys[0], keys[1])
+    }
+
+    func testSameWordsAfterStoppingCreateANewAsk() async throws {
+        let service = StubRequests()
+        let submitted = try resource("requests.get", "submitted")
+        let canceled = try resource("requests.get", "canceled")
+        var keys: [String] = []
+        service.onCreate = { _, key in keys.append(key); return submitted }
+        service.onCancel = { _ in canceled }
+        let model = RequestModel(service: service)
+        model.setActive(false)
+        model.text = "Barber"
+        await model.submit(location: location)
+        await model.cancel()
+        XCTAssertFalse(model.hasActiveAsk)
+        await model.submit(location: location)
+        XCTAssertEqual(keys.count, 2)
+        XCTAssertNotEqual(keys.first, keys.last)
+        XCTAssertTrue(model.hasActiveAsk)
+    }
+
+    func testBusinessDetailsRoundTripAndUnsafeLinksStayInert() throws {
+        let business = BusinessProfile(name: "Studio B", about: "Cuts", links: [
+            BusinessLink(label: "Website", url: "https://example.com/work")])
+        let data = try PlugJSON.encoder.encode(business)
+        XCTAssertEqual(try PlugJSON.decoder.decode(BusinessProfile.self, from: data), business)
+        XCTAssertNil(BusinessLink(label: "Bad", url: "javascript:alert(1)").destination)
+        XCTAssertNil(BusinessLink(label: "Bad", url: "https://user:secret@example.com").destination)
+        XCTAssertNotNil(business.links?.first?.destination)
     }
 
     func testLatePollCannotUndoCancellation() async throws {

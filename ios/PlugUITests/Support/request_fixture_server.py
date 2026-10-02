@@ -93,6 +93,18 @@ class Handler(BaseHTTPRequestHandler):
                 result["ask_id"] = ask_id
                 Handler.asks[ask_id] = {"text": text, "result": result, "polls": 0}
                 return self.respond(result, 201)
+            if "answered place" in mode:
+                result = fixture("asks.get", "answered")
+                result["ask_id"] = ask_id
+                place = result["place_question"]
+                now = datetime.now(timezone.utc)
+                place.update(text=text, created_at=stamp(now - timedelta(minutes=1)),
+                             expires_at=stamp(now + timedelta(minutes=9)))
+                place["answer"]["expires_at"] = stamp(now + timedelta(minutes=5))
+                for index, source in enumerate(place["answer"]["sources"]):
+                    source["answered_at"] = stamp(now - timedelta(minutes=index + 1))
+                Handler.asks[ask_id] = {"text": text, "result": result, "polls": 0}
+                return self.respond(result, 201)
             if "line" in mode or "busy" in mode:
                 result = self.place_ask(ask_id, text, "asking")
                 Handler.asks[ask_id] = {"text": text, "result": result, "polls": 0}
@@ -115,6 +127,7 @@ class Handler(BaseHTTPRequestHandler):
                                                    "requires_licence": False}) for tag in body["skill_tags"]],
                            travel_radius_m=body["travel_radius_m"], availability=body["availability"],
                            accepting=body.get("accepting", True))
+            profile["business"] = body.get("business", {})
             Handler.provider = profile
             return self.respond(profile)
         identifier = path.split("/")[3]
@@ -145,7 +158,7 @@ class Handler(BaseHTTPRequestHandler):
         identifier = path.split("/")[3]
         record = self.requests[identifier]
         if path.endswith("/offers"):
-            result = fixture("requests.offers", "success")
+            result = fixture("requests.offers", "business-profile" if "business" in record["mode"] else "success")
             result["request_id"] = identifier
             return self.respond(result)
         if record["request"]["status"] in ("draft", "canceled", "expired"):

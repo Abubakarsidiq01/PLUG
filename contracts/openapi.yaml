@@ -1206,6 +1206,7 @@ components:
         truth_label: { $ref: '#/components/schemas/TruthLabel' }
         source: { $ref: '#/components/schemas/OfferSource' }
         provider_score: { $ref: '#/components/schemas/ProviderScore' }
+        business: { $ref: '#/components/schemas/BusinessProfile' }
     Place:
       type: object
       additionalProperties: false
@@ -1385,11 +1386,47 @@ components:
         days: { type: string, enum: [weekdays, weekends, every_day] }
         from: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$', example: "16:00" }
         to: { type: string, pattern: '^([01][0-9]|2[0-3]):[0-5][0-9]$|^24:00$', example: "24:00" }
+    BusinessProfile:
+      description: >
+        Optional public details supplied by the provider, not independently verified.
+        Omit business in setup to preserve existing details; send an empty object to remove
+        all public details. Within business, omitted fields are removed. Photos are bounded
+        inline thumbnails for this private phase, never arbitrary remote image URLs.
+      type: object
+      additionalProperties: false
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        about: { type: string, minLength: 1, maxLength: 300 }
+        photo_base64:
+          type: string
+          minLength: 1
+          maxLength: 65536
+          pattern: '^[A-Za-z0-9+/]+={0,2}$'
+          description: Base64 JPEG, at most 48 KiB decoded and 512 by 512 pixels. Re-encoded without metadata before storage. No data URL prefix.
+        links:
+          type: array
+          maxItems: 5
+          items: { $ref: '#/components/schemas/BusinessLink' }
+    BusinessLink:
+      type: object
+      additionalProperties: false
+      required: [label, url]
+      properties:
+        label: { type: string, minLength: 1, maxLength: 30 }
+        url:
+          type: string
+          format: uri
+          minLength: 10
+          maxLength: 500
+          pattern: '^https://'
+          description: Public HTTPS website or social profile, without embedded credentials. Opened only on a customer tap.
     ProviderSetup:
       description: >
         Adds provider capability to the caller's existing account (manual v4 §2.3). No second
         account and no role switch: the same user_id. Replaces the caller's skills, radius
         and availability. A requires_licence tag needs licence_ref (400 licence_required).
+        This route accepts at most 96 KiB of JSON for the optional thumbnail; other request
+        routes retain their 16 KiB limit. Oversized bodies return 413 validation_failed.
       type: object
       additionalProperties: false
       required: [skill_tags, travel_radius_m, base_location, availability, time_zone]
@@ -1401,6 +1438,7 @@ components:
         time_zone: { type: string, minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9_+/-]+$' }
         licence_ref: { type: string, minLength: 3, maxLength: 64, pattern: '^[A-Za-z0-9 ./-]+$' }
         accepting: { type: boolean, default: true }
+        business: { $ref: '#/components/schemas/BusinessProfile' }
     ProviderProfile:
       type: object
       additionalProperties: false
@@ -1412,6 +1450,7 @@ components:
         availability: { type: array, minItems: 1, maxItems: 6, items: { $ref: '#/components/schemas/AvailabilityWindow' } }
         time_zone: { type: string }
         accepting: { type: boolean }
+        business: { $ref: '#/components/schemas/BusinessProfile' }
         licence_on_file: { type: boolean, description: True when a licence reference was supplied. The reference itself is never returned. }
         score: { $ref: '#/components/schemas/ProviderScore' }
         created_at: { type: string, format: date-time }

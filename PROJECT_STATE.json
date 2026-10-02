@@ -1,15 +1,15 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-02T05:58:59.468371+00:00",
-  "updated_by": "person_one (owner-authorized; manual v4 redesign)",
+  "updated_at": "2026-10-02T23:02:06.442747+00:00",
+  "updated_by": "person_one (completing owner-authorized Codex work: optional business profiles)",
   "completed_phases": [
     "P0",
     "P1"
   ],
   "current_phase": "P2",
-  "current_step": "P2.S19",
-  "current_step_title": "Manual v4 Phase 2 (P2.S10-P2.S19) implemented and verified locally behind requests_v2: one ask field for service requests and place questions, skill vocabulary, restricted-intent policy, providers on the same account, matching, iOS Ask and provider onboarding to Figures A1-A3. Contract 0.5.0 approval, device evidence, Windows run and G2 signatures remain.",
+  "current_step": "P2.S21",
+  "current_step_title": "Phase 2 v4 implementation hardened locally, with owner-authorized amendments P2.S20 (back navigation) and P2.S21 (optional business profiles) verified locally and recorded in manual v4 \u00a727.3. Contract approval, admin vocabulary/classifier view, device/Figma/Windows review and G2 checkpoint remain open.",
   "manual_section": "27.3",
   "readme": "docs/phases/P2-ONE.md",
   "owner": "both",
@@ -28,8 +28,8 @@
       "summary": "Live, two-person connected checkpoint against real staging (cloudflared Quick Tunnel, ADR-004). Person One's physical iPhone request_id req_b78c1781-9266-4900-808b-16d18e293037 (GET /health) was independently confirmed inside the same backend terminal log that also recorded Person Two's real requests from her own Windows PC (req_8fb31027..., req_0679b3c7..., req_13c7c30c..., all POST /v1/requests 202). PR #20 (superseding earlier PR #10/#19) merged to main with uzom-a's independent code-owner review, satisfying the branch-protection requirement.",
       "evidence": [
         "evidence/P0/logs/connected-checkpoint-2026-09-22.log",
-        "evidence/P0/ios/Screenshot 2026-09-22 at 12.03.34 AM.png",
-        "evidence/P0/logs/Screenshot 2026-09-22 at 12.08.28 AM.png",
+        "evidence/P0/ios/Screenshot 2026-09-22 at 12.03.34\u202fAM.png",
+        "evidence/P0/logs/Screenshot 2026-09-22 at 12.08.28\u202fAM.png",
         "evidence/P0/logs/database-resilience-2026-09-22.md"
       ]
     },
@@ -85,7 +85,7 @@
     "GET /v1/asks/{ask_id}": "proposed@0.5.0",
     "POST /v1/asks/{ask_id}/clarifications": "proposed@0.5.0",
     "POST /v1/providers/skills/propose": "proposed@0.5.0",
-    "POST /v1/providers/skills": "proposed@0.5.0",
+    "POST /v1/providers/skills": "proposed@0.5.0 (amended 2026-10-02: optional business profile, 96 KiB body)",
     "GET /v1/providers/me": "proposed@0.5.0",
     "contracts/skills.yaml": "proposed@0.5.0 (owned by person_two)"
   },
@@ -103,22 +103,29 @@
       "id": "P2-contract-0.5.0",
       "owner": "both",
       "manual_section": "27.3",
-      "task": "Hold the §7.1 contract session on contract 0.5.0 and contracts/skills.yaml (ADR-010, contracts/CHANGELOG.md). Person Two reviews the drafted vocabulary, dataset and Bruno requests in Person Two's lane. Merge with both approvals, then flip the request, ask and provider routes to frozen@0.5.0.",
+      "task": "Hold the \u00a77.1 contract session on contract 0.5.0 and contracts/skills.yaml (ADR-010, contracts/CHANGELOG.md). Person Two reviews the drafted vocabulary, dataset and Bruno requests in Person Two's lane. Merge with both approvals, then flip the request, ask and provider routes to frozen@0.5.0.",
       "acceptance": "Contract PR merged with both approvals; auth@0.2.2 unchanged; Spectral, ContractTest and pnpm test:contracts green."
     },
     {
       "id": "P2-device-evidence",
       "owner": "person_one",
       "manual_section": "27.3",
-      "task": "Run tools/run-phase2-phone.sh, then capture every Figure A1-A3 state on the iPhone at default and largest Dynamic Type, plus a VoiceOver walkthrough, into evidence/P2/ios and evidence/P2/a11y. Run the §16.8 design gate on the device captures, including greyscale.",
+      "task": "Run tools/run-phase2-phone.sh, then capture every Figure A1-A3 state on the iPhone at default and largest Dynamic Type, plus a VoiceOver walkthrough, into evidence/P2/ios and evidence/P2/a11y. Run the \u00a716.8 design gate on the device captures, including greyscale.",
       "acceptance": "Device screenshots for every required state committed; design gate recorded with no open failure."
+    },
+    {
+      "id": "P2-admin-vocabulary-classifier",
+      "owner": "both",
+      "manual_section": "27.3 / P2-TWO.S12",
+      "task": "Propose the missing vocabulary/classifier admin read contracts and tested staff authorization path, then build the authenticated inspector. Current Phase 1 accounts cannot access admin and no admin read endpoints are approved. Review preparation: docs/handoff/phase2-admin-contract-review.md.",
+      "acceptance": "Both engineers approve read schemas and access rules; vocabulary and recent decisions render from real data with denied-role, pagination, redaction, loading, error and empty-state evidence."
     },
     {
       "id": "P2-web-v4",
       "owner": "person_two",
       "manual_section": "15",
-      "task": "Retheme the public site to manual v4 §10 and Figure 14 (Public Sans, ink on paper, no tracked capitals, dashed Not verified). A partial draft is in docs/handoff/web-v4-retheme-draft.patch; Person One will not build /web (§6.6).",
-      "acceptance": "Web design gate passes at 320-1280 px; Playwright and Lighthouse evidence committed."
+      "task": "Review the owner-authorized v4 web implementation: local Public Sans, ink-on-paper palette, sentence-case labels, dashed Not verified and accurate two-ask/provider copy. 81 browser tests passed; production screenshots are in evidence/P2/web/2026-10-02/ui-experiment. The older draft patch is historical and must not be applied over this work.",
+      "acceptance": "Owner and Person Two review the temporary design; complete independent design-gate and Lighthouse evidence."
     },
     {
       "id": "P2-windows-and-checkpoint",
@@ -140,25 +147,25 @@
     "Skill vocabulary is 35 tags; matching quality is untested at low provider density, and place questions have no human answerers until Phase 4, so they end Unknown.",
     "Provider rate-limit budget is shared with the request read budget per caller address (60/min, in-process memory).",
     "September 23 verification was local, on an isolated real PostgreSQL database: see docs/testing/phase-1-hardening-2026-09-23.md. G1 still needs joint staging evidence under ADR-004.",
-    "The Phase 1 rate limits are counted in one process's memory (FixedWindowLimiter). That is correct for a single instance and wrong the moment there are two, and it also means the limits survive across test runs — a second walkthrough inside fifteen minutes is refused. Wire Redis in before the backend is ever run as more than one process.",
+    "The Phase 1 rate limits are counted in one process's memory (FixedWindowLimiter). That is correct for a single instance and wrong the moment there are two, and it also means the limits survive across test runs \u2014 a second walkthrough inside fifteen minutes is refused. Wire Redis in before the backend is ever run as more than one process.",
     "The missing launch-screen declaration caused a 320x480 compatibility window. Fixed and captured at full size on September 23. Largest-text controls are scrollable; physical-device visual/VoiceOver review remains pending.",
     "UI tests now use the dedicated PlugUI scheme and require a running identity backend. Both text-size tests passed. They capture 7 states per size, not the full physical-device matrix.",
     "PLUG's own access and refresh tokens are opaque and resolved against the sessions table on every request (ADR-006). That is one indexed read and one last_used_at write per authenticated call. It has not been load-tested; measure before assuming it holds.",
     "Twilio outbound OTP is optionally implemented in Phase 1 under amended ADR-007, but no configured sender or real received-SMS evidence has been established. Development codes remain local-only; disabled delivery returns 503. Two-way SMS/iMessage remain later-phase work.",
     "The connected iPhone is available, but Xcode provisioning refresh failed: the configured Personal development team does not support Sign in with Apple. Use an Apple Developer Program team that supports this capability, select it in Signing & Capabilities, enable the capability for the App ID, and refresh provisioning. Then follow the physical-device runbook. A signed Google-capable app was previously tested; that does not establish Apple capability.",
     "PLUG_IDENTITY_PEPPER is required by the db and staging profiles, including for local ./dev databaseTest runs. It keys the stored phone, Apple-subject and one-time-code hashes, so rotating it makes every existing identity unrecognisable. It has no secret-storage home yet beyond .env.local and the CI workflow.",
-    "No account type in Phase 1 can be granted the admin scope, so every route under /v1/admin is refused — confirmed in the walkthrough. AdminStepUpAuthorization is in place ahead of the first admin route, but nothing exercises the allow path until Phase 5.",
+    "No account type in Phase 1 can be granted the admin scope, so every route under /v1/admin is refused \u2014 confirmed in the walkthrough. AdminStepUpAuthorization is in place ahead of the first admin route, but nothing exercises the allow path until Phase 5.",
     "Terms, Privacy, and Support web routes now exist. Terms and Privacy explicitly await approved legal text; PLUG_WEB_URL must point at a reachable site on a real phone. Do not treat the development consent version as an approved published agreement.",
     "Operational health routes reject requests carrying tunnel/proxy forwarding headers by design (SecurityConfiguration.directProbeOnly()). Confirmed from Person One's Mac/iPhone and, on 2026-09-22, Person Two's own Windows PC.",
-    "AWS staging is deferred (ADR-004) — no budget right now. Revisit no later than Phase 3, when Twilio needs a stable webhook URL a Quick Tunnel cannot provide.",
+    "AWS staging is deferred (ADR-004) \u2014 no budget right now. Revisit no later than Phase 3, when Twilio needs a stable webhook URL a Quick Tunnel cannot provide.",
     "PRODUCT_BUNDLE_IDENTIFIER is com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account).",
-    "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file — no Figma access was available.",
+    "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available.",
     "Phone evidence includes a Google notification naming Aura; verify whether it belongs to this PLUG sign-in and correct the selected OAuth project branding if so. Original personal email notification remains private.",
     "Apple/SMS budget deferral accepted in ADR-008. Starter legal wording cannot immunize the operator from claims and is not evidence of implemented retention, erasure or teen controls.",
-    "ADR-009 open scope: (1) Claude extraction is a paid call per request and no ANTHROPIC_API_KEY is configured yet, so the phone currently runs on the built-in rules; (2) nearby businesses come from Apple Maps on the device and are listings, not offers, with price and availability Unknown; (3) restricted-intent policy is still a deterministic word list and must be reviewed for open scope before any external beta; (4) the req_ prefix is shared by request resources and correlation IDs; (5) 7-day needed_by horizon and 24-hour idempotency retention remain proposals."
+    "Manual v4 supersedes ADR-009 Apple Maps listing fallback. Claude extraction has no configured live-key evidence; the restricted-intent rules still need independent red-team review; contract 0.5.0, including retention and needed_by limits, remains proposed."
   ],
   "environments": {
-    "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
+    "staging": "ephemeral \u2014 cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
     "production": "not-yet-provisioned"
   },
   "latest_validation": {
@@ -167,7 +174,7 @@
     "device_steps": "docs/runbooks/p1-gate-completion.md",
     "evidence": "evidence/P1",
     "environment": "local disposable database; no G1 sign-off",
-    "user_followup": "User photos confirm simulator guest account and successful health/refresh requests. Physical phone shows DNS failure for expired tunnel; Apple entitlement was removed in the working tree, so Apple sign-in remains unavailable. Apple button width constrained to 130–375 points to address the supplied layout warning.",
+    "user_followup": "User photos confirm simulator guest account and successful health/refresh requests. Physical phone shows DNS failure for expired tunnel; Apple entitlement was removed in the working tree, so Apple sign-in remains unavailable. Apple button width constrained to 130\u2013375 points to address the supplied layout warning.",
     "auth_expansion": {
       "date": "2026-09-24",
       "backend_tests": 86,
@@ -228,7 +235,7 @@
       "regression_database": "plug_auth_regression; isolated from live phone accounts",
       "phone_evidence": "evidence/P1/phone/2026-09-25/followup",
       "simulator_evidence": "evidence/P1/simulator/2026-09-25/account-intent",
-      "manual_check": "New duplicate-signup flow with the user’s real Google account still requires their provider interaction."
+      "manual_check": "New duplicate-signup flow with the user\u2019s real Google account still requires their provider interaction."
     },
     "tunnel_recovery": {
       "date": "2026-09-25",
@@ -502,7 +509,7 @@
         "playwright": "81/81 incl. axe at 360/768/1280",
         "evidence": "evidence/P2/web"
       },
-      "design_source": "manual §9-§11, §16, Figures 7, 8, 10, 14; invented warm palette reverted",
+      "design_source": "manual \u00a79-\u00a711, \u00a716, Figures 7, 8, 10, 14; invented warm palette reverted",
       "claude_live": "not tested: no ANTHROPIC_API_KEY configured",
       "g2_passed": false,
       "owner_followups": [
@@ -517,6 +524,44 @@
         "source": "synthetic fixture server, not G2 device evidence"
       },
       "phone": "Signed blueprint-design build installed and launched on the paired iPhone against the isolated backend via Quick Tunnel."
+    },
+    "phase2_temporary_ui_hardening": {
+      "date": "2026-10-02",
+      "report": "docs/testing/phase2-hardening-ui-experiment-2026-10-02.md",
+      "backend_unit": 55,
+      "backend_database": 82,
+      "contract_tests": 181,
+      "live_api_checks": 972,
+      "bruno_requests": 49,
+      "ios_tests": 65,
+      "web_tests": 81,
+      "web_build": "passed",
+      "ios_screenshot_walks": "default and largest passed; largest repeated after row-layout correction; answered-place source walkthrough passed at both sizes",
+      "status": "local verification; temporary visual design awaiting owner review; G2 not signed",
+      "ios_screenshots": 36,
+      "ios_request_tests_final": 22,
+      "greyscale": "filled and dashed specimens exported and visually checked; independent device review pending",
+      "physical_phone_preview": {
+        "date": "2026-10-02",
+        "device": "paired iPhone 13 Pro Max",
+        "result": "Signed Debug build installed and launched successfully at owner request",
+        "backend": "Local Phase 2 on port 18085 with temporary HTTPS tunnel; requests_v2 enabled",
+        "scope": "Interactive preview only; not a physical-device test matrix or G2 approval"
+      }
+    },
+    "phase2_business_profiles": {
+      "date": "2026-10-02",
+      "report": "docs/testing/phase2-hardening-ui-experiment-2026-10-02.md",
+      "backend_unit": 57,
+      "backend_database": 83,
+      "contract_tests": 182,
+      "live_api_checks": 988,
+      "bruno_requests": 49,
+      "ios_tests": 67,
+      "ios_screenshots": 44,
+      "evidence": "evidence/P2/simulator/2026-10-02/business-final/ (with greyscale/)",
+      "manual": "PLUG_Production_Master_Manual_v4.docx \u00a727.3 Phase 2 amendments; steps P2.S20-P2.S21",
+      "status": "local verification; G2 not signed"
     }
   },
   "implementation_authorization": {

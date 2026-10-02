@@ -92,7 +92,7 @@ you go, and open one pull request per step or per small group of related steps.
 - [ ] **P2.S10** — Review the Ask screen against Figure A1 and the design gate. Simulator captures: `evidence/P2/simulator/2026-10-02/`.
 - [ ] **P2.S11** — Abuse cases the open scope requires: illegal goods or services, targeting a private person, surveillance in disguise, regulated professions.
 - [ ] **P2.S12** — Admin view for the skill vocabulary and recent classifier decisions (`vocabulary_gaps` and the `restricted_intent:<rule>` audit events are the data).
-- [ ] **Web v4 retheme** — The site still uses the v3 look through token aliases (`design/token-aliases.json`), including tracked uppercase overlines that v4 bans. A partial draft (Public Sans, dashed Not-verified badge, copy for both ask types) is in `docs/handoff/web-v4-retheme-draft.patch` (`git apply` it on this branch); the CSS half is not done. Person One will not build `/web` (§6.6).
+- [ ] **Web v4 retheme** — Owner-authorized temporary implementation now uses Public Sans, sentence-case labels and dashed Not verified. 81 Playwright tests passed; screenshots at 320/360/768/1280 px are in `evidence/P2/web/2026-10-02/ui-experiment/`. Review the [hardening record](../testing/phase2-hardening-ui-experiment-2026-10-02.md). The old draft patch is historical; do not apply it over this work.
 
 ---
 
@@ -152,7 +152,7 @@ phase requires the connected evidence listed below, beyond these local checks.
 
 - [ ] A supported request produces validated structured offers on a real device.
 - [ ] Progress counts are real and visibly change as the server works.
-- [ ] A service with no participating supplier ends `no_coverage` honestly, and the app lists nearby businesses labelled Unknown — never invented prices or availability.
+- [ ] A service with no participating supplier ends `no_coverage` honestly, with no invented prices or availability; v4 removes the Apple Maps listing fallback.
 - [ ] A provider failure degrades to the deterministic path without an error screen.
 - [ ] `PROJECT_STATE.json` carries a signed `G2` entry.
 

@@ -125,6 +125,8 @@ G2 is signed. Evidence: `docs/testing/phase2-v4-verification-2026-10-02.md`.
 - [ ] **P2.S17** — Matching: skill overlap, inside the provider's own radius, inside their availability; ranked per §19A; fanout 6, cap 16; never the asker. *(`MatchService`.)*
 - [ ] **P2.S18** — SwiftUI Ask screen: both ask types in one field, grouped examples, the four answer states of Figure A1. *(`AskView.swift`.)*
 - [ ] **P2.S19** — Provider onboarding in SwiftUI: plain words in, editable tag chips out, radius and availability. *(`ProviderView.swift`, Inbox tab once a profile exists.)*
+- [ ] **P2.S20** — *(Amendment, 2026-10-02.)* The answer is its own page: system back and a left-edge swipe return to Ask; a request still asking people survives going back and can be reopened or stopped. *(`AskView.swift`; UI walk swipes back from an offer and from a running request.)*
+- [ ] **P2.S21** — *(Amendment, 2026-10-02, owner-authorized, built with Codex.)* Optional business profile on provider setup: name, description, one JPEG thumbnail (≤ 48 KiB, ≤ 512 px, re-encoded without metadata) and up to five `https://` links, opened only on a tap; shown on offers only through an explicit `provider_id`. *(`BusinessProfiles`, V7, contract 0.5.0 amendment.)*
 
 ---
 
