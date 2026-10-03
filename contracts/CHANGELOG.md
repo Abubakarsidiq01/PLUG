@@ -11,6 +11,25 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.5.0 amendment — 2026-10-02 — additive — proposed — larger vocabulary and own-words skills (ADR-011)
+Owner decision. `contracts/skills.yaml` grows from 35 to 115 tags (new licensed tags: hvac,
+plumbing_major, roofing, pest_control, tattoo, piercing, facials, driving_lessons).
+`ProviderSetup.custom_skills` (≤5 labels, 3–40 characters; omit to keep, `[]` to remove) and
+`ProviderProfile.custom_skills` hold skills in the provider's own words; `skill_tags` may be
+empty when `custom_skills` is not (otherwise 400 `required`). A label naming a listed skill is
+400 `listed_skill`, one with no specific word 400 `too_vague`, an unsafe one 422
+`restricted_intent`. `Category` may be `custom_<keywords>` on a request the server matched to
+own-words skills by keywords; clients display `service_name`. The proposal example now uses
+"chimney sweeping" as the unlisted term, since "crochet locs" is a listed synonym of `locs`.
+`POST /v1/providers/skills` now documents its 413 (body over 96 KiB) and 422 (unsafe
+own-words label) responses, which the server already returned.
+Fixtures updated: `fixtures/providers.propose/success.json`; added
+`fixtures/providers.skills/{restricted-intent,payload-too-large,listed-skill}.json`.
+Migration note: `V8__expanded_and_custom_skills.sql` inserts the 80 new tags and adds
+`provider_custom_skills` (keywords GIN-indexed). Custom tags register in `skill_vocabulary`
+under parent `custom`; the startup check ignores those rows. Expand-only.
+Rollback: `requests_v2` off removes the routes; the rows are inert without them.
+
 ### 0.5.0 amendment — 2026-10-02 — additive — proposed — optional business profiles
 Owner-authorized (implemented with Codex, completed by Person One). A provider may add
 optional public details: `BusinessProfile` (`name` ≤80, `about` ≤300, `photo_base64` a JPEG

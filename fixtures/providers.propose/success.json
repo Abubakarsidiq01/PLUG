@@ -9,9 +9,14 @@
       "tag": "wig_install",
       "display": "Wig install",
       "requires_licence": false
+    },
+    {
+      "tag": "locs",
+      "display": "Locs",
+      "requires_licence": false
     }
   ],
   "unmatched": [
-    "crochet locs"
+    "chimney sweeping"
   ]
 }

@@ -54,7 +54,7 @@ public class AskService {
         requests.refuseRestricted(caller, body.text());
         // Classified outside the transaction: the model call holds no row lock, and a refusal's
         // audit event is written on its own so a rollback can never erase it.
-        IntentAdapter.Result result = intent.classify(body.text(), body.location(), body.timeZone());
+        IntentAdapter.Result result = intent.classify(body.text(), body.location(), body.timeZone(), caller.userId());
         if (result.askType() == IntentAdapter.AskType.PLACE_QUESTION) refusePrivatePlace(caller, body.text());
         return transaction.execute(ignored -> {
             requests.lockAccount(caller);

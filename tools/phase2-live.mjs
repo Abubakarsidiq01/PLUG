@@ -284,10 +284,10 @@ async function asks() {
   await clarify('no second question', owner, 'barber', { expected: 409, error: 'conflict' });
 
   await http('not a provider yet', '/v1/providers/me', { token: other, expected: 404, error: 'not_found' });
-  const proposal = await http('propose skills', '/v1/providers/skills/propose', { method: 'POST', token: other, body: { description: 'I do knotless braids and wig installs, also crochet locs' }, expected: 200 });
+  const proposal = await http('propose skills', '/v1/providers/skills/propose', { method: 'POST', token: other, body: { description: 'I do knotless braids and wig installs, also crochet locs and chimney sweeping' }, expected: 200 });
   check('proposal uses only vocabulary tags and reports the rest', () => {
-    assert.deepEqual(proposal.skills.map(skill => skill.tag).sort(), ['braids', 'wig_install']);
-    assert.ok(proposal.unmatched.length > 0);
+    assert.deepEqual(proposal.skills.map(skill => skill.tag).sort(), ['braids', 'locs', 'wig_install']);
+    assert.ok(proposal.unmatched.includes('chimney sweeping'));
   });
   await http('restricted skill description', '/v1/providers/skills/propose', { method: 'POST', token: other, body: { description: 'I sell stolen phones' }, expected: 422, error: 'restricted_intent' });
   const setup = { skill_tags: ['braids', 'wig_install'], travel_radius_m: 4828, base_location: location, availability: [{ days: 'every_day', from: '08:00', to: '21:00' }], time_zone: 'America/Chicago' };
@@ -310,6 +310,18 @@ async function asks() {
   check('omitted business is preserved', () => assert.deepEqual(kept.business, business));
   const cleared = await http('empty business removes it', '/v1/providers/skills', { method: 'POST', token: other, body: { ...setup, business: {} }, expected: 200 });
   check('empty business removes every public detail', () => assert.ok(!cleared.business || Object.keys(cleared.business).length === 0));
+  // Skills in the provider's own words (ADR-011), found by an ask's keywords; listed skills always win.
+  const ownWords = { ...setup, skill_tags: [], custom_skills: ['chimney sweeping'] };
+  await http('listed skill cannot be re-entered as custom', '/v1/providers/skills', { method: 'POST', token: other, body: { ...ownWords, custom_skills: ['electrician work'] }, expected: 400, error: 'validation_failed', detail: 'listed_skill' });
+  await http('unsafe custom skill refused', '/v1/providers/skills', { method: 'POST', token: other, body: { ...ownWords, custom_skills: ['selling stolen phones'] }, expected: 422, error: 'restricted_intent' });
+  const sweeper = await http('save a skill in own words', '/v1/providers/skills', { method: 'POST', token: other, body: ownWords, expected: 200 });
+  check('own-words skill reads back', () => { assert.deepEqual(sweeper.custom_skills, ['Chimney sweeping']); assert.equal(sweeper.skills.length, 0); });
+  const chimney = await ask('ask finds an own-words skill', owner, 'Can someone sweep my chimney tomorrow?');
+  check('ask routed to the provider-described skill', () => {
+    assert.equal(chimney.ask_type, 'service_request');
+    assert.equal(chimney.request.constraints.category, 'custom_chimney_sweep');
+    assert.equal(chimney.request.constraints.service_name, 'Chimney sweeping');
+  });
 }
 
 async function abuse() {

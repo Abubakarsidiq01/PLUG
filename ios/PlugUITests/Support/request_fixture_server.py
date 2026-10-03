@@ -126,7 +126,8 @@ class Handler(BaseHTTPRequestHandler):
             profile.update(skills=[known.get(tag, {"tag": tag, "display": tag.replace("_", " ").capitalize(),
                                                    "requires_licence": False}) for tag in body["skill_tags"]],
                            travel_radius_m=body["travel_radius_m"], availability=body["availability"],
-                           accepting=body.get("accepting", True))
+                           accepting=body.get("accepting", True),
+                           custom_skills=[label[:1].upper() + label[1:] for label in body.get("custom_skills") or []])
             profile["business"] = body.get("business", {})
             Handler.provider = profile
             return self.respond(profile)

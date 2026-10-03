@@ -23,7 +23,9 @@ public class RequestV2Configuration {
         SkillVocabulary vocabulary = SkillVocabulary.load();
         Set<String> contract = new TreeSet<>();
         vocabulary.all().forEach(skill -> contract.add(skill.tag()));
-        Set<String> database = new TreeSet<>(jdbc.queryForList("SELECT tag FROM skill_vocabulary", String.class));
+        Set<String> database = new TreeSet<>(jdbc.queryForList(
+                // Provider-described skills register under parent 'custom' (ADR-011); they are not contract tags.
+                "SELECT tag FROM skill_vocabulary WHERE parent <> 'custom'", String.class));
         if (!contract.equals(database)) {
             throw new IllegalStateException("contracts/skills.yaml and skill_vocabulary disagree; add a migration");
         }
@@ -40,9 +42,11 @@ public class RequestV2Configuration {
         return new ClaudeIntentProvider(apiKey, model, timeout, vocabulary);
     }
     @Bean RequestClock requestClock(Clock clock) { return new RequestClock(clock); }
+    @Bean CustomSkills customSkills(JdbcTemplate jdbc) { return new CustomSkills(jdbc); }
     @Bean IntentAdapter intentAdapter(ObjectMapper mapper, RequestClock clock, IntentAdapter.Provider provider,
-            @Value("${plug.requests-v2.intent-timeout:6s}") Duration timeout, SkillVocabulary vocabulary) {
-        return new IntentAdapter(mapper, clock.clock(), provider, timeout, vocabulary);
+            @Value("${plug.requests-v2.intent-timeout:6s}") Duration timeout, SkillVocabulary vocabulary,
+            CustomSkills customSkills) {
+        return new IntentAdapter(mapper, clock.clock(), provider, timeout, vocabulary).withCustomSkills(customSkills);
     }
     @Bean MatchService matchService(JdbcTemplate jdbc, RequestClock clock) { return new MatchService(jdbc, clock.clock()); }
     @Bean AskService askService(JdbcTemplate jdbc, PlatformTransactionManager manager, ObjectMapper mapper, RequestClock clock,
@@ -50,7 +54,7 @@ public class RequestV2Configuration {
         return new AskService(jdbc, manager, mapper, clock.clock(), intent, policy, requests);
     }
     @Bean ProviderService providerService(JdbcTemplate jdbc, PlatformTransactionManager manager, RequestClock clock,
-            IntentAdapter intent, RestrictedIntentPolicy policy, RequestService requests) {
-        return new ProviderService(jdbc, manager, clock.clock(), intent, policy, requests);
+            IntentAdapter intent, RestrictedIntentPolicy policy, RequestService requests, CustomSkills customSkills) {
+        return new ProviderService(jdbc, manager, clock.clock(), intent, policy, requests, customSkills);
     }
 }

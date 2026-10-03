@@ -405,6 +405,8 @@ paths:
         '400': { $ref: '#/components/responses/ValidationFailed' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
+        '422': { $ref: '#/components/responses/RestrictedIntent' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/providers/me:
@@ -972,9 +974,11 @@ components:
       example: shoe_repair
       description: >
         A skill tag from the controlled vocabulary in contracts/skills.yaml (manual v4
-        §12B.3). The server only ever returns tags from that file; a value the model
-        produced that is not in it is dropped, never stored. A tag outside the vocabulary
-        sent by a client is 400 with code unknown_skill. Display service_name.
+        §12B.3), or a provider-described skill `custom_<keywords>` (ADR-011). The model never
+        creates a tag; a value it produced that is in neither is dropped, never stored. A
+        client may only send vocabulary tags; anything else is 400 with code unknown_skill.
+        A custom_ tag appears only on a request the server matched, by keywords, to skills
+        providers described in their own words. Display service_name; never parse the tag.
     Currency:
       type: string
       pattern: '^[A-Z]{3}$'
@@ -1431,7 +1435,12 @@ components:
       additionalProperties: false
       required: [skill_tags, travel_radius_m, base_location, availability, time_zone]
       properties:
-        skill_tags: { type: array, minItems: 1, maxItems: 10, uniqueItems: true, items: { $ref: '#/components/schemas/Category' } }
+        skill_tags:
+          type: array
+          maxItems: 10
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/Category' }
+          description: Vocabulary tags only. May be empty when custom_skills holds at least one skill (400 required otherwise).
         travel_radius_m: { type: integer, minimum: 500, maximum: 80000 }
         base_location: { $ref: '#/components/schemas/RequestLocation' }
         availability: { type: array, minItems: 1, maxItems: 6, items: { $ref: '#/components/schemas/AvailabilityWindow' } }
@@ -1439,13 +1448,23 @@ components:
         licence_ref: { type: string, minLength: 3, maxLength: 64, pattern: '^[A-Za-z0-9 ./-]+$' }
         accepting: { type: boolean, default: true }
         business: { $ref: '#/components/schemas/BusinessProfile' }
+        custom_skills:
+          type: array
+          maxItems: 5
+          items: { type: string, minLength: 3, maxLength: 40 }
+          description: >
+            Skills in the provider's own words that PLUG does not list (ADR-011), matched to asks
+            by their keywords. Omit to keep the stored list; send [] to remove it. Each label is
+            checked by the restricted-intent policy (422 restricted_intent). A label naming a
+            listed skill is 400 listed_skill; one with no specific word is 400 too_vague.
     ProviderProfile:
       type: object
       additionalProperties: false
       required: [user_id, skills, travel_radius_m, availability, time_zone, accepting, licence_on_file, score, created_at]
       properties:
         user_id: { type: string, pattern: '^usr_[A-Za-z0-9-]+$' }
-        skills: { type: array, minItems: 1, maxItems: 10, items: { $ref: '#/components/schemas/SkillTag' } }
+        skills: { type: array, maxItems: 10, items: { $ref: '#/components/schemas/SkillTag' } }
+        custom_skills: { type: array, maxItems: 5, items: { type: string, minLength: 3, maxLength: 40 } }
         travel_radius_m: { type: integer, minimum: 500, maximum: 80000 }
         availability: { type: array, minItems: 1, maxItems: 6, items: { $ref: '#/components/schemas/AvailabilityWindow' } }
         time_zone: { type: string }

@@ -30,8 +30,11 @@ public class ProviderService {
     private final RestrictedIntentPolicy policy;
     private final RequestService requests;
 
+    private final CustomSkills customSkills;
+
     public ProviderService(JdbcTemplate jdbc, PlatformTransactionManager manager, Clock clock, IntentAdapter intent,
-            RestrictedIntentPolicy policy, RequestService requests) {
+            RestrictedIntentPolicy policy, RequestService requests, CustomSkills customSkills) {
+        this.customSkills = customSkills;
         this.jdbc = jdbc;
         this.transaction = new TransactionTemplate(manager);
         this.clock = clock;
@@ -69,6 +72,17 @@ public class ProviderService {
             if (skill == null) throw ApiException.validation("skill_tags", "unknown_skill", "Choose skills PLUG lists.");
             skills.add(skill);
         }
+        // Own-words skills (ADR-011): the same policy as asks refuses unsafe ones, with its audit event.
+        if (setup.customSkills() != null) {
+            for (String label : setup.customSkills()) {
+                if (label != null) policy.refusal(label).ifPresent(rule -> requests.refuse(caller, rule));
+            }
+        }
+        var custom = setup.customSkills() == null ? null : customSkills.prepare(setup.customSkills(), vocabulary);
+        boolean keepsCustom = custom == null && !customSkills.labels(caller.userId()).isEmpty();
+        if (skills.isEmpty() && (custom == null ? !keepsCustom : custom.isEmpty())) {
+            throw ApiException.validation("skill_tags", "required", "Add at least one skill.");
+        }
         if (skills.stream().anyMatch(SkillVocabulary.Skill::requiresLicence) && (setup.licenceRef() == null || setup.licenceRef().isBlank())) {
             throw ApiException.validation("licence_ref", "licence_required", "Add your licence number for licensed work.");
         }
@@ -97,6 +111,7 @@ public class ProviderService {
                     setup.licenceRef(), now, now);
             if (business != null) jdbc.update("UPDATE provider_profiles SET business=?::jsonb WHERE user_id=?",
                     BusinessProfiles.json(business), caller.userId());
+            if (custom != null) customSkills.replace(caller.userId(), custom);
             jdbc.update("DELETE FROM provider_skills WHERE user_id=?", caller.userId());
             for (var skill : skills) jdbc.update("INSERT INTO provider_skills VALUES(?,?)", caller.userId(), skill.tag());
             jdbc.update("DELETE FROM provider_availability WHERE user_id=?", caller.userId());
@@ -131,7 +146,8 @@ public class ProviderService {
         return jdbc.queryForObject("SELECT * FROM provider_profiles WHERE user_id=?", (rs, n) -> new ProviderProfile(userId,
                 skills, rs.getInt("travel_radius_m"), availability, rs.getString("time_zone"), rs.getBoolean("accepting"),
                 rs.getString("licence_ref") != null, RequestPayloads.ProviderScore.of(completed, trust),
-                rs.getTimestamp("created_at").toInstant(), BusinessProfiles.read(rs.getString("business"))), userId);
+                rs.getTimestamp("created_at").toInstant(), BusinessProfiles.read(rs.getString("business")),
+                customSkills.labels(userId)), userId);
     }
 
     static int minutes(String clockText) {

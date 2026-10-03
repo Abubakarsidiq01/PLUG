@@ -350,6 +350,8 @@ struct ProviderSetup: Encodable, Equatable {
     var licenceRef: String? = nil
     var accepting: Bool = true
     var business: BusinessProfile? = nil
+    /// Skills in the provider's own words (ADR-011). nil keeps what is stored; [] removes it.
+    var customSkills: [String]? = nil
 }
 
 struct ProviderProfile: Decodable, Equatable {
@@ -363,6 +365,7 @@ struct ProviderProfile: Decodable, Equatable {
     let score: ProviderScore
     let createdAt: Date
     var business: BusinessProfile? = nil
+    var customSkills: [String]? = nil
 }
 
 /// All public details are optional and supplied by the business itself.

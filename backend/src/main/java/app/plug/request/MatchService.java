@@ -62,7 +62,10 @@ public class MatchService {
                   LEFT JOIN provider_scores ps ON ps.user_id = pp.user_id
                  WHERE pp.accepting
                    AND pp.user_id <> ?
-                   AND EXISTS (SELECT 1 FROM provider_skills s WHERE s.user_id = pp.user_id AND s.skill_tag = ANY(?))
+                   AND (EXISTS (SELECT 1 FROM provider_skills s WHERE s.user_id = pp.user_id AND s.skill_tag = ANY(?))
+                        OR EXISTS (SELECT 1 FROM provider_custom_skills cs WHERE cs.user_id = pp.user_id
+                                    AND cardinality(ARRAY(SELECT unnest(cs.keywords) INTERSECT SELECT unnest(?::text[])))
+                                        >= LEAST(2, cardinality(cs.keywords))))
                    AND ST_DWithin(pp.base_location, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography, pp.travel_radius_m)
                    AND (NOT ? OR pp.licence_ref IS NOT NULL)
                    AND NOT EXISTS (SELECT 1 FROM request_matches m WHERE m.request_id = ? AND m.provider_id = pp.user_id)
@@ -70,6 +73,9 @@ public class MatchService {
                         rs.getDouble("response_rate"), rs.getInt("trust_score"), rs.getString("time_zone"),
                         windows(rs.getString("user_id")), days(rs.getString("user_id"))),
                 c.location().longitude(), c.location().latitude(), requester, c.skillTags().toArray(String[]::new),
+                // A provider-described skill (ADR-011) reaches every provider whose own words share its keywords.
+                (c.category() != null && c.category().startsWith("custom_") ? CustomSkills.keywords(request.text())
+                        : List.<String>of()).toArray(String[]::new),
                 c.location().longitude(), c.location().latitude(), c.licenceRequired(), request.requestId());
         List<Candidate> chosen = candidates.stream()
                 .filter(candidate -> available(candidate, start, end))
