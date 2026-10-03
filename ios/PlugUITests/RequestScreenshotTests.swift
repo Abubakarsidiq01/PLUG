@@ -74,6 +74,15 @@ final class RequestScreenshotTests: XCTestCase {
         find.tap()
         XCTAssertTrue(app.buttons["Braids"].waitForExistence(timeout: 10))
         capture("provider-skills-\(suffix)")
+        // A word PLUG does not list becomes the provider's own skill on a tap (ADR-011).
+        let own = app.buttons["chimney sweeping"]
+        reveal(own, in: app)
+        own.tap()
+        // Capture the settled selected state, not the press highlight.
+        _ = XCTWaiter().wait(for: [XCTNSPredicateExpectation(predicate: NSPredicate(format: "selected == true"), object: own)], timeout: 3)
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        XCTAssertTrue(own.isSelected)
+        capture("provider-own-skill-\(suffix)")
         let base = app.buttons["Use my approximate location"]
         reveal(base, in: app)
         base.tap()

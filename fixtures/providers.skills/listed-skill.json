@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "That skill is on PLUG's list. Choose it instead.",
+    "request_id": "req_0d4c2b8e-6f1a-4c55-9a3e-2b7f1e9c4a10",
+    "details": [
+      {
+        "field": "custom_skills",
+        "code": "listed_skill",
+        "message": "That skill is on PLUG's list. Choose it instead."
+      }
+    ]
+  }
+}

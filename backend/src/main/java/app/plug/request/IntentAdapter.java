@@ -68,6 +68,8 @@ public class IntentAdapter implements AutoCloseable {
     private final Provider provider;
     private final Duration deadline;
     private final SkillVocabulary vocabulary;
+    /// Provider-described skills (ADR-011); null where no database is wired, as in unit tests.
+    private CustomSkills customSkills;
 
     public IntentAdapter(ObjectMapper mapper, Clock clock, Provider provider) {
         this(mapper, clock, provider, Duration.ofSeconds(6), SkillVocabulary.load());
@@ -82,18 +84,27 @@ public class IntentAdapter implements AutoCloseable {
 
     public SkillVocabulary vocabulary() { return vocabulary; }
 
-    /// POST /v1/requests: a service request by definition. A missing skill is the one question.
-    public Result extract(Create input) {
-        Result result = classify(input, true);
-        return result;
+    public IntentAdapter withCustomSkills(CustomSkills customSkills) {
+        this.customSkills = customSkills;
+        return this;
     }
+
+    /// POST /v1/requests: a service request by definition. A missing skill is the one question.
+    public Result extract(Create input) { return classify(input, true, null); }
+
+    /// As above, also matching skills providers described themselves, never the caller's own.
+    public Result extract(Create input, String requesterId) { return classify(input, true, requesterId); }
 
     /// POST /v1/asks: classify, then extract for the pipeline that will run.
     public Result classify(String text, Location location, String timeZone) {
-        return classify(new Create(text, null, null, null, null, null, location, timeZone), false);
+        return classify(text, location, timeZone, null);
     }
 
-    private Result classify(Create input, boolean serviceOnly) {
+    public Result classify(String text, Location location, String timeZone, String requesterId) {
+        return classify(new Create(text, null, null, null, null, null, location, timeZone), false, requesterId);
+    }
+
+    private Result classify(Create input, boolean serviceOnly, String requesterId) {
         if (input.text().isBlank() || input.text().codePoints().anyMatch(c -> Character.isISOControl(c) && c != '\n')) {
             throw ApiException.validation("text", "invalid", "Describe what you need using plain text.");
         }
@@ -121,6 +132,14 @@ public class IntentAdapter implements AutoCloseable {
         else if (placeByRules) type = AskType.PLACE_QUESTION;
         else if (!ruleSkills.isEmpty() || !modelSkills.isEmpty()) type = AskType.SERVICE_REQUEST;
         else type = AskType.UNCLEAR;
+        // Listed skills always win. Only an ask that names none, and is not about a place, is
+        // checked against skills providers described in their own words.
+        CustomSkills.Match custom = null;
+        if (type != AskType.PLACE_QUESTION && input.category() == null && ruleSkills.isEmpty() && modelSkills.isEmpty()
+                && customSkills != null && requesterId != null) {
+            custom = customSkills.bestFor(input.text(), requesterId).orElse(null);
+            if (custom != null) type = AskType.SERVICE_REQUEST;
+        }
 
         if (type == AskType.PLACE_QUESTION) {
             String place = model != null && model.placeName() != null ? model.placeName() : placeName(input.text());
@@ -140,6 +159,10 @@ public class IntentAdapter implements AutoCloseable {
         int distance = input.maxDistanceM() != null ? input.maxDistanceM() : ruleDistance != null ? ruleDistance
                 : model != null && model.maxDistanceM() != null ? model.maxDistanceM() : DEFAULT_DISTANCE_M;
 
+        if (custom != null) {
+            return new Result(AskType.SERVICE_REQUEST, new Constraints(custom.tag(), custom.label(), List.of(custom.tag()),
+                    false, budget, "USD", needed, distance, input.location().rounded()), null, null, null);
+        }
         SkillVocabulary.Skill primary = skills.isEmpty() ? null : skills.getFirst();
         Constraints constraints = new Constraints(primary == null ? null : primary.tag(),
                 primary == null ? null : primary.display(), skills.stream().map(SkillVocabulary.Skill::tag).toList(),

@@ -68,7 +68,7 @@ public class RequestService {
             Resource replay = replay(caller, "create", key, input, Resource.class);
             if (replay != null) return replay;
             if (!limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
-            Resource result = insert(caller, input.text(), intent.extract(input));
+            Resource result = insert(caller, input.text(), intent.extract(input, caller.userId()));
             remember(caller, "create", key, input, result);
             return result;
         });

@@ -106,6 +106,25 @@ The live suite then gained four business-profile checks (https-only link refused
 omitted keeps, empty removes): 988 checks passed over 278 exchanges
 (`evidence/P2/security/phase2-business-profiles-2026-10-02.json`).
 
+## Larger skill list and own-words skills (ADR-011)
+
+Owner decision after the business-profile work. The vocabulary grows from 35 to 115 tags
+(licences on regulated trades), and a provider may keep up to five skills PLUG does not list,
+in their own words. An ask that names no listed skill is matched to those providers by
+keywords (one-word skills need that word; longer ones at least two). Listed skills always win,
+so a licensed skill cannot be re-entered in other words; the restricted-intent policy checks
+every label; a test keeps all 115 listed skills clear of that policy. The provider screen turns
+unlisted words into "Your own skills" chips and has an "Add your own skill" field; the Inbox
+shows own skills outlined beside listed ones. The live suite found `POST /v1/providers/skills`
+returning an undocumented 422 for an unsafe label (and an undocumented 413 from the business
+work); both are now in the contract with fixtures.
+
+Verification (fresh disposable database): backend 63 unit and 84 database tests; 185 contract
+tests; Spectral clean; live API 1004 checks over 282 exchanges
+(`evidence/P2/security/phase2-custom-skills-2026-10-02.json`); Bruno 49/49; iOS 67 tests;
+both simulator walks, 46 screenshots with greyscale copies in
+`evidence/P2/simulator/2026-10-02/custom-skills/`.
+
 ## Review and reversal
 
 The prior simulator evidence is retained alongside the new `ui-experiment/`

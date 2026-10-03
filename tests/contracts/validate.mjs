@@ -76,7 +76,8 @@ export function validateResource(body) {
   assert.equal(body.constraints.service_name === null, category === null, 'service_name tracks category');
   assert.equal(body.constraints.skill_tags.length === 0, category === null, 'skill_tags track category');
   if (category !== null) assert.equal(body.constraints.skill_tags[0], category, 'category is the first skill tag');
-  for (const tag of body.constraints.skill_tags) assert.ok(vocabulary.has(tag), `Skill tag outside the vocabulary: ${tag}`);
+  // A provider-described skill (ADR-011) is the only tag allowed outside skills.yaml.
+  for (const tag of body.constraints.skill_tags) assert.ok(vocabulary.has(tag) || /^custom_[a-z0-9_]{1,33}$/.test(tag), `Skill tag outside the vocabulary: ${tag}`);
   const digits = location.precision === 'coarse' ? 3 : 4;
   for (const axis of ['latitude', 'longitude']) {
     assert.equal(location[axis], Number(location[axis].toFixed(digits)), 'Unrounded location');

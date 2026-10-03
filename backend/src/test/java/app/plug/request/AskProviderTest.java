@@ -183,10 +183,10 @@ class AskProviderTest {
         String userId = person.at("/account/user_id").asText();
         read(person, "/v1/providers/me").andExpect(status().isNotFound());
         var proposal = body(send(person, "/v1/providers/skills/propose",
-                "{\"description\":\"I do knotless braids and wig installs, also crochet locs\"}", false)
+                "{\"description\":\"I do knotless braids and wig installs, also crochet locs and chimney sweeping\"}", false)
                 .andExpect(status().isOk()), "SkillProposal");
-        assertThat(proposal.path("skills").findValuesAsText("tag")).containsExactly("braids", "wig_install");
-        assertThat(proposal.path("unmatched").toString()).contains("crochet locs");
+        assertThat(proposal.path("skills").findValuesAsText("tag")).containsExactly("braids", "wig_install", "locs");
+        assertThat(proposal.path("unmatched").toString()).contains("chimney sweeping");
         int users = jdbc.queryForObject("SELECT count(*) FROM users", Integer.class);
         var profile = provide(person, "[\"braids\",\"wig_install\"]", 4828, HERE, "every_day", null);
         assertThat(profile.path("user_id").asText()).as("no second account").isEqualTo(userId);
@@ -212,6 +212,51 @@ class AskProviderTest {
                 .andExpect(status().isBadRequest()), "Error");
         assertThat(error.at("/error/details/0/code").asText()).isEqualTo("licence_required");
         read(person, "/v1/providers/me").andExpect(status().isNotFound());
+    }
+
+    String ownWords(String labels) {
+        return "{\"skill_tags\":[],\"custom_skills\":" + labels + ",\"travel_radius_m\":8000,\"base_location\":"
+                + "{\"latitude\":32.531,\"longitude\":-92.711,\"precision\":\"coarse\"},"
+                + "\"availability\":[{\"days\":\"every_day\",\"from\":\"09:00\",\"to\":\"24:00\"}],"
+                + "\"time_zone\":\"America/Chicago\"}";
+    }
+
+    @Test void providersOfferSkillsInTheirOwnWordsAndAsksFindThemByKeywords() throws Exception {
+        var sweeper = guest();
+        var profile = body(send(sweeper, "/v1/providers/skills", ownWords("[\"chimney sweeping\"]"), false)
+                .andExpect(status().isOk()), "ProviderProfile");
+        assertThat(profile.path("skills").size()).isZero();
+        assertThat(profile.path("custom_skills").get(0).asText()).isEqualTo("Chimney sweeping");
+
+        // A listed skill must be chosen from the list, so a licensed one cannot be re-entered in other words.
+        assertThat(body(send(sweeper, "/v1/providers/skills", ownWords("[\"electrician work\"]"), false)
+                .andExpect(status().isBadRequest()), "Error").at("/error/details/0/code").asText()).isEqualTo("listed_skill");
+        assertThat(body(send(sweeper, "/v1/providers/skills", ownWords("[\"help today\"]"), false)
+                .andExpect(status().isBadRequest()), "Error").at("/error/details/0/code").asText()).isEqualTo("too_vague");
+        body(send(sweeper, "/v1/providers/skills", ownWords("[\"selling stolen phones\"]"), false)
+                .andExpect(status().isUnprocessableEntity()), "Error");
+        assertThat(body(send(sweeper, "/v1/providers/skills", ownWords("[]"), false)
+                .andExpect(status().isBadRequest()), "Error").at("/error/details/0/code").asText()).isEqualTo("required");
+
+        var asker = guest();
+        var result = ask(asker, "Can someone sweep my chimney tomorrow?");
+        assertThat(result.path("ask_type").asText()).isEqualTo("service_request");
+        var request = result.path("request");
+        assertThat(request.at("/constraints/category").asText()).isEqualTo("custom_chimney_sweep");
+        assertThat(request.at("/constraints/service_name").asText()).isEqualTo("Chimney sweeping");
+        service.workOnce();
+        assertThat(jdbc.queryForList("SELECT provider_id FROM request_matches WHERE request_id=?", String.class,
+                request.path("request_id").asText())).contains(sweeper.at("/account/user_id").asText());
+
+        // One shared word is not enough for a two-word skill, and nobody is matched to their own skill.
+        assertThat(ask(guest(), "Is anyone free to look at my chimney?").path("ask_type").isNull()).isTrue();
+        assertThat(ask(sweeper, "Chimney sweeping please").path("ask_type").isNull()).isTrue();
+
+        // Omitting custom_skills keeps them; listed skills can sit alongside.
+        var both = provide(sweeper, "[\"handyman\"]", 8000, "{\"latitude\":32.531,\"longitude\":-92.711,\"precision\":\"coarse\"}",
+                "every_day", null);
+        assertThat(both.path("custom_skills").get(0).asText()).isEqualTo("Chimney sweeping");
+        assertThat(both.at("/skills/0/tag").asText()).isEqualTo("handyman");
     }
 
     @Test void matchingRespectsEachProvidersOwnRadiusAvailabilityAndLicence() throws Exception {

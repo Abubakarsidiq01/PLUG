@@ -1,15 +1,15 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-02T23:02:06.442747+00:00",
-  "updated_by": "person_one (completing owner-authorized Codex work: optional business profiles)",
+  "updated_at": "2026-10-03T02:43:21.067424+00:00",
+  "updated_by": "person_one (owner decision: larger vocabulary and own-words skills, ADR-011)",
   "completed_phases": [
     "P0",
     "P1"
   ],
   "current_phase": "P2",
-  "current_step": "P2.S21",
-  "current_step_title": "Phase 2 v4 implementation hardened locally, with owner-authorized amendments P2.S20 (back navigation) and P2.S21 (optional business profiles) verified locally and recorded in manual v4 \u00a727.3. Contract approval, admin vocabulary/classifier view, device/Figma/Windows review and G2 checkpoint remain open.",
+  "current_step": "P2.S22",
+  "current_step_title": "Phase 2 v4 implementation hardened locally, with owner-authorized amendments P2.S20 (back navigation), P2.S21 (optional business profiles) and P2.S22 (115-skill vocabulary and own-words skills, ADR-011), verified locally and recorded in manual v4 \u00a727.3. Contract approval, admin vocabulary/classifier view, device/Figma/Windows review and G2 checkpoint remain open.",
   "manual_section": "27.3",
   "readme": "docs/phases/P2-ONE.md",
   "owner": "both",
@@ -85,9 +85,9 @@
     "GET /v1/asks/{ask_id}": "proposed@0.5.0",
     "POST /v1/asks/{ask_id}/clarifications": "proposed@0.5.0",
     "POST /v1/providers/skills/propose": "proposed@0.5.0",
-    "POST /v1/providers/skills": "proposed@0.5.0 (amended 2026-10-02: optional business profile, 96 KiB body)",
+    "POST /v1/providers/skills": "proposed@0.5.0 (amended 2026-10-02: business profile, 96 KiB body, custom_skills)",
     "GET /v1/providers/me": "proposed@0.5.0",
-    "contracts/skills.yaml": "proposed@0.5.0 (owned by person_two)"
+    "contracts/skills.yaml": "proposed@0.5.0 (owned by person_two; 115 tags, amended 2026-10-02, ADR-011)"
   },
   "feature_flags": {
     "identity": "staging_only",
@@ -143,6 +143,7 @@
   ],
   "do_not_touch": [],
   "open_risks": [
+    "Own-words skills (ADR-011) are matched by simple keywords and are not reviewed; a provider can describe a lawful skill vaguely or misleadingly. The restricted-intent policy and listed-skill rule guard them, but popular labels should be reviewed and promoted into skills.yaml through vocabulary_gaps.",
     "Scope is open to any lawful service and any public place; the restricted-intent policy is now the only refusal path. It is rule-based, has 46 labelled vectors plus backend tests, and has not been red-teamed by a second person (Person Two P2.S11).",
     "Skill vocabulary is 35 tags; matching quality is untested at low provider density, and place questions have no human answerers until Phase 4, so they end Unknown.",
     "Provider rate-limit budget is shared with the request read budget per caller address (60/min, in-process memory).",
@@ -561,6 +562,20 @@
       "ios_screenshots": 44,
       "evidence": "evidence/P2/simulator/2026-10-02/business-final/ (with greyscale/)",
       "manual": "PLUG_Production_Master_Manual_v4.docx \u00a727.3 Phase 2 amendments; steps P2.S20-P2.S21",
+      "status": "local verification; G2 not signed"
+    },
+    "phase2_custom_skills": {
+      "date": "2026-10-02",
+      "decision": "docs/decisions/ADR-011-provider-described-skills.md",
+      "vocabulary_tags": 115,
+      "backend_unit": 63,
+      "backend_database": 84,
+      "contract_tests": 185,
+      "live_api_checks": 1004,
+      "bruno_requests": 49,
+      "ios_tests": 67,
+      "ios_screenshots": 46,
+      "evidence": "evidence/P2/simulator/2026-10-02/custom-skills/ (with greyscale/)",
       "status": "local verification; G2 not signed"
     }
   },

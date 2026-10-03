@@ -24,6 +24,9 @@ struct ProviderOnboardingView: View {
     @State private var proposed: [SkillTag] = []
     @State private var chosen: Set<String> = []
     @State private var unmatched: [String] = []
+    /// Skills in the provider's own words that PLUG does not list (ADR-011), up to five.
+    @State private var ownSkills: [String] = []
+    @State private var ownDraft = ""
     @State private var radius = Radius.miles3
     @State private var days = AvailabilityWindow.Days.everyDay
     @State private var slots: Set<Slot> = [.afternoons]
@@ -45,8 +48,8 @@ struct ProviderOnboardingView: View {
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                     }
                     describeStep
-                    if !proposed.isEmpty || !unmatched.isEmpty { skillsStep }
-                    if !chosen.isEmpty {
+                    if !proposed.isEmpty || !unmatched.isEmpty || !ownSkills.isEmpty { skillsStep }
+                    if hasSkills {
                         businessStep
                         radiusStep
                         availabilityStep
@@ -65,7 +68,7 @@ struct ProviderOnboardingView: View {
                             .background(PlugTokens.Color.alert50, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                             .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control).strokeBorder(PlugTokens.Color.alertBorder))
                     }
-                    if !chosen.isEmpty {
+                    if hasSkills {
                         Button(isWorking ? "Saving…" : saveTitle) { Task { await save() } }
                             .buttonStyle(AuthActionStyle(primary: true))
                             .disabled(isWorking || photoLoading || location.location == nil || slots.isEmpty || (needsLicence && !licenceValid))
@@ -79,6 +82,9 @@ struct ProviderOnboardingView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(PlugTokens.Color.paper)
+            // A paper bar, so scrolled text never runs under Cancel at large text sizes.
+            .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(isWorking) }
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { describing = false } }
@@ -87,6 +93,7 @@ struct ProviderOnboardingView: View {
         .interactiveDismissDisabled(isWorking)
         .tint(PlugTokens.Color.ink900)
         .sensoryFeedback(.selection, trigger: chosen)
+        .sensoryFeedback(.selection, trigger: ownSkills)
         .sensoryFeedback(.selection, trigger: radius)
         .sensoryFeedback(.selection, trigger: slots)
         .sensoryFeedback(.success, trigger: proposed.count) { old, new in new > old }
@@ -200,7 +207,7 @@ struct ProviderOnboardingView: View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
             Text("Confirm your skills").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             if proposed.isEmpty {
-                Text("None of that matched a skill PLUG can route yet. Try other words.")
+                Text("None of that is on PLUG's list yet. Keep it as your own skill below, or try other words.")
                     .plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
             } else {
                 Text("Tap to remove any that are wrong. You can only be matched on these.")
@@ -214,14 +221,65 @@ struct ProviderOnboardingView: View {
                     }
                 }
             }
-            if !unmatched.isEmpty {
-                Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1)
-                Text("Not matched yet: \(unmatched.joined(separator: ", "))")
-                    .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink900)
-                caption("PLUG keeps a list of these for review. Nobody is matched on them.")
-            }
+            ownSkillsSection
         }
         .plugCard()
+    }
+
+    /// Words PLUG does not list become the provider's own skills on a tap (ADR-011). Customers who
+    /// ask for them are found by their words; listed skills always win.
+    private var ownSkillsSection: some View {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+            Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1)
+            Text("Your own skills").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            Text(ownSkillCandidates.isEmpty ? "Offer something PLUG does not list? Add it in your own words."
+                 : "Not on PLUG's list yet. Tap to keep it; customers who ask for it in those words can find you.")
+                .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+            if !ownSkillCandidates.isEmpty {
+                PlugFlowLayout {
+                    ForEach(ownSkillCandidates, id: \.self) { label in
+                        PlugChip(title: label, selected: ownSkills.contains(label)) { toggleOwn(label) }
+                            .accessibilityHint(ownSkills.contains(label) ? "Removes this skill" : "Keeps this as your own skill")
+                    }
+                }
+            }
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: PlugTokens.Space.s2) { ownField; addOwnButton.fixedSize() }
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) { ownField; addOwnButton }
+            }
+            caption(ownSkills.count >= 5 ? "You can keep up to five of your own skills."
+                    : "Use the words customers would say, for example \"chimney sweeping\".")
+        }
+    }
+
+    private var ownField: some View {
+        PlugTextField(title: "Add your own skill", text: $ownDraft)
+            .textInputAutocapitalization(.never)
+            .accessibilityIdentifier("own-skill-field")
+    }
+
+    private var addOwnButton: some View {
+        Button("Add") {
+            let label = ownDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard label.count >= 3 else { return }
+            if !ownSkills.contains(where: { $0.caseInsensitiveCompare(label) == .orderedSame }) { toggleOwn(label) }
+            ownDraft = ""
+        }
+        .buttonStyle(AuthActionStyle())
+        .disabled(ownDraft.trimmingCharacters(in: .whitespacesAndNewlines).count < 3 || ownSkills.count >= 5)
+        .accessibilityIdentifier("own-skill-add")
+    }
+
+    /// Unmatched words from the description first, then anything already kept or typed.
+    private var ownSkillCandidates: [String] {
+        var labels = unmatched
+        for label in ownSkills where !labels.contains(label) { labels.append(label) }
+        return labels
+    }
+
+    private func toggleOwn(_ label: String) {
+        if let index = ownSkills.firstIndex(of: label) { ownSkills.remove(at: index) }
+        else if ownSkills.count < 5 { ownSkills.append(label) }
     }
 
     private var radiusStep: some View {
@@ -310,6 +368,7 @@ struct ProviderOnboardingView: View {
     // MARK: Behaviour
 
     private var selectedRadius: Int { radiusChanged ? radius.rawValue : (current?.travelRadiusM ?? radius.rawValue) }
+    private var hasSkills: Bool { !chosen.isEmpty || !ownSkills.isEmpty }
     private var needsLicence: Bool { proposed.contains { chosen.contains($0.tag) && $0.requiresLicence } }
     private var licensedNames: String {
         proposed.filter { chosen.contains($0.tag) && $0.requiresLicence }.map(\.display).joined(separator: " and ")
@@ -326,6 +385,7 @@ struct ProviderOnboardingView: View {
         guard let current, proposed.isEmpty else { return }
         proposed = current.skills
         chosen = Set(current.skills.map(\.tag))
+        ownSkills = current.customSkills ?? []
         radius = Radius.nearest(current.travelRadiusM)
         accepting = current.accepting
         businessName = current.business?.name ?? ""
@@ -367,6 +427,7 @@ struct ProviderOnboardingView: View {
         setup.timeZone = current?.timeZone ?? TimeZone.current.identifier
         if needsLicence { setup.licenceRef = licence.trimmingCharacters(in: .whitespaces) }
         setup.accepting = accepting
+        setup.customSkills = ownSkills
         setup.business = BusinessProfile(name: optional(businessName), about: optional(about), photoBase64: photo,
                                          links: links.filter { optional($0.url) != nil }.map {
             BusinessLink(label: $0.label.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -474,6 +535,12 @@ struct InboxView: View {
                                 Text(skill.display).plugText(.label).foregroundStyle(PlugTokens.Color.ink900)
                                     .padding(.horizontal, PlugTokens.Space.s3).padding(.vertical, PlugTokens.Space.s2)
                                     .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.badge))
+                            }
+                            ForEach(profile.customSkills ?? [], id: \.self) { label in
+                                Text(label).plugText(.label).foregroundStyle(PlugTokens.Color.ink900)
+                                    .padding(.horizontal, PlugTokens.Space.s3).padding(.vertical, PlugTokens.Space.s2)
+                                    .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.badge).strokeBorder(PlugTokens.Color.rule300))
+                                    .accessibilityLabel("\(label), your own skill")
                             }
                         }
                         VStack(spacing: 0) {

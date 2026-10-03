@@ -16,7 +16,7 @@ headers {
 }
 
 body:json {
-  {"description":"I do knotless braids and wig installs, also crochet locs"}
+  {"description":"I do knotless braids and wig installs, also crochet locs and chimney sweeping"}
 }
 
 assert {
@@ -28,5 +28,5 @@ tests {
   test("correlation identifier returned", function () {
     expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
   });
-  test("only vocabulary tags", function () { expect(res.getBody().skills.map(s => s.tag).sort()).to.deep.equal(["braids", "wig_install"]); });
+  test("only vocabulary tags", function () { expect(res.getBody().skills.map(s => s.tag).sort()).to.deep.equal(["braids", "locs", "wig_install"]); });
 }

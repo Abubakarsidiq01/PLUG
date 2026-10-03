@@ -939,6 +939,27 @@
       "method": "get",
       "path": "/v1/requests/{request_id}/offers",
       "status": 200
+    },
+    {
+      "file": "fixtures/providers.skills/restricted-intent.json",
+      "method": "post",
+      "path": "/v1/providers/skills",
+      "status": 422,
+      "error_code": "restricted_intent"
+    },
+    {
+      "file": "fixtures/providers.skills/payload-too-large.json",
+      "method": "post",
+      "path": "/v1/providers/skills",
+      "status": 413,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/providers.skills/listed-skill.json",
+      "method": "post",
+      "path": "/v1/providers/skills",
+      "status": 400,
+      "error_code": "validation_failed"
     }
   ],
   "not_applicable": {
