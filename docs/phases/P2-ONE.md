@@ -83,11 +83,15 @@ stop and open a contract pull request instead.
 
 ## 1. Environment
 
+Follow [the isolated Phase 2 runbook](../runbooks/phase2-local.md) to create
+`plug_phase2_tests` and `plug_phase2_live`. Automated database tests erase test data;
+never point them at the phone's live database.
+
 ```bash
-docker compose up -d postgres redis
-./gradlew :backend:flywayMigrate
-./gradlew :backend:bootRun          # http://localhost:8080
-open ios/PLUG.xcodeproj             # scheme: PLUG-Staging
+sh tools/run-phase2-local.sh      # loopback port 18080; migrations run at startup
+open ios/Plug.xcodeproj           # scheme: Plug
+# Or build/install using the private paired-device connection:
+sh tools/run-phase2-phone.sh
 ```
 
 If any of those commands fails on a clean machine, that is a bug in
@@ -97,6 +101,8 @@ documentation is part of the work.
 ---
 
 ## 2. Your steps
+
+Person One hardening and current verification: [2026-10-04 report](../testing/phase2-person-one-hardening-2026-10-04.md). Implementation checks pass locally; open boxes below also require the actual shared approvals and device evidence, so they are not a claim that the code is missing.
 
 Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
@@ -159,10 +165,13 @@ verbal description.
 Verify with:
 
 ```bash
-./gradlew :backend:test :backend:contractTest
-./gradlew :backend:test --tests '*ArchitectureTest'
-xcodebuild test -scheme PLUG-Staging -destination 'platform=iOS Simulator,name=iPhone 15'
-# Then, on a REAL device, run this phase's primary flow before claiming it works.
+./backend/dev check contractTest
+# With the isolated database variables from the runbook:
+./backend/dev databaseTest
+xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+# Capture real-device states using tools/run-phase2-device-evidence.sh and record
+# the separate VoiceOver walkthrough before claiming the device gate has passed.
 ```
 
 ---

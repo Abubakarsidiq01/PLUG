@@ -76,6 +76,29 @@ class IntentAdapterTest {
             assertThat(ask(adapter, "Something").askType()).isEqualTo(IntentAdapter.AskType.UNCLEAR);
         }
     }
+    @Test void modelMustSupplyEverySchemaFieldAndAtMostFiveTags() throws Exception {
+        String valid = "{\"ask_type\":\"service_request\",\"skill_tags\":[\"nails\"],"
+                + "\"place_name\":null,\"budget_cents\":null,\"needed_by\":null,\"max_distance_m\":null}";
+        // A complete structured reading is accepted, proving that this is not an
+        // always-fallback test. Incomplete/malformed readings must use the rules.
+        try (var adapter = adapter((text, now, zone, deadline) -> valid)) {
+            assertThat(extract(adapter, "Barber").category()).isEqualTo("nails");
+        }
+        for (String field : List.of("ask_type", "skill_tags", "place_name", "budget_cents", "needed_by", "max_distance_m")) {
+            var missing = (com.fasterxml.jackson.databind.node.ObjectNode) JSON.readTree(valid);
+            missing.remove(field);
+            try (var adapter = adapter((text, now, zone, deadline) -> missing.toString())) {
+                assertThat(extract(adapter, "Barber").category()).as("missing %s", field).isEqualTo("barber");
+            }
+        }
+        for (String tags : List.of("null", "[\"nails\",\"nails\",\"nails\",\"nails\",\"nails\",\"nails\"]")) {
+            var malformed = (com.fasterxml.jackson.databind.node.ObjectNode) JSON.readTree(valid);
+            malformed.set("skill_tags", JSON.readTree(tags));
+            try (var adapter = adapter((text, now, zone, deadline) -> malformed.toString())) {
+                assertThat(extract(adapter, "Barber").category()).isEqualTo("barber");
+            }
+        }
+    }
     @Test void skillTagsComeOnlyFromTheVocabulary() {
         String model = "{\"ask_type\":\"service_request\",\"skill_tags\":[\"underwater_basket_weaving\",\"laptop_repair\"],"
                 + "\"place_name\":null,\"budget_cents\":99900,\"needed_by\":null,\"max_distance_m\":null}";

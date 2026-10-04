@@ -4,7 +4,7 @@ import SwiftUI
 
 /// The Ask screen from manual v4 Figure A1: one field for both kinds of ask, examples grouped
 /// by the two things PLUG does, and the four answer states (working, answered, nobody
-/// answered, and the dashed web answer). Ink on paper, colour only for evidence (§10). The
+/// answered, and the dashed web answer). Owner-requested marketplace visual revision; the
 /// server decides the ask type, the counts, the labels and every value; this view renders.
 struct AskView: View {
     @StateObject private var model: RequestModel
@@ -16,6 +16,10 @@ struct AskView: View {
     @State private var askWhenLocated = false
     @State private var showValidation = false
     @State private var offeringService = false
+    @State private var moreIdeas = false
+    @State private var offerOrder = OfferOrder.suggested
+    private enum OfferOrder: String, CaseIterable { case suggested = "For you", price = "Lowest price", distance = "Closest" }
+    @Environment(\.dynamicTypeSize) private var typeSize
     /// The answer is a pushed page, so the system back button and edge swipe both return home.
     @State private var path: [Page] = []
     private enum Page: Hashable { case answer }
@@ -84,76 +88,53 @@ struct AskView: View {
 
     private var home: some View {
         page {
-            HStack(alignment: .firstTextBaseline) {
-                Text("PLUG").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+            HStack {
+                HStack(spacing: 8) {
+                    Image("PlugMark").renderingMode(.template).resizable().scaledToFit().frame(width: 23, height: 30)
+                    Text("plug").font(.system(size: 30, weight: .heavy, design: .rounded)).tracking(-1.4)
+                }
                 Spacer()
-                Text("Services & places").plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
+                Label("Around you", systemImage: "location")
+                    .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                Text("What do you need to know?").plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(stillAsking ? "Let’s find your person." : "Who can help you today?")
+                    .font(.system(.title, design: .rounded, weight: .bold))
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
-                Text("Find someone who can help. Find out what's happening nearby.")
-                    .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                    .accessibilityIdentifier("ask-home-title")
+                if !stillAsking {
+                    Text("Local skills. Real connections.")
+                        .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                }
             }
             if model.hasAsk { resumeCard }
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                Text("Your ask").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
-                ZStack(alignment: .topLeading) {
-                    // A wrapping placeholder: the system one truncates at large text sizes.
-                    if model.text.isEmpty {
-                        Text("Type anything, or tap an example").plugText(.body)
-                            .foregroundStyle(PlugTokens.Color.ink600)
-                            .padding(PlugTokens.Space.s3)
-                            .allowsHitTesting(false)
-                            .accessibilityHidden(true)
-                    }
-                    TextField("", text: $model.text, axis: .vertical)
-                        .plugText(.body)
-                        .lineLimit(3...6)
-                        .focused($textFocused)
-                        .padding(PlugTokens.Space.s3)
-                        .accessibilityLabel("What do you need to know?")
-                        .accessibilityIdentifier("request-text")
-                        .disabled(model.isWorking)
-                }
-                .frame(minHeight: PlugTokens.Space.s12 * 2, alignment: .topLeading)
-                .background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control)
-                    .strokeBorder(textFocused || voice.isListening ? PlugTokens.Color.ink900 : PlugTokens.Color.rule300,
-                                  lineWidth: textFocused || voice.isListening ? 2 : 1))
-                .animation(.plug(PlugTokens.Motion.fast, reduceMotion: reduceMotion), value: textFocused)
-                // Side by side while they fit; stacked at the largest text sizes instead of breaking words.
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: PlugTokens.Space.s2) { askButton; voiceButton.fixedSize(horizontal: true, vertical: false) }
-                    VStack(spacing: PlugTokens.Space.s2) { askButton; voiceButton }
-                }
-                if let note = voice.message { caption(note) }
-                if showValidation, let error = model.textError { fieldError(error) }
-                locationNote
-            }
-            .plugCard()
+            if !stillAsking { composer }
             failure
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                Text("Start with an example").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-                    .accessibilityAddTraits(.isHeader)
-                examples("Find me something", Example.services)
-                examples("Tell me what's happening", Example.places)
+            if !stillAsking { discovery }
+            Button { offeringService = true } label: {
+                HStack(spacing: 16) {
+                    Image(systemName: "person.crop.circle.badge.plus")
+                        .font(.system(size: 26, weight: .regular))
+                        .frame(width: 52, height: 56)
+                        .background(PlugTokens.Color.card.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("Your skill. Someone’s solution.").plugText(.title3)
+                        Text("Offer a service").plugText(.bodySmall).opacity(0.8)
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: "arrow.up.right").font(.system(size: 18, weight: .medium))
+                }
+                .foregroundStyle(PlugTokens.Color.card)
+                .padding(20)
+                .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: 24))
             }
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                Text("Do you do something people ask for?").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
-                Text("Put what you do on PLUG. Add your skills, choose your area and set your hours.")
-                    .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                Button("Offer a service") { offeringService = true }
-                    .buttonStyle(AuthActionStyle())
-                    .accessibilityIdentifier("offer-service")
-            }
-            .padding(PlugTokens.Space.s4)
-            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
-            caption("Private test. Service offers are test data. Live place answers and booking are not available yet.")
+            .buttonStyle(.plain)
+            .accessibilityLabel("Offer a service")
+            .accessibilityIdentifier("offer-service")
+            caption("Private preview · Example offers. Booking isn’t available yet.")
         }
         .toolbar(.hidden, for: .navigationBar)
-        // No bar on home, so give the status bar a paper backing that scrolled text passes under.
         .overlay {
             GeometryReader { geometry in
                 VStack(spacing: 0) {
@@ -173,6 +154,126 @@ struct AskView: View {
         }
     }
 
+    private var composer: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: "magnifyingglass").font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(PlugTokens.Color.ink600).accessibilityHidden(true)
+                TextField("Tell us what you need…", text: $model.text, axis: .vertical)
+                    .plugText(.body).lineLimit(1...5).focused($textFocused)
+                    .accessibilityLabel("What do you need?")
+                    .accessibilityIdentifier("request-text")
+                    .disabled(model.isWorking)
+                Button { ask() } label: {
+                    Image(systemName: "arrow.up").font(.system(size: 20, weight: .semibold))
+                        .frame(width: 46, height: 46)
+                        .foregroundStyle(PlugTokens.Color.card)
+                        .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: 15))
+                }
+                .buttonStyle(.plain).accessibilityLabel("Ask")
+                .accessibilityIdentifier("ask-submit")
+                .disabled(model.isWorking || location.isWorking)
+            }
+            .padding(12).padding(.leading, 4)
+            .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 24))
+            .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(textFocused ? PlugTokens.Color.ink900 : PlugTokens.Color.rule200))
+            HStack {
+                Text("A service or a question about a place").plugText(.caption)
+                    .foregroundStyle(PlugTokens.Color.ink600)
+                Spacer(minLength: 4)
+                voiceButton
+            }
+            if let note = voice.message { caption(note) }
+            if showValidation, let error = model.textError { fieldError(error) }
+            if location.location != nil || location.errorMessage != nil || location.isWorking { locationNote }
+        }
+    }
+
+    private var discovery: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            let categories = [("Hair & beauty", "scissors", Example.services[1]),
+                              ("Home help", "house", Example.services[2]),
+                              ("Tech", "laptopcomputer", "I need help repairing my laptop"),
+                              ("Places", "mappin.and.ellipse", Example.places[0])]
+            let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: typeSize.isAccessibilitySize ? 2 : 4)
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(categories, id: \.0) { title, icon, example in
+                    Button { fillExample(example) } label: {
+                        VStack(spacing: 10) {
+                            Image(systemName: icon).font(.system(size: 25, weight: .regular))
+                                .frame(width: 62, height: 62)
+                                .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 22))
+                            Text(title).plugText(.label).multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity).contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            VStack(alignment: .leading, spacing: 14) {
+                Text("A little inspiration").font(.system(.title3, design: .rounded, weight: .bold))
+                Button { fillExample(Example.services[1]) } label: {
+                    ZStack(alignment: .bottomLeading) {
+                        GeometryReader { geometry in
+                            Image("ServiceConnection").resizable().scaledToFill()
+                                .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                        }
+                        LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
+                        HStack(alignment: .bottom) {
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text("Look good. Feel like you.")
+                                    .font(.system(.title2, design: .rounded, weight: .bold))
+                                Text("Find your next stylist").plugText(.bodySmall)
+                            }
+                            Spacer(minLength: 8)
+                            Image(systemName: "arrow.up.right").font(.system(size: 18, weight: .semibold))
+                                .frame(width: 42, height: 42).background(.white.opacity(0.18), in: Circle())
+                        }
+                        .foregroundStyle(.white).padding(20)
+                    }
+                    .frame(height: typeSize.isAccessibilitySize ? 330 : 248)
+                    .clipShape(RoundedRectangle(cornerRadius: 26))
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("ask-example-barber")
+                .accessibilityLabel("Find hair and beauty services")
+                .accessibilityHint("Fills an example request. Nothing is sent yet.")
+                Button { fillExample(Example.places[0]) } label: {
+                    HStack(spacing: 16) {
+                        Image("Neighbourhood").renderingMode(.template).resizable().scaledToFit()
+                            .frame(width: 70, height: 70)
+                            .padding(8).background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 20))
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Know before you go").plugText(.title3)
+                            Text("Ask what’s happening nearby.").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "arrow.up.right")
+                    }
+                    .padding(16).background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 24))
+                }
+                .buttonStyle(.plain).accessibilityIdentifier("ask-example-place")
+                .accessibilityHint("Fills a question about a place. Nothing is sent yet.")
+            }
+            DisclosureGroup("More ideas", isExpanded: $moreIdeas) {
+                VStack(alignment: .leading, spacing: 12) {
+                    examples("Find help", Array(Example.services.dropFirst()))
+                    examples("Ask nearby", Array(Example.places.dropFirst()))
+                }.padding(.top, 12)
+            }
+            .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+        }
+        .foregroundStyle(PlugTokens.Color.ink900)
+        .disabled(model.isWorking)
+    }
+
+    private func fillExample(_ text: String) {
+        voice.stop()
+        model.text = text
+        textFocused = true
+        showValidation = false
+    }
+
     private var stillAsking: Bool { model.hasActiveAsk }
 
     /// Shown after swiping back from a request that is still asking people.
@@ -184,29 +285,34 @@ struct AskView: View {
                 Text("\(progress.contacted) notified, \(progress.replied) replied")
                     .plugText(.bodySmall).monospacedDigit().foregroundStyle(PlugTokens.Color.ink600)
             }
-            Button("Open this ask") { path = [.answer] }
-                .buttonStyle(AuthActionStyle())
-                .accessibilityIdentifier("ask-resume")
-            if model.request?.status.canCancel == true {
-                Button(model.isWorking ? "Stopping…" : "Stop asking") { Task { await model.cancel() } }
-                    .buttonStyle(PlugDestructiveStyle())
-                    .disabled(model.isWorking)
-                    .accessibilityIdentifier("ask-stop")
+            Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1)
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: PlugTokens.Space.s6) {
+                    resumeAction.fixedSize(horizontal: true, vertical: false)
+                    stopAction.fixedSize(horizontal: true, vertical: false)
+                }
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s1) { resumeAction; stopAction }
             }
-            if model.request?.status == .canceled { caption("Stopped. You can make a new ask whenever you're ready.") }
-            if stillAsking {
-                caption(model.placeQuestion != nil ? "Let this ask finish before starting another."
-                        : "Stop it or let it finish before asking something new.")
-            }
+            if model.request?.status == .canceled { caption("Stopped. You're free to ask again.") }
         }
         .plugCard()
     }
 
-    private var askButton: some View {
-        Button(model.isWorking ? "Asking…" : "Ask") { ask() }
-            .buttonStyle(AuthActionStyle(primary: true))
-            .disabled(model.isWorking || location.isWorking || stillAsking)
-            .accessibilityIdentifier("ask-submit")
+    private var resumeAction: some View {
+        Button { path = [.answer] } label: {
+            HStack { Text("Open this ask"); Image(systemName: "chevron.right").imageScale(.small).accessibilityHidden(true) }
+        }
+        .buttonStyle(RequestTextActionStyle())
+        .accessibilityIdentifier("ask-resume")
+    }
+
+    @ViewBuilder private var stopAction: some View {
+        if model.request?.status.canCancel == true {
+            Button(model.isWorking ? "Stopping…" : "Stop asking") { Task { await model.cancel() } }
+                .buttonStyle(RequestTextActionStyle(destructive: true))
+                .disabled(model.isWorking)
+                .accessibilityIdentifier("ask-stop")
+        }
     }
 
     private var voiceButton: some View {
@@ -214,7 +320,7 @@ struct AskView: View {
             Label(voice.isListening ? "Listening… Stop" : "Voice",
                   systemImage: voice.isListening ? "mic.fill" : "mic")
         }
-        .buttonStyle(AuthActionStyle())
+        .buttonStyle(RequestTextActionStyle())
         .disabled(model.isWorking || !voice.isAvailable)
         .accessibilityLabel(voice.isListening ? "Stop dictation" : "Ask by voice")
         .sensoryFeedback(.start, trigger: voice.isListening) { _, listening in listening }
@@ -280,16 +386,22 @@ struct AskView: View {
                 if example != items.last { Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1) }
             }
         }
-        .plugCard()
+        .padding(.vertical, PlugTokens.Space.s1)
     }
 
     // MARK: 2 to 4. The answer
 
     private var answerScreen: some View {
         page {
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
-                Text("You asked").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                Text(askedText).plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: "text.bubble").font(.system(size: 19, weight: .medium))
+                    .frame(width: 42, height: 42)
+                    .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 14))
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Your request").plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
+                    Text(askedText).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
+                }
+                Spacer(minLength: 0)
             }
             .accessibilityElement(children: .combine)
             if model.isCached {
@@ -312,8 +424,9 @@ struct AskView: View {
             .animation(.plug(reduceMotion: reduceMotion), value: answerState)
             actions
             if let reference = model.request?.requestId ?? model.askId {
-                Text("Reference \(reference)").plugText(.caption)
-                    .foregroundStyle(PlugTokens.Color.ink600).textSelection(.enabled)
+                DisclosureGroup("Request reference") {
+                    Text(reference).plugText(.caption).textSelection(.enabled)
+                }.plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
             }
         }
         .navigationTitle("Your ask")
@@ -323,7 +436,9 @@ struct AskView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Refresh") { Task { await model.refresh() } }.disabled(model.isWorking)
+                Button { Task { await model.refresh() } } label: {
+                    Image(systemName: "arrow.clockwise").font(.system(size: 17, weight: .medium))
+                }.accessibilityLabel("Refresh").disabled(model.isWorking)
             }
         }
     }
@@ -341,15 +456,23 @@ struct AskView: View {
     }
 
     private func questionCard(_ question: ServiceRequest.Clarification) -> some View {
-        VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text(question.question).plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
-            Text("Choose the option that best fits your ask.").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-            ForEach(question.options, id: \.value) { option in
-                Button(option.label) { Task { await model.answer(option.value) } }
-                    .buttonStyle(AuthActionStyle()).disabled(model.isWorking)
+        VStack(alignment: .leading, spacing: 20) {
+            FlowEmblem(symbol: "bubble.left.and.text.bubble.right", size: 72)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(question.question).font(.system(.title2, design: .rounded, weight: .bold))
+                Text("One quick detail to find the right help.").plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
             }
-        }
-        .plugCard()
+            ForEach(question.options, id: \.value) { option in
+                Button { Task { await model.answer(option.value) } } label: {
+                    HStack {
+                        Text(option.label).plugText(.action)
+                        Spacer(minLength: 12)
+                        Image(systemName: "arrow.right").font(.system(size: 16))
+                    }
+                    .padding(18).background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: 16))
+                }.buttonStyle(.plain).disabled(model.isWorking)
+            }
+        }.foregroundStyle(PlugTokens.Color.ink900).marketCard()
     }
 
     @ViewBuilder private func serviceAnswer(_ request: ServiceRequest) -> some View {
@@ -366,89 +489,116 @@ struct AskView: View {
             }
         case .showNoResult:
             nobody("No offers", request.noResultReason?.explanation ?? "No current offers are available.", request.progress.contacted)
+            if request.noResultReason == .noCoverage { offerTheGap(request) }
         case .none:
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                Text("You stopped asking").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-                Text("PLUG confirmed it. Nobody will be contacted for this request.")
+            VStack(alignment: .leading, spacing: 18) {
+                FlowEmblem(symbol: "checkmark", size: 72)
+                Text("You stopped asking").font(.system(.title2, design: .rounded, weight: .bold))
+                Text("This request is closed. Nobody else will be contacted.")
                     .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
-            }
-            .plugCard()
+            }.marketCard()
         }
     }
 
-    /// Figure A1 screen 2. Counts from the server; the bar tracks replies, never time.
+    /// Reply counts come from the server; the visual never implies elapsed-time progress.
     private func working(_ request: ServiceRequest) -> some View {
         let p = request.progress
-        return VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .firstTextBaseline) { workingTitle(request); Spacer(minLength: PlugTokens.Space.s2); deadline(request) }
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) { workingTitle(request); deadline(request) }
+        return VStack(alignment: .leading, spacing: 22) {
+            HStack(alignment: .top, spacing: 16) {
+                FlowEmblem(symbol: "paperplane", size: 64)
+                VStack(alignment: .leading, spacing: 8) {
+                    workingTitle(request)
+                    Text("Your request is out there. Replies land here.")
+                        .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                }
             }
+            FlowMetrics(items: [("Notified", "\(p.contacted)", "person.2"),
+                                ("Replied", "\(p.replied)", "bubble.left"),
+                                ("Offers", "\(p.offersReady)", "tray")])
             ProgressView(value: Double(p.replied), total: Double(max(p.contacted, 1)))
                 .tint(PlugTokens.Color.ink900)
-                .animation(.plug(PlugTokens.Motion.slow, reduceMotion: reduceMotion), value: p.replied)
-                .accessibilityLabel("Replies received")
-                .accessibilityValue("\(p.replied) of \(p.contacted)")
-            VStack(spacing: 0) {
-                valueRow("Providers notified", "\(p.contacted)")
-                valueRow("Replied", "\(p.replied)")
-                valueRow("Offers ready", "\(p.offersReady)", last: true)
-            }
-            .contentTransition(.numericText())
-            .animation(.plug(reduceMotion: reduceMotion), value: p)
-            caption("Replies appear here as providers respond.")
+                .accessibilityLabel("Replies received").accessibilityValue("\(p.replied) of \(p.contacted)")
+            deadline(request)
         }
-        .plugCard()
-        .accessibilityIdentifier("request-progress")
+        .marketCard().accessibilityIdentifier("request-progress")
     }
     private func workingTitle(_ request: ServiceRequest) -> some View {
         Text("Asking \(request.constraints.serviceName?.lowercased() ?? "providers") nearby")
-            .plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            .font(.system(.title3, design: .rounded, weight: .bold)).foregroundStyle(PlugTokens.Color.ink900)
     }
     private func deadline(_ request: ServiceRequest) -> some View {
         Text("Open until \(request.expiresAt.formatted(date: .omitted, time: .shortened))")
             .plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
             .padding(.horizontal, PlugTokens.Space.s2).padding(.vertical, PlugTokens.Space.s1)
             .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.badge).strokeBorder(PlugTokens.Color.rule300))
-            .fixedSize()
+            .fixedSize(horizontal: false, vertical: true)
     }
 
-    /// Figure A3: the price is the headline; the badge is the evidence; the provider is New, never 0.
+    private var orderedOffers: [ServiceOffer] {
+        switch offerOrder {
+        case .suggested: return model.offers
+        case .price: return model.offers.enumerated().sorted {
+            $0.element.priceCents == $1.element.priceCents ? $0.offset < $1.offset : $0.element.priceCents < $1.element.priceCents
+        }.map(\.element)
+        case .distance: return model.offers.enumerated().sorted {
+            $0.element.place.distanceM == $1.element.place.distanceM ? $0.offset < $1.offset : $0.element.place.distanceM < $1.element.place.distanceM
+        }.map(\.element)
+        }
+    }
+
     @ViewBuilder private func offerList(_ request: ServiceRequest) -> some View {
         if !model.offers.isEmpty {
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
-                Text(model.offers.count == 1 ? "1 offer" : "\(model.offers.count) offers")
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Meet your options").font(.system(.title, design: .rounded, weight: .bold))
+                Text("\(model.offers.count) \(model.offers.count == 1 ? "offer" : "offers") · \(offersTitle(request))")
                     .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                Text(offersTitle(request)).plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             }
-            ForEach(model.offers) { offer in
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+            if model.offers.count > 1 {
+                PlugFlowLayout(spacing: 8) {
+                    ForEach(OfferOrder.allCases, id: \.self) { order in
+                        Button { offerOrder = order } label: {
+                            Text(order.rawValue).plugText(.label)
+                                .padding(.horizontal, 16).frame(minHeight: 44)
+                                .foregroundStyle(offerOrder == order ? PlugTokens.Color.card : PlugTokens.Color.ink600)
+                                .background(offerOrder == order ? PlugTokens.Color.ink900 : PlugTokens.Color.sunk, in: Capsule())
+                        }
+                        .buttonStyle(.plain).accessibilityAddTraits(offerOrder == order ? .isSelected : [])
+                        .accessibilityIdentifier("offers-sort-" + String(describing: order))
+                    }
+                }
+            }
+            ForEach(orderedOffers) { offer in
+                VStack(alignment: .leading, spacing: 18) {
                     BusinessIdentity(name: offer.businessName, business: offer.business, score: offer.providerScore)
-                    Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1)
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
-                        ResultHeadline(value: money(offer.priceCents, offer.currency), label: offer.truthLabel)
-                        Text(offer.serviceName).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                    ViewThatFits(in: .horizontal) {
+                        HStack(alignment: .top, spacing: 12) {
+                            comparisonPrice(offer)
+                            Spacer(minLength: 0)
+                            TruthBadge(label: offer.truthLabel)
+                        }
+                        VStack(alignment: .leading, spacing: 10) { comparisonPrice(offer); TruthBadge(label: offer.truthLabel) }
                     }
-                    PlugFlowLayout {
-                        OfferFact(symbol: "clock", text: offer.availableAt.formatted(date: .omitted, time: .shortened))
-                        OfferFact(symbol: "location", text: distance(offer.place.distanceM))
-                    }
-                    if let about = offer.business?.about {
-                        Text(about).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600).lineLimit(2)
-                    }
+                    FlowMetrics(items: [("Earliest", offer.availableAt.formatted(date: .omitted, time: .shortened), "clock"),
+                                        ("Away", distance(offer.place.distanceM), "location")], compact: true)
                     NavigationLink { OfferDetailView(offer: offer, cached: model.isCached) } label: {
                         HStack {
-                            Text("View details")
+                            Text("View details").plugText(.action)
                             Spacer()
-                            Image(systemName: "arrow.up.right").accessibilityHidden(true)
+                            Image(systemName: "arrow.up.right").font(.system(size: 17, weight: .medium))
                         }
-                    }
-                    .buttonStyle(AuthActionStyle())
-                    caption("Offer ends " + offer.expiresAt.formatted(date: .omitted, time: .shortened))
-                }
-                .plugCard()
+                    }.buttonStyle(FlowActionStyle(primary: true))
+                    Text("Offer ends " + offer.expiresAt.formatted(date: .omitted, time: .shortened))
+                        .plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
+                }.marketCard()
             }
         }
+    }
+    private func comparisonPrice(_ offer: ServiceOffer) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(offer.serviceName).plugText(.title3)
+            Text(money(offer.priceCents, offer.currency))
+                .font(.system(.largeTitle, design: .rounded, weight: .bold)).monospacedDigit()
+        }.fixedSize(horizontal: false, vertical: true)
     }
     private func offersTitle(_ request: ServiceRequest) -> String {
         let service = request.constraints.serviceName ?? "Offers"
@@ -459,22 +609,21 @@ struct AskView: View {
     /// Figure A1 screen 4 for a place question. Unknown is designed, with real counts.
     @ViewBuilder private func placeAnswer(_ place: PlaceQuestion) -> some View {
         if place.status == .asking {
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline) { placeTitle(place); Spacer(minLength: PlugTokens.Space.s2); placeDeadline(place) }
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s2) { placeTitle(place); placeDeadline(place) }
-                }
-                VStack(spacing: 0) {
-                    valueRow("People notified", "\(place.progress.notified)")
-                    valueRow("Opened", "\(place.progress.opened)")
-                    valueRow("Answered", "\(place.progress.answered)", last: true)
-                }
-                caption("Counts are real. An answer appears only when a person nearby gives one.")
-            }
-            .plugCard()
-            .accessibilityIdentifier("place-progress")
+            VStack(alignment: .leading, spacing: 22) {
+                FlowEmblem(symbol: "mappin.and.ellipse", size: 72)
+                placeTitle(place)
+                Text("Checking with people nearby.").plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                FlowMetrics(items: [("Notified", "\(place.progress.notified)", "person.2"),
+                                    ("Opened", "\(place.progress.opened)", "envelope.open"),
+                                    ("Answered", "\(place.progress.answered)", "bubble.left")])
+                placeDeadline(place)
+            }.marketCard().accessibilityIdentifier("place-progress")
         } else if place.status == .answered, let answer = place.answer {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+                HStack(spacing: 12) {
+                    FlowEmblem(symbol: "bubble.left.and.bubble.right", size: 52)
+                    Text(place.placeName ?? "From nearby").font(.system(.title3, design: .rounded, weight: .bold))
+                }
                 ResultHeadline(value: answer.value, label: answer.truthLabel)
                 Text(answer.summary).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
                 if !answer.sources.isEmpty {
@@ -497,7 +646,7 @@ struct AskView: View {
                 }
                 caption("This answer stops being current at \(answer.expiresAt.formatted(date: .omitted, time: .shortened)).")
             }
-            .plugCard()
+            .marketCard()
         } else {
             nobody("No answers", place.progress.notified == 0
                    ? "Nobody near this place is answering questions on PLUG yet, so no one could check."
@@ -508,39 +657,52 @@ struct AskView: View {
     }
 
     private func placeTitle(_ place: PlaceQuestion) -> some View {
-        Text("Asking people near \(place.placeName ?? "this place")").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+        Text("Asking people near \(place.placeName ?? "this place")").font(.system(.title2, design: .rounded, weight: .bold)).foregroundStyle(PlugTokens.Color.ink900)
     }
     private func placeDeadline(_ place: PlaceQuestion) -> some View {
         Text("Open until \(place.expiresAt.formatted(date: .omitted, time: .shortened))")
             .plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
             .padding(.horizontal, PlugTokens.Space.s2).padding(.vertical, PlugTokens.Space.s1)
             .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.badge).strokeBorder(PlugTokens.Color.rule300))
-            .fixedSize()
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private func nobody(_ title: String, _ detail: String, _ notified: Int, subject: String? = nil) -> some View {
-        VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+        VStack(alignment: .leading, spacing: 20) {
+            FlowEmblem(symbol: "bubble.left.and.exclamationmark.bubble.right", size: 80)
             ResultHeadline(value: title, label: .unknown, style: .title2)
-            if let subject { Text(subject).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600) }
-            Text(notified == 0 ? "Nobody was notified." : "\(notified) notified. No current result.")
+            if let subject { Text(subject).plugText(.title3) }
+            Text(detail).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+            Label(notified == 0 ? "Nobody was notified" : "\(notified) people notified", systemImage: "person.2")
                 .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-            Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1)
-            Text(detail).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
+        }.marketCard().accessibilityIdentifier("request-unknown")
+    }
+
+    /// Nobody nearby offers this yet. PLUG fills gaps with people, so the honest next step is an
+    /// invitation to offer it, not a dead end. Nothing is implied about who else might.
+    private func offerTheGap(_ request: ServiceRequest) -> some View {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+            Text("Is this something you do?").font(.system(.title3, design: .rounded, weight: .bold))
+                .foregroundStyle(PlugTokens.Color.ink900)
+            Text("Nobody nearby offers \(request.constraints.serviceName?.lowercased() ?? "this") on PLUG yet. Add it as a skill and you will be matched with the next person who asks.")
+                .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+            Button("Offer this service") { offeringService = true }
+                .buttonStyle(FlowActionStyle())
+                .accessibilityIdentifier("offer-the-gap")
         }
-        .plugCard()
-        .accessibilityIdentifier("request-unknown")
+        .marketCard()
     }
 
     @ViewBuilder private var actions: some View {
         if let request = model.request, request.status.canCancel {
             Button("Stop asking") { Task { await model.cancel() } }
-                .buttonStyle(PlugDestructiveStyle())
+                .buttonStyle(FlowActionStyle(destructive: true))
                 .disabled(model.isWorking)
                 .accessibilityIdentifier("request-cancel")
         } else if model.placeQuestion?.status != .asking {
             // While the one question is open, answering it is the task; starting over is secondary.
             Button("Ask something else") { model.startAgain(); showValidation = false }
-                .buttonStyle(AuthActionStyle(primary: model.askQuestion == nil && model.request?.clarification == nil))
+                .buttonStyle(FlowActionStyle(primary: model.askQuestion == nil && model.request?.clarification == nil))
                 .disabled(model.isWorking)
         }
     }
@@ -683,6 +845,7 @@ struct WebAnswerCard: View {
     let answer: WebAnswer
     var body: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+            Label("From the web", systemImage: "globe").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
             ResultHeadline(value: answer.headline, label: .notVerified, style: .title3)
             Text(answer.summary).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
             Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1)
@@ -693,7 +856,7 @@ struct WebAnswerCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(PlugTokens.Space.s4)
-        .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.card)
+        .overlay(RoundedRectangle(cornerRadius: 24)
             .strokeBorder(PlugTokens.Color.rule300, style: StrokeStyle(lineWidth: 1, dash: [6, 4])))
     }
 }
@@ -702,51 +865,78 @@ struct WebAnswerCard: View {
 private struct OfferDetailView: View {
     let offer: ServiceOffer
     let cached: Bool
+    @State private var showingEvidence = false
+    private var hasPhoto: Bool {
+        guard let photo = offer.business?.photoBase64, let data = Data(base64Encoded: photo) else { return false }
+        return UIImage(data: data) != nil
+    }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                    BusinessIdentity(name: offer.businessName, business: offer.business, score: offer.providerScore, prominent: true)
-                    if let about = offer.business?.about {
-                        Text(about).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
-                    }
-                    if let links = offer.business?.links, !links.isEmpty {
-                        VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                            Text("See their work").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
-                            BusinessLinks(links: links)
-                            caption("Links shared by this business.")
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 0) {
+                    BusinessImageBanner(photo: offer.business?.photoBase64, height: 220)
+                    VStack(alignment: .leading, spacing: 14) {
+                        if !hasPhoto {
+                            BusinessPortrait(name: offer.businessName, photo: nil, size: 76)
                         }
-                    }
+                        Text(offer.businessName).font(.system(.title, design: .rounded, weight: .bold))
+                        Label(scoreText(offer.providerScore), systemImage: "person.crop.circle")
+                            .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                        if let about = offer.business?.about {
+                            Text(about).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                        }
+                    }.padding(22)
                 }
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+                .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 28))
+                .clipShape(RoundedRectangle(cornerRadius: 28))
+
+                VStack(alignment: .leading, spacing: 18) {
+                    Text(offer.serviceName).font(.system(.title2, design: .rounded, weight: .bold))
                     ResultHeadline(value: money(offer.priceCents, offer.currency), label: offer.truthLabel)
-                    Text(offer.serviceName).plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
                     Text(offer.truthLabel.explanation).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                    valueRow("Earliest", offer.availableAt.formatted(date: .abbreviated, time: .shortened))
-                    valueRow("Offer ends", offer.expiresAt.formatted(date: .abbreviated, time: .shortened), last: true)
-                }
-                .plugCard()
+                    FlowMetrics(items: [("Earliest", offer.availableAt.formatted(.dateTime.month(.abbreviated).day().hour().minute()), "calendar"),
+                                        ("Away", distance(offer.place.distanceM), "location")], compact: true)
+                }.marketCard()
+
                 if cached || offer.expiresAt <= Date() {
                     Label("This saved offer needs a fresh check. Go back and refresh.", systemImage: "clock.arrow.circlepath")
-                        .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink900)
+                        .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600).marketCard()
                 }
-                VStack(spacing: 0) {
-                    valueRow("Address", offer.place.address)
-                    valueRow("Distance", distance(offer.place.distanceM))
-                    valueRow("Evidence recorded", offer.observedAt.formatted(date: .abbreviated, time: .shortened), last: true)
+                if let links = offer.business?.links, !links.isEmpty {
+                    VStack(alignment: .leading, spacing: 14) {
+                        Text("See their work").font(.system(.title3, design: .rounded, weight: .bold))
+                        BusinessLinks(links: links)
+                    }.marketCard()
                 }
-                .plugCard()
-                if offer.source == .seed {
-                    Text("Demo data for private testing. This is not a real offer and nothing is booked.")
-                        .plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
-                }
-                caption("Choosing and booking open when providers can confirm offers.")
+                VStack(alignment: .leading, spacing: 16) {
+                    Label("Where to find them", systemImage: "mappin.and.ellipse")
+                        .font(.system(.title3, design: .rounded, weight: .bold))
+                    Text(offer.place.address).plugText(.body)
+                    Text("\(distance(offer.place.distanceM)) away").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                }.marketCard()
+                VStack(alignment: .leading, spacing: 14) {
+                    Label("Offer ends \(offer.expiresAt.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock")
+                        .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                    DisclosureGroup("Offer information", isExpanded: $showingEvidence) {
+                        VStack(alignment: .leading, spacing: 12) {
+                            valueRow("Evidence recorded", offer.observedAt.formatted(date: .abbreviated, time: .shortened), last: true)
+                            if offer.source == .seed {
+                                Text("Demo data for private testing. This is not a real offer and nothing is booked.").plugText(.bodySmall)
+                            }
+                        }.padding(.top, 12)
+                    }.plugText(.bodySmall)
+                }.marketCard()
+                Label(offer.source == .seed ? "Demo offer · Booking isn’t available yet." : "Booking opens when providers can confirm offers.", systemImage: "info.circle")
+                    .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
+            .foregroundStyle(PlugTokens.Color.ink900)
             .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
-            .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
+            .padding(.horizontal, 16).padding(.vertical, 20)
         }
         .background(PlugTokens.Color.paper)
         .navigationTitle("Offer").navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
     }
 }
 
@@ -880,7 +1070,7 @@ struct BusinessPortrait: View {
             }
         }
         .frame(width: size, height: size)
-        .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
+        .clipShape(Circle())
         .accessibilityHidden(true)
     }
 }
@@ -897,7 +1087,7 @@ struct BusinessIdentity: View {
         layout {
             BusinessPortrait(name: name, photo: business?.photoBase64, size: prominent ? 88 : 64)
             VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
-                Text(name).plugText(prominent ? .title2 : .title3).foregroundStyle(PlugTokens.Color.ink900)
+                Text(name).font(.system(prominent ? .title2 : .headline, design: .rounded, weight: .bold)).foregroundStyle(PlugTokens.Color.ink900)
                 Text(scoreText(score)).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -909,9 +1099,9 @@ private struct OfferFact: View {
     let symbol: String
     let text: String
     var body: some View {
-        Label(text, systemImage: symbol).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink900)
-            .padding(PlugTokens.Space.s2)
-            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.badge))
+        Label(text, systemImage: symbol).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+            .padding(.horizontal, 12).padding(.vertical, 10)
+            .background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -922,21 +1112,113 @@ struct BusinessLinks: View {
             if let url = link.destination {
                 Link(destination: url) {
                     HStack(alignment: .center, spacing: PlugTokens.Space.s3) {
+                        Image(systemName: link.label.lowercased().contains("instagram") ? "camera" : "globe")
+                            .font(.system(size: 20, weight: .regular))
+                            .frame(width: 44, height: 44)
+                            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 14))
+                            .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
-                            Text(link.label).plugText(.label)
+                            Text(link.label).plugText(.action)
                             Text(url.host() ?? "").plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
+                                .multilineTextAlignment(.leading)
                         }
                         Spacer(minLength: 0)
-                        Image(systemName: "arrow.up.right").accessibilityHidden(true)
+                        Image(systemName: "arrow.up.right").font(.system(size: 17, weight: .medium)).accessibilityHidden(true)
                     }
                     .foregroundStyle(PlugTokens.Color.ink900)
-                    .padding(PlugTokens.Space.s3)
+                    .padding(.vertical, PlugTokens.Space.s2)
                     .frame(minHeight: PlugTokens.minTouchTarget)
-                    .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                    .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control).strokeBorder(PlugTokens.Color.rule200))
+                    .contentShape(Rectangle())
                 }
                 .accessibilityHint("Opens the business's external website")
             }
         }
+    }
+}
+
+
+/// Secondary actions read as actions, without another competing filled or outlined box.
+struct RequestTextActionStyle: ButtonStyle {
+    var destructive = false
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .plugText(.action)
+            .foregroundStyle(destructive ? PlugTokens.Color.alert600 : PlugTokens.Color.ink900)
+            .frame(minHeight: PlugTokens.minTouchTarget, alignment: .leading)
+            .contentShape(Rectangle())
+            .opacity(!enabled ? 0.45 : configuration.isPressed ? 0.6 : 1)
+    }
+}
+
+/// Only imagery actually supplied by the business is shown on offers.
+private struct BusinessImageBanner: View {
+    let photo: String?
+    let height: CGFloat
+    var body: some View {
+        if let photo, photo.count <= 65536, let data = Data(base64Encoded: photo), let image = UIImage(data: data) {
+            GeometryReader { geometry in
+                Image(uiImage: image).resizable().scaledToFill()
+                    .frame(width: geometry.size.width, height: height).clipped()
+            }
+            .frame(height: height).accessibilityHidden(true)
+        }
+    }
+}
+
+extension View {
+    func marketCard() -> some View {
+        self.frame(maxWidth: .infinity, alignment: .leading)
+            .padding(20)
+            .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 24))
+    }
+}
+
+/// Visual status markers carry no invented people or progress.
+struct FlowEmblem: View {
+    let symbol: String
+    var size: CGFloat = 64
+    var body: some View {
+        Image(systemName: symbol).font(.system(size: size * 0.38, weight: .light))
+            .foregroundStyle(PlugTokens.Color.ink900)
+            .frame(width: size, height: size)
+            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: size * 0.32))
+            .accessibilityHidden(true)
+    }
+}
+
+struct FlowMetrics: View {
+    let items: [(String, String, String)]
+    var compact = false
+    @Environment(\.dynamicTypeSize) private var typeSize
+    var body: some View {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: 10))
+        layout {
+            ForEach(Array(items.enumerated()), id: \.offset) { _, item in
+                VStack(alignment: .leading, spacing: 8) {
+                    Label(item.0, systemImage: item.2).plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
+                    Text(item.1).font(.system(compact ? .subheadline : .title2, design: .rounded, weight: .semibold))
+                        .monospacedDigit().fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading).padding(14)
+                .background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: 16))
+                .accessibilityElement(children: .combine)
+            }
+        }
+    }
+}
+
+struct FlowActionStyle: ButtonStyle {
+    var primary = false
+    var destructive = false
+    @Environment(\.isEnabled) private var enabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.plugText(.action)
+            .frame(maxWidth: .infinity, minHeight: 24)
+            .padding(16)
+            .foregroundStyle(destructive ? PlugTokens.Color.alert600 : primary ? PlugTokens.Color.card : PlugTokens.Color.ink900)
+            .background(primary ? PlugTokens.Color.ink900 : PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 16))
+            .opacity(!enabled ? 0.45 : configuration.isPressed ? 0.7 : 1)
     }
 }

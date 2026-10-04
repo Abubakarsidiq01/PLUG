@@ -52,6 +52,8 @@ public class AskService {
         requests.requireCaller(caller);
         requests.requireConsent(caller);
         requests.refuseRestricted(caller, body.text());
+        AskResult prior = requests.prepareCreate(caller, "ask", key, body, AskResult.class);
+        if (prior != null) return prior;
         // Classified outside the transaction: the model call holds no row lock, and a refusal's
         // audit event is written on its own so a rollback can never erase it.
         IntentAdapter.Result result = intent.classify(body.text(), body.location(), body.timeZone(), caller.userId());
@@ -61,7 +63,6 @@ public class AskService {
             requests.requireConsent(caller);
             AskResult replay = requests.replay(caller, "ask", key, body, AskResult.class);
             if (replay != null) return replay;
-            if (!requests.limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
             String id = "ask_" + UUID.randomUUID();
             Instant now = clock.instant();
             var location = body.location().rounded();

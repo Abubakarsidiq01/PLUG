@@ -1,6 +1,7 @@
 package app.plug.request;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -25,6 +26,17 @@ class CustomSkillsTest {
         assertEquals(CustomSkills.tag(CustomSkills.keywords("Crochet LOCS")), CustomSkills.tag(CustomSkills.keywords("crochet locs")));
         String longTag = CustomSkills.tag(CustomSkills.keywords("antique gramophone restoration and calibration specialist"));
         assertTrue(longTag.matches("custom_[a-z0-9_]{1,33}"), longTag);
+    }
+
+    @Test
+    void lossyLabelsDoNotAliasOtherSkills() {
+        String first = CustomSkills.tag(List.of("abcdefghijklmnopqrstuvwxyzabcdefg", "one"));
+        String second = CustomSkills.tag(List.of("abcdefghijklmnopqrstuvwxyzabcdefg", "two"));
+        assertNotEquals(first, second);
+        String nonLatin = CustomSkills.tag(List.of("家具修复"));
+        assertNotEquals(nonLatin, CustomSkills.tag(List.of("庭园设计")));
+        assertEquals(nonLatin, CustomSkills.tag(List.of("家具修复")));
+        for (String tag : List.of(first, second, nonLatin)) assertTrue(tag.matches("custom_[a-z0-9_]{1,33}"), tag);
     }
 
     @Test

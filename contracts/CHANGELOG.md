@@ -11,6 +11,14 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.5.0 amendment — 2026-10-03 — additive — proposed — direct skill entry
+Owner request: entering a listed name in `custom_skills` now resolves it to its canonical
+skill instead of returning `listed_skill`. Licence checks still apply, and unlisted labels
+retain own-words matching. Suggestions are optional in the app.
+Fixtures updated: none (response shapes unchanged); covered by `AskProviderTest`.
+Migration note: deploy the backend before the direct-entry app; no database migration.
+Rollback: restore the previous app and backend together.
+
 ### 0.5.0 amendment — 2026-10-02 — additive — proposed — larger vocabulary and own-words skills (ADR-011)
 Owner decision. `contracts/skills.yaml` grows from 35 to 115 tags (new licensed tags: hvac,
 plumbing_major, roofing, pest_control, tattoo, piercing, facials, driving_lessons).

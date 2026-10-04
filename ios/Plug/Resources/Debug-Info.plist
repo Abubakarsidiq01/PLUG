@@ -58,5 +58,7 @@
 	</array>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Connect to your paired Mac for PLUG development testing.</string>
 </dict>
 </plist>

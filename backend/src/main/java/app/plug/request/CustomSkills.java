@@ -66,8 +66,18 @@ public class CustomSkills {
 
     /// A stable tag for a label: "Crochet locs" -> custom_crochet_loc.
     static String tag(List<String> keywords) {
-        String slug = String.join("_", keywords).replaceAll("[^a-z0-9_]", "");
-        if (slug.length() > 33) slug = slug.substring(0, 33).replaceAll("_+$", "");
+        String original = String.join("_", keywords);
+        String slug = original.replaceAll("[^a-z0-9_]", "");
+        // Truncating or stripping non-Latin letters used to alias unrelated skills.
+        // Keep existing short ASCII tags, but preserve identity when sanitising is lossy.
+        if (!slug.equals(original) || slug.length() > 33) {
+            try {
+                String hash = java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
+                        .digest(original.getBytes(java.nio.charset.StandardCharsets.UTF_8))).substring(0, 12);
+                String prefix = slug.substring(0, Math.min(slug.length(), 20)).replaceAll("_+$", "");
+                slug = (prefix.isEmpty() ? "skill" : prefix) + "_" + hash;
+            } catch (java.security.NoSuchAlgorithmException impossible) { throw new IllegalStateException(impossible); }
+        }
         return "custom_" + slug;
     }
 

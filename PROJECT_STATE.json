@@ -1,15 +1,15 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-03T02:43:21.067424+00:00",
-  "updated_by": "person_one (owner decision: larger vocabulary and own-words skills, ADR-011)",
+  "updated_at": "2026-10-04T10:53:44.014246+00:00",
+  "updated_by": "codex (Person One Phase 2 admission, schema, matching and private-device hardening)",
   "completed_phases": [
     "P0",
     "P1"
   ],
   "current_phase": "P2",
   "current_step": "P2.S22",
-  "current_step_title": "Phase 2 v4 implementation hardened locally, with owner-authorized amendments P2.S20 (back navigation), P2.S21 (optional business profiles) and P2.S22 (115-skill vocabulary and own-words skills, ADR-011), verified locally and recorded in manual v4 \u00a727.3. Contract approval, admin vocabulary/classifier view, device/Figma/Windows review and G2 checkpoint remain open.",
+  "current_step_title": "Phase 2 Person One implementation hardened and locally verified against manual v4, including direct skills and approved UI. Physical UI runner provisioning/device evidence and independent contract/design/Windows/G2 checkpoint remain open.",
   "manual_section": "27.3",
   "readme": "docs/phases/P2-ONE.md",
   "owner": "both",
@@ -110,7 +110,7 @@
       "id": "P2-device-evidence",
       "owner": "person_one",
       "manual_section": "27.3",
-      "task": "Run tools/run-phase2-phone.sh, then capture every Figure A1-A3 state on the iPhone at default and largest Dynamic Type, plus a VoiceOver walkthrough, into evidence/P2/ios and evidence/P2/a11y. Run the \u00a716.8 design gate on the device captures, including greyscale.",
+      "task": "Resolve separate PlugUITests runner provisioning in signed-in Xcode, then run tools/run-phase2-device-evidence.sh with paired host/peer addresses. Capture the physical Figure A1-A3 state matrix, VoiceOver and device failure/recovery. Obtain independent greyscale/design review. The app itself is signed; the UI runner still reports No Accounts/missing profile.",
       "acceptance": "Device screenshots for every required state committed; design gate recorded with no open failure."
     },
     {
@@ -145,7 +145,7 @@
   "open_risks": [
     "Own-words skills (ADR-011) are matched by simple keywords and are not reviewed; a provider can describe a lawful skill vaguely or misleadingly. The restricted-intent policy and listed-skill rule guard them, but popular labels should be reviewed and promoted into skills.yaml through vocabulary_gaps.",
     "Scope is open to any lawful service and any public place; the restricted-intent policy is now the only refusal path. It is rule-based, has 46 labelled vectors plus backend tests, and has not been red-teamed by a second person (Person Two P2.S11).",
-    "Skill vocabulary is 35 tags; matching quality is untested at low provider density, and place questions have no human answerers until Phase 4, so they end Unknown.",
+    "Skill vocabulary is 115 tags; matching quality is untested at low provider density, and place questions have no human answerers until Phase 4, so they end Unknown.",
     "Provider rate-limit budget is shared with the request read budget per caller address (60/min, in-process memory).",
     "September 23 verification was local, on an isolated real PostgreSQL database: see docs/testing/phase-1-hardening-2026-09-23.md. G1 still needs joint staging evidence under ADR-004.",
     "The Phase 1 rate limits are counted in one process's memory (FixedWindowLimiter). That is correct for a single instance and wrong the moment there are two, and it also means the limits survive across test runs \u2014 a second walkthrough inside fifteen minutes is refused. Wire Redis in before the backend is ever run as more than one process.",
@@ -577,6 +577,74 @@
       "ios_screenshots": 46,
       "evidence": "evidence/P2/simulator/2026-10-02/custom-skills/ (with greyscale/)",
       "status": "local verification; G2 not signed"
+    },
+    "phase2_visual_home": {
+      "date": "2026-10-03",
+      "report": "docs/testing/phase2-quiet-ui-2026-10-02.md",
+      "ui_tests": 2,
+      "text_sizes": [
+        "default",
+        "accessibility XXXL"
+      ],
+      "screenshots": 12,
+      "evidence": "evidence/P2/simulator/2026-10-03/visual-home/",
+      "signed_iphone_build": "passed",
+      "device_install": "Installed and launched paired-device connection build on physical iPhone, 2026-10-03.",
+      "preview_connection": "Working via private CoreDevice paired interface only. Phone source fd64:fdaf:a52::1 reached relay on host fd64:fdaf:a52::2:18086: POST /v1/auth/refresh 200, GET /v1/me 200, GET /v1/providers/me 404 (no profile). No public tunnel opened. Paired addresses may change on reconnection.",
+      "status": "local verification only; G2 remains unsigned",
+      "preview_runtime": {
+        "relay_script": "/tmp/plug-paired-relay.py",
+        "relay_log": "/tmp/plug-paired-relay.log",
+        "backend": "127.0.0.1:18080",
+        "note": "Relay binds only paired IPv6 host address, accepts paired phone plus host self-checks, and retains backend authentication. Keep devices connected. Debug-only local-network permission description added."
+      }
+    },
+    "phase2_direct_skills": {
+      "date": "2026-10-03",
+      "report": "docs/testing/phase2-direct-skills-2026-10-03.md",
+      "backend": "63 unit, 8 contract, 8 focused PostGIS tests passed",
+      "ios": "Direct entry and save passed at normal/largest text; suggestions-failure fallback covered",
+      "phone": "Signed build installed and launched; real phone refresh and account requests returned 200",
+      "connection": "Private paired relay on [fd64:4a1e:3bad::2]:18086 to loopback 18085; held paired connection; no public tunnel",
+      "gate": "G2 remains open"
+    },
+    "phase2_marketplace_preview": {
+      "date": "2026-10-03",
+      "decision": "docs/decisions/ADR-012-marketplace-visual-preview.md",
+      "report": "docs/testing/phase2-marketplace-preview-2026-10-03.md",
+      "status": "temporary preview awaiting owner visual feedback",
+      "ios": "Combined default/largest home, offers, profiles, tab preservation, cancellation and direct-skill flows passed; targeted accessibility refinement rerun passed in 96 seconds",
+      "screenshots": "evidence/P2/simulator/2026-10-03/marketplace/",
+      "phone": "Signed build installed and launched; real device refresh/me returned 200 through private relay",
+      "gate": "G2 remains open"
+    },
+    "phase2_remaining_pages": {
+      "report": "docs/testing/phase2-remaining-pages-2026-10-04.md",
+      "approved_home_and_navigation": "Exact source-section comparison passed; unchanged",
+      "ui_tests": "All six request screenshot methods passed across initial run and targeted reruns. Largest-text walkthrough passed after correcting text replacement in test; final business/Profile/Activity/account test passed at both sizes after adding guest restoration to fixture server.",
+      "final_account_result": "/var/folders/4_/r37l0rj13lg1zdw6nk3l208w0000gn/T/plug-phase2-ui.XQhW7c/ui.xcresult",
+      "screenshots": "evidence/P2/simulator/2026-10-04/results-redesign/",
+      "physical_phone": "Signed build installed and launched; requests and offers returned HTTP 200 over private paired relay.",
+      "gate": "G2 remains open; synthetic screenshots are not live gate evidence."
+    },
+    "phase2_person_one_hardening": {
+      "date": "2026-10-04",
+      "report": "docs/testing/phase2-person-one-hardening-2026-10-04.md",
+      "backend_unit_tests": 65,
+      "backend_database_tests": 88,
+      "static_contract_tests": 185,
+      "live_api_checks": 1008,
+      "live_api_exchanges": 283,
+      "bruno": {
+        "requests": 49,
+        "tests": 64,
+        "assertions": 88
+      },
+      "ios_unit_integration_tests": 67,
+      "backend_recovery_checks": 5,
+      "physical_ui_matrix": "Blocked: valid app profile exists, separate UI runner profile missing; Xcode CLI reports No Accounts despite owner confirming GUI sign-in. Target team/automatic signing aligned; owner following signing steps.",
+      "g2_passed": false,
+      "phone": "Final signed app installed and launched; hardened backend uses immutable JAR and preserved plug_phase2_live database; private relay address automatically rediscovered."
     }
   },
   "implementation_authorization": {

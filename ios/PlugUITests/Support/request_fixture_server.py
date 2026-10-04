@@ -73,6 +73,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))) or b"{}")
         path = urlparse(self.path).path
+        if path == "/v1/auth/logout":
+            self.send_response(204)
+            self.end_headers()
+            return
         if path == "/v1/auth/guest":
             now = datetime.now(timezone.utc)
             Handler.provider = None
@@ -119,6 +123,8 @@ class Handler(BaseHTTPRequestHandler):
             record["result"] = result
             return self.respond(result)
         if path == "/v1/providers/skills/propose":
+            if body.get("description") == "Wig install":
+                return self.respond({"error": {"code": "temporarily_unavailable", "message": "Suggestions unavailable", "request_id": "req_ios-fixture"}}, 503)
             return self.respond(fixture("providers.propose", "success"))
         if path == "/v1/providers/skills":
             profile = fixture("providers.skills", "success")
@@ -142,6 +148,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         path = urlparse(self.path).path
+        if path == "/v1/me":
+            return self.respond({
+                "account": {"user_id": "usr_ios-fixture", "type": "guest", "scopes": ["guest"]},
+                "consent": {"current_version": "2026-09-01", "accepted_version": "2026-09-01",
+                            "accepted_at": stamp(datetime.now(timezone.utc))}})
         if path == "/health":
             return self.respond({"status": "UP", "version": "synthetic-ui-fixtures"})
         if path == "/v1/providers/me":
@@ -160,6 +171,8 @@ class Handler(BaseHTTPRequestHandler):
         record = self.requests[identifier]
         if path.endswith("/offers"):
             result = fixture("requests.offers", "business-profile" if "business" in record["mode"] else "success")
+            if "sorting" in record["mode"]:
+                result["offers"].reverse()
             result["request_id"] = identifier
             return self.respond(result)
         if record["request"]["status"] in ("draft", "canceled", "expired"):

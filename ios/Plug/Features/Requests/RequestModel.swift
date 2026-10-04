@@ -234,7 +234,7 @@ final class RequestModel: ObservableObject {
                 retryAfter = now().addingTimeInterval(TimeInterval(delay))
                 errorMessage = "Too many requests. Try again after \(delay) seconds."
             } else if api.code == "restricted_intent" {
-                errorMessage = "PLUG cannot help with this request. No suppliers were contacted."
+                errorMessage = "PLUG cannot help with this request. Nobody was contacted."
             } else if api.fieldCode == "consent_required" {
                 errorMessage = "Accept the current terms in your account before making a request. Nothing was created."
             } else if api.code == "unauthenticated" {

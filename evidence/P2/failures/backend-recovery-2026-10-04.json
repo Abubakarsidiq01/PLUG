@@ -1,0 +1,17 @@
+{
+  "passed": true,
+  "environment": "isolated loopback backend and disposable PostGIS",
+  "checks": [
+    "Created authenticated ask on real PostGIS",
+    "Deliberate backend outage observed",
+    "Same session and ask survived backend restart",
+    "Retry after restart returned original idempotent response",
+    "Repeated cancellation remained idempotent after recovery"
+  ],
+  "ask_id": "ask_de3cb5d7-94ac-4b5f-92d4-8dced09a7801",
+  "request_id": "req_e1968e76-705c-4417-ab2e-5c2699f2b529",
+  "limitations": [
+    "Not physical-device offline/VoiceOver evidence",
+    "Not a joint staging checkpoint"
+  ]
+}

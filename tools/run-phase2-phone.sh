@@ -1,7 +1,7 @@
 #!/bin/sh
 # One command for the Phase 2 phone flow: disposable PostGIS, the isolated requests_v2
-# backend, an HTTPS development tunnel (ADR-004), and a signed Debug build installed and
-# launched on the paired iPhone. Stop with Control-C; the backend, tunnel and sleep
+# backend, a private paired-device relay, and a signed Debug build installed and
+# launched on the paired iPhone. Stop with Control-C; the backend, relay and sleep
 # prevention stop with it. No provider secrets are loaded (see docs/runbooks/phase2-local.md).
 set -eu
 cd "$(dirname "$0")/.."
@@ -11,16 +11,26 @@ container=plug-phase2-validation
 password=phase2-local-validation-only
 run_dir=$(mktemp -d "${TMPDIR:-/tmp}/plug-phase2-phone.XXXXXX")
 backend_pid=''
-tunnel_pid=''
+relay_pid=''
 awake_pid=''
+paired_pid=''
+local_config=ios/Plug/Resources/Local.xcconfig
+if [ -f "$local_config" ]; then
+    cp "$local_config" "$run_dir/Local.xcconfig.before"
+    chmod 600 "$run_dir/Local.xcconfig.before"
+fi
 
 cleanup() {
     trap - EXIT INT TERM
-    for pid in "$tunnel_pid" "$backend_pid" "$awake_pid"; do
+    for pid in "$relay_pid" "$backend_pid" "$awake_pid" "$paired_pid"; do
         if [ -n "$pid" ]; then kill "$pid" 2>/dev/null || true; fi
     done
-    # Later Xcode builds against the flag-off Phase 1 backend must not show the Ask flow.
-    set_local PLUG_REQUESTS_V2_ENABLED NO
+    # Restore the developer's prior build settings, including on early failures.
+    if [ -f "$run_dir/Local.xcconfig.before" ]; then
+        cp "$run_dir/Local.xcconfig.before" "$local_config"
+    else
+        rm -f "$local_config"
+    fi
 }
 trap cleanup EXIT
 trap 'exit 130' INT
@@ -75,34 +85,6 @@ status=$(curl --silent --output /dev/null --write-out '%{http_code}' --max-time 
 [ "$status" = 401 ] || { echo "requests_v2 is not active on port $port (anonymous create returned $status)." >&2; exit 1; }
 echo 'Healthy, requests_v2 active.'
 
-step 'HTTPS tunnel'
-.tools/cloudflared/cloudflared tunnel --no-prechecks --url "http://127.0.0.1:$port" >"$run_dir/tunnel.log" 2>&1 &
-tunnel_pid=$!
-/usr/bin/caffeinate -i -w "$tunnel_pid" &
-awake_pid=$!
-url=''
-attempt=0
-while [ "$attempt" -lt 45 ]; do
-    kill -0 "$tunnel_pid" 2>/dev/null || { echo "Tunnel stopped; see $run_dir/tunnel.log" >&2; exit 1; }
-    candidate=$(sed -nE 's/.*(https:\/\/[a-z0-9-]+\.trycloudflare\.com).*/\1/p' "$run_dir/tunnel.log" | head -n 1)
-    if [ -n "$candidate" ]; then
-        host=${candidate#https://}
-        address=$(dig +time=2 +tries=1 +short "$host" @1.1.1.1 A | awk '/^[0-9.]+$/ { print; exit }')
-        # Fresh quick-tunnel names are often missing from Wi-Fi resolvers for a while, so
-        # health is checked through public DNS; the phone may need mobile data briefly.
-        if [ -n "$address" ] && curl --fail --silent --max-time 4 --resolve "$host:443:$address" "$candidate/health" >/dev/null; then
-            url=$candidate
-            break
-        fi
-    fi
-    attempt=$((attempt + 1))
-    sleep 2
-done
-[ -n "$url" ] || { echo "Tunnel did not become healthy; see $run_dir/tunnel.log" >&2; exit 1; }
-python3 tools/set-phone-api.py "$url"
-set_local PLUG_REQUESTS_V2_ENABLED YES
-echo "Phone API: $url"
-
 step 'Signed build for the paired iPhone'
 find_iphone() {
     xcrun devicectl list devices --json-output "$run_dir/devices.json" >/dev/null 2>&1 || return 0
@@ -119,13 +101,50 @@ udid=$(find_iphone)
 if [ -z "$udid" ]; then
     echo 'Waiting for the iPhone: connect it by cable (or the same Wi-Fi), unlock it and trust this Mac.'
     until [ -n "$udid" ]; do
-        kill -0 "$tunnel_pid" 2>/dev/null || { echo 'Tunnel stopped while waiting.' >&2; exit 1; }
+        kill -0 "$backend_pid" 2>/dev/null || { echo 'Backend stopped while waiting.' >&2; exit 1; }
         sleep 5
         udid=$(find_iphone)
     done
 fi
 hardware=${udid% *}
 core=${udid#* }
+step 'Private paired connection'
+xcrun devicectl device notification observe --device "$core" \
+    --name app.plug.development.keepalive --session-timeout 14400 --timeout 14430 \
+    >"$run_dir/paired.log" 2>&1 &
+paired_pid=$!
+xcrun devicectl device info details --device "$core" --json-output "$run_dir/details.json" >/dev/null
+addresses=$(python3 - "$run_dir/details.json" <<'EOF'
+import ipaddress, json, re, subprocess, sys
+peer = ipaddress.ip_address(json.load(open(sys.argv[1]))['result']['connectionProperties']['tunnelIPAddress'])
+network = ipaddress.ip_network(str(peer) + '/64', strict=False)
+for candidate in re.findall(r'inet6 ([0-9a-f:]+)', subprocess.check_output(['ifconfig'], text=True)):
+    host = ipaddress.ip_address(candidate)
+    if host != peer and host in network and host in ipaddress.ip_network('fd00::/8'):
+        print(host, peer)
+        break
+EOF
+)
+[ -n "$addresses" ] || { echo 'No paired interface. Reconnect and unlock the iPhone.' >&2; exit 1; }
+paired_host=${addresses% *}
+paired_peer=${addresses#* }
+python3 tools/paired-phone-relay.py --host "$paired_host" --peer "$paired_peer" \
+    --upstream-port "$port" >"$run_dir/relay.log" 2>&1 &
+relay_pid=$!
+attempt=0
+until lsof -nP -a -p "$relay_pid" -iTCP:18086 -sTCP:LISTEN >/dev/null; do
+    kill -0 "$relay_pid" 2>/dev/null || { cat "$run_dir/relay.log" >&2; exit 1; }
+    attempt=$((attempt + 1)); [ "$attempt" -lt 20 ] || { echo 'Paired relay did not bind.' >&2; exit 1; }
+    sleep 1
+done
+/usr/bin/caffeinate -i -w "$relay_pid" &
+awake_pid=$!
+url="http://[$paired_host]:18086"
+# xcconfig treats // as a comment. The empty expansion preserves the URL in the build.
+set_local PLUG_DEVELOPMENT_API_URL "http:/\$()/[$paired_host]:18086"
+set_local PLUG_REQUESTS_V2_ENABLED YES
+echo "Phone API: $url"
+
 xcodebuild -project ios/Plug.xcodeproj -scheme Plug -configuration Debug \
     -destination "id=$hardware" -derivedDataPath "$run_dir/DerivedData" \
     -allowProvisioningUpdates build >"$run_dir/xcodebuild.log" 2>&1 || {
@@ -155,7 +174,7 @@ PLUG Phase 2 is running on your iPhone.
      Stop asking while it searches.
   5. Offer a service: describe what you do, keep the chips, save; the Inbox tab appears.
   Extraction uses Claude when ANTHROPIC_API_KEY is in secrets/anthropic.env, else the rules.
-If the phone cannot reach $url on Wi-Fi, switch to mobile data for a minute.
+Keep the phone paired with this Mac. If reconnected, rerun this launcher to refresh its private address.
 Logs: $run_dir. Keep this terminal and the lid open; Control-C stops everything.
 EOF
-wait "$tunnel_pid"
+wait "$paired_pid"

@@ -75,7 +75,8 @@ public class IntentAdapter implements AutoCloseable {
         this(mapper, clock, provider, Duration.ofSeconds(6), SkillVocabulary.load());
     }
     public IntentAdapter(ObjectMapper mapper, Clock clock, Provider provider, Duration deadline, SkillVocabulary vocabulary) {
-        this.mapper = mapper.copy();
+        this.mapper = mapper.copy()
+                .enable(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_MISSING_CREATOR_PROPERTIES);
         this.clock = clock;
         this.provider = provider;
         this.deadline = deadline;
@@ -212,8 +213,8 @@ public class IntentAdapter implements AutoCloseable {
         if (value == null || value.askType() == null
                 || !List.of("service_request", "place_question", "unclear").contains(value.askType())) return false;
         // Tags the vocabulary does not have are dropped later; a malformed list is rejected outright.
-        if (value.skillTags() != null && (value.skillTags().size() > 10
-                || value.skillTags().stream().anyMatch(tag -> tag == null || tag.length() > 60))) return false;
+        if (value.skillTags() == null || value.skillTags().size() > 5
+                || value.skillTags().stream().anyMatch(tag -> tag == null || tag.length() > 60)) return false;
         if (value.placeName() != null && (value.placeName().isBlank() || value.placeName().length() > 120
                 || value.placeName().codePoints().anyMatch(Character::isISOControl))) return false;
         if (value.budgetCents() != null && (value.budgetCents() < MIN_BUDGET || value.budgetCents() > MAX_BUDGET)) return false;

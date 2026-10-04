@@ -3,9 +3,8 @@ import PhotosUI
 import ImageIO
 
 /// Manual v4 Figure A2: becoming a provider is adding a capability to this same account. The
-/// person describes what they do in plain words, the server maps it onto the controlled
-/// vocabulary, and the chips it returns are the only skills that can be saved. Terms that
-/// matched nothing are shown, never matched on (§19A.2).
+/// person can enter skills directly or ask for suggestions. Listed skills retain their
+/// matching and licence rules; new skills use the own-words matching path (ADR-011).
 struct ProviderOnboardingView: View {
     let service: RequestServing
     @ObservedObject var location: RequestLocationModel
@@ -13,6 +12,7 @@ struct ProviderOnboardingView: View {
     let onSaved: (ProviderProfile) -> Void
 
     @Environment(\.dismiss) private var dismiss
+    @State private var showingBusiness = false
     @State private var businessName = ""
     @State private var about = ""
     @State private var photo: String?
@@ -26,11 +26,11 @@ struct ProviderOnboardingView: View {
     @State private var unmatched: [String] = []
     /// Skills in the provider's own words that PLUG does not list (ADR-011), up to five.
     @State private var ownSkills: [String] = []
-    @State private var ownDraft = ""
     @State private var radius = Radius.miles3
     @State private var days = AvailabilityWindow.Days.everyDay
     @State private var slots: Set<Slot> = [.afternoons]
     @State private var licence = ""
+    @State private var licenceRequested = false
     @State private var accepting = true
     @State private var radiusChanged = false
     @State private var availabilityChanged = false
@@ -43,18 +43,38 @@ struct ProviderOnboardingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                        Text(current == nil ? "Offer a service" : "What you offer").plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
-                        Text("Your skills. Your area. Your hours. Add what you offer to the account you already use.")
+                        HStack(spacing: 14) {
+                            Image(systemName: "person.crop.circle.badge.plus")
+                                .font(.system(size: 28, weight: .regular))
+                                .frame(width: 60, height: 60)
+                                .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 20))
+                            Text(current == nil ? "Offer a service" : "What you offer")
+                                .font(.system(.title2, design: .rounded, weight: .bold))
+                        }.foregroundStyle(PlugTokens.Color.ink900)
+                        Text("Turn what you do into a local connection.")
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                     }
-                    describeStep
+                    describeStep.marketCard()
                     if !proposed.isEmpty || !unmatched.isEmpty || !ownSkills.isEmpty { skillsStep }
                     if hasSkills {
-                        businessStep
-                        radiusStep
-                        availabilityStep
+                        DisclosureGroup(isExpanded: $showingBusiness) {
+                            businessStep.padding(.top, PlugTokens.Space.s4)
+                        } label: {
+                            HStack(spacing: PlugTokens.Space.s3) {
+                                BusinessPortrait(name: optional(businessName) ?? "Your business", photo: photo, size: 48)
+                                VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
+                                    Text("Business profile").plugText(.title3)
+                                        .accessibilityIdentifier("provider-business-section")
+                                    Text("Photo, about & links · Optional").plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
+                                }
+                                .multilineTextAlignment(.leading)
+                            }
+                            .padding(.vertical, PlugTokens.Space.s2)
+                        }.marketCard()
+                        radiusStep.marketCard()
+                        availabilityStep.marketCard()
                         if needsLicence { licenceStep }
-                        baseStep
+                        baseStep.marketCard()
                         if current != nil {
                             Toggle("Receive matching requests", isOn: $accepting)
                                 .plugText(.body).tint(PlugTokens.Color.ink900)
@@ -70,7 +90,7 @@ struct ProviderOnboardingView: View {
                     }
                     if hasSkills {
                         Button(isWorking ? "Saving…" : saveTitle) { Task { await save() } }
-                            .buttonStyle(AuthActionStyle(primary: true))
+                            .buttonStyle(FlowActionStyle(primary: true))
                             .disabled(isWorking || photoLoading || location.location == nil || slots.isEmpty || (needsLicence && !licenceValid))
                             .accessibilityIdentifier("provider-save")
                         caption("Private test. Your settings are saved for matching. Inbox delivery and booking are not available yet.")
@@ -111,8 +131,8 @@ struct ProviderOnboardingView: View {
     private var businessStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                Text("Let people meet your business").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-                Text("Everything here is optional. Add a photo and links to your work, or keep it simple. What you add is visible to customers.")
+                Text("Show people your work").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+                Text("Share only what you want customers to see.")
                     .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
             HStack(alignment: .center, spacing: PlugTokens.Space.s4) {
@@ -158,7 +178,6 @@ struct ProviderOnboardingView: View {
             }
             caption("Use a full https:// link. Clear any field to stop sharing it.")
         }
-        .plugCard()
     }
 
     private func loadPhoto() async {
@@ -187,7 +206,7 @@ struct ProviderOnboardingView: View {
     private var describeStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
             Text("What do you do?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-            TextField("For example: I do knotless braids and wig installs", text: $description, axis: .vertical)
+            TextField("For example: Wig install", text: $description, axis: .vertical)
                 .plugText(.body).lineLimit(2...5).focused($describing)
                 .padding(PlugTokens.Space.s3)
                 .frame(minHeight: PlugTokens.minTouchTarget)
@@ -196,25 +215,35 @@ struct ProviderOnboardingView: View {
                     .strokeBorder(describing ? PlugTokens.Color.ink900 : PlugTokens.Color.rule300, lineWidth: describing ? 2 : 1))
                 .accessibilityLabel("What do you do?")
                 .accessibilityIdentifier("provider-description")
+            Button("Add skill") {
+                let label = description.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard (3...40).contains(label.count), ownSkills.count < 5 else { return }
+                if !ownSkills.contains(where: { $0.caseInsensitiveCompare(label) == .orderedSame }) {
+                    ownSkills.append(label)
+                }
+                description = ""
+                describing = false
+                errorMessage = nil
+            }
+            .buttonStyle(FlowActionStyle(primary: true))
+            .disabled(isWorking || !(3...40).contains(description.trimmingCharacters(in: .whitespacesAndNewlines).count) || ownSkills.count >= 5)
+            .accessibilityIdentifier("provider-add-skill")
+            caption("Add one skill at a time · 3–40 characters.")
             Button(isWorking && proposed.isEmpty ? "Reading…" : "Find my skills") { Task { await propose() } }
-                .buttonStyle(AuthActionStyle(primary: chosen.isEmpty))
+                .buttonStyle(RequestTextActionStyle())
                 .disabled(isWorking || description.trimmingCharacters(in: .whitespacesAndNewlines).count < 3)
         }
-        .plugCard()
     }
 
     private var skillsStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("Confirm your skills").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-            if proposed.isEmpty {
-                Text("None of that is on PLUG's list yet. Keep it as your own skill below, or try other words.")
-                    .plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
-            } else {
-                Text("Tap to remove any that are wrong. You can only be matched on these.")
+            Text("Your skills").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+            if !proposed.isEmpty {
+                Text("Keep the skills you offer. Tap to remove any others.")
                     .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                 PlugFlowLayout {
                     ForEach(proposed) { skill in
-                        PlugChip(title: skill.requiresLicence ? "\(skill.display), licence" : skill.display,
+                        ProviderChoice(title: skill.requiresLicence ? "\(skill.display), licence" : skill.display,
                                  selected: chosen.contains(skill.tag)) {
                             if chosen.contains(skill.tag) { chosen.remove(skill.tag) } else { chosen.insert(skill.tag) }
                         }
@@ -223,51 +252,26 @@ struct ProviderOnboardingView: View {
             }
             ownSkillsSection
         }
-        .plugCard()
+        .marketCard()
     }
 
-    /// Words PLUG does not list become the provider's own skills on a tap (ADR-011). Customers who
-    /// ask for them are found by their words; listed skills always win.
+    /// Direct entries and suggestion candidates. The server resolves listed skills on save.
     private var ownSkillsSection: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1)
-            Text("Your own skills").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
-            Text(ownSkillCandidates.isEmpty ? "Offer something PLUG does not list? Add it in your own words."
-                 : "Not on PLUG's list yet. Tap to keep it; customers who ask for it in those words can find you.")
-                .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+            if !proposed.isEmpty && !ownSkillCandidates.isEmpty {
+                Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1)
+                Text("Added by you").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+            }
             if !ownSkillCandidates.isEmpty {
                 PlugFlowLayout {
                     ForEach(ownSkillCandidates, id: \.self) { label in
-                        PlugChip(title: label, selected: ownSkills.contains(label)) { toggleOwn(label) }
+                        ProviderChoice(title: label, selected: ownSkills.contains(label)) { toggleOwn(label) }
                             .accessibilityHint(ownSkills.contains(label) ? "Removes this skill" : "Keeps this as your own skill")
                     }
                 }
             }
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: PlugTokens.Space.s2) { ownField; addOwnButton.fixedSize() }
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) { ownField; addOwnButton }
-            }
-            caption(ownSkills.count >= 5 ? "You can keep up to five of your own skills."
-                    : "Use the words customers would say, for example \"chimney sweeping\".")
+            if ownSkills.count >= 5 { caption("You can keep up to five skills entered in your own words.") }
         }
-    }
-
-    private var ownField: some View {
-        PlugTextField(title: "Add your own skill", text: $ownDraft)
-            .textInputAutocapitalization(.never)
-            .accessibilityIdentifier("own-skill-field")
-    }
-
-    private var addOwnButton: some View {
-        Button("Add") {
-            let label = ownDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-            guard label.count >= 3 else { return }
-            if !ownSkills.contains(where: { $0.caseInsensitiveCompare(label) == .orderedSame }) { toggleOwn(label) }
-            ownDraft = ""
-        }
-        .buttonStyle(AuthActionStyle())
-        .disabled(ownDraft.trimmingCharacters(in: .whitespacesAndNewlines).count < 3 || ownSkills.count >= 5)
-        .accessibilityIdentifier("own-skill-add")
     }
 
     /// Unmatched words from the description first, then anything already kept or typed.
@@ -287,7 +291,7 @@ struct ProviderOnboardingView: View {
             Text("How far will you go?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             PlugFlowLayout {
                 ForEach(Radius.allCases) { option in
-                    PlugChip(title: option.title, selected: selectedRadius == option.rawValue) {
+                    ProviderChoice(title: option.title, selected: selectedRadius == option.rawValue) {
                         radius = option
                         radiusChanged = true
                     }
@@ -304,12 +308,12 @@ struct ProviderOnboardingView: View {
             Text("When are you usually free?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             PlugFlowLayout {
                 ForEach([AvailabilityWindow.Days.weekdays, .weekends, .everyDay], id: \.self) { option in
-                    PlugChip(title: option.title, selected: days == option) { days = option; availabilityChanged = true }
+                    ProviderChoice(title: option.title, selected: days == option) { days = option; availabilityChanged = true }
                 }
             }
             PlugFlowLayout {
                 ForEach(Slot.allCases) { slot in
-                    PlugChip(title: slot.title, selected: slots.contains(slot)) {
+                    ProviderChoice(title: slot.title, selected: slots.contains(slot)) {
                         availabilityChanged = true
                         if slots.contains(slot) { slots.remove(slot) } else { slots.insert(slot) }
                     }
@@ -327,7 +331,7 @@ struct ProviderOnboardingView: View {
     private var licenceStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
             Text("Licence").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
-            Text("\(licensedNames) needs a licence. Licensed requests are matched only to providers who give one.")
+            Text("\(licensedNames.isEmpty ? "This work" : licensedNames) needs a licence. Licensed requests are matched only to providers who give one.")
                 .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             PlugTextField(title: "Licence number", text: $licence)
                 .textInputAutocapitalization(.characters).autocorrectionDisabled()
@@ -336,7 +340,7 @@ struct ProviderOnboardingView: View {
                     .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.alert600)
             }
         }
-        .plugCard()
+        .marketCard()
     }
 
     private var baseStep: some View {
@@ -352,14 +356,14 @@ struct ProviderOnboardingView: View {
             } else {
                 caption("Approximate only. People who ask never see your address.")
                 Button(location.isWorking ? "Finding location…" : "Use my approximate location") { location.useDeviceLocation() }
-                    .buttonStyle(AuthActionStyle()).disabled(location.isWorking)
+                    .buttonStyle(FlowActionStyle()).disabled(location.isWorking)
             }
             if let error = location.errorMessage {
                 Text(error).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.alert600)
                 PlugTextField(title: "Street address and city", text: $location.address)
                     .textContentType(.fullStreetAddress)
                 Button("Use this address") { Task { await location.resolveAddress() } }
-                    .buttonStyle(AuthActionStyle()).disabled(location.isWorking || location.address.isEmpty)
+                    .buttonStyle(FlowActionStyle()).disabled(location.isWorking || location.address.isEmpty)
             }
         }
         .padding(.vertical, PlugTokens.Space.s2)
@@ -369,7 +373,7 @@ struct ProviderOnboardingView: View {
 
     private var selectedRadius: Int { radiusChanged ? radius.rawValue : (current?.travelRadiusM ?? radius.rawValue) }
     private var hasSkills: Bool { !chosen.isEmpty || !ownSkills.isEmpty }
-    private var needsLicence: Bool { proposed.contains { chosen.contains($0.tag) && $0.requiresLicence } }
+    private var needsLicence: Bool { licenceRequested || proposed.contains { chosen.contains($0.tag) && $0.requiresLicence } }
     private var licensedNames: String {
         proposed.filter { chosen.contains($0.tag) && $0.requiresLicence }.map(\.display).joined(separator: " and ")
     }
@@ -437,6 +441,7 @@ struct ProviderOnboardingView: View {
             onSaved(try await service.setProvider(setup))
             dismiss()
         } catch {
+            if let api = error as? APIError, api.fieldCode == "licence_required" { licenceRequested = true }
             errorMessage = message(for: error, saving: true)
         }
     }
@@ -453,7 +458,7 @@ struct ProviderOnboardingView: View {
             }
         }
         return saving ? "We could not confirm whether your changes were saved. Retry these same settings when you are connected."
-                      : "Your description could not be read. Nothing was saved; try again."
+                      : "Suggestions are unavailable. You can still add each skill directly above."
     }
 
     enum Radius: Int, CaseIterable, Identifiable {
@@ -512,19 +517,22 @@ struct InboxView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                        Text("Inbox").plugText(.title).foregroundStyle(PlugTokens.Color.ink900)
-                        Text(profile.accepting ? "Your provider profile is ready."
-                                               : "You are not receiving requests right now.")
+                    HStack {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Inbox").font(.system(.largeTitle, design: .rounded, weight: .bold))
+                            Text(profile.accepting ? "Your provider profile is saved." : "Your provider profile is paused.")
+                                .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                        }
+                        Spacer(minLength: 0)
+                        FlowEmblem(symbol: "tray", size: 56)
+                    }
+                    VStack(alignment: .leading, spacing: 18) {
+                        FlowEmblem(symbol: "bubble.left.and.bubble.right", size: 76)
+                        Text("A place for your next connection")
+                            .font(.system(.title2, design: .rounded, weight: .bold))
+                        Text("Your skills and hours are saved. Receiving and replying to requests here is coming in a future update.")
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
-                    }
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                        Text("Requests aren't delivered here yet").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-                        Text("Your skills and hours are saved. This private test checks matching; receiving and replying to requests in your Inbox comes next.")
-                            .plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
-                    }
-                    .plugCard()
-                    .accessibilityIdentifier("inbox-empty")
+                    }.marketCard().accessibilityIdentifier("inbox-empty")
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                         BusinessIdentity(name: profile.business?.name ?? "Your business", business: profile.business, score: profile.score)
                         if let about = profile.business?.about { Text(about).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600) }
@@ -543,17 +551,17 @@ struct InboxView: View {
                                     .accessibilityLabel("\(label), your own skill")
                             }
                         }
-                        VStack(spacing: 0) {
-                            valueRow("Travel", distance(profile.travelRadiusM))
-                            valueRow("Free", profile.availability.map(\.summary).joined(separator: "\n"))
-                            valueRow("Licence", profile.licenceOnFile ? "On file" : "None given")
-                            valueRow("Score", scoreText(profile.score), last: true)
+                        FlowMetrics(items: [("Travel area", distance(profile.travelRadiusM), "location"),
+                                            ("Licence", profile.licenceOnFile ? "On file" : "None given", "doc.text")], compact: true)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Your hours", systemImage: "calendar").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
+                            Text(profile.availability.map(\.summary).joined(separator: "\n")).plugText(.body)
                         }
                         Button("Edit business & services") { editing = true }
-                            .buttonStyle(AuthActionStyle())
+                            .buttonStyle(FlowActionStyle(primary: true))
                             .accessibilityIdentifier("provider-edit")
                     }
-                    .plugCard()
+                    .marketCard()
                 }
                 .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
                 .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
@@ -591,4 +599,20 @@ private struct BusinessLinkDraft: Identifiable {
     let id = UUID()
     var label: String
     var url = ""
+}
+
+private struct ProviderChoice: View {
+    let title: String
+    let selected: Bool
+    let action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            Text(title).plugText(.label)
+                .padding(.horizontal, 16).padding(.vertical, 12)
+                .frame(minHeight: 44)
+                .foregroundStyle(selected ? PlugTokens.Color.card : PlugTokens.Color.ink900)
+                .background(selected ? PlugTokens.Color.ink900 : PlugTokens.Color.paper, in: Capsule())
+        }
+        .buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
+    }
 }

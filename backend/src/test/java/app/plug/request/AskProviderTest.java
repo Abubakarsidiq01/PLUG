@@ -82,6 +82,30 @@ class AskProviderTest {
     }
 
     @org.springframework.transaction.annotation.Transactional
+    @Test void longOwnWordsSkillsDoNotRouteToAnUnrelatedProvider() throws Exception {
+        var first = guest();
+        var second = guest();
+        String prefix = "abcdefghijklmnopqrstuvwxyzabcdefg";
+        for (var entry : java.util.Map.of("one", first, "two", second).entrySet()) {
+            String setup = "{\"skill_tags\":[],\"custom_skills\":[\"" + prefix + " " + entry.getKey()
+                    + "\"],\"travel_radius_m\":4828,\"base_location\":" + HERE
+                    + ",\"availability\":[{\"days\":\"every_day\",\"from\":\"00:00\",\"to\":\"24:00\"}],"
+                    + "\"time_zone\":\"America/Chicago\"}";
+            send(entry.getValue(), "/v1/providers/skills", setup, false).andExpect(status().isOk());
+        }
+        String firstTag = jdbc.queryForObject("SELECT tag FROM provider_custom_skills WHERE user_id=?", String.class,
+                first.at("/account/user_id").asText());
+        String secondTag = jdbc.queryForObject("SELECT tag FROM provider_custom_skills WHERE user_id=?", String.class,
+                second.at("/account/user_id").asText());
+        assertThat(firstTag).isNotEqualTo(secondTag);
+        var request = ask(guest(), prefix + " two");
+        String id = request.at("/request/request_id").asText();
+        service.workOnce();
+        assertThat(jdbc.queryForList("SELECT provider_id FROM request_matches WHERE request_id=?", String.class, id))
+                .containsExactly(second.at("/account/user_id").asText());
+    }
+
+    @org.springframework.transaction.annotation.Transactional
     @Test void publicBusinessDetailsAreOptionalOwnedPreservedAndRemovable() throws Exception {
         var owner = guest();
         var other = guest();
@@ -221,6 +245,18 @@ class AskProviderTest {
                 + "\"time_zone\":\"America/Chicago\"}";
     }
 
+    @Test void directlyEnteredSkillsResolveKnownNamesAndKeepNewOnes() throws Exception {
+        var person = guest();
+        var profile = body(send(person, "/v1/providers/skills",
+                ownWords("[\"Wig install\",\"kiln glazing\"]"), false)
+                .andExpect(status().isOk()), "ProviderProfile");
+        assertThat(profile.path("skills").findValuesAsText("tag")).containsExactly("wig_install");
+        assertThat(profile.path("custom_skills").get(0).asText()).isEqualTo("Kiln glazing");
+        var reload = body(read(person, "/v1/providers/me").andExpect(status().isOk()), "ProviderProfile");
+        assertThat(reload.path("skills")).isEqualTo(profile.path("skills"));
+        assertThat(reload.path("custom_skills")).isEqualTo(profile.path("custom_skills"));
+    }
+
     @Test void providersOfferSkillsInTheirOwnWordsAndAsksFindThemByKeywords() throws Exception {
         var sweeper = guest();
         var profile = body(send(sweeper, "/v1/providers/skills", ownWords("[\"chimney sweeping\"]"), false)
@@ -228,9 +264,9 @@ class AskProviderTest {
         assertThat(profile.path("skills").size()).isZero();
         assertThat(profile.path("custom_skills").get(0).asText()).isEqualTo("Chimney sweeping");
 
-        // A listed skill must be chosen from the list, so a licensed one cannot be re-entered in other words.
+        // Directly entered listed skills still enforce their licence requirement.
         assertThat(body(send(sweeper, "/v1/providers/skills", ownWords("[\"electrician work\"]"), false)
-                .andExpect(status().isBadRequest()), "Error").at("/error/details/0/code").asText()).isEqualTo("listed_skill");
+                .andExpect(status().isBadRequest()), "Error").at("/error/details/0/code").asText()).isEqualTo("licence_required");
         assertThat(body(send(sweeper, "/v1/providers/skills", ownWords("[\"help today\"]"), false)
                 .andExpect(status().isBadRequest()), "Error").at("/error/details/0/code").asText()).isEqualTo("too_vague");
         body(send(sweeper, "/v1/providers/skills", ownWords("[\"selling stolen phones\"]"), false)

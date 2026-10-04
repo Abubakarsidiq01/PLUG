@@ -108,7 +108,7 @@ struct ServiceRequest: Decodable, Equatable {
         case noCoverage = "no_coverage", noOffers = "no_offers", clarificationUnanswered = "clarification_unanswered"
         var explanation: String {
             switch self {
-            case .noCoverage: return "No participating PLUG suppliers cover this service near you yet."
+            case .noCoverage: return "Nobody on PLUG offers this near you yet."
             case .noOffers: return "No current offers meet this request. Your request has expired."
             case .clarificationUnanswered: return "This request expired before the clarifying question was answered."
             }
@@ -212,7 +212,7 @@ struct ServiceOffer: Decodable, Equatable, Identifiable {
         var title: String { self == .notVerified ? "Not verified" : rawValue.capitalized }
         var explanation: String {
             switch self {
-            case .confirmed: return "Confirmed. Verified by the supplier."
+            case .confirmed: return "Confirmed. Verified by the provider."
             case .recent: return "Recent. Based on recent verification."
             case .estimated: return "Estimated. Availability and price are not confirmed."
             case .unknown: return "Unknown. No recent information. You can keep asking."

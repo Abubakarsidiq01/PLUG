@@ -28,8 +28,10 @@
 
 ## Guardrails
 
-- Listed skills always win. A label that names a listed skill is refused (`listed_skill`), so
-  a licensed skill cannot be re-entered in other words to avoid the licence check.
+- Listed skills always win. Following the owner’s 2026-10-03 request for direct entry,
+  labels naming listed skills resolve to their canonical tags when saved. Licensed skills
+  still require a licence; entering the name directly cannot avoid that check.
+- The app accepts a skill directly without first calling the suggestion service.
 - The restricted-intent policy checks every label exactly as it checks asks: 422
   `restricted_intent` with an audit event. A label with no specific word is `too_vague`.
 - A test keeps every listed skill clear of the policy, so the larger list cannot be refused
@@ -47,3 +49,12 @@
   their foreign key; the startup check compares `skills.yaml` with the non-custom rows only.
 - Keyword matching is deliberately simple and conservative. With a Claude key configured,
   Claude still maps free text onto listed skills first; it never creates a custom one.
+
+### Identifier hardening — 2026-10-04
+
+Short ASCII keyword tags keep their existing representation. If sanitising would remove
+letters or truncate the tag, append a stable digest of the complete keywords within the
+existing 40-character category limit. This prevents unrelated long or non-Latin labels
+from sharing the same tag. Existing stored tags are not rewritten; re-saving a profile
+uses the hardened identifier. Matching still uses the provider's keywords and clients
+still display the label, never the identifier. No endpoint or response shape changes.

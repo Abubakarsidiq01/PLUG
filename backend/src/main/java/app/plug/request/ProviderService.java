@@ -78,7 +78,18 @@ public class ProviderService {
                 if (label != null) policy.refusal(label).ifPresent(rule -> requests.refuse(caller, rule));
             }
         }
-        var custom = setup.customSkills() == null ? null : customSkills.prepare(setup.customSkills(), vocabulary);
+        // Direct entry accepts familiar and new skills alike. Canonical skills retain all
+        // their matching and licence rules instead of becoming unregulated custom tags.
+        List<String> ownLabels = new ArrayList<>();
+        if (setup.customSkills() != null) {
+            for (String label : setup.customSkills()) {
+                var listed = label == null ? List.<SkillVocabulary.Skill>of() : vocabulary.findIn(label);
+                if (listed.isEmpty()) ownLabels.add(label);
+                else for (var skill : listed) if (!skills.contains(skill)) skills.add(skill);
+            }
+        }
+        if (skills.size() > 10) throw ApiException.validation("skill_tags", "too_many", "Keep up to ten listed skills.");
+        var custom = setup.customSkills() == null ? null : customSkills.prepare(ownLabels, vocabulary);
         boolean keepsCustom = custom == null && !customSkills.labels(caller.userId()).isEmpty();
         if (skills.isEmpty() && (custom == null ? !keepsCustom : custom.isEmpty())) {
             throw ApiException.validation("skill_tags", "required", "Add at least one skill.");

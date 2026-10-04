@@ -39,6 +39,7 @@ struct PlugApp: App {
 struct RootView: View {
     @State private var hasRestored = false
     @State private var provider: ProviderProfile?
+    @State private var selectedTab = "Ask"
     @ObservedObject var model: AuthenticationModel
     let environment: AppEnvironment
 
@@ -62,7 +63,7 @@ struct RootView: View {
     private func signedIn(_ session: Session) -> some View {
         let requests = RequestService(client: APIClient(environment: environment),
                                       sessions: model.sessions, userId: session.account.userId)
-        return TabView {
+        return TabView(selection: $selectedTab) {
             Group {
                 if environment.requestsEnabled {
                     AskView(service: requests) { provider = $0 }
@@ -71,30 +72,74 @@ struct RootView: View {
                     foundationPage("Ask", detail: "Request intake is not enabled in this environment.")
                 }
             }
-                .tabItem { Label("Ask", systemImage: "magnifyingglass") }
-            // Manual v4 §2.3: the Inbox appears only once this same account offers a service.
+            .tag("Ask")
             if environment.requestsEnabled, let provider {
                 InboxView(service: requests, profile: provider) { self.provider = $0 }
-                    .tabItem { Label("Inbox", systemImage: "tray") }
+                    .tag("Inbox")
             }
-            foundationPage("Activity", detail: "Your requests will appear here once request history is implemented.")
-                .tabItem { Label("Activity", systemImage: "clock") }
-            // Five tabs fit without a More tab; the Phase 4 placeholder gives way to a real Inbox.
-            if provider == nil {
-                foundationPage("Contribute", detail: "Scout contributions will be available in Phase 4.")
-                    .tabItem { Label("Contribute", systemImage: "plus.circle") }
+            NavigationStack {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 24) {
+                        Text("Activity").font(.system(.largeTitle, design: .rounded, weight: .bold))
+                        VStack(alignment: .leading, spacing: 20) {
+                            FlowEmblem(symbol: "clock.arrow.circlepath", size: 88)
+                            Text("Your asks, in one place")
+                                .font(.system(.title2, design: .rounded, weight: .bold))
+                            Text("Your active ask is on the Ask tab. Past requests aren’t shown here yet.")
+                                .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                            Button("Go to Ask") { selectedTab = "Ask" }
+                                .buttonStyle(FlowActionStyle(primary: true))
+                        }.marketCard()
+                    }
+                    .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16).padding(.vertical, 24)
+                }.background(PlugTokens.Color.paper)
+                .toolbar(.hidden, for: .navigationBar)
             }
-            ProfileView(model: model, session: session)
-                .tabItem { Label("Profile", systemImage: "person") }
-            HealthView(client: APIClient(environment: environment))
-                .tabItem { Label("Engineering", systemImage: "wrench") }
+            .tag("Activity")
+            ProfileView(model: model, session: session, environment: environment)
+                .tag("Profile")
+        }
+        .toolbar(.hidden, for: .tabBar)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            HStack(spacing: 0) {
+                navigationItem("Ask", symbol: "square.grid.2x2", selectedSymbol: "square.grid.2x2.fill")
+                if environment.requestsEnabled, provider != nil {
+                    navigationItem("Inbox", symbol: "bubble.left.and.bubble.right", selectedSymbol: "bubble.left.and.bubble.right.fill")
+                }
+                navigationItem("Activity", symbol: "clock", selectedSymbol: "clock.fill")
+                navigationItem("Profile", symbol: "person.crop.circle", selectedSymbol: "person.crop.circle.fill")
+            }
+            .padding(.top, 10).padding(.bottom, 4)
+            .background(PlugTokens.Color.card)
+            .overlay(alignment: .top) { PlugTokens.Color.rule200.frame(height: 0.5) }
         }
         .tint(PlugColor.brand)
         .task(id: session.account.userId) {
+            selectedTab = "Ask"
             provider = nil
             guard environment.requestsEnabled else { return }
             provider = try? await requests.providerProfile()
         }
+    }
+
+    private func navigationItem(_ title: String, symbol: String, selectedSymbol: String) -> some View {
+        Button { selectedTab = title } label: {
+            VStack(spacing: 5) {
+                Image(systemName: selectedTab == title ? selectedSymbol : symbol)
+                    .font(.system(size: 22, weight: .medium)).frame(height: 26)
+                Text(title).font(.system(.caption2, weight: selectedTab == title ? .bold : .medium))
+            }
+            .frame(maxWidth: .infinity, minHeight: 48)
+            .foregroundStyle(selectedTab == title ? PlugTokens.Color.ink900 : PlugTokens.Color.ink600)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .accessibilityShowsLargeContentViewer { Label(title, systemImage: symbol) }
+        .accessibilityLabel(title)
+        .accessibilityIdentifier("navigation-" + title.lowercased())
+        .accessibilityAddTraits(selectedTab == title ? .isSelected : [])
     }
 
     private func foundationPage(_ title: String, detail: String) -> some View {
@@ -115,34 +160,59 @@ struct RootView: View {
 struct ProfileView: View {
     @ObservedObject var model: AuthenticationModel
     let session: Session
+    let environment: AppEnvironment
 
     var body: some View {
         NavigationStack {
-            List {
-                Section("Account") {
-                    detailRow("Signed in with", description(of: session.account.type))
-                    detailRow("Terms accepted", session.consent.acceptedVersion ?? "Not yet")
-                }
-                if session.account.isGuest {
-                    Section("Guest account") {
-                        Text("Create an account to keep your guest requests. Signing in to an existing account switches "
-                             + "accounts; guest activity is not merged into that account.")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Button("Create account or sign in") { model.startOver() }
-                            .frame(minHeight: 44)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 24) {
+                    Text("Profile").font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    VStack(alignment: .leading, spacing: 18) {
+                        Image(systemName: "person.crop.circle")
+                            .font(.system(size: 56, weight: .light)).accessibilityHidden(true)
+                        Text("Your corner of PLUG")
+                            .font(.system(.title2, design: .rounded, weight: .bold))
+                        Text(session.account.isGuest ? "Exploring as a guest" : "Your account, your connections")
+                            .plugText(.body).opacity(0.8)
                     }
-                }
-                Section {
-                    Button("Sign out", role: .destructive) {
-                        Task { await model.signOut() }
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(24)
+                    .foregroundStyle(PlugTokens.Color.card)
+                    .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: 28))
+                    VStack(alignment: .leading, spacing: 18) {
+                        Label("Account", systemImage: "person.crop.square").font(.system(.title3, design: .rounded, weight: .bold))
+                        detailRow("Signed in with", description(of: session.account.type))
+                        detailRow("Terms accepted", session.consent.acceptedVersion ?? "Not yet")
+                    }.marketCard()
+                    if session.account.isGuest {
+                        VStack(alignment: .leading, spacing: 16) {
+                            Label("Make yourself at home", systemImage: "house")
+                                .font(.system(.title3, design: .rounded, weight: .bold))
+                            Text("Create an account to keep your guest requests. Signing in to an existing account switches "
+                                 + "accounts; guest activity is not merged into that account.")
+                                .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                            Button("Create account or sign in") { model.startOver() }
+                                .buttonStyle(FlowActionStyle(primary: true))
+                        }.marketCard()
                     }
-                    .frame(minHeight: 44)
-                    .accessibilityHint("Ends this session on PLUG's servers as well as on this device")
+                    #if DEBUG
+                    NavigationLink { HealthView(client: APIClient(environment: environment)) } label: {
+                        HStack {
+                            Label("Developer tools", systemImage: "wrench.and.screwdriver")
+                            Spacer(minLength: 8)
+                            Image(systemName: "chevron.right")
+                        }.plugText(.body).marketCard()
+                    }.buttonStyle(.plain)
+                    #endif
+                    Button("Sign out", role: .destructive) { Task { await model.signOut() } }
+                        .buttonStyle(FlowActionStyle(destructive: true))
+                        .accessibilityHint("Ends this session on PLUG's servers as well as on this device")
                 }
+                .foregroundStyle(PlugTokens.Color.ink900)
+                .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
+                .padding(.horizontal, 16).padding(.vertical, 24)
             }
-            .navigationTitle("Profile")
+            .background(PlugTokens.Color.paper)
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 

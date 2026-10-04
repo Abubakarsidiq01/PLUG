@@ -38,10 +38,8 @@ It binds `127.0.0.1:18080`, uses `plug_phase2_live`, enables
 It builds once and launches an immutable temporary JAR snapshot. Do not run a
 long-lived phone backend directly from `backend/build/libs`: another build can
 replace that JAR while Java is lazily loading classes, breaking active requests.
-It deliberately does not load `.env.local` or provider secrets. The iOS simulator
-can use `PLUG_API_URL=http://127.0.0.1:18080`. A physical device needs a reachable
-HTTPS URL for this same port; the temporary tunnel remains local development
-under ADR-004, not a dedicated staging deployment.
+It loads only an optional `ANTHROPIC_API_KEY` from the documented local files; no identity-provider credentials are sourced. The iOS simulator
+can use `PLUG_API_URL=http://127.0.0.1:18080`. A physical device uses the private paired connection described below. This is a Debug-only local preview, not a dedicated staging deployment.
 
 PowerShell users can create the same container/databases with one-line Docker
 commands, export the four `PLUG_DATABASE_*` / `PLUG_IDENTITY_PEPPER` variables,
@@ -55,13 +53,35 @@ Do not stop it until evidence and any wanted test sessions have been saved.
 
 ## One-command phone run and full verification
 
-`sh tools/run-phase2-phone.sh` does everything above for a physical device: starts the
-disposable PostGIS container and `plug_phase2_live`, launches the isolated requests_v2
-backend on port 18080 from a JAR snapshot, opens a Quick Tunnel, writes the tunnel URL and
-`PLUG_REQUESTS_V2_ENABLED = YES` into `ios/Plug/Resources/Local.xcconfig`, waits for the
-paired iPhone, then builds, installs and launches a signed Debug build. Control-C stops the
-backend and tunnel and sets the flag back to `NO`. On the phone, continue as guest; seeded
-results exist only in the synthetic Ruston, LA zone, so elsewhere type a Ruston address.
+`sh tools/run-phase2-phone.sh` prepares `plug_phase2_live`, launches the isolated
+backend, discovers the paired iPhone's private IPv6 interface, holds the connection,
+and relays only that phone to the loopback backend. It builds, installs and launches
+a signed Debug app. It never opens a public tunnel or a Wi-Fi wildcard listener.
+It writes the current private address and Phase 2 flag into ignored `Local.xcconfig`.
+Keep the phone connected and unlocked during installation. Re-run after reconnecting
+because the private address may change. Control-C stops only processes it started;
+existing occupied ports fail clearly rather than stopping someone else's server.
+
+The phone runner needs a valid development profile for the app. Physical UI automation
+also needs a separate profile for `com.abubakarsidiq01.plug.app101.uitests.xctrunner`:
+select the same development team for PlugUITests in Xcode, enable automatic signing,
+and enable UI Automation under Settings → Developer on the phone. A working app profile
+alone does not establish that the test runner can be signed.
+
+For physical state screenshots, hold a paired connection with `devicectl device
+notification observe`, obtain `tunnelIPAddress` from `devicectl device info details`,
+and find the Mac address in the same `/64` from `ifconfig`. Then run:
+
+```sh
+PLUG_PAIRED_HOST='<Mac paired IPv6 address>' \
+PLUG_PAIRED_PEER='<iPhone paired IPv6 address>' \
+sh tools/run-phase2-device-evidence.sh
+```
+
+The fixture relay uses port 18087 and only accepts the paired phone and Mac address.
+Screenshots are real-device renders of synthetic states, labelled separately from live
+API and joint checkpoint evidence. Reinstall the live-backend build afterward. VoiceOver
+and the independent greyscale review still require their actual walkthroughs.
 
 `sh tools/phase2-verify-all.sh` runs every automated check against disposable data: backend
 unit and database tests, contract/fixture/dataset checks, web typecheck and lint, Spectral,

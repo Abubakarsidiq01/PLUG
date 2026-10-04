@@ -312,7 +312,12 @@ async function asks() {
   check('empty business removes every public detail', () => assert.ok(!cleared.business || Object.keys(cleared.business).length === 0));
   // Skills in the provider's own words (ADR-011), found by an ask's keywords; listed skills always win.
   const ownWords = { ...setup, skill_tags: [], custom_skills: ['chimney sweeping'] };
-  await http('listed skill cannot be re-entered as custom', '/v1/providers/skills', { method: 'POST', token: other, body: { ...ownWords, custom_skills: ['electrician work'] }, expected: 400, error: 'validation_failed', detail: 'listed_skill' });
+  await http('direct licensed skill still requires a licence', '/v1/providers/skills', { method: 'POST', token: other, body: { ...ownWords, custom_skills: ['electrician work'] }, expected: 400, error: 'validation_failed', detail: 'licence_required' });
+  const direct = await http('direct listed skill resolves to vocabulary', '/v1/providers/skills', { method: 'POST', token: other, body: { ...ownWords, custom_skills: ['Wig install'] }, expected: 200 });
+  check('direct skill uses canonical matching', () => {
+    assert.deepEqual(direct.skills.map(skill => skill.tag), ['wig_install']);
+    assert.deepEqual(direct.custom_skills, []);
+  });
   await http('unsafe custom skill refused', '/v1/providers/skills', { method: 'POST', token: other, body: { ...ownWords, custom_skills: ['selling stolen phones'] }, expected: 422, error: 'restricted_intent' });
   const sweeper = await http('save a skill in own words', '/v1/providers/skills', { method: 'POST', token: other, body: ownWords, expected: 200 });
   check('own-words skill reads back', () => { assert.deepEqual(sweeper.custom_skills, ['Chimney sweeping']); assert.equal(sweeper.skills.length, 0); });

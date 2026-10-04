@@ -62,15 +62,30 @@ public class RequestService {
         requireCaller(caller);
         requireConsent(caller);
         refuseRestricted(caller, input.text());
+        Resource prior = prepareCreate(caller, "create", key, input, Resource.class);
+        if (prior != null) return prior;
+        // A slow provider must not hold the account lock or a database connection.
+        IntentAdapter.Result extracted = intent.extract(input, caller.userId());
         return transaction.execute(ignored -> {
             lockAccount(caller);
             requireConsent(caller);
             Resource replay = replay(caller, "create", key, input, Resource.class);
             if (replay != null) return replay;
-            if (!limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
-            Resource result = insert(caller, input.text(), intent.extract(input, caller.userId()));
+            Resource result = insert(caller, input.text(), extracted);
             remember(caller, "create", key, input, result);
             return result;
+        });
+    }
+    /// Cheap admission before external classification. The final transaction checks replay
+    /// again: concurrent retries may both classify, but can only persist one result.
+    <T> T prepareCreate(PlugPrincipal caller, String operation, String key, Object input, Class<T> type) {
+        return transaction.execute(ignored -> {
+            lockAccount(caller);
+            requireConsent(caller);
+            T prior = replay(caller, operation, key, input, type);
+            if (prior != null) return prior;
+            if (!limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
+            return null;
         });
     }
     /// The restricted-intent policy runs first, before any extraction (manual v4 §19A.1).

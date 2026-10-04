@@ -1456,7 +1456,8 @@ components:
             Skills in the provider's own words that PLUG does not list (ADR-011), matched to asks
             by their keywords. Omit to keep the stored list; send [] to remove it. Each label is
             checked by the restricted-intent policy (422 restricted_intent). A label naming a
-            listed skill is 400 listed_skill; one with no specific word is 400 too_vague.
+            listed skill is resolved to its vocabulary tag (including its licence requirement);
+            one with no specific word is 400 too_vague.
     ProviderProfile:
       type: object
       additionalProperties: false
