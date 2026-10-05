@@ -50,6 +50,9 @@ struct RootView: View {
                 signedIn(session)
             default:
                 WelcomeView(model: model, environment: environment)
+                    // Reset while signed out, so every sign-in starts on Ask and nothing changes
+                    // the tab after the person has started using the app.
+                    .onAppear { selectedTab = "Ask" }
             }
         }
         .tint(PlugColor.brand)
@@ -63,6 +66,9 @@ struct RootView: View {
     private func signedIn(_ session: Session) -> some View {
         let requests = RequestService(client: APIClient(environment: environment),
                                       sessions: model.sessions, userId: session.account.userId)
+        // The system tab bar is hidden from inside each tab, where SwiftUI applies it; hidden on the
+        // TabView itself it stayed in the layout and kept taking taps at the bottom of every page.
+        // Each tab reserves the custom bar's height, so nothing scrolls out of reach beneath it.
         return TabView(selection: $selectedTab) {
             Group {
                 if environment.requestsEnabled {
@@ -72,10 +78,10 @@ struct RootView: View {
                     foundationPage("Ask", detail: "Request intake is not enabled in this environment.")
                 }
             }
-            .tag("Ask")
+            .plugTab("Ask", bar: navigationBar)
             if environment.requestsEnabled, let provider {
                 InboxView(service: requests, profile: provider) { self.provider = $0 }
-                    .tag("Inbox")
+                    .plugTab("Inbox", bar: navigationBar)
             }
             NavigationStack {
                 ScrollView {
@@ -96,31 +102,32 @@ struct RootView: View {
                 }.background(PlugTokens.Color.paper)
                 .toolbar(.hidden, for: .navigationBar)
             }
-            .tag("Activity")
+            .plugTab("Activity", bar: navigationBar)
             ProfileView(model: model, session: session, environment: environment)
-                .tag("Profile")
-        }
-        .toolbar(.hidden, for: .tabBar)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            HStack(spacing: 0) {
-                navigationItem("Ask", symbol: "square.grid.2x2", selectedSymbol: "square.grid.2x2.fill")
-                if environment.requestsEnabled, provider != nil {
-                    navigationItem("Inbox", symbol: "bubble.left.and.bubble.right", selectedSymbol: "bubble.left.and.bubble.right.fill")
-                }
-                navigationItem("Activity", symbol: "clock", selectedSymbol: "clock.fill")
-                navigationItem("Profile", symbol: "person.crop.circle", selectedSymbol: "person.crop.circle.fill")
-            }
-            .padding(.top, 10).padding(.bottom, 4)
-            .background(PlugTokens.Color.card)
-            .overlay(alignment: .top) { PlugTokens.Color.rule200.frame(height: 0.5) }
+                .plugTab("Profile", bar: navigationBar)
         }
         .tint(PlugColor.brand)
         .task(id: session.account.userId) {
-            selectedTab = "Ask"
             provider = nil
             guard environment.requestsEnabled else { return }
             provider = try? await requests.providerProfile()
         }
+    }
+
+    /// The only bottom navigation. Pages get its height as safe area, so nothing scrolls under it.
+    private var navigationBar: some View {
+        HStack(spacing: 0) {
+            navigationItem("Ask", symbol: "square.grid.2x2", selectedSymbol: "square.grid.2x2.fill")
+            if environment.requestsEnabled, provider != nil {
+                navigationItem("Inbox", symbol: "bubble.left.and.bubble.right", selectedSymbol: "bubble.left.and.bubble.right.fill")
+            }
+            navigationItem("Activity", symbol: "clock", selectedSymbol: "clock.fill")
+            navigationItem("Profile", symbol: "person.crop.circle", selectedSymbol: "person.crop.circle.fill")
+        }
+        .padding(.top, 10).padding(.bottom, 4)
+        // Down to the screen edge, so nothing shows through beside the home indicator.
+        .background(PlugTokens.Color.card.ignoresSafeArea(edges: .bottom))
+        .overlay(alignment: .top) { PlugTokens.Color.rule200.frame(height: 0.5) }
     }
 
     private func navigationItem(_ title: String, symbol: String, selectedSymbol: String) -> some View {
@@ -157,6 +164,26 @@ struct RootView: View {
 
 /// What the account is, and the way out of it. A guest is told plainly what a guest is and
 /// offered the upgrade, because a limit nobody can see is a limit that feels like a bug.
+enum PlugNavigationBar {
+    /// Bar height (48 pt items, 10 + 4 pt padding) at its largest capped label size, plus a gap.
+    static let reserved: CGFloat = 96
+}
+
+private extension View {
+    /// One page of the bottom navigation: no system tab bar, the custom bar along the bottom, and
+    /// a bottom margin on every scroll view in the tab (pushed pages included) so its last control
+    /// can always scroll clear of the bar. A safe-area inset applied here did not reach scroll
+    /// views inside the tab's navigation stack on iOS 26.
+    func plugTab<Bar: View>(_ name: String, bar: Bar) -> some View {
+        toolbar(.hidden, for: .tabBar)
+            .contentMargins(.bottom, PlugNavigationBar.reserved, for: .scrollContent)
+            .contentMargins(.bottom, PlugNavigationBar.reserved, for: .scrollIndicators)
+            // Like a system tab bar, it stays behind the keyboard instead of riding up over the field.
+            .overlay(alignment: .bottom) { bar.ignoresSafeArea(.keyboard, edges: .bottom) }
+            .tag(name)
+    }
+}
+
 struct ProfileView: View {
     @ObservedObject var model: AuthenticationModel
     let session: Session

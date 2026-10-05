@@ -1,8 +1,8 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-04T10:53:44.014246+00:00",
-  "updated_by": "codex (Person One Phase 2 admission, schema, matching and private-device hardening)",
+  "updated_at": "2026-10-05T03:03:53.786803+00:00",
+  "updated_by": "person_one (physical-iPhone evidence and navigation fixes)",
   "completed_phases": [
     "P0",
     "P1"
@@ -110,8 +110,8 @@
       "id": "P2-device-evidence",
       "owner": "person_one",
       "manual_section": "27.3",
-      "task": "Resolve separate PlugUITests runner provisioning in signed-in Xcode, then run tools/run-phase2-device-evidence.sh with paired host/peer addresses. Capture the physical Figure A1-A3 state matrix, VoiceOver and device failure/recovery. Obtain independent greyscale/design review. The app itself is signed; the UI runner still reports No Accounts/missing profile.",
-      "acceptance": "Device screenshots for every required state committed; design gate recorded with no open failure."
+      "task": "Done 2026-10-04 for the automated state matrix: all six walkthroughs passed on the paired iPhone at default and largest Dynamic Type (evidence/P2/ios/2026-10-04/, docs/testing/phase2-device-evidence-2026-10-04.md). Remaining: VoiceOver walkthrough on the device into evidence/P2/a11y and an independent greyscale/design review.",
+      "acceptance": "VoiceOver walkthrough recorded; design gate reviewed by a second person."
     },
     {
       "id": "P2-admin-vocabulary-classifier",
@@ -645,6 +645,16 @@
       "physical_ui_matrix": "Blocked: valid app profile exists, separate UI runner profile missing; Xcode CLI reports No Accounts despite owner confirming GUI sign-in. Target team/automatic signing aligned; owner following signing steps.",
       "g2_passed": false,
       "phone": "Final signed app installed and launched; hardened backend uses immutable JAR and preserved plug_phase2_live database; private relay address automatically rediscovered."
+    },
+    "phase2_device_evidence": {
+      "date": "2026-10-04",
+      "device": "paired iPhone (iPhone14,3)",
+      "walkthroughs": "6 of 6 passed on device and on simulator, default and largest Dynamic Type",
+      "device_screenshots": 60,
+      "ios_tests": 67,
+      "report": "docs/testing/phase2-device-evidence-2026-10-04.md",
+      "fixes": "hidden system tab bar hit-testing, content behind custom bar, bar over keyboard, sign-in tab bounce, Ask field Clear button",
+      "status": "local evidence; G2 not signed"
     }
   },
   "implementation_authorization": {

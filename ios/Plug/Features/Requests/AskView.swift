@@ -164,6 +164,17 @@ struct AskView: View {
                     .accessibilityLabel("What do you need?")
                     .accessibilityIdentifier("request-text")
                     .disabled(model.isWorking)
+                // Earlier words stay after "Ask something else"; one tap starts fresh.
+                if !model.text.isEmpty && !model.isWorking {
+                    Button { voice.stop(); model.text = ""; textFocused = true } label: {
+                        Image(systemName: "xmark.circle.fill").font(.system(size: 18))
+                            .foregroundStyle(PlugTokens.Color.ink400)
+                            .frame(width: 44, height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain).accessibilityLabel("Clear")
+                    .accessibilityIdentifier("request-clear")
+                }
                 Button { ask() } label: {
                     Image(systemName: "arrow.up").font(.system(size: 20, weight: .semibold))
                         .frame(width: 46, height: 46)

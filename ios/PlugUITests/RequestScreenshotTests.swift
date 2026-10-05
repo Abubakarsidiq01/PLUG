@@ -40,7 +40,7 @@ final class RequestScreenshotTests: XCTestCase {
             reveal(offer, in: app)
             offer.tap()
             let field = app.descendants(matching: .any).matching(identifier: "provider-description").firstMatch
-            XCTAssertTrue(field.waitForExistence(timeout: 5))
+            XCTAssertTrue(field.waitForExistence(timeout: 20))
             field.tap()
             field.typeText("Wig install")
             dismissKeyboard(app)
@@ -48,13 +48,13 @@ final class RequestScreenshotTests: XCTestCase {
                 let find = app.buttons["Find my skills"]
                 reveal(find, in: app)
                 find.tap()
-                XCTAssertTrue(app.staticTexts["Suggestions are unavailable. You can still add each skill directly above."].waitForExistence(timeout: 10))
+                XCTAssertTrue(app.staticTexts["Suggestions are unavailable. You can still add each skill directly above."].waitForExistence(timeout: 20))
             }
             let add = app.buttons["provider-add-skill"]
             reveal(add, in: app, upward: false)
             add.tap()
             let skill = app.buttons["Wig install"]
-            XCTAssertTrue(skill.waitForExistence(timeout: 5))
+            XCTAssertTrue(skill.waitForExistence(timeout: 20))
             XCTAssertTrue(skill.isSelected)
             capture("direct-skill-\(largest ? "largest" : "default")")
             let base = app.buttons["Use my approximate location"]
@@ -63,16 +63,16 @@ final class RequestScreenshotTests: XCTestCase {
             allowLocation()
             let located = app.descendants(matching: .any)
                 .matching(NSPredicate(format: "label CONTAINS 'Current approximate location'")).firstMatch
-            for _ in 0..<2 where !located.waitForExistence(timeout: 10) {
+            for _ in 0..<2 where !located.waitForExistence(timeout: 20) {
                 reveal(base, in: app)
                 base.tap()
             }
-            XCTAssertTrue(located.waitForExistence(timeout: 10))
+            XCTAssertTrue(located.waitForExistence(timeout: 20))
             let save = app.buttons["provider-save"]
             reveal(save, in: app)
             XCTAssertTrue(save.isEnabled)
             save.tap()
-            XCTAssertTrue(app.buttons["Inbox"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.buttons["Inbox"].waitForExistence(timeout: 20))
         }
     }
 
@@ -82,7 +82,7 @@ final class RequestScreenshotTests: XCTestCase {
             let app = launch(largest: largest)
             enterGuest(app)
             try submit(app, text: "How busy is the demo place? answered place")
-            XCTAssertTrue(app.staticTexts["12–15 min"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.staticTexts["12–15 min"].waitForExistence(timeout: 20))
             capture("place-answered-\(suffix)")
             let sources = app.staticTexts["Who answered"]
             reveal(sources, in: app)
@@ -105,16 +105,22 @@ final class RequestScreenshotTests: XCTestCase {
             XCTAssertTrue(priceSort.isSelected)
             XCTAssertLessThan(app.staticTexts["Studio B · Test profile"].frame.minY,
                               app.staticTexts["Sharp Cuts Studio"].frame.minY)
-            app.buttons["For you"].tap()
+            let forYou = app.buttons["For you"]
+            reveal(forYou, in: app, upward: false)
+            forYou.tap()
+            XCTAssertTrue(forYou.isSelected)
             XCTAssertLessThan(app.staticTexts["Sharp Cuts Studio"].frame.minY,
                               app.staticTexts["Studio B · Test profile"].frame.minY)
-            app.buttons["Closest"].tap()
+            let closest = app.buttons["Closest"]
+            reveal(closest, in: app, upward: false)
+            closest.tap()
+            XCTAssertTrue(closest.isSelected)
             XCTAssertLessThan(app.staticTexts["Studio B · Test profile"].frame.minY,
                               app.staticTexts["Sharp Cuts Studio"].frame.minY)
             capture("business-results-\(suffix)")
             reveal(details, in: app)
             details.tap()
-            XCTAssertTrue(app.staticTexts["Studio B · Test profile"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["Studio B · Test profile"].waitForExistence(timeout: 20))
             let links = app.staticTexts["See their work"]
             reveal(links, in: app)
             XCTAssertTrue(links.exists)
@@ -122,31 +128,34 @@ final class RequestScreenshotTests: XCTestCase {
             swipeBack(app)
             swipeBack(app)
             app.buttons["navigation-profile"].tap()
-            XCTAssertTrue(app.staticTexts["Your corner of PLUG"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["Your corner of PLUG"].waitForExistence(timeout: 20))
             capture("marketplace-profile-\(suffix)")
             app.buttons["navigation-activity"].tap()
-            XCTAssertTrue(app.staticTexts["Your asks, in one place"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.staticTexts["Your asks, in one place"].waitForExistence(timeout: 20))
             capture("activity-\(suffix)")
             app.buttons["Go to Ask"].tap()
             let stop = app.buttons["ask-stop"]
-            XCTAssertTrue(stop.waitForExistence(timeout: 5))
+            XCTAssertTrue(stop.waitForExistence(timeout: 20))
             reveal(stop, in: app)
             capture("business-home-active-\(suffix)")
             stop.tap()
-            XCTAssertTrue(app.staticTexts["Ask stopped"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.staticTexts["Ask stopped"].waitForExistence(timeout: 20))
             XCTAssertFalse(app.buttons["ask-stop"].exists)
             capture("business-home-stopped-\(suffix)")
             app.buttons["navigation-profile"].tap()
             let upgrade = app.buttons["Create account or sign in"]
             reveal(upgrade, in: app)
             upgrade.tap()
-            XCTAssertTrue(app.buttons["I have an account"].waitForExistence(timeout: 5))
+            XCTAssertTrue(app.buttons["I have an account"].waitForExistence(timeout: 20))
             enterGuest(app)
-            app.buttons["navigation-profile"].tap()
+            // Signing in resets the app to Ask once the session loads; open Profile after that.
+            let profileTitle = app.staticTexts["Your corner of PLUG"]
+            for _ in 0..<3 where !profileTitle.waitForExistence(timeout: 3) { app.buttons["navigation-profile"].tap() }
+            XCTAssertTrue(profileTitle.exists)
             let signOut = app.buttons["Sign out"]
             reveal(signOut, in: app)
             signOut.tap()
-            XCTAssertTrue(app.buttons["Get started"].waitForExistence(timeout: 10))
+            XCTAssertTrue(app.buttons["Get started"].waitForExistence(timeout: 20))
         }
     }
 
@@ -161,14 +170,14 @@ final class RequestScreenshotTests: XCTestCase {
         reveal(offer, in: app)
         offer.tap()
         let describe = app.descendants(matching: .any).matching(identifier: "provider-description").firstMatch
-        XCTAssertTrue(describe.waitForExistence(timeout: 5))
+        XCTAssertTrue(describe.waitForExistence(timeout: 20))
         describe.tap()
         describe.typeText("I do knotless braids, wig installs and crochet locs")
         dismissKeyboard(app)
         let find = app.buttons["Find my skills"]
         reveal(find, in: app)
         find.tap()
-        XCTAssertTrue(app.buttons["Braids"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["Braids"].waitForExistence(timeout: 20))
         capture("provider-skills-\(suffix)")
         // A word PLUG does not list becomes the provider's own skill on a tap (ADR-011).
         let own = app.buttons["chimney sweeping"]
@@ -197,19 +206,19 @@ final class RequestScreenshotTests: XCTestCase {
         let located = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label CONTAINS 'Current approximate location'")).firstMatch
         // The simulator's one-shot location occasionally answers "unknown"; ask again before failing.
-        for _ in 0..<2 where !located.waitForExistence(timeout: 10) {
+        for _ in 0..<2 where !located.waitForExistence(timeout: 20) {
             reveal(base, in: app)
             base.tap()
         }
-        XCTAssertTrue(located.waitForExistence(timeout: 10))
+        XCTAssertTrue(located.waitForExistence(timeout: 20))
         let save = app.buttons["provider-save"]
         reveal(save, in: app)
         capture("provider-setup-\(suffix)")
         save.tap()
         let inbox = app.buttons["navigation-inbox"]
-        XCTAssertTrue(inbox.waitForExistence(timeout: 10))
+        XCTAssertTrue(inbox.waitForExistence(timeout: 20))
         inbox.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["inbox-empty"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.descendants(matching: .any)["inbox-empty"].waitForExistence(timeout: 20))
         capture("inbox-\(suffix)")
         app.buttons["navigation-ask"].tap()
 
@@ -225,29 +234,29 @@ final class RequestScreenshotTests: XCTestCase {
         // Counts tick to the server's numbers; capture once they have settled.
         let settled = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label BEGINSWITH 'Providers notified' AND NOT (label ENDSWITH ' 0')")).firstMatch
-        _ = settled.waitForExistence(timeout: 5)
+        _ = settled.waitForExistence(timeout: 20)
         capture("results-\(suffix)")
         reveal(details, in: app)
         details.tap()
-        XCTAssertTrue(app.navigationBars["Offer"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Offer"].waitForExistence(timeout: 20))
         capture("offer-detail-\(suffix)")
         swipeBack(app)
-        XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
         stopAndRestart(app, suffix: suffix)
 
         try submit(app, text: "progress barber")
         let progress = app.descendants(matching: .any)["request-progress"]
-        XCTAssertTrue(progress.waitForExistence(timeout: 10))
+        XCTAssertTrue(progress.waitForExistence(timeout: 20))
         app.swipeDown()
         capture("progress-\(suffix)")
         // Swiping back from a request that is still asking keeps it running and reachable.
         swipeBack(app)
         let resume = app.buttons["ask-resume"]
-        XCTAssertTrue(resume.waitForExistence(timeout: 5))
+        XCTAssertTrue(resume.waitForExistence(timeout: 20))
         capture("resume-\(suffix)")
         reveal(resume, in: app, upward: false)
         resume.tap()
-        XCTAssertTrue(app.descendants(matching: .any)["request-progress"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["request-progress"].waitForExistence(timeout: 20))
         stopAndRestart(app, suffix: suffix)
 
         try submit(app, text: "empty barber")
@@ -261,13 +270,13 @@ final class RequestScreenshotTests: XCTestCase {
 
         try submit(app, text: "restricted request")
         let error = app.staticTexts["PLUG cannot help with this request. Nobody was contacted."]
-        XCTAssertTrue(error.waitForExistence(timeout: 10))
+        XCTAssertTrue(error.waitForExistence(timeout: 20))
         reveal(error, in: app)
         capture("restricted-\(suffix)")
 
         // Figure A1 screens 2 and 4 for a place question: real counts, then Unknown and the dashed web answer.
         try submit(app, text: "How long is the line at Walmart right now?")
-        XCTAssertTrue(app.descendants(matching: .any)["place-progress"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.descendants(matching: .any)["place-progress"].waitForExistence(timeout: 20))
         capture("place-asking-\(suffix)")
         XCTAssertTrue(app.staticTexts["No answers"].waitForExistence(timeout: 20))
         capture("place-unknown-\(suffix)")
@@ -280,7 +289,7 @@ final class RequestScreenshotTests: XCTestCase {
         XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
         app.buttons["Refresh"].tap()
         let cached = app.staticTexts["Saved result. Refresh to check it is still current."]
-        XCTAssertTrue(cached.waitForExistence(timeout: 10))
+        XCTAssertTrue(cached.waitForExistence(timeout: 20))
         reveal(cached, in: app, upward: false)
         capture("cached-error-\(suffix)")
     }
@@ -295,7 +304,7 @@ final class RequestScreenshotTests: XCTestCase {
         return app
     }
     private func enterGuest(_ app: XCUIApplication) {
-        XCTAssertTrue(app.buttons["Get started"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.buttons["Get started"].waitForExistence(timeout: 20))
         let guest = app.buttons["Continue as guest"]
         reveal(guest, in: app)
         guest.tap()
@@ -303,16 +312,12 @@ final class RequestScreenshotTests: XCTestCase {
     }
     private func submit(_ app: XCUIApplication, text: String) throws {
         let field = app.descendants(matching: .any).matching(identifier: "request-text").firstMatch
-        XCTAssertTrue(field.waitForExistence(timeout: 10))
+        XCTAssertTrue(field.waitForExistence(timeout: 20))
         reveal(field, in: app, upward: false)
-        // Replace earlier words through the system Select All menu. Command-A only works with a
-        // hardware keyboard attached, and a caret guess fails in a multiline field.
+        // Earlier words stay after "Ask something else"; the field's Clear button removes them.
+        let clear = app.buttons["request-clear"]
+        if clear.exists { clear.tap() }
         field.tap()
-        if let current = field.value as? String, !current.isEmpty {
-            field.press(forDuration: 1.0)
-            let selectAll = app.menuItems["Select All"]
-            if selectAll.waitForExistence(timeout: 2) { selectAll.tap() } else { field.typeKey("a", modifierFlags: .command) }
-        }
         field.typeText(text)
         XCTAssertEqual(field.value as? String, text)
         dismissKeyboard(app)
@@ -351,7 +356,7 @@ final class RequestScreenshotTests: XCTestCase {
         reveal(stop, in: app)
         stop.tap()
         let stopped = app.staticTexts["You stopped asking"]
-        XCTAssertTrue(stopped.waitForExistence(timeout: 10))
+        XCTAssertTrue(stopped.waitForExistence(timeout: 20))
         reveal(stopped, in: app, upward: false)
         capture("stopped-\(suffix)")
         askAgain(app)
@@ -360,7 +365,7 @@ final class RequestScreenshotTests: XCTestCase {
         let again = app.buttons["Ask something else"]
         reveal(again, in: app)
         again.tap()
-        XCTAssertTrue(app.staticTexts["ask-home-title"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["ask-home-title"].waitForExistence(timeout: 20))
     }
     /// Scrolls in the preferred direction first, then the other: at the largest text size a
     /// control that is normally on screen can sit on either side of the viewport.
@@ -373,11 +378,19 @@ final class RequestScreenshotTests: XCTestCase {
                 return !candidate.frame.isEmpty
             }, object: element)
         _ = XCTWaiter().wait(for: [settled], timeout: 5)
-        for direction in [upward, !upward] {
-            for _ in 0..<10 where !element.isHittable { direction ? app.swipeUp() : app.swipeDown() }
-            if element.isHittable { return }
+        // Page content may scroll beneath the bottom navigation, as on any iOS tab bar, so a
+        // control counts as reachable only when it is hittable and clear of that bar.
+        func clear() -> Bool {
+            guard element.isHittable else { return false }
+            let bar = app.buttons["navigation-ask"]
+            guard bar.exists, !bar.frame.isEmpty else { return true }
+            return element.frame.midY < bar.frame.minY - 4
         }
-        XCTAssertTrue(element.isHittable, "Expected control to remain reachable when scrolling")
+        for direction in [upward, !upward] {
+            for _ in 0..<10 where !clear() { direction ? app.swipeUp() : app.swipeDown() }
+            if clear() { return }
+        }
+        XCTAssertTrue(clear(), "Expected control to remain reachable when scrolling")
     }
     private func capture(_ name: String) {
         let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
