@@ -59,6 +59,8 @@ function differences(item, status, body) {
     if (!actual.skill_tags.every(tag => vocabulary.has(tag) || tag.startsWith('custom_'))) found.push('skill tag outside the vocabulary');
     if (!expected.skill_tags_any_of.some(tag => actual.skill_tags.includes(tag))) found.push(`skill_tags ${JSON.stringify(actual.skill_tags)}`);
   }
+  const unwanted = (expected.skill_tags_none_of ?? []).filter(tag => actual.skill_tags?.includes(tag));
+  if (unwanted.length) found.push(`unwanted skill ${unwanted.join(', ')}`);
   if (Object.hasOwn(expected, 'budget_cents') && actual.budget_cents !== expected.budget_cents) found.push(`budget_cents ${actual.budget_cents}`);
   if (expected.place_named !== undefined && actual.place_named !== null && actual.place_named !== expected.place_named) found.push(`place_named ${actual.place_named}`);
   if (expected.clarification_field && actual.clarification_field !== expected.clarification_field) found.push(`clarification ${actual.clarification_field}`);

@@ -2,8 +2,12 @@
 
 Person Two's review of `p2.s2-all-request-flow` at `ac768bb`, run on her own Windows PC.
 This records what was run, the new labelled dataset for `POST /v1/asks`, and where the
-build disagrees with it. It is review input for the 0.5.0 contract session. It is not a
-gate signature.
+build disagrees with it. It is not a gate signature.
+
+> Rerun on merged `main` at `99fd6f8` on 2026-10-05 with the dataset extended to 91 rows:
+> the same 29 rows differ, plus one new one. Contract 0.5.0 is now frozen, so the
+> questions at the end are for the next policy or vocabulary change, not a contract
+> session. Current results: `phase2-person-two-review-2026-10-05.md`.
 
 ## Summary
 

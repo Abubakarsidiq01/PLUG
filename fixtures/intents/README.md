@@ -29,14 +29,14 @@ the contract. The zone radius is not prescribed here; configure it on the server
 
 ## Ask classification dataset
 
-`asks.jsonl` contains 76 synthetic asks for `POST /v1/asks` (manual v4 §27.3, Person Two).
+`asks.jsonl` contains 91 synthetic asks for `POST /v1/asks` (manual v4 §27.3, Person Two).
 It is the answer key for the two-pipeline classifier: each row says what the server
 should do with one sentence typed into the single ask field.
 
 | `kind` | Rows | Expected |
 |---|---|---|
-| `service_request` | 25 | 201, `ask_type` `service_request`, at least one of `skill_tags_any_of` |
-| `place_question` | 12 | 201, `ask_type` `place_question`, a public place named |
+| `service_request` | 38 | 201, `ask_type` `service_request`, at least one of `skill_tags_any_of`, none of `skill_tags_none_of` |
+| `place_question` | 14 | 201, `ask_type` `place_question`, a public place named |
 | `ambiguous` | 8 | 201, `ask_type` null, one clarification with field `ask` |
 | `restricted` | 31 | 422 `restricted_intent`, no outreach, an audit event |
 
@@ -46,6 +46,9 @@ reading the dataset. The API does not return it, so the live run cannot assert i
 
 Rows whose id starts with `near-miss-` are harmless asks that contain a word a refusal
 rule might react to, such as "nail gun" or "kill the weeds". They must be accepted.
+Rows starting `overlap-` name a skill whose phrase contains another skill's phrase, such
+as "henna tattoo"; the specific skill must win. Rows starting `guide-` are the examples
+printed in `docs/runbooks/phase2-asking-guide.md`, so the guide cannot drift from the build.
 Licensed trades such as electrical work are service asks; the licence rule limits who
 they are matched to, it does not refuse the ask.
 

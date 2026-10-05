@@ -41,6 +41,10 @@ for (const item of cases) {
       for (const tag of expected.skill_tags_any_of) {
         assert.ok(vocabulary.has(tag), `Expected skill outside skills.yaml: ${tag}`);
       }
+      for (const tag of expected.skill_tags_none_of ?? []) {
+        assert.ok(vocabulary.has(tag), `Excluded skill outside skills.yaml: ${tag}`);
+        assert.ok(!expected.skill_tags_any_of.includes(tag), `Skill both expected and excluded: ${tag}`);
+      }
       if (Object.hasOwn(expected, 'budget_cents')) assert.ok(Number.isInteger(expected.budget_cents) && expected.budget_cents > 0);
     } else if (item.kind === 'place_question') {
       assert.equal(expected.ask_type, 'place_question');

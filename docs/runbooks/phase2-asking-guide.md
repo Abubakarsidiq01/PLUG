@@ -1,7 +1,7 @@
 # What people can ask PLUG, and what happens — QA and support guide (Phase 2)
 
-Manual v4 P2-TWO.S5. Written for QA and support. It describes the behaviour on
-`p2.s2-all-request-flow` with the built-in rules; when a Claude key is configured, Claude reads
+Manual v4 P2-TWO.S5. Written for QA and support. It describes the behaviour on `main`
+(contract 0.5.0) with the built-in rules; when a Claude key is configured, Claude reads
 unusual wording onto the same skills and the same limits still apply.
 
 ## One field, two kinds of ask
@@ -67,6 +67,21 @@ Example offers exist only for barber and beauty in the synthetic Ruston, LA zone
 type the address "Railroad Ave, Ruston, LA"). They are labelled "Demo offer · Booking isn't
 available yet". Elsewhere a request ends honestly with No offers unless a real provider nearby
 offers that skill.
+
+## Known gaps (found 2026-10-05)
+
+The examples in this guide are tested as the `guide-` rows of `fixtures/intents/asks.jsonl`.
+The full results are in `docs/testing/phase2-person-two-review-2026-10-05.md`.
+
+- **Not refused does not mean approved.** The refusal rules match listed phrases. The same
+  request in other words can get the one question, or be treated as a service, instead of
+  a refusal. Fifteen such cases are recorded. If a tester sees one, file it with the
+  support reference; do not treat the result as permission.
+- **Plain descriptions can get the one question.** "My kitchen sink is leaking" and "Mount
+  a 55 inch TV on my wall" are asked what they mean, because the wording is not a listed
+  phrase. Answering the question works.
+- **"Is the DMV busy?"** is treated as a place question, but no place name is recorded.
+  "Is the DMV line long this morning?" gets the one question.
 
 ## Support references
 

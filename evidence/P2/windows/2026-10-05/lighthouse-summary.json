@@ -1,0 +1,58 @@
+{
+  "tool": "lighthouse",
+  "form_factor": "mobile",
+  "build": "next build, served by next start on loopback",
+  "pages": [
+    {
+      "path": "/",
+      "performance": 87,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "largest_contentful_paint_ms": 2937,
+      "total_blocking_time_ms": 345,
+      "cumulative_layout_shift": 0
+    },
+    {
+      "path": "/privacy",
+      "performance": 85,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "largest_contentful_paint_ms": 3001,
+      "total_blocking_time_ms": 409,
+      "cumulative_layout_shift": 0
+    },
+    {
+      "path": "/terms",
+      "performance": 87,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "largest_contentful_paint_ms": 2977,
+      "total_blocking_time_ms": 344,
+      "cumulative_layout_shift": 0
+    },
+    {
+      "path": "/support",
+      "performance": 86,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100,
+      "largest_contentful_paint_ms": 2999,
+      "total_blocking_time_ms": 374,
+      "cumulative_layout_shift": 0
+    },
+    {
+      "path": "/preview/admin",
+      "performance": 81,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 60,
+      "largest_contentful_paint_ms": 3100,
+      "total_blocking_time_ms": 500,
+      "cumulative_layout_shift": 0
+    }
+  ],
+  "version": "12.8.2"
+}

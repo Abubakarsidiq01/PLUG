@@ -94,6 +94,19 @@ you go, and open one pull request per step or per small group of related steps.
 - [ ] **P2.S12** — *Backend ready (5 October): `GET /v1/admin/skills`, `/skills/gaps`, `/classifications`, `/refusals` with fixtures in `fixtures/admin.*`. A staff sign-in that issues an admin session with a second factor does not exist yet, so build the inspector against the fixtures first.* — Admin view for the skill vocabulary and recent classifier decisions (`vocabulary_gaps` and the `restricted_intent:<rule>` audit events are the data).
 - [ ] **Web v4 retheme** — Owner-authorized temporary implementation now uses Public Sans, sentence-case labels and dashed Not verified. 81 Playwright tests passed; screenshots at 320/360/768/1280 px are in `evidence/P2/web/2026-10-02/ui-experiment/`. Review the [hardening record](../testing/phase2-hardening-ui-experiment-2026-10-02.md). The old draft patch is historical; do not apply it over this work.
 
+**Person Two status, 5 October 2026** ([review record](../testing/phase2-person-two-review-2026-10-05.md)):
+
+- P2.S5: asking guide reviewed, corrected and owned, with a known-gaps section.
+- P2.S7 and P2.S11: `fixtures/intents/asks.jsonl` holds 91 labelled asks, 31 of them restricted. The build differs on 30 rows; 15 restricted asks are not refused. Open until that is fixed and both engineers accept the labels.
+- P2.S8: vocabulary reviewed; four questions recorded, no change to the frozen file.
+- P2.S9: Bruno `tests/phase2` reviewed and run on Windows, 49/49.
+- P2.S10: Ask and answer screens reviewed from the device screenshots; six findings.
+- P2.S12: inspector built against `fixtures/admin.*` with a local preview. Live data waits on staff sign-in.
+- Web v4: reviewed and kept; Lighthouse recorded.
+- Windows run: done on `main` at `99fd6f8`.
+
+No step is ticked: each one still needs the connected checkpoint.
+
 ---
 
 ## 3. When you work with the other person
