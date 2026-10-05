@@ -26,6 +26,8 @@ export default defineConfig({
     url: localURL,
     reuseExistingServer: false,
     cwd: "..",
+    // Opens /preview/admin, which draws the fixtures only. /admin stays closed.
+    env: { PLUG_ADMIN_PREVIEW: "fixtures" },
   },
   projects: [
     { name: "mobile", use: { ...devices["iPhone 14"], viewport: { width: 360, height: 800 } } },

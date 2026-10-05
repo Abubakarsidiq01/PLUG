@@ -29,7 +29,28 @@ an unrelated server. Set `PLUG_WEB_URL` explicitly to test an existing deploymen
 without starting a local server. In PowerShell, set environment variables using
 `$env:CI = "true"` or `$env:PLUG_WEB_URL = "https://your-current-web-deployment"`.
 
+## Admin inspector preview
+
+`src/app/_components/admin-inspector.tsx` draws the staff view of the skill vocabulary,
+vocabulary gaps, recent classifications and refusals (manual v4 P2-TWO.S12). It takes data
+as props and never fetches.
+
+Staff sign-in does not exist yet, so `/admin` stays closed. To review the page, the route
+`/preview/admin` draws the synthetic fixtures in `/fixtures/admin.*`. It answers 404 unless
+the server has `PLUG_ADMIN_PREVIEW=fixtures`, it calls no API and it is not indexed. Never
+set that variable on a deployed site. Playwright sets it for its own local server.
+
+```powershell
+$env:PLUG_ADMIN_PREVIEW = "fixtures"
+pnpm --filter @plug/web dev
+# http://localhost:3000/preview/admin
+# add ?state=empty, ?state=loading, ?state=denied or ?state=unavailable
+```
+
+The page's types come from the contract. After any change to `contracts/openapi.yaml`, run
+`pnpm --filter @plug/web generate:api` and commit `src/generated/api.ts`.
+
 Interactive development uses `pnpm --filter @plug/web dev` on port 3000. The site
-bundles IBM Plex Sans locally and reads the shared generated design tokens. Preserve
+bundles Public Sans locally and reads the shared generated design tokens. Preserve
 existing legal branding. Admin routes fail closed until real enrollment and MFA
 exist; a cookie or fixture is never authentication.
