@@ -1,6 +1,8 @@
 # Phase 2 admin contract review
 
-Status: proposal for the two-engineer contract session, not approved or implemented.
+Status: read routes implemented and approved by Person One on 2026-10-05 as a 0.5.0 amendment
+(`contracts/CHANGELOG.md`); frozen when Person Two approves the pull request. The staff
+sign-in path and the web inspector remain open.
 Manual v4 P2-TWO.S12 requires an admin view of skills and recent classification
 decisions. The current contract contains no admin read routes, and Phase 1 issues
 no admin sessions. The existing `/admin` rejection must remain until both the

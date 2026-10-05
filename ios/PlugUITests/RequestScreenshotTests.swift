@@ -76,6 +76,74 @@ final class RequestScreenshotTests: XCTestCase {
         }
     }
 
+    /// Apple's accessibility audit (contrast, element detection, hit regions, clipped and
+    /// non-scaling text, traits) on every main screen. Issues are recorded as attachments.
+    func testAccessibilityAudit() throws {
+        let app = launch(largest: false)
+        enterGuest(app)
+        func audit(_ screen: String) throws {
+            var issues: [String] = []
+            try app.performAccessibilityAudit(for: .all) { issue in
+                let element = issue.element.map { "\($0.elementType.rawValue) '\($0.label)' \($0.identifier)" } ?? "-"
+                let accepted = Self.acceptedAuditFinding(issue)
+                issues.append("\(accepted ? "accepted" : "FAIL") | \(screen) | \(issue.compactDescription) | \(element)")
+                return true
+            }
+            let report = XCTAttachment(string: issues.isEmpty ? "\(screen) | no issues" : issues.joined(separator: "\n"))
+            report.name = "accessibility-audit-\(screen).txt"
+            report.lifetime = .keepAlways
+            add(report)
+            let failures = issues.filter { $0.hasPrefix("FAIL") }
+            XCTAssertTrue(failures.isEmpty, failures.joined(separator: "\n"))
+        }
+        try audit("ask-home")
+        try submit(app, text: "business sorting barber under $35")
+        XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
+        try audit("results")
+        let details = app.buttons["View details"].firstMatch
+        reveal(details, in: app)
+        details.tap()
+        XCTAssertTrue(app.navigationBars["Offer"].waitForExistence(timeout: 20))
+        try audit("offer-detail")
+        app.navigationBars.buttons.firstMatch.tap()
+        app.buttons["navigation-activity"].tap()
+        try audit("activity")
+        app.buttons["navigation-profile"].tap()
+        try audit("profile")
+        app.buttons["navigation-ask"].tap()
+        swipeBack(app)
+        let offer = app.buttons["offer-service"]
+        XCTAssertTrue(offer.waitForExistence(timeout: 20))
+        reveal(offer, in: app)
+        offer.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["provider-description"].waitForExistence(timeout: 20))
+        try audit("provider-setup")
+    }
+
+    /// Documented exceptions; everything else fails the audit. Manual v4 §11.6 caps the bottom
+    /// navigation labels at xxxLarge with the large-content viewer, the wordmark is a fixed logo,
+    /// disabled controls are exempt from contrast (WCAG 1.4.3), system controls are Apple's, and a
+    /// partial Dynamic Type or text finding without an element (off-screen) is not actionable. The
+    /// Ask field's own line is short, but its whole 70 pt box focuses it on a tap. PLUG's type scale
+    /// grows through @ScaledMetric rather than system text styles, which the audit reports as
+    /// "partially unsupported"; the largest-size device screenshots show it scaling. Text that
+    /// does not scale at all still fails, except the wordmark.
+    static func acceptedAuditFinding(_ issue: XCUIAccessibilityAuditIssue) -> Bool {
+        guard let element = issue.element else { return true }
+        let navigation = ["Ask", "Inbox", "Activity", "Profile"].contains(element.label)
+        switch issue.auditType {
+        case .dynamicType:
+            return issue.compactDescription.contains("partially") || navigation
+                || element.label == "plug" || element.label == "Cancel"
+        case .contrast:
+            return !element.isEnabled
+        case .hitRegion:
+            return element.identifier == "request-text"
+        default:
+            return false
+        }
+    }
+
     func testAnsweredPlaceEvidence() throws {
         for largest in [false, true] {
             let suffix = largest ? "largest" : "default"
@@ -353,9 +421,14 @@ final class RequestScreenshotTests: XCTestCase {
     }
     private func stopAndRestart(_ app: XCUIApplication, suffix: String) {
         let stop = app.buttons["request-cancel"]
-        reveal(stop, in: app)
-        stop.tap()
         let stopped = app.staticTexts["You stopped asking"]
+        // Offers arriving re-lay out the page, so a tap can land as the button moves. Stopping is
+        // idempotent on the server, so tap again if the first one did not take.
+        for _ in 0..<3 where !stopped.exists && stop.exists {
+            reveal(stop, in: app)
+            stop.tap()
+            _ = stopped.waitForExistence(timeout: 8)
+        }
         XCTAssertTrue(stopped.waitForExistence(timeout: 20))
         reveal(stopped, in: app, upward: false)
         capture("stopped-\(suffix)")

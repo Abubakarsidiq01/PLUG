@@ -1,0 +1,26 @@
+XCUIApplication.performAccessibilityAudit(for: .all), simulator, default text size.
+accepted = documented exception (see RequestScreenshotTests.acceptedAuditFinding); FAIL = defect.
+
+accepted | ask-home | Hit area is too small | 49 'What do you need?' request-text
+accepted | ask-home | Dynamic Type font sizes are partially unsupported | 48 'Activity' 
+accepted | ask-home | Dynamic Type font sizes are partially unsupported | 48 'Ask' 
+accepted | ask-home | Dynamic Type font sizes are unsupported | 48 'plug' 
+accepted | ask-home | Dynamic Type font sizes are partially unsupported | 48 'Profile'
+accepted | results | Dynamic Type font sizes are partially unsupported | 48 'Activity' 
+accepted | results | Dynamic Type font sizes are partially unsupported | 48 'Ask' 
+accepted | results | Dynamic Type font sizes are partially unsupported | 48 '$35' 
+accepted | results | Dynamic Type font sizes are partially unsupported | 48 'Haircut' 
+accepted | results | Dynamic Type font sizes are partially unsupported | 48 'Profile' 
+accepted | results | Potentially inaccessible text | -
+accepted | offer-detail | Dynamic Type font sizes are partially unsupported | 48 'Activity' 
+accepted | offer-detail | Dynamic Type font sizes are partially unsupported | 48 'Ask' 
+accepted | offer-detail | Dynamic Type font sizes are partially unsupported | 48 'Profile'
+accepted | activity | Dynamic Type font sizes are partially unsupported | 48 'Ask' 
+accepted | activity | Dynamic Type font sizes are partially unsupported | 48 'Activity' 
+accepted | activity | Dynamic Type font sizes are partially unsupported | 48 'Profile'
+accepted | profile | Dynamic Type font sizes are partially unsupported | 48 'Ask' 
+accepted | profile | Dynamic Type font sizes are partially unsupported | 48 'Activity' 
+accepted | profile | Dynamic Type font sizes are partially unsupported | 48 'Profile'
+accepted | provider-setup | Dynamic Type font sizes are partially unsupported | 9 'Cancel' 
+accepted | provider-setup | Contrast failed | 9 'Add skill' provider-add-skill
+accepted | provider-setup | Contrast failed | 9 'Find my skills'

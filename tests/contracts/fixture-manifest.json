@@ -960,6 +960,135 @@
       "path": "/v1/providers/skills",
       "status": 400,
       "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/admin.skills/success.json",
+      "method": "get",
+      "path": "/v1/admin/skills",
+      "status": 200
+    },
+    {
+      "file": "fixtures/admin.skills/auth-error.json",
+      "method": "get",
+      "path": "/v1/admin/skills",
+      "status": 401,
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/admin.skills/forbidden.json",
+      "method": "get",
+      "path": "/v1/admin/skills",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.skills/transient-error.json",
+      "method": "get",
+      "path": "/v1/admin/skills",
+      "status": 500,
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/admin.gaps/success.json",
+      "method": "get",
+      "path": "/v1/admin/skills/gaps",
+      "status": 200
+    },
+    {
+      "file": "fixtures/admin.gaps/auth-error.json",
+      "method": "get",
+      "path": "/v1/admin/skills/gaps",
+      "status": 401,
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/admin.gaps/forbidden.json",
+      "method": "get",
+      "path": "/v1/admin/skills/gaps",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.gaps/transient-error.json",
+      "method": "get",
+      "path": "/v1/admin/skills/gaps",
+      "status": 500,
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/admin.gaps/validation-error.json",
+      "method": "get",
+      "path": "/v1/admin/skills/gaps",
+      "status": 400,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/admin.classifications/success.json",
+      "method": "get",
+      "path": "/v1/admin/classifications",
+      "status": 200
+    },
+    {
+      "file": "fixtures/admin.classifications/auth-error.json",
+      "method": "get",
+      "path": "/v1/admin/classifications",
+      "status": 401,
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/admin.classifications/forbidden.json",
+      "method": "get",
+      "path": "/v1/admin/classifications",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.classifications/transient-error.json",
+      "method": "get",
+      "path": "/v1/admin/classifications",
+      "status": 500,
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/admin.classifications/validation-error.json",
+      "method": "get",
+      "path": "/v1/admin/classifications",
+      "status": 400,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/admin.refusals/success.json",
+      "method": "get",
+      "path": "/v1/admin/refusals",
+      "status": 200
+    },
+    {
+      "file": "fixtures/admin.refusals/auth-error.json",
+      "method": "get",
+      "path": "/v1/admin/refusals",
+      "status": 401,
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/admin.refusals/forbidden.json",
+      "method": "get",
+      "path": "/v1/admin/refusals",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.refusals/transient-error.json",
+      "method": "get",
+      "path": "/v1/admin/refusals",
+      "status": 500,
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/admin.refusals/validation-error.json",
+      "method": "get",
+      "path": "/v1/admin/refusals",
+      "status": 400,
+      "error_code": "validation_failed"
     }
   ],
   "not_applicable": {

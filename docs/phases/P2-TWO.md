@@ -84,14 +84,14 @@ you go, and open one pull request per step or per small group of related steps.
 - [ ] **P2.S2** — Build the Bruno contract tests for request creation, clarification, polling and status, offers, cancellation, and every documented error.
 - [ ] **P2.S3** — Review Figma for anti-vibecode compliance per §16: typography, spacing, no gradients, no glass, no pills, no fake proof, and every required state present.
 - [ ] **P2.S4** — Build a web-based internal request inspector only if QA needs it; it must consume real staging data and must not duplicate canonical logic.
-- [ ] **P2.S5** — Document the exact supported launch request grammar and the unsupported-category behaviour, for QA and support.
+- [ ] **P2.S5** — *Drafted by Person One: `docs/runbooks/phase2-asking-guide.md` (what people can ask, limits, refusals, no-coverage behaviour) — review and own.* — Document the exact supported launch request grammar and the unsupported-category behaviour, for QA and support.
 - [ ] **P2.S6** — Run the API abuse cases: overlong prompt, invalid coordinates, absurd budget, malformed timestamps, repeated submissions, and rate-limit behaviour.
 - [ ] **P2.S7** — Build the labelled classification dataset: service asks, place questions, ambiguous asks and restricted asks, with the expected `ask_type`. *Drafted by Person One: `fixtures/intents/p2.jsonl` (46 vectors, re-labelled against the vocabulary) — review and extend.*
 - [ ] **P2.S8** — Own the skill vocabulary in `contracts/skills.yaml`. *Drafted by Person One: 35 tags; childcare, elder care, medical, legal and financial advice deliberately absent. Yours from here; every change is a PR plus a migration.*
 - [ ] **P2.S9** — Bruno suite for the two-pipeline classifier, including refusals and clarifications. *Drafted by Person One: `tests/phase2/38`–`47` (asks, private place, restricted, foreign ask, provider propose/licence/unknown tag/save).*
 - [ ] **P2.S10** — Review the Ask screen against Figure A1 and the design gate. Simulator captures: `evidence/P2/simulator/2026-10-02/`.
 - [ ] **P2.S11** — Abuse cases the open scope requires: illegal goods or services, targeting a private person, surveillance in disguise, regulated professions.
-- [ ] **P2.S12** — Admin view for the skill vocabulary and recent classifier decisions (`vocabulary_gaps` and the `restricted_intent:<rule>` audit events are the data).
+- [ ] **P2.S12** — *Backend ready (5 October): `GET /v1/admin/skills`, `/skills/gaps`, `/classifications`, `/refusals` with fixtures in `fixtures/admin.*`. A staff sign-in that issues an admin session with a second factor does not exist yet, so build the inspector against the fixtures first.* — Admin view for the skill vocabulary and recent classifier decisions (`vocabulary_gaps` and the `restricted_intent:<rule>` audit events are the data).
 - [ ] **Web v4 retheme** — Owner-authorized temporary implementation now uses Public Sans, sentence-case labels and dashed Not verified. 81 Playwright tests passed; screenshots at 320/360/768/1280 px are in `evidence/P2/web/2026-10-02/ui-experiment/`. Review the [hardening record](../testing/phase2-hardening-ui-experiment-2026-10-02.md). The old draft patch is historical; do not apply it over this work.
 
 ---

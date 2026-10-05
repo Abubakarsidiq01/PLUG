@@ -46,7 +46,7 @@ async function http(name, path, { method = 'GET', token, body, raw, idempotency,
   // POST /v1/asks shares the creation budget with POST /v1/requests (manual v4 §12A).
   if (method === 'POST' && (path === '/v1/requests' || path === '/v1/asks') && paced) await pace(token);
   // Every v2 resource route, providers included, draws on one per-address budget.
-  if (/^\/v1\/(requests\/|asks\/|providers\/)/.test(path) && paced) {
+  if (/^\/v1\/(requests\/|asks\/|providers\/|admin\/)/.test(path) && paced) {
     resourceCalls = resourceCalls.filter(t => Date.now() - t < 61000);
     if (resourceCalls.length >= 55) {
       console.log('Waiting for the resource-route limit window.');
@@ -69,7 +69,7 @@ async function http(name, path, { method = 'GET', token, body, raw, idempotency,
   try { data = await response.json(); } catch { throw new Error(`Non-JSON response: ${name}`); }
   check(`${name}: HTTP ${expected}`, () => assert.equal(response.status, expected));
   check(`${name}: correlation`, () => assert.equal(id, correlation));
-  if (/^\/v1\/(requests|asks|providers)/.test(path)) {
+  if (/^\/v1\/(requests|asks|providers|admin)/.test(path)) {
     check(`${name}: contract`, () => {
       const schema = responseSchema(route(path), method.toLowerCase(), expected);
       validateSchema(schema, data);
@@ -310,6 +310,11 @@ async function asks() {
   check('omitted business is preserved', () => assert.deepEqual(kept.business, business));
   const cleared = await http('empty business removes it', '/v1/providers/skills', { method: 'POST', token: other, body: { ...setup, business: {} }, expected: 200 });
   check('empty business removes every public detail', () => assert.ok(!cleared.business || Object.keys(cleared.business).length === 0));
+  // Staff inspection (P2-TWO.S12) is closed to every identity this phase issues.
+  for (const route of ['/v1/admin/skills', '/v1/admin/skills/gaps', '/v1/admin/classifications', '/v1/admin/refusals']) {
+    await http(`anonymous ${route}`, route, { expected: 401, error: 'unauthenticated' });
+    await http(`guest ${route}`, route, { token: other, expected: 403, error: 'forbidden' });
+  }
   // Skills in the provider's own words (ADR-011), found by an ask's keywords; listed skills always win.
   const ownWords = { ...setup, skill_tags: [], custom_skills: ['chimney sweeping'] };
   await http('direct licensed skill still requires a licence', '/v1/providers/skills', { method: 'POST', token: other, body: { ...ownWords, custom_skills: ['electrician work'] }, expected: 400, error: 'validation_failed', detail: 'licence_required' });

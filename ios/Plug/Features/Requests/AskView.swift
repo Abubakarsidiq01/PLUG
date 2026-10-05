@@ -161,6 +161,8 @@ struct AskView: View {
                     .foregroundStyle(PlugTokens.Color.ink600).accessibilityHidden(true)
                 TextField("Tell us what you need…", text: $model.text, axis: .vertical)
                     .plugText(.body).lineLimit(1...5).focused($textFocused)
+                    .frame(minHeight: PlugTokens.minTouchTarget, alignment: .leading)
+                    .contentShape(Rectangle())
                     .accessibilityLabel("What do you need?")
                     .accessibilityIdentifier("request-text")
                     .disabled(model.isWorking)
@@ -186,6 +188,9 @@ struct AskView: View {
                 .disabled(model.isWorking || location.isWorking)
             }
             .padding(12).padding(.leading, 4)
+            // The whole box focuses the field, not just its single line of text.
+            .contentShape(RoundedRectangle(cornerRadius: 24))
+            .onTapGesture { if !model.isWorking { textFocused = true } }
             .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 24))
             .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(textFocused ? PlugTokens.Color.ink900 : PlugTokens.Color.rule200))
             HStack {
@@ -234,7 +239,9 @@ struct AskView: View {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text("Look good. Feel like you.")
                                     .font(.system(.title2, design: .rounded, weight: .bold))
+                                    .fixedSize(horizontal: false, vertical: true)
                                 Text("Find your next stylist").plugText(.bodySmall)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
                             Spacer(minLength: 8)
                             Image(systemName: "arrow.up.right").font(.system(size: 18, weight: .semibold))
@@ -242,7 +249,8 @@ struct AskView: View {
                         }
                         .foregroundStyle(.white).padding(20)
                     }
-                    .frame(height: typeSize.isAccessibilitySize ? 330 : 248)
+                    // At least the photo's height, taller when the title needs it, never clipped.
+                    .frame(minHeight: typeSize.isAccessibilitySize ? 330 : 248)
                     .clipShape(RoundedRectangle(cornerRadius: 26))
                 }
                 .buttonStyle(.plain)

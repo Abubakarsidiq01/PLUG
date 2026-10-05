@@ -41,6 +41,24 @@ class AskProviderTest {
     @Autowired ObjectMapper mapper;
     @Autowired JdbcTemplate jdbc;
     @Autowired RequestService service;
+    @Autowired org.springframework.transaction.PlatformTransactionManager transactions;
+    private final java.util.List<String> users = new java.util.ArrayList<>();
+
+    /// The worker drains 20 requests a pass; anything left behind here would starve the suites
+    /// that run after this one. Providers go too, so no later ask is matched to them.
+    @org.junit.jupiter.api.AfterEach void removeOnlyThisTestsRecords() {
+        new org.springframework.transaction.support.TransactionTemplate(transactions).executeWithoutResult(ignored -> {
+            // Dependency order across every user here: one user's request can match another's profile.
+            for (String user : users) {
+                jdbc.update("DELETE FROM asks WHERE user_id=?", user);
+                jdbc.update("DELETE FROM place_questions WHERE user_id=?", user);
+                jdbc.update("DELETE FROM request_idempotency WHERE user_id=?", user);
+                jdbc.update("DELETE FROM requests WHERE user_id=?", user);
+            }
+            for (String user : users) jdbc.update("DELETE FROM provider_profiles WHERE user_id=?", user);
+            for (String user : users) jdbc.update("DELETE FROM users WHERE id=?", user);
+        });
+    }
 
     // Thursday 2026-10-01 15:00 in Chicago.
     @TestConfiguration static class TimeConfiguration {
@@ -51,9 +69,11 @@ class AskProviderTest {
     static final String HERE = "{\"latitude\":32.528,\"longitude\":-92.714,\"precision\":\"coarse\"}";
 
     JsonNode guest() throws Exception {
-        return body(mvc.perform(post("/v1/auth/guest").with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })
+        JsonNode session = body(mvc.perform(post("/v1/auth/guest").with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })
                 .contentType(MediaType.APPLICATION_JSON).content("{\"consent_version\":\"2026-09-01\"}"))
                 .andExpect(status().isCreated()), "Session");
+        users.add(session.at("/account/user_id").asText());
+        return session;
     }
     ResultActions send(JsonNode who, String path, String body, boolean keyed) throws Exception {
         var request = post(path).with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })

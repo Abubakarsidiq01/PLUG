@@ -32,6 +32,9 @@ fi
 until docker exec "$container" pg_isready -U plug -d plug_phase2_tests >/dev/null 2>&1; do sleep 1; done
 docker exec "$container" dropdb -U plug --if-exists "$live_db"
 docker exec "$container" createdb -U plug "$live_db"
+# The database-test database is disposable too: rows left by one run must never decide the next.
+docker exec "$container" dropdb -U plug --if-exists --force plug_phase2_tests
+docker exec "$container" createdb -U plug plug_phase2_tests
 
 step 'Backend: unit, database, Checkstyle, boot JAR'
 PLUG_DATABASE_URL=jdbc:postgresql://127.0.0.1:55433/plug_phase2_tests PLUG_DATABASE_USER=plug \

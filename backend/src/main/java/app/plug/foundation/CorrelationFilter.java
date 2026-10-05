@@ -73,7 +73,8 @@ public class CorrelationFilter extends OncePerRequestFilter {
                     "/v1/auth/apple", "/v1/auth/google", "/v1/auth/phone/start", "/v1/auth/phone/verify",
                     "/v1/auth/guest", "/v1/auth/refresh", "/v1/auth/logout",
                     "/v1/me", "/v1/me/consent", "/v1/me/sessions",
-                    "/v1/asks", "/v1/providers/skills", "/v1/providers/skills/propose", "/v1/providers/me" -> path;
+                    "/v1/asks", "/v1/providers/skills", "/v1/providers/skills/propose", "/v1/providers/me",
+                    "/v1/admin/skills", "/v1/admin/skills/gaps", "/v1/admin/classifications", "/v1/admin/refusals" -> path;
             default -> safeResourcePath(path);
         };
     }

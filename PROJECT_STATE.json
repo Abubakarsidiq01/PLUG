@@ -1,8 +1,8 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-05T03:03:53.786803+00:00",
-  "updated_by": "person_one (physical-iPhone evidence and navigation fixes)",
+  "updated_at": "2026-10-05T03:34:39.798395+00:00",
+  "updated_by": "person_one (owner approval of contract 0.5.0; admin inspection API; accessibility audit)",
   "completed_phases": [
     "P0",
     "P1"
@@ -64,7 +64,7 @@
   "contracts": {
     "GET /health": "frozen@0.1.0",
     "GET /health/ready": "frozen@0.1.0",
-    "POST /v1/requests": "proposed@0.5.0 (served as Phase 0 stub frozen@0.1.0 until requests_v2)",
+    "POST /v1/requests": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR) (served as Phase 0 stub frozen@0.1.0 until requests_v2)",
     "POST /v1/auth/apple": "frozen@0.2.2",
     "POST /v1/auth/phone/start": "frozen@0.2.2",
     "POST /v1/auth/phone/verify": "frozen@0.2.2",
@@ -77,17 +77,21 @@
     "GET /v1/me/sessions/{session_id}": "frozen@0.2.2",
     "DELETE /v1/me/sessions/{session_id}": "frozen@0.2.2",
     "POST /v1/auth/google": "frozen@0.2.2",
-    "GET /v1/requests/{request_id}": "proposed@0.5.0",
-    "POST /v1/requests/{request_id}/clarifications": "proposed@0.5.0",
-    "GET /v1/requests/{request_id}/offers": "proposed@0.5.0",
-    "POST /v1/requests/{request_id}/cancel": "proposed@0.5.0",
-    "POST /v1/asks": "proposed@0.5.0",
-    "GET /v1/asks/{ask_id}": "proposed@0.5.0",
-    "POST /v1/asks/{ask_id}/clarifications": "proposed@0.5.0",
-    "POST /v1/providers/skills/propose": "proposed@0.5.0",
-    "POST /v1/providers/skills": "proposed@0.5.0 (amended 2026-10-02: business profile, 96 KiB body, custom_skills)",
-    "GET /v1/providers/me": "proposed@0.5.0",
-    "contracts/skills.yaml": "proposed@0.5.0 (owned by person_two; 115 tags, amended 2026-10-02, ADR-011)"
+    "GET /v1/requests/{request_id}": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/requests/{request_id}/clarifications": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/requests/{request_id}/offers": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/requests/{request_id}/cancel": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/asks": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/asks/{ask_id}": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/asks/{ask_id}/clarifications": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/providers/skills/propose": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/providers/skills": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR) (amended 2026-10-02: business profile, 96 KiB body, custom_skills)",
+    "GET /v1/providers/me": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "contracts/skills.yaml": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR) (owned by person_two; 115 tags, amended 2026-10-02, ADR-011)",
+    "GET /v1/admin/skills": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/admin/skills/gaps": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/admin/classifications": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/admin/refusals": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)"
   },
   "feature_flags": {
     "identity": "staging_only",
@@ -103,22 +107,22 @@
       "id": "P2-contract-0.5.0",
       "owner": "both",
       "manual_section": "27.3",
-      "task": "Hold the \u00a77.1 contract session on contract 0.5.0 and contracts/skills.yaml (ADR-010, contracts/CHANGELOG.md). Person Two reviews the drafted vocabulary, dataset and Bruno requests in Person Two's lane. Merge with both approvals, then flip the request, ask and provider routes to frozen@0.5.0.",
-      "acceptance": "Contract PR merged with both approvals; auth@0.2.2 unchanged; Spectral, ContractTest and pnpm test:contracts green."
+      "task": "Person One (owner) approved contract 0.5.0, its amendments and skills.yaml on 2026-10-05 (contracts/CHANGELOG.md). Person Two reviews and approves the pull request; merging it freezes every Phase 2 route at 0.5.0.",
+      "acceptance": "Pull request approved by Person Two and merged; Spectral, ContractTest and pnpm test:contracts green."
     },
     {
       "id": "P2-device-evidence",
       "owner": "person_one",
       "manual_section": "27.3",
-      "task": "Done 2026-10-04 for the automated state matrix: all six walkthroughs passed on the paired iPhone at default and largest Dynamic Type (evidence/P2/ios/2026-10-04/, docs/testing/phase2-device-evidence-2026-10-04.md). Remaining: VoiceOver walkthrough on the device into evidence/P2/a11y and an independent greyscale/design review.",
+      "task": "Done 2026-10-04 for the automated state matrix: all six walkthroughs passed on the paired iPhone at default and largest Dynamic Type (evidence/P2/ios/2026-10-04/, docs/testing/phase2-device-evidence-2026-10-04.md). Remaining: VoiceOver walkthrough on the device into evidence/P2/a11y and an independent greyscale/design review. Automated accessibility audit of six main screens passes (evidence/P2/a11y/). Checklist for the recorded pass: docs/testing/phase2-voiceover-checklist.md.",
       "acceptance": "VoiceOver walkthrough recorded; design gate reviewed by a second person."
     },
     {
       "id": "P2-admin-vocabulary-classifier",
       "owner": "both",
       "manual_section": "27.3 / P2-TWO.S12",
-      "task": "Propose the missing vocabulary/classifier admin read contracts and tested staff authorization path, then build the authenticated inspector. Current Phase 1 accounts cannot access admin and no admin read endpoints are approved. Review preparation: docs/handoff/phase2-admin-contract-review.md.",
-      "acceptance": "Both engineers approve read schemas and access rules; vocabulary and recent decisions render from real data with denied-role, pagination, redaction, loading, error and empty-state evidence."
+      "task": "Backend read API done 2026-10-05: GET /v1/admin/skills, /skills/gaps, /classifications, /refusals (admin scope plus second factor, no-store, audited, no ask text or identities; AdminInspectionTest). Remaining: design and test the staff sign-in path that issues an admin session with a second factor (none exists yet, so every caller is refused), then Person Two builds the web inspector against these routes.",
+      "acceptance": "A real staff session reads the vocabulary and recent decisions in the web inspector; denied-role, paging, redaction, loading, error and empty states evidenced."
     },
     {
       "id": "P2-web-v4",

@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "The request was invalid.",
+    "request_id": "req_41dbe217-8a48-47e9-9627-a876dcf48781",
+    "details": [
+      {
+        "field": "cursor",
+        "code": "invalid",
+        "message": "Start again from the first page."
+      }
+    ]
+  }
+}

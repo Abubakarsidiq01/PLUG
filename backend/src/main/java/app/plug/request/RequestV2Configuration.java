@@ -43,6 +43,9 @@ public class RequestV2Configuration {
     }
     @Bean RequestClock requestClock(Clock clock) { return new RequestClock(clock); }
     @Bean CustomSkills customSkills(JdbcTemplate jdbc) { return new CustomSkills(jdbc); }
+    @Bean AdminInspection adminInspection(JdbcTemplate jdbc, RequestClock clock, SkillVocabulary vocabulary) {
+        return new AdminInspection(jdbc, clock.clock(), vocabulary);
+    }
     @Bean IntentAdapter intentAdapter(ObjectMapper mapper, RequestClock clock, IntentAdapter.Provider provider,
             @Value("${plug.requests-v2.intent-timeout:6s}") Duration timeout, SkillVocabulary vocabulary,
             CustomSkills customSkills) {

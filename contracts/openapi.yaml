@@ -756,6 +756,110 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
         '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/skills:
+    get:
+      operationId: getAdminSkillVocabulary
+      summary: The skill vocabulary with provider counts, and providers' own skills
+      description: >
+        Manual v4 P2-TWO.S12 (ADR-011 amendment, proposed). Requires the admin scope and a
+        session that completed a second factor; every other caller gets 403 (401 without a
+        session). Returns no ask text, coordinates or identities.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: Staff-only data. Never cached (Cache-Control no-store); every read is audited.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminSkillVocabulary' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/skills/gaps:
+    get:
+      operationId: listAdminVocabularyGaps
+      summary: Words providers used that matched no listed skill, most recent first
+      description: >
+        Manual v4 P2-TWO.S12 (ADR-011 amendment, proposed). Requires the admin scope and a
+        session that completed a second factor; every other caller gets 403 (401 without a
+        session). Returns no ask text, coordinates or identities.
+        Terms are user content: display them redacted by default and keep them out of analytics.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/AdminCursor'
+        - $ref: '#/components/parameters/AdminLimit'
+      responses:
+        '200':
+          description: Staff-only data. Never cached (Cache-Control no-store); every read is audited.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminVocabularyGapPage' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/classifications:
+    get:
+      operationId: listAdminClassifications
+      summary: Recent asks and how they were classified, newest first
+      description: >
+        Manual v4 P2-TWO.S12 (ADR-011 amendment, proposed). Requires the admin scope and a
+        session that completed a second factor; every other caller gets 403 (401 without a
+        session). Returns no ask text, coordinates or identities.
+        These are current decisions; asks do not keep a history of reclassification. No model
+        confidence or reasoning exists to return.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/AdminCursor'
+        - $ref: '#/components/parameters/AdminLimit'
+      responses:
+        '200':
+          description: Staff-only data. Never cached (Cache-Control no-store); every read is audited.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminClassificationPage' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/refusals:
+    get:
+      operationId: listAdminRefusals
+      summary: Restricted-intent refusals from the audit log, rule and time only
+      description: >
+        Manual v4 P2-TWO.S12 (ADR-011 amendment, proposed). Requires the admin scope and a
+        session that completed a second factor; every other caller gets 403 (401 without a
+        session). Returns no ask text, coordinates or identities.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/AdminCursor'
+        - $ref: '#/components/parameters/AdminLimit'
+      responses:
+        '200':
+          description: Staff-only data. Never cached (Cache-Control no-store); every read is audited.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminRefusalPage' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
 components:
   securitySchemes:
     stagingJwt:
@@ -775,6 +879,17 @@ components:
         and a security-sensitive change revoke it the instant they happen rather than when
         an expiry eventually catches up (manual.docx 25.2).
   parameters:
+    AdminCursor:
+      in: query
+      name: cursor
+      required: false
+      description: Opaque cursor from the previous page's next_cursor. An invalid cursor is 400; start again.
+      schema: { type: string, minLength: 1, maxLength: 512, pattern: '^[A-Za-z0-9_-]+$' }
+    AdminLimit:
+      in: query
+      name: limit
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 100, default: 50 }
     RequestIdHeader:
       in: header
       name: X-Request-Id
@@ -1424,6 +1539,87 @@ components:
           maxLength: 500
           pattern: '^https://'
           description: Public HTTPS website or social profile, without embedded credentials. Opened only on a customer tap.
+    AdminSkillVocabulary:
+      type: object
+      additionalProperties: false
+      required: [skills, custom_skills]
+      properties:
+        skills:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [tag, display, parent, requires_licence, provider_count]
+            properties:
+              tag: { $ref: '#/components/schemas/Category' }
+              display: { type: string }
+              parent: { type: string }
+              requires_licence: { type: boolean }
+              provider_count: { type: integer, minimum: 0 }
+        custom_skills:
+          type: array
+          maxItems: 500
+          items:
+            type: object
+            additionalProperties: false
+            required: [tag, label, provider_count]
+            properties:
+              tag: { $ref: '#/components/schemas/Category' }
+              label: { type: string }
+              provider_count: { type: integer, minimum: 1 }
+    AdminVocabularyGapPage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required: [term, seen_count, first_seen, last_seen]
+            properties:
+              term: { type: string, maxLength: 60 }
+              seen_count: { type: integer, minimum: 1 }
+              first_seen: { type: string, format: date-time }
+              last_seen: { type: string, format: date-time }
+        next_cursor: { type: [string, 'null'] }
+    AdminClassificationPage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required: [ask_id, created_at, ask_type, state, skill_tags]
+            properties:
+              ask_id: { type: string, pattern: '^ask_[A-Za-z0-9-]+$' }
+              created_at: { type: string, format: date-time }
+              ask_type: { type: [string, 'null'], enum: [service_request, place_question, null] }
+              state: { type: string, enum: [resolved, awaiting_clarification, unresolved] }
+              skill_tags: { type: array, maxItems: 5, items: { $ref: '#/components/schemas/Category' } }
+        next_cursor: { type: [string, 'null'] }
+    AdminRefusalPage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor]
+      properties:
+        items:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            additionalProperties: false
+            required: [rule, occurred_at]
+            properties:
+              rule: { type: string, maxLength: 60 }
+              occurred_at: { type: string, format: date-time }
+        next_cursor: { type: [string, 'null'] }
     ProviderSetup:
       description: >
         Adds provider capability to the caller's existing account (manual v4 §2.3). No second

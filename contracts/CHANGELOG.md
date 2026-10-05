@@ -11,6 +11,25 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.5.0 — 2026-10-05 — approval — frozen on merge
+Approved by Person One (project owner) on 2026-10-05 for everything listed under 0.5.0 and its
+amendments, including `contracts/skills.yaml`. Person Two's approval of the pull request that
+carries this entry completes the §7.1 two-approval rule; when it merges, every Phase 2 request,
+ask, provider and admin route is frozen@0.5.0. Further changes need a new version.
+
+### 0.5.0 amendment — 2026-10-05 — additive — staff inspection routes (P2-TWO.S12)
+`GET /v1/admin/skills` (vocabulary with provider counts, plus providers' own skills),
+`GET /v1/admin/skills/gaps`, `GET /v1/admin/classifications` and `GET /v1/admin/refusals`, with
+`AdminCursor`/`AdminLimit` keyset paging (1–100, default 50; a bad cursor or limit is 400).
+Admin scope plus a completed second factor, as for all of `/v1/admin`; responses are
+`Cache-Control: no-store` and every read writes an `admin.read` audit event. They return no ask
+text, coordinates or identities; a refusal is only its rule and time. No staff identity is
+issued yet, so in this phase every caller is refused (401/403) until the staff sign-in path is
+designed.
+Fixtures: `fixtures/admin.{skills,gaps,classifications,refusals}/`.
+Migration note: none (reads existing tables).
+Rollback: `requests_v2` off removes the routes.
+
 ### 0.5.0 amendment — 2026-10-03 — additive — proposed — direct skill entry
 Owner request: entering a listed name in `custom_skills` now resolves it to its canonical
 skill instead of returning `listed_skill`. Licence checks still apply, and unlisted labels
