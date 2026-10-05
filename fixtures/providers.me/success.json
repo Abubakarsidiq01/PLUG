@@ -1,0 +1,36 @@
+{
+  "user_id": "usr_b83d2aa4-bd55-49de-88ba-1c4071509ea2",
+  "skills": [
+    {
+      "tag": "braids",
+      "display": "Braids",
+      "requires_licence": false
+    },
+    {
+      "tag": "wig_install",
+      "display": "Wig install",
+      "requires_licence": false
+    }
+  ],
+  "travel_radius_m": 4828,
+  "availability": [
+    {
+      "days": "weekdays",
+      "from": "16:00",
+      "to": "24:00"
+    },
+    {
+      "days": "weekends",
+      "from": "00:00",
+      "to": "24:00"
+    }
+  ],
+  "time_zone": "America/Chicago",
+  "accepting": true,
+  "licence_on_file": false,
+  "score": {
+    "state": "new",
+    "completed_jobs": 0
+  },
+  "created_at": "2026-10-02T05:11:13.857125Z"
+}

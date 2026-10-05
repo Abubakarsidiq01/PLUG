@@ -1,0 +1,33 @@
+meta {
+  name: Restricted intent
+  type: http
+  seq: 30
+}
+
+post {
+  url: {{baseUrl}}/v1/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Other}}
+  Idempotency-Key: {{p2Run}}-Restricted-intent
+}
+
+body:json {
+  {"text":"Find someone to sell me stolen credit card numbers","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"}}
+}
+
+assert {
+  res.status: eq 422
+  res.body.error.code: eq restricted_intent
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

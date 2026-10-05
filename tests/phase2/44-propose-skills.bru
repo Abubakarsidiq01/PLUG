@@ -1,0 +1,32 @@
+meta {
+  name: Propose skills from plain words
+  type: http
+  seq: 44
+}
+
+post {
+  url: {{baseUrl}}/v1/providers/skills/propose
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Other}}
+}
+
+body:json {
+  {"description":"I do knotless braids and wig installs, also crochet locs and chimney sweeping"}
+}
+
+assert {
+  res.status: eq 200
+  res.body.unmatched: isNotEmpty
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("only vocabulary tags", function () { expect(res.getBody().skills.map(s => s.tag).sort()).to.deep.equal(["braids", "locs", "wig_install"]); });
+}

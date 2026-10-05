@@ -20,6 +20,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: node design/generate-tokens.mjs
+      - run: pnpm test:contracts
       - run: pnpm --filter @plug/web lint
       # No standalone `tsc --noEmit` step: Next's typed-routes globals (LayoutProps<...>)
       # are generated into .next/types/ by the build itself, so tsc run first sees

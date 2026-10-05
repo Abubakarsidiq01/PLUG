@@ -8,3 +8,7 @@ The four weights match the existing design tokens. Local assets remove the Googl
 - `IBMPlexSans-Medium.woff2`: SHA-256 `5660f8a658f8bb50dbc005232f885eadffd2bc1c235c4f6fbb63469d1f9cde6d`
 - `IBMPlexSans-SemiBold.woff2`: SHA-256 `f78048030eab62e860efa39a0df79e2e5581bf122eb95b9bc42c0b8a4988d205`
 - `IBMPlexSans-Bold.woff2`: SHA-256 `fa7130d854a660b39a7fc9e6e0f2dc23dba5f1346e2adea3e1fe37b6d884133d`
+
+The v4 site uses local Public Sans Latin weights 400, 500, 600 and 700, restored
+from the checked-in v4 handoff patch (`@fontsource/public-sans@5.3.0`). See
+OFL-PublicSans.txt. IBM Plex Sans files are retained for the earlier design.

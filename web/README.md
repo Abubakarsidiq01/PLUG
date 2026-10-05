@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PLUG web
 
-## Getting Started
+Person Two owns this Next.js public site and protected admin shell. Read
+`PROJECT_STATE.json` and `docs/phases/P2-TWO.md` before making changes.
+The current site includes the home, Terms, Privacy, Support and unavailable-admin
+pages. Phase 2 request screens belong to iOS; an internal web inspector is optional
+only when QA needs one and real authenticated endpoints exist.
 
-First, run the development server:
+From the repository root with Node 22 and pnpm 9.15.9:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```sh
+pnpm install --frozen-lockfile
+pnpm --filter @plug/web typecheck
+pnpm --filter @plug/web lint
+pnpm --filter @plug/web test:unit
+pnpm --filter @plug/web build
+pnpm --filter @plug/web exec playwright install chromium webkit
+pnpm --filter @plug/web test:e2e
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`typecheck` generates Next route types before invoking TypeScript, so it works
+without a prior build. `test:unit` runs the shared static fixture and intent-data
+checks (`pnpm test:contracts`); it does not prove the future backend extractor.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Playwright covers 360, 768 and 1280 pixel viewports, legal navigation, admin denial,
+security headers and automated accessibility. It starts a dedicated
+server on `127.0.0.1:3100`, using a production build when `CI=true`; it never reuses
+an unrelated server. Set `PLUG_WEB_URL` explicitly to test an existing deployment
+without starting a local server. In PowerShell, set environment variables using
+`$env:CI = "true"` or `$env:PLUG_WEB_URL = "https://your-current-web-deployment"`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Interactive development uses `pnpm --filter @plug/web dev` on port 3000. The site
+bundles IBM Plex Sans locally and reads the shared generated design tokens. Preserve
+existing legal branding. Admin routes fail closed until real enrollment and MFA
+exist; a cookie or fixture is never authentication.

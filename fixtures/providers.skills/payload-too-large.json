@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "The request body is too large.",
+    "request_id": "req_4e5546ce-f543-4040-a229-34e8dd077be8",
+    "details": [
+      {
+        "field": "body",
+        "code": "too_large"
+      }
+    ]
+  }
+}

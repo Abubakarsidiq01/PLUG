@@ -1,0 +1,519 @@
+# contracts/skills.yaml — the controlled skill vocabulary (manual v4 §12B.3, §19A.2).
+# Owned by Person Two, changed by pull request with both approvals, like any contract.
+# The model maps free text onto these tags. It never creates one. An unmatched term is
+# surfaced to the person and recorded as a vocabulary gap; it is never matched on.
+#
+# Rules
+#  1. A new tag is a pull request with both approvals, plus a migration that inserts it
+#     into skill_vocabulary (the backend refuses to start if the two disagree).
+#  2. Removing a tag requires a migration for providers who hold it.
+#  3. A tag that needs a licence carries `requires_licence: true` and is matched only
+#     against providers who have supplied one.
+#  4. Tags are snake_case, 2-40 characters. Synonyms are lowercase phrases.
+#
+# Deliberately absent until a safety policy exists for them: childcare, elder care,
+# medical, legal and financial advice. Asks for those are refused, not guessed.
+
+# Hair and beauty
+- tag: barber
+  display: Barber
+  synonyms: [barber, barbershop, haircut, hair cut, fresh cut, fade, taper, line up, lineup, beard trim, shape up]
+  parent: hair
+- tag: braids
+  display: Braids
+  synonyms: [braids, knotless, box braids, cornrows, feed-in, plaits, twists, locs retwist]
+  parent: hair
+- tag: wig_install
+  display: Wig install
+  synonyms: [wig install, closure install, frontal, lace install, wig fitting]
+  parent: hair
+- tag: hair_styling
+  display: Hair styling
+  synonyms: [hair styling, silk press, blowout, hair salon, updo, trim and style]
+  parent: hair
+- tag: nails
+  display: Nails
+  synonyms: [nails, manicure, pedicure, nail set, acrylics, gel nails, nail tech]
+  parent: beauty
+- tag: lashes
+  display: Lashes
+  synonyms: [lashes, lash extensions, lash fill, lash lift]
+  parent: beauty
+- tag: makeup
+  display: Makeup
+  synonyms: [makeup, make up, makeup artist, mua, glam]
+  parent: beauty
+- tag: brows
+  display: Brows
+  synonyms: [brows, eyebrows, brow shaping, threading, brow tint]
+  parent: beauty
+
+# Repairs
+- tag: laptop_repair
+  display: Laptop repair
+  synonyms: [laptop repair, computer repair, screen replacement, pc fix, macbook repair]
+  parent: tech
+- tag: phone_repair
+  display: Phone repair
+  synonyms: [phone repair, cracked screen, iphone repair, phone screen, battery replacement]
+  parent: tech
+- tag: shoe_repair
+  display: Shoe repair
+  synonyms: [shoe repair, cobbler, resole, heel repair, fix my shoe, fix my shoes, repair my shoe, repair my shoes, shoes repaired, boot repair, sneaker repair, fix my boots]
+  parent: repair
+- tag: tailoring
+  display: Tailoring
+  synonyms: [tailor, tailoring, alterations, hemming, hem, take in, sew a button]
+  parent: repair
+- tag: bike_repair
+  display: Bike repair
+  synonyms: [bike repair, bicycle repair, flat bike tire, bike chain, bike tune up]
+  parent: repair
+
+# Home
+- tag: plumbing_minor
+  display: Minor plumbing
+  synonyms: [plumber, plumbing, leaking sink, leaky sink, leaking tap, blocked drain, clogged drain, running toilet, clogged toilet, tap replacement]
+  parent: home
+  note: >
+    Minor work only. Anything requiring a licence routes to the licensed-trade policy in
+    the restricted-intent rules, which asks for the licence number before a match is made.
+- tag: electrical
+  display: Electrical work
+  synonyms: [electrician, electrical, wiring, rewire, outlet, breaker, light fitting]
+  parent: home
+  requires_licence: true
+- tag: handyman
+  display: Handyman
+  synonyms: [handyman, handy man, odd jobs, small repairs, fix a door, patch a wall]
+  parent: home
+- tag: furniture_assembly
+  display: Furniture assembly
+  synonyms: [furniture assembly, assemble furniture, ikea, flat pack, build a bed]
+  parent: home
+- tag: tv_mounting
+  display: TV mounting
+  synonyms: [tv mounting, mount a tv, mount my tv, wall mount tv]
+  parent: home
+- tag: house_cleaning
+  display: House cleaning
+  synonyms: [cleaner, cleaning, house cleaning, deep clean, maid, move out clean]
+  parent: home
+- tag: moving_help
+  display: Moving help
+  synonyms: [movers, moving help, help moving, move my stuff, loading truck]
+  parent: home
+- tag: painting
+  display: Painting
+  synonyms: [painter, painting, paint a room, interior painting]
+  parent: home
+- tag: lawn_care
+  display: Lawn care
+  synonyms: [lawn care, mow, mowing, yard work, leaf removal, gardening]
+  parent: home
+- tag: locksmith
+  display: Locksmith
+  synonyms: [locksmith, locked out, lockout, rekey, spare key]
+  parent: home
+  requires_licence: true
+
+# Vehicles
+- tag: auto_repair
+  display: Auto repair
+  synonyms: [mechanic, car repair, auto repair, oil change, brakes, flat tire, flat tyre, car battery, check engine]
+  parent: vehicle
+- tag: car_wash
+  display: Car wash
+  synonyms: [car wash, detailing, car detail, wash my car]
+  parent: vehicle
+- tag: towing
+  display: Towing
+  synonyms: [tow truck, towing, tow my car, jump start, jumpstart]
+  parent: vehicle
+
+# Lessons and creative
+- tag: tutoring
+  display: Tutoring
+  synonyms: [tutor, tutoring, homework help, math tutor, essay help, test prep]
+  parent: lessons
+- tag: music_lessons
+  display: Music lessons
+  synonyms: [music lessons, guitar lessons, piano lessons, singing lessons, voice lessons]
+  parent: lessons
+- tag: photography
+  display: Photography
+  synonyms: [photographer, photography, photo shoot, photoshoot, headshots, portraits]
+  parent: creative
+- tag: personal_training
+  display: Personal training
+  synonyms: [personal trainer, personal training, workout coach, fitness coach]
+  parent: lessons
+
+# Pets and errands
+- tag: pet_grooming
+  display: Pet grooming
+  synonyms: [dog groomer, pet grooming, dog grooming, cat grooming, groomer]
+  parent: pets
+- tag: dog_walking
+  display: Dog walking
+  synonyms: [dog walker, dog walking, walk my dog]
+  parent: pets
+- tag: pet_sitting
+  display: Pet sitting
+  synonyms: [pet sitter, pet sitting, cat sitter, watch my dog]
+  parent: pets
+- tag: errands
+  display: Errands
+  synonyms: [errand, errands, pick up groceries, drop off a package, queue for me]
+  parent: errands
+- tag: massage
+  display: Massage
+  synonyms: [massage, massage therapist, deep tissue, sports massage]
+  parent: wellness
+  requires_licence: true
+
+# ---- Expansion, 2026-10-02 (owner direction: "as many skills as possible") ----
+
+# More hair and beauty
+- tag: locs
+  display: Locs
+  synonyms: [locs, dreadlocks, dreads, loc retwist, starter locs, loc maintenance, crochet locs, faux locs]
+  parent: hair
+- tag: hair_coloring
+  display: Hair coloring
+  synonyms: [hair color, hair colour, hair dye, highlights, balayage, root touch up, bleach and tone]
+  parent: hair
+- tag: natural_hair
+  display: Natural hair care
+  synonyms: [natural hair, twist out, wash and go, silk press natural, detangling, protective style, protective styles]
+  parent: hair
+- tag: kids_haircut
+  display: Kids haircut
+  synonyms: [kids haircut, kid haircut, children's haircut, boys haircut, girls haircut]
+  parent: hair
+- tag: waxing
+  display: Waxing
+  synonyms: [waxing, wax, brazilian wax, eyebrow wax, leg wax, body wax]
+  parent: beauty
+- tag: facials
+  display: Facials
+  synonyms: [facial, facials, skincare treatment, esthetician, skin care, dermaplaning]
+  parent: beauty
+  requires_licence: true
+- tag: spray_tan
+  display: Spray tan
+  synonyms: [spray tan, airbrush tan, sunless tan]
+  parent: beauty
+- tag: henna
+  display: Henna
+  synonyms: [henna, mehndi, henna tattoo]
+  parent: beauty
+- tag: tattoo
+  display: Tattoo
+  synonyms: [tattoo, tattoos, tattoo artist, tattoo cover up, fine line tattoo]
+  parent: beauty
+  requires_licence: true
+- tag: piercing
+  display: Piercing
+  synonyms: [piercing, piercings, ear piercing, nose piercing, body piercing]
+  parent: beauty
+  requires_licence: true
+
+# More repairs
+- tag: appliance_repair
+  display: Appliance repair
+  synonyms: [appliance repair, washer repair, dryer repair, fridge repair, refrigerator repair, dishwasher repair, oven repair, microwave repair]
+  parent: repair
+- tag: watch_repair
+  display: Watch repair
+  synonyms: [watch repair, watch battery, watch strap, watchmaker]
+  parent: repair
+- tag: jewelry_repair
+  display: Jewelry repair
+  synonyms: [jewelry repair, jewellery repair, ring resizing, ring resize, necklace repair, chain repair]
+  parent: repair
+- tag: console_repair
+  display: Game console repair
+  synonyms: [console repair, ps5 repair, xbox repair, nintendo repair, switch repair, controller repair, controller drift]
+  parent: tech
+- tag: tablet_repair
+  display: Tablet repair
+  synonyms: [tablet repair, ipad repair, ipad screen]
+  parent: tech
+- tag: data_recovery
+  display: Data recovery
+  synonyms: [data recovery, recover files, recover my files, recover photos, hard drive recovery]
+  parent: tech
+- tag: tech_support
+  display: Tech support
+  synonyms: [tech support, it support, computer help, set up my computer, printer setup, wifi setup, router setup, virus removal]
+  parent: tech
+- tag: smart_home_setup
+  display: Smart home setup
+  synonyms: [smart home, smart home setup, security camera install, doorbell camera, ring doorbell, smart thermostat]
+  parent: tech
+- tag: instrument_repair
+  display: Instrument repair
+  synonyms: [instrument repair, guitar repair, guitar setup, piano tuning, restring guitar]
+  parent: repair
+- tag: upholstery
+  display: Upholstery
+  synonyms: [upholstery, reupholster, couch repair, sofa repair, chair reupholstery]
+  parent: repair
+
+# More home
+- tag: carpet_cleaning
+  display: Carpet cleaning
+  synonyms: [carpet cleaning, rug cleaning, upholstery cleaning, steam clean carpet, carpet shampoo]
+  parent: home
+- tag: window_cleaning
+  display: Window cleaning
+  synonyms: [window cleaning, window washer, window washing]
+  parent: home
+- tag: pressure_washing
+  display: Pressure washing
+  synonyms: [pressure washing, power washing, pressure wash, power wash, driveway cleaning]
+  parent: home
+- tag: gutter_cleaning
+  display: Gutter cleaning
+  synonyms: [gutter cleaning, clean gutters, gutter repair]
+  parent: home
+- tag: junk_removal
+  display: Junk removal
+  synonyms: [junk removal, haul away, trash removal, furniture removal, garage cleanout, cleanout]
+  parent: home
+- tag: drywall
+  display: Drywall
+  synonyms: [drywall, drywall repair, hole in wall, sheetrock, plastering]
+  parent: home
+- tag: flooring
+  display: Flooring
+  synonyms: [flooring, floor installation, laminate floor, vinyl floor, hardwood floor, tile installation, tiling, tiler]
+  parent: home
+- tag: carpentry
+  display: Carpentry
+  synonyms: [carpenter, carpentry, woodwork, custom shelves, build shelves, deck repair]
+  parent: home
+- tag: fencing
+  display: Fencing
+  synonyms: [fence, fencing, fence repair, fence installation, gate repair]
+  parent: home
+- tag: landscaping
+  display: Landscaping
+  synonyms: [landscaping, landscaper, garden design, hedge trimming, mulch, planting]
+  parent: home
+- tag: tree_service
+  display: Tree service
+  synonyms: [tree trimming, tree removal, tree service, stump removal, arborist]
+  parent: home
+- tag: snow_removal
+  display: Snow removal
+  synonyms: [snow removal, shovel snow, snow plowing, plow my driveway]
+  parent: home
+- tag: pool_cleaning
+  display: Pool cleaning
+  synonyms: [pool cleaning, pool maintenance, pool service, hot tub cleaning]
+  parent: home
+- tag: pest_control
+  display: Pest control
+  synonyms: [pest control, exterminator, bed bugs, roaches, termites, rodent control, mice]
+  parent: home
+  requires_licence: true
+- tag: hvac
+  display: Heating and air conditioning
+  synonyms: [hvac, ac repair, air conditioner repair, ac not working, furnace repair, heating repair, heat pump]
+  parent: home
+  requires_licence: true
+- tag: plumbing_major
+  display: Plumbing (licensed)
+  synonyms: [water heater, sewer line, repipe, gas line, water line, burst pipe]
+  parent: home
+  requires_licence: true
+- tag: roofing
+  display: Roofing
+  synonyms: [roofer, roofing, roof repair, roof leak, shingles]
+  parent: home
+  requires_licence: true
+- tag: garage_door
+  display: Garage door repair
+  synonyms: [garage door, garage door repair, garage door opener, garage door spring]
+  parent: home
+- tag: home_organizing
+  display: Home organizing
+  synonyms: [home organizing, professional organizer, declutter, closet organizing, organize my closet, organize my garage]
+  parent: home
+- tag: interior_design
+  display: Interior design
+  synonyms: [interior design, interior designer, home decor, room makeover, staging]
+  parent: home
+- tag: laundry
+  display: Laundry and ironing
+  synonyms: [laundry, wash and fold, ironing, dry cleaning pickup, laundry service]
+  parent: home
+- tag: house_sitting
+  display: House sitting
+  synonyms: [house sitting, house sitter, plant watering, water my plants, check on my house]
+  parent: home
+- tag: welding
+  display: Welding
+  synonyms: [welding, welder, metal repair, fabrication]
+  parent: home
+
+# More vehicles
+- tag: mobile_mechanic
+  display: Mobile mechanic
+  synonyms: [mobile mechanic, mechanic come to me, roadside repair]
+  parent: vehicle
+- tag: tire_service
+  display: Tire service
+  synonyms: [tire change, tyre change, new tires, tire rotation, tire repair, patch a tire, change my tire]
+  parent: vehicle
+- tag: car_detailing
+  display: Car detailing
+  synonyms: [car detailing, interior detailing, ceramic coating, paint correction, headlight restoration]
+  parent: vehicle
+- tag: motorcycle_repair
+  display: Motorcycle repair
+  synonyms: [motorcycle repair, motorbike repair, scooter repair, ebike repair, e-bike repair]
+  parent: vehicle
+- tag: car_audio
+  display: Car audio
+  synonyms: [car audio, car stereo, car speakers, subwoofer install, carplay install]
+  parent: vehicle
+
+# Events and food
+- tag: dj
+  display: DJ
+  synonyms: [dj, deejay, party dj, wedding dj]
+  parent: events
+- tag: event_planning
+  display: Event planning
+  synonyms: [event planner, event planning, party planner, wedding planner, birthday party planning]
+  parent: events
+- tag: party_decor
+  display: Party decor
+  synonyms: [party decor, balloon decor, balloon arch, event decor, backdrop]
+  parent: events
+- tag: catering
+  display: Catering
+  synonyms: [catering, caterer, cater my party, food for party, small chops]
+  parent: food
+- tag: personal_chef
+  display: Personal chef
+  synonyms: [personal chef, private chef, cook for me, meal prep, home cook]
+  parent: food
+- tag: baking
+  display: Cakes and baking
+  synonyms: [baker, birthday cake, custom cake, cupcakes, wedding cake, pastries]
+  parent: food
+- tag: bartending
+  display: Bartending
+  synonyms: [bartender, bartending, mixologist, bar service]
+  parent: events
+- tag: videography
+  display: Videography
+  synonyms: [videographer, videography, video shoot, wedding video, music video]
+  parent: creative
+- tag: face_painting
+  display: Face painting
+  synonyms: [face painting, face painter, kids face paint]
+  parent: events
+- tag: mc_host
+  display: MC and host
+  synonyms: [mc, emcee, event host, hype man, master of ceremonies]
+  parent: events
+
+# Creative and digital
+- tag: graphic_design
+  display: Graphic design
+  synonyms: [graphic design, graphic designer, logo design, flyer design, design a logo, design a flyer]
+  parent: creative
+- tag: web_design
+  display: Website design
+  synonyms: [web design, website design, build a website, make a website, web developer, wordpress site]
+  parent: creative
+- tag: video_editing
+  display: Video editing
+  synonyms: [video editing, video editor, edit my video, edit videos]
+  parent: creative
+- tag: photo_editing
+  display: Photo editing
+  synonyms: [photo editing, retouching, edit my photos, photoshop]
+  parent: creative
+- tag: social_media
+  display: Social media management
+  synonyms: [social media manager, social media management, content creation, manage my instagram]
+  parent: creative
+- tag: music_production
+  display: Music production
+  synonyms: [music producer, beat maker, beats, mixing and mastering, record a song, studio session]
+  parent: creative
+- tag: custom_printing
+  display: Custom printing
+  synonyms: [custom t-shirts, t-shirt printing, shirt printing, screen printing, custom shirts, embroidery, custom hats]
+  parent: creative
+- tag: sewing
+  display: Custom sewing
+  synonyms: [seamstress, dressmaker, custom outfit, make a dress, sew a dress, aso ebi, native attire]
+  parent: creative
+
+# Lessons and wellness
+- tag: language_lessons
+  display: Language lessons
+  synonyms: [language lessons, spanish lessons, french lessons, english lessons, learn spanish, learn french, esl tutor]
+  parent: lessons
+- tag: coding_lessons
+  display: Coding lessons
+  synonyms: [coding lessons, programming lessons, learn to code, coding tutor, python tutor]
+  parent: lessons
+- tag: dance_lessons
+  display: Dance lessons
+  synonyms: [dance lessons, dance teacher, salsa lessons, ballet lessons, dance class]
+  parent: lessons
+- tag: swim_lessons
+  display: Swimming lessons
+  synonyms: [swimming lessons, swim lessons, swim coach, learn to swim]
+  parent: lessons
+- tag: art_lessons
+  display: Art lessons
+  synonyms: [art lessons, drawing lessons, painting lessons, art class, pottery class, pottery lessons]
+  parent: lessons
+- tag: driving_lessons
+  display: Driving lessons
+  synonyms: [driving lessons, driving instructor, learn to drive, driving test practice]
+  parent: lessons
+  requires_licence: true
+- tag: yoga
+  display: Yoga and pilates
+  synonyms: [yoga, yoga instructor, pilates, yoga class, stretching coach]
+  parent: wellness
+- tag: sports_coaching
+  display: Sports coaching
+  synonyms: [basketball coach, soccer coach, football coach, tennis lessons, golf lessons, boxing coach, sports coaching]
+  parent: lessons
+
+# More pets and errands
+- tag: pet_training
+  display: Pet training
+  synonyms: [dog trainer, dog training, puppy training, obedience training, pet training]
+  parent: pets
+- tag: courier
+  display: Courier and delivery
+  synonyms: [courier, delivery driver, deliver a package, same day delivery, pick up and drop off]
+  parent: errands
+- tag: personal_shopping
+  display: Personal shopping
+  synonyms: [personal shopper, personal shopping, shop for me, gift shopping]
+  parent: errands
+- tag: resume_writing
+  display: Resume writing
+  synonyms: [resume writing, resume writer, cv writing, cover letter, linkedin profile]
+  parent: writing
+- tag: translation
+  display: Translation
+  synonyms: [translator, translation, translate a document, interpreter]
+  parent: writing
+- tag: proofreading
+  display: Proofreading and editing
+  synonyms: [proofreading, proofreader, copy editing, edit my essay, editing my writing]
+  parent: writing

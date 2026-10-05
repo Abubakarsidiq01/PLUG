@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "Send a JSON request body.",
+    "request_id": "req_b5dfc00c-755a-4199-9bf6-f5b752e7033a"
+  }
+}

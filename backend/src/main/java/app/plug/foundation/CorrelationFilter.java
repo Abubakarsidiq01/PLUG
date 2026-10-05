@@ -48,6 +48,16 @@ public class CorrelationFilter extends OncePerRequestFilter {
         }
     }
 
+    private String safeResourcePath(String path) {
+        if (path.matches("/v1/requests/[^/]+")) return "/v1/requests/{request_id}";
+        if (path.matches("/v1/asks/[^/]+")) return "/v1/asks/{ask_id}";
+        if (path.matches("/v1/asks/[^/]+/clarifications")) return "/v1/asks/{ask_id}/clarifications";
+        for (String suffix : java.util.List.of("offers", "clarifications", "cancel")) {
+            if (path.matches("/v1/requests/[^/]+/" + suffix)) return "/v1/requests/{request_id}/" + suffix;
+        }
+        return path.startsWith("/v1/me/sessions/") ? "/v1/me/sessions/{session_id}" : "unmapped";
+    }
+
     // Never trust a client-supplied ID into logs without constraining it.
     private boolean isValid(String value) {
         return value != null && value.length() <= 64 && value.matches("[A-Za-z0-9_\\-]+");
@@ -62,8 +72,10 @@ public class CorrelationFilter extends OncePerRequestFilter {
                     "/actuator/health/readiness", "/actuator/health/liveness",
                     "/v1/auth/apple", "/v1/auth/google", "/v1/auth/phone/start", "/v1/auth/phone/verify",
                     "/v1/auth/guest", "/v1/auth/refresh", "/v1/auth/logout",
-                    "/v1/me", "/v1/me/consent", "/v1/me/sessions" -> path;
-            default -> path.startsWith("/v1/me/sessions/") ? "/v1/me/sessions/{session_id}" : "unmapped";
+                    "/v1/me", "/v1/me/consent", "/v1/me/sessions",
+                    "/v1/asks", "/v1/providers/skills", "/v1/providers/skills/propose", "/v1/providers/me",
+                    "/v1/admin/skills", "/v1/admin/skills/gaps", "/v1/admin/classifications", "/v1/admin/refusals" -> path;
+            default -> safeResourcePath(path);
         };
     }
 }

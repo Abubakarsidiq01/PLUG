@@ -1,0 +1,31 @@
+{
+  "request_id": "req_01J9Z6Q3V8M2K4P7R5T1W0XY3B",
+  "status": "canceled",
+  "next_action": "none",
+  "text": "Barber under $35 in 30 minutes",
+  "constraints": {
+    "category": "barber",
+    "service_name": "Barber",
+    "skill_tags": [
+      "barber"
+    ],
+    "licence_required": false,
+    "budget_cents": 3500,
+    "currency": "USD",
+    "needed_by": "2026-10-01T20:30:00Z",
+    "max_distance_m": 3200,
+    "location": {
+      "latitude": 32.528,
+      "longitude": -92.714,
+      "precision": "coarse"
+    }
+  },
+  "progress": {
+    "contacted": 3,
+    "replied": 1,
+    "offers_ready": 1
+  },
+  "created_at": "2026-10-01T20:00:00Z",
+  "updated_at": "2026-10-01T20:00:05Z",
+  "expires_at": "2026-10-01T20:30:00Z"
+}

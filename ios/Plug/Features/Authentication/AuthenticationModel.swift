@@ -16,7 +16,7 @@ final class AuthenticationModel: ObservableObject {
     }
 
     private let client: APIClient
-    private let sessions: SessionStore
+    let sessions: SessionStore
     private let consentVersion: String
     private let log = Logger(subsystem: "app.plug", category: "Authentication")
 

@@ -7,15 +7,32 @@ file per outcome per operation, named `<operation>/<outcome>.json`.
 `ContractTest`; the files here are what the Bruno collection, Playwright and the
 iOS decoding tests build against.
 
-## requests.create
+## Phase 2 — proposed request contract 0.3.0
 
-| File | Outcome |
-|---|---|
-| `success.json` | 202 — request accepted |
-| `validation-error.json` | 400 — `validation_failed` |
-| `auth-error.json` | 401 — `unauthenticated` |
-| `rate-limited.json` | 429 — `rate_limited` |
-| `transient-error.json` | 500 — `internal_error` |
+`requests.create/`, `requests.get/`, `requests.clarify/`, `requests.offers/` and
+`requests.cancel/` contain 68 deterministic response bodies. These are review
+fixtures, not evidence that Phase 2 endpoints are live. The current backend still
+serves the Phase 0 stub (202 / RECEIVED); its example and Bruno checks remain separate.
+
+Run `pnpm test:contracts` from the repository root after `pnpm install --frozen-lockfile`.
+This uses the OpenAPI schemas directly, validates date-time formats and checks the
+prose invariants, HTTP/error mapping, coverage, and preservation of a draft's identity.
+The backend's `./dev test --tests '*FixtureContractTest'` also checks response schemas.
+
+`tests/contracts/fixture-manifest.json` maps every file to its method, route, status,
+and source example when copied verbatim. Every documented response is represented;
+there are no invented 400s for bodyless routes. Empty results are represented by
+`requests.get/empty.json` and `requests.offers/empty.json`. Creation, clarification
+and cancellation return resources, so an empty body is not a valid success there.
+
+Additional cases cover missing/malformed/other-owner IDs (identical 404 envelopes),
+idempotency conflicts, expiration, unanswered draft cancellation, all three no-result
+reasons, unknown labels, and offers still pending. Seed supplier names and addresses
+are synthetic examples from the contract, never proof of live businesses or replies.
+Dates are evaluated against the manifest's fixed clock, never the machine's date.
+
+The labelled intent dataset is `intents/p2.jsonl`; its format and verification limits
+are documented in [intents/README.md](intents/README.md).
 
 ## Phase 1 — identity and consent
 

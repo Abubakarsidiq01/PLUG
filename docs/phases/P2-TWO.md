@@ -17,7 +17,13 @@
 | **Other lane** | `docs/phases/P2-ONE.md` |
 
 **Outcome this phase must reach**
-“Barber under $35 in 30 minutes” produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
+“I need to repair my shoe for $45 tomorrow, who is available?” — or “Barber under $35 in 30 minutes” — produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
+
+> **Redesigned to manual v4 ([ADR-010](../decisions/ADR-010-manual-v4-asks-skills-providers.md), 2026-10-02, proposed).**
+> Two kinds of ask in one field, a controlled skill vocabulary you own, providers on the
+> same account. ADR-009's Apple Maps listing and free-form categories are withdrawn.
+> Person One drafted some of your v4 artefacts so neither lane waits; each is marked below
+> and is yours to review, change or reject in the 0.5.0 contract session.
 
 **Why it matters**
 This is where the product becomes itself. It is also where the temptation to let the model decide things is strongest, and where a single fabricated price would undermine the entire premise.
@@ -42,17 +48,26 @@ Nothing below this line begins until that pull request has merged with both
 approvals. If you find yourself writing an endpoint that is not in the contract,
 stop and open a contract pull request instead.
 
+Contract-review preparation on 2026-10-01: P2.S1 response fixtures and the labelled
+dataset are prepared alongside the proposal, as requested in `PROJECT_STATE.json`.
+They remain subject to both approvals. See [the hardening record](../testing/phase2-person-two-hardening-2026-10-01.md).
+P2.S2 live tests and later implementation are still gated on the contract merge.
+
 ---
 
 ## 1. Environment
 
 ```powershell
-docker compose up -d postgres redis
-pnpm install
+pnpm install --frozen-lockfile
+pnpm test:contracts                 # fixtures and dataset, no backend required
 pnpm --filter @plug/web dev          # http://localhost:3000
-bru run tests/api --env staging
+# Stop the interactive server when finished. Playwright owns localhost:3100.
 pnpm --filter @plug/web test:e2e
 ```
+
+For the database, identity secret, backend and locked Bruno CLI, follow
+[Windows onboarding](../onboarding/windows.md). There is no standing staging URL;
+use the current checkpoint tunnel as described in `tests/api/environments/README.md`.
 
 If any of those commands fails on a clean machine, that is a bug in
 `docs/onboarding/windows.md`, and fixing the
@@ -65,12 +80,19 @@ documentation is part of the work.
 Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
 
-- [ ] **P2.S1** — Create and maintain the labelled intent and edge-case dataset, and the shared fixtures under `/fixtures`.
+- [ ] **P2.S1** — Create and maintain the labelled intent and edge-case dataset, and the shared fixtures under `/fixtures`. Prepared and locally validated; contract review/merge pending.
 - [ ] **P2.S2** — Build the Bruno contract tests for request creation, clarification, polling and status, offers, cancellation, and every documented error.
 - [ ] **P2.S3** — Review Figma for anti-vibecode compliance per §16: typography, spacing, no gradients, no glass, no pills, no fake proof, and every required state present.
 - [ ] **P2.S4** — Build a web-based internal request inspector only if QA needs it; it must consume real staging data and must not duplicate canonical logic.
-- [ ] **P2.S5** — Document the exact supported launch request grammar and the unsupported-category behaviour, for QA and support.
+- [ ] **P2.S5** — *Drafted by Person One: `docs/runbooks/phase2-asking-guide.md` (what people can ask, limits, refusals, no-coverage behaviour) — review and own.* — Document the exact supported launch request grammar and the unsupported-category behaviour, for QA and support.
 - [ ] **P2.S6** — Run the API abuse cases: overlong prompt, invalid coordinates, absurd budget, malformed timestamps, repeated submissions, and rate-limit behaviour.
+- [ ] **P2.S7** — Build the labelled classification dataset: service asks, place questions, ambiguous asks and restricted asks, with the expected `ask_type`. *Drafted by Person One: `fixtures/intents/p2.jsonl` (46 vectors, re-labelled against the vocabulary) — review and extend.*
+- [ ] **P2.S8** — Own the skill vocabulary in `contracts/skills.yaml`. *Drafted by Person One: 35 tags; childcare, elder care, medical, legal and financial advice deliberately absent. Yours from here; every change is a PR plus a migration.*
+- [ ] **P2.S9** — Bruno suite for the two-pipeline classifier, including refusals and clarifications. *Drafted by Person One: `tests/phase2/38`–`47` (asks, private place, restricted, foreign ask, provider propose/licence/unknown tag/save).*
+- [ ] **P2.S10** — Review the Ask screen against Figure A1 and the design gate. Simulator captures: `evidence/P2/simulator/2026-10-02/`.
+- [ ] **P2.S11** — Abuse cases the open scope requires: illegal goods or services, targeting a private person, surveillance in disguise, regulated professions.
+- [ ] **P2.S12** — *Backend ready (5 October): `GET /v1/admin/skills`, `/skills/gaps`, `/classifications`, `/refusals` with fixtures in `fixtures/admin.*`. A staff sign-in that issues an admin session with a second factor does not exist yet, so build the inspector against the fixtures first.* — Admin view for the skill vocabulary and recent classifier decisions (`vocabulary_gaps` and the `restricted_intent:<rule>` audit events are the data).
+- [ ] **Web v4 retheme** — Owner-authorized temporary implementation now uses Public Sans, sentence-case labels and dashed Not verified. 81 Playwright tests passed; screenshots at 320/360/768/1280 px are in `evidence/P2/web/2026-10-02/ui-experiment/`. Review the [hardening record](../testing/phase2-hardening-ui-experiment-2026-10-02.md). The old draft patch is historical; do not apply it over this work.
 
 ---
 
@@ -95,6 +117,7 @@ verbal description.
 - [ ] Race and cancellation tests: cancelling mid-flight is safe and idempotent.
 - [ ] Model-provider failure test: a timeout or invalid schema produces the deterministic fallback, not a 500.
 - [ ] Restricted-intent test: a prohibited request creates no outreach and writes an audit event.
+- [ ] Open-service test: any lawful service (e.g. shoe repair) is accepted, and Claude output that fails validation falls back to the rules.
 
 Verify with:
 
@@ -103,10 +126,14 @@ pnpm --filter @plug/web typecheck
 pnpm --filter @plug/web lint
 pnpm --filter @plug/web test:unit
 pnpm --filter @plug/web test:e2e
-bru run tests/api --env staging
-bru run tests/api/abuse --env staging
-curl.exe -sI https://staging.plug.app | Sort-Object    # security headers
 ```
+
+`test:unit` runs the shared static contract/fixture/dataset checks. It does not
+execute the future intent adapter. The existing `tests/api/requests-create-*.bru`
+files exercise the Phase 0 stub; do not present them as Phase 2 acceptance.
+P2.S2 must add the real request collection and P2.S6 the abuse cases after contract
+merge and backend availability; `tests/api/abuse` does not exist yet. The full
+phase requires the connected evidence listed below, beyond these local checks.
 
 ---
 
@@ -125,7 +152,7 @@ curl.exe -sI https://staging.plug.app | Sort-Object    # security headers
 
 - [ ] A supported request produces validated structured offers on a real device.
 - [ ] Progress counts are real and visibly change as the server works.
-- [ ] An unsupported category fails closed with a clear message.
+- [ ] A service with no participating supplier ends `no_coverage` honestly, with no invented prices or availability; v4 removes the Apple Maps listing fallback.
 - [ ] A provider failure degrades to the deterministic path without an error screen.
 - [ ] `PROJECT_STATE.json` carries a signed `G2` entry.
 

@@ -1,0 +1,28 @@
+{
+  "items": [
+    {
+      "ask_id": "ask_2b0b5c7a-67a0-48f1-943d-f2489dffd3ff",
+      "created_at": "2026-10-04T09:40:12Z",
+      "ask_type": "service_request",
+      "state": "resolved",
+      "skill_tags": [
+        "braids"
+      ]
+    },
+    {
+      "ask_id": "ask_60d7f04f-56fc-4437-a43c-aa5aaf991371",
+      "created_at": "2026-10-04T09:38:01Z",
+      "ask_type": "place_question",
+      "state": "resolved",
+      "skill_tags": []
+    },
+    {
+      "ask_id": "ask_05c9a7f2-e1d9-4df9-b61a-a2124e2715be",
+      "created_at": "2026-10-04T09:36:44Z",
+      "ask_type": null,
+      "state": "awaiting_clarification",
+      "skill_tags": []
+    }
+  ],
+  "next_cursor": null
+}

@@ -15,16 +15,24 @@
 	<string>$(PLUG_GOOGLE_IOS_CLIENT_ID)</string>
 	<key>GIDServerClientID</key>
 	<string>$(PLUG_GOOGLE_SERVER_CLIENT_ID)</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>PLUG uses your approximate location when you ask, to reach people nearby. You can type an address instead.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>PLUG listens only while Voice is on, to write your ask. You can type instead.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>PLUG turns what you say into the text of your ask. You can type instead.</string>
 	<key>PlugAppleSignInEnabled</key>
 	<string>$(PLUG_APPLE_SIGN_IN_ENABLED)</string>
 	<key>PlugPhoneSignInEnabled</key>
 	<string>$(PLUG_PHONE_SIGN_IN_ENABLED)</string>
+	<key>PlugRequestsV2Enabled</key>
+	<string>$(PLUG_REQUESTS_V2_ENABLED)</string>
 	<key>UILaunchScreen</key>
 	<dict>
-		<key>UIImageName</key>
-		<string>PlugMark</string>
 		<key>UIColorName</key>
 		<string>LaunchBackground</string>
+		<key>UIImageName</key>
+		<string>PlugMark</string>
 	</dict>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>

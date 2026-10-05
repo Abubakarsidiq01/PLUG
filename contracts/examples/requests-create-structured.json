@@ -1,0 +1,9 @@
+{
+  "text": "Fade, short on the sides",
+  "category": "barber",
+  "budget_cents": 3500,
+  "currency": "USD",
+  "needed_by": "2026-10-01T15:30:00-05:00",
+  "max_distance_m": 3200,
+  "location": { "latitude": 32.528, "longitude": -92.714, "precision": "coarse" }
+}

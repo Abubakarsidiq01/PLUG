@@ -31,6 +31,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.flywaydb:flyway-core'
+    // Intent extraction only (ADR-009). Output is untrusted and validated by IntentAdapter.
+    implementation 'com.anthropic:anthropic-java:2.34.0'
+    // contracts/skills.yaml is read at startup (manual v4 §19A.2).
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
     implementation 'org.flywaydb:flyway-database-postgresql'
     runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -53,3 +57,24 @@ tasks.register('databaseTest', Test) {
 checkstyle {
     toolVersion = '10.26.1'
 }
+
+// The phase gate names this task explicitly; contract examples and runtime responses
+// share the same OpenAPI-backed validator. Database contracts also run in databaseTest.
+tasks.register('contractTest', Test) {
+    description = 'Checks OpenAPI contracts and shared response fixtures.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform { excludeTags 'database' }
+    filter { includeTestsMatching '*ContractTest' }
+}
+
+// The skill vocabulary is a contract artefact (contracts/skills.yaml). Ship that exact file
+// inside the application so runtime and contract cannot drift.
+tasks.named('processResources') {
+    from('../contracts') {
+        include 'skills.yaml'
+        into 'contracts'
+    }
+}
+

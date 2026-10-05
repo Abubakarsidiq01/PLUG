@@ -1,0 +1,37 @@
+meta {
+  name: Create supported
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/v1/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Owner}}
+  Idempotency-Key: {{p2Run}}-create
+}
+
+body:json {
+  {"text":"Barber under $35 in 30 minutes","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"}}
+}
+
+assert {
+  res.status: eq 201
+}
+
+script:post-response {
+  bru.setVar("p2Request", res.getBody().request_id);
+  bru.setVar("p2CreateBody", JSON.stringify(res.getBody()));
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("submitted", function () { expect(res.getBody().status).to.deep.equal("submitted"); });  test("real initial counts", function () { expect(res.getBody().progress).to.deep.equal({"contacted": 0, "replied": 0, "offers_ready": 0}); });
+}

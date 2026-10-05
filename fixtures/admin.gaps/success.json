@@ -1,0 +1,17 @@
+{
+  "items": [
+    {
+      "term": "chimney sweeping",
+      "seen_count": 4,
+      "first_seen": "2026-10-02T14:05:11Z",
+      "last_seen": "2026-10-04T09:41:02Z"
+    },
+    {
+      "term": "parties",
+      "seen_count": 1,
+      "first_seen": "2026-10-03T18:22:40Z",
+      "last_seen": "2026-10-03T18:22:40Z"
+    }
+  ],
+  "next_cursor": "MjAyNi0xMC0wM1QxODoyMjo0MFoKcGFydGllcw"
+}

@@ -1,0 +1,33 @@
+meta {
+  name: Create key conflict
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/v1/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Owner}}
+  Idempotency-Key: {{p2Run}}-create
+}
+
+body:json {
+  {"text":"Beauty","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"}}
+}
+
+assert {
+  res.status: eq 409
+  res.body.error.code: eq conflict
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

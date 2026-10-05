@@ -1,0 +1,26 @@
+meta {
+  name: Cancel clarified request
+  type: http
+  seq: 21
+}
+
+post {
+  url: {{baseUrl}}/v1/requests/{{p2Draft}}/cancel
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p2Owner}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

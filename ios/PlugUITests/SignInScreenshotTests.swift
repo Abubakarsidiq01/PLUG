@@ -45,7 +45,9 @@ final class SignInScreenshotTests: XCTestCase {
             NSPredicate(format: "label CONTAINS %@ OR value == %@", "Phone number", "Phone number")).firstMatch
         XCTAssertTrue(provider.waitForExistence(timeout: 5))
         screenshot("13-phone-account")
-        app.buttons["Sign out"].tap()
+        let signOut = app.buttons["Sign out"]
+        for _ in 0..<5 where !signOut.isHittable { app.swipeUp() }
+        signOut.tap()
         XCTAssertTrue(app.buttons["Get started"].waitForExistence(timeout: 10))
         app.buttons["Get started"].tap()
         try verifyLocalPhone(app, number: number, codeFile: codeFile)
@@ -195,7 +197,7 @@ final class SignInScreenshotTests: XCTestCase {
         screenshot("05-signed-in-as-guest-\(suffix)")
         app.buttons["Profile"].tap()
         // The guest limit and the upgrade action must both be reachable.
-        let guestSection = app.staticTexts["Guest account"]
+        let guestSection = app.staticTexts["Make yourself at home"]
         for _ in 0..<5 where !guestSection.exists { app.swipeUp() }
         XCTAssertTrue(guestSection.waitForExistence(timeout: 5))
         screenshot("06-guest-profile-\(suffix)")

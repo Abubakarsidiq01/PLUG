@@ -1,0 +1,39 @@
+{
+  "ask_id": "ask_f1d40983-757a-4ad5-98f0-c9254077610c",
+  "ask_type": "place_question",
+  "place_question": {
+    "question_id": "plq_60d7f04f-56fc-4437-a43c-aa5aaf991371",
+    "text": "How long is the line at Walmart on Ben White?",
+    "place_name": "Walmart on Ben White",
+    "status": "answered",
+    "progress": {
+      "notified": 3,
+      "opened": 3,
+      "answered": 3
+    },
+    "answer": {
+      "value": "12\u201315 min",
+      "summary": "Three test respondents report a line at self-checkout. This is synthetic UI evidence.",
+      "truth_label": "confirmed",
+      "sources": [
+        {
+          "initials": "DM",
+          "answered_at": "2026-10-02T05:10:13Z"
+        },
+        {
+          "initials": "RK",
+          "answered_at": "2026-10-02T05:09:13Z"
+        },
+        {
+          "initials": "AO",
+          "answered_at": "2026-10-02T05:08:13Z"
+        }
+      ],
+      "expires_at": "2026-10-02T05:16:13Z"
+    },
+    "web_answer": null,
+    "created_at": "2026-10-02T05:11:13.686949Z",
+    "expires_at": "2026-10-02T05:21:13.686949Z"
+  },
+  "created_at": "2026-10-02T05:11:13.686141Z"
+}

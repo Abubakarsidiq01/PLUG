@@ -1,0 +1,5830 @@
+{
+  "suite": "phase2-live",
+  "environment": "isolated-local",
+  "started_at": "2026-10-02T05:59:56.462Z",
+  "checks": [
+    {
+      "name": "owner guest: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "owner guest: correlation",
+      "passed": true
+    },
+    {
+      "name": "owner guest: session",
+      "passed": true
+    },
+    {
+      "name": "other guest: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "other guest: correlation",
+      "passed": true
+    },
+    {
+      "name": "other guest: session",
+      "passed": true
+    },
+    {
+      "name": "supported create: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "supported create: correlation",
+      "passed": true
+    },
+    {
+      "name": "supported create: contract",
+      "passed": true
+    },
+    {
+      "name": "extraction and initial progress",
+      "passed": true
+    },
+    {
+      "name": "create replay: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "create replay: correlation",
+      "passed": true
+    },
+    {
+      "name": "create replay: contract",
+      "passed": true
+    },
+    {
+      "name": "replay is byte-equivalent canonical body",
+      "passed": true
+    },
+    {
+      "name": "create key conflict: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "create key conflict: correlation",
+      "passed": true
+    },
+    {
+      "name": "create key conflict: contract",
+      "passed": true
+    },
+    {
+      "name": "create key conflict: error",
+      "passed": true
+    },
+    {
+      "name": "foreign GET resource: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "foreign GET resource: correlation",
+      "passed": true
+    },
+    {
+      "name": "foreign GET resource: contract",
+      "passed": true
+    },
+    {
+      "name": "foreign GET resource: error",
+      "passed": true
+    },
+    {
+      "name": "missing GET resource: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "missing GET resource: correlation",
+      "passed": true
+    },
+    {
+      "name": "missing GET resource: contract",
+      "passed": true
+    },
+    {
+      "name": "missing GET resource: error",
+      "passed": true
+    },
+    {
+      "name": "malformed GET resource: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "malformed GET resource: correlation",
+      "passed": true
+    },
+    {
+      "name": "malformed GET resource: contract",
+      "passed": true
+    },
+    {
+      "name": "malformed GET resource: error",
+      "passed": true
+    },
+    {
+      "name": "anonymous GET resource: HTTP 401",
+      "passed": true
+    },
+    {
+      "name": "anonymous GET resource: correlation",
+      "passed": true
+    },
+    {
+      "name": "anonymous GET resource: contract",
+      "passed": true
+    },
+    {
+      "name": "anonymous GET resource: error",
+      "passed": true
+    },
+    {
+      "name": "foreign GET /offers: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "foreign GET /offers: correlation",
+      "passed": true
+    },
+    {
+      "name": "foreign GET /offers: contract",
+      "passed": true
+    },
+    {
+      "name": "foreign GET /offers: error",
+      "passed": true
+    },
+    {
+      "name": "missing GET /offers: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "missing GET /offers: correlation",
+      "passed": true
+    },
+    {
+      "name": "missing GET /offers: contract",
+      "passed": true
+    },
+    {
+      "name": "missing GET /offers: error",
+      "passed": true
+    },
+    {
+      "name": "malformed GET /offers: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "malformed GET /offers: correlation",
+      "passed": true
+    },
+    {
+      "name": "malformed GET /offers: contract",
+      "passed": true
+    },
+    {
+      "name": "malformed GET /offers: error",
+      "passed": true
+    },
+    {
+      "name": "anonymous GET /offers: HTTP 401",
+      "passed": true
+    },
+    {
+      "name": "anonymous GET /offers: correlation",
+      "passed": true
+    },
+    {
+      "name": "anonymous GET /offers: contract",
+      "passed": true
+    },
+    {
+      "name": "anonymous GET /offers: error",
+      "passed": true
+    },
+    {
+      "name": "foreign POST /cancel: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "foreign POST /cancel: correlation",
+      "passed": true
+    },
+    {
+      "name": "foreign POST /cancel: contract",
+      "passed": true
+    },
+    {
+      "name": "foreign POST /cancel: error",
+      "passed": true
+    },
+    {
+      "name": "missing POST /cancel: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "missing POST /cancel: correlation",
+      "passed": true
+    },
+    {
+      "name": "missing POST /cancel: contract",
+      "passed": true
+    },
+    {
+      "name": "missing POST /cancel: error",
+      "passed": true
+    },
+    {
+      "name": "malformed POST /cancel: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "malformed POST /cancel: correlation",
+      "passed": true
+    },
+    {
+      "name": "malformed POST /cancel: contract",
+      "passed": true
+    },
+    {
+      "name": "malformed POST /cancel: error",
+      "passed": true
+    },
+    {
+      "name": "anonymous POST /cancel: HTTP 401",
+      "passed": true
+    },
+    {
+      "name": "anonymous POST /cancel: correlation",
+      "passed": true
+    },
+    {
+      "name": "anonymous POST /cancel: contract",
+      "passed": true
+    },
+    {
+      "name": "anonymous POST /cancel: error",
+      "passed": true
+    },
+    {
+      "name": "foreign POST /clarifications: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "foreign POST /clarifications: correlation",
+      "passed": true
+    },
+    {
+      "name": "foreign POST /clarifications: contract",
+      "passed": true
+    },
+    {
+      "name": "foreign POST /clarifications: error",
+      "passed": true
+    },
+    {
+      "name": "missing POST /clarifications: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "missing POST /clarifications: correlation",
+      "passed": true
+    },
+    {
+      "name": "missing POST /clarifications: contract",
+      "passed": true
+    },
+    {
+      "name": "missing POST /clarifications: error",
+      "passed": true
+    },
+    {
+      "name": "malformed POST /clarifications: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "malformed POST /clarifications: correlation",
+      "passed": true
+    },
+    {
+      "name": "malformed POST /clarifications: contract",
+      "passed": true
+    },
+    {
+      "name": "malformed POST /clarifications: error",
+      "passed": true
+    },
+    {
+      "name": "anonymous POST /clarifications: HTTP 401",
+      "passed": true
+    },
+    {
+      "name": "anonymous POST /clarifications: correlation",
+      "passed": true
+    },
+    {
+      "name": "anonymous POST /clarifications: contract",
+      "passed": true
+    },
+    {
+      "name": "anonymous POST /clarifications: error",
+      "passed": true
+    },
+    {
+      "name": "anonymous create: HTTP 401",
+      "passed": true
+    },
+    {
+      "name": "anonymous create: correlation",
+      "passed": true
+    },
+    {
+      "name": "anonymous create: contract",
+      "passed": true
+    },
+    {
+      "name": "anonymous create: error",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: correlation",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: contract",
+      "passed": true
+    },
+    {
+      "name": "progress counts never go backwards",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: correlation",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: contract",
+      "passed": true
+    },
+    {
+      "name": "progress counts never go backwards",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: correlation",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: contract",
+      "passed": true
+    },
+    {
+      "name": "progress counts never go backwards",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: correlation",
+      "passed": true
+    },
+    {
+      "name": "poll seeded work: contract",
+      "passed": true
+    },
+    {
+      "name": "progress counts never go backwards",
+      "passed": true
+    },
+    {
+      "name": "seeded result becomes actionable",
+      "passed": true
+    },
+    {
+      "name": "seeded offers: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "seeded offers: correlation",
+      "passed": true
+    },
+    {
+      "name": "seeded offers: contract",
+      "passed": true
+    },
+    {
+      "name": "seed offers remain honest and within constraints",
+      "passed": true
+    },
+    {
+      "name": "ambiguous create: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "ambiguous create: correlation",
+      "passed": true
+    },
+    {
+      "name": "ambiguous create: contract",
+      "passed": true
+    },
+    {
+      "name": "one blocking category question",
+      "passed": true
+    },
+    {
+      "name": "draft offers empty: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "draft offers empty: correlation",
+      "passed": true
+    },
+    {
+      "name": "draft offers empty: contract",
+      "passed": true
+    },
+    {
+      "name": "no offers before clarification",
+      "passed": true
+    },
+    {
+      "name": "missing clarification idempotency: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "missing clarification idempotency: correlation",
+      "passed": true
+    },
+    {
+      "name": "missing clarification idempotency: contract",
+      "passed": true
+    },
+    {
+      "name": "missing clarification idempotency: error",
+      "passed": true
+    },
+    {
+      "name": "invalid option: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "invalid option: correlation",
+      "passed": true
+    },
+    {
+      "name": "invalid option: contract",
+      "passed": true
+    },
+    {
+      "name": "invalid option: error",
+      "passed": true
+    },
+    {
+      "name": "wrong clarification identifier: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "wrong clarification identifier: correlation",
+      "passed": true
+    },
+    {
+      "name": "wrong clarification identifier: contract",
+      "passed": true
+    },
+    {
+      "name": "wrong clarification identifier: error",
+      "passed": true
+    },
+    {
+      "name": "answer category: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "answer category: correlation",
+      "passed": true
+    },
+    {
+      "name": "answer category: contract",
+      "passed": true
+    },
+    {
+      "name": "answer preserves identity and removes question",
+      "passed": true
+    },
+    {
+      "name": "answer replay: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "answer replay: correlation",
+      "passed": true
+    },
+    {
+      "name": "answer replay: contract",
+      "passed": true
+    },
+    {
+      "name": "answer replay unchanged",
+      "passed": true
+    },
+    {
+      "name": "different answer same key: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "different answer same key: correlation",
+      "passed": true
+    },
+    {
+      "name": "different answer same key: contract",
+      "passed": true
+    },
+    {
+      "name": "different answer same key: error",
+      "passed": true
+    },
+    {
+      "name": "no second clarification: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "no second clarification: correlation",
+      "passed": true
+    },
+    {
+      "name": "no second clarification: contract",
+      "passed": true
+    },
+    {
+      "name": "no second clarification: error",
+      "passed": true
+    },
+    {
+      "name": "cancel ranked: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "cancel ranked: correlation",
+      "passed": true
+    },
+    {
+      "name": "cancel ranked: contract",
+      "passed": true
+    },
+    {
+      "name": "canceled next action",
+      "passed": true
+    },
+    {
+      "name": "cancel repeat: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "cancel repeat: correlation",
+      "passed": true
+    },
+    {
+      "name": "cancel repeat: contract",
+      "passed": true
+    },
+    {
+      "name": "cancel is idempotent without key",
+      "passed": true
+    },
+    {
+      "name": "draft cancellation create: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "draft cancellation create: correlation",
+      "passed": true
+    },
+    {
+      "name": "draft cancellation create: contract",
+      "passed": true
+    },
+    {
+      "name": "cancel unanswered draft: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "cancel unanswered draft: correlation",
+      "passed": true
+    },
+    {
+      "name": "cancel unanswered draft: contract",
+      "passed": true
+    },
+    {
+      "name": "cancel retains missing category",
+      "passed": true
+    },
+    {
+      "name": "oversized clarification body: HTTP 413",
+      "passed": true
+    },
+    {
+      "name": "oversized clarification body: correlation",
+      "passed": true
+    },
+    {
+      "name": "oversized clarification body: contract",
+      "passed": true
+    },
+    {
+      "name": "oversized clarification body: error",
+      "passed": true
+    },
+    {
+      "name": "clarification media type: HTTP 415",
+      "passed": true
+    },
+    {
+      "name": "clarification media type: correlation",
+      "passed": true
+    },
+    {
+      "name": "clarification media type: contract",
+      "passed": true
+    },
+    {
+      "name": "clarification media type: error",
+      "passed": true
+    },
+    {
+      "name": "oversized cancellation body: HTTP 413",
+      "passed": true
+    },
+    {
+      "name": "oversized cancellation body: correlation",
+      "passed": true
+    },
+    {
+      "name": "oversized cancellation body: contract",
+      "passed": true
+    },
+    {
+      "name": "oversized cancellation body: error",
+      "passed": true
+    },
+    {
+      "name": "answer after cancel: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "answer after cancel: correlation",
+      "passed": true
+    },
+    {
+      "name": "answer after cancel: contract",
+      "passed": true
+    },
+    {
+      "name": "answer after cancel: error",
+      "passed": true
+    },
+    {
+      "name": "midflight create: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "midflight create: correlation",
+      "passed": true
+    },
+    {
+      "name": "midflight create: contract",
+      "passed": true
+    },
+    {
+      "name": "midflight cancel: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "midflight cancel: correlation",
+      "passed": true
+    },
+    {
+      "name": "midflight cancel: contract",
+      "passed": true
+    },
+    {
+      "name": "cancellation survives worker: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "cancellation survives worker: correlation",
+      "passed": true
+    },
+    {
+      "name": "cancellation survives worker: contract",
+      "passed": true
+    },
+    {
+      "name": "worker cannot resurrect canceled request",
+      "passed": true
+    },
+    {
+      "name": "concurrent duplicate 0: documented contract",
+      "passed": true
+    },
+    {
+      "name": "concurrent duplicate 1: documented contract",
+      "passed": true
+    },
+    {
+      "name": "concurrent duplicates create exactly one visible resource",
+      "passed": true
+    },
+    {
+      "name": "out-of-zone create: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "out-of-zone create: correlation",
+      "passed": true
+    },
+    {
+      "name": "out-of-zone create: contract",
+      "passed": true
+    },
+    {
+      "name": "no affordable offers create: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "no affordable offers create: correlation",
+      "passed": true
+    },
+    {
+      "name": "no affordable offers create: contract",
+      "passed": true
+    },
+    {
+      "name": "no coverage poll: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "no coverage poll: correlation",
+      "passed": true
+    },
+    {
+      "name": "no coverage poll: contract",
+      "passed": true
+    },
+    {
+      "name": "no coverage: honest terminal reason",
+      "passed": true
+    },
+    {
+      "name": "no coverage offers: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "no coverage offers: correlation",
+      "passed": true
+    },
+    {
+      "name": "no coverage offers: contract",
+      "passed": true
+    },
+    {
+      "name": "no coverage: no fabricated offers",
+      "passed": true
+    },
+    {
+      "name": "no coverage cannot cancel expired: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "no coverage cannot cancel expired: correlation",
+      "passed": true
+    },
+    {
+      "name": "no coverage cannot cancel expired: contract",
+      "passed": true
+    },
+    {
+      "name": "no coverage cannot cancel expired: error",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers poll: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers poll: correlation",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers poll: contract",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers poll: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers poll: correlation",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers poll: contract",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers poll: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers poll: correlation",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers poll: contract",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers: honest terminal reason",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers offers: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers offers: correlation",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers offers: contract",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers: no fabricated offers",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers cannot cancel expired: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers cannot cancel expired: correlation",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers cannot cancel expired: contract",
+      "passed": true
+    },
+    {
+      "name": "no eligible offers cannot cancel expired: error",
+      "passed": true
+    },
+    {
+      "name": "expiring unanswered draft: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "expiring unanswered draft: correlation",
+      "passed": true
+    },
+    {
+      "name": "expiring unanswered draft: contract",
+      "passed": true
+    },
+    {
+      "name": "unanswered draft expiration: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "unanswered draft expiration: correlation",
+      "passed": true
+    },
+    {
+      "name": "unanswered draft expiration: contract",
+      "passed": true
+    },
+    {
+      "name": "unanswered draft retains null category",
+      "passed": true
+    },
+    {
+      "name": "answer expired question: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "answer expired question: correlation",
+      "passed": true
+    },
+    {
+      "name": "answer expired question: contract",
+      "passed": true
+    },
+    {
+      "name": "answer expired question: error",
+      "passed": true
+    },
+    {
+      "name": "ask owner: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "ask owner: correlation",
+      "passed": true
+    },
+    {
+      "name": "ask owner: session",
+      "passed": true
+    },
+    {
+      "name": "ask other: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "ask other: correlation",
+      "passed": true
+    },
+    {
+      "name": "ask other: session",
+      "passed": true
+    },
+    {
+      "name": "ask service request: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "ask service request: correlation",
+      "passed": true
+    },
+    {
+      "name": "ask service request: contract",
+      "passed": true
+    },
+    {
+      "name": "service ask is classified and extracted from the vocabulary",
+      "passed": true
+    },
+    {
+      "name": "ask replay: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "ask replay: correlation",
+      "passed": true
+    },
+    {
+      "name": "ask replay: contract",
+      "passed": true
+    },
+    {
+      "name": "ask replay is the same canonical body",
+      "passed": true
+    },
+    {
+      "name": "ask key conflict: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "ask key conflict: correlation",
+      "passed": true
+    },
+    {
+      "name": "ask key conflict: contract",
+      "passed": true
+    },
+    {
+      "name": "ask key conflict: error",
+      "passed": true
+    },
+    {
+      "name": "ask place question: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "ask place question: correlation",
+      "passed": true
+    },
+    {
+      "name": "ask place question: contract",
+      "passed": true
+    },
+    {
+      "name": "place question is classified, public, and never promotes the web",
+      "passed": true
+    },
+    {
+      "name": "restricted ask refused: HTTP 422",
+      "passed": true
+    },
+    {
+      "name": "restricted ask refused: correlation",
+      "passed": true
+    },
+    {
+      "name": "restricted ask refused: contract",
+      "passed": true
+    },
+    {
+      "name": "restricted ask refused: error",
+      "passed": true
+    },
+    {
+      "name": "private place refused: HTTP 422",
+      "passed": true
+    },
+    {
+      "name": "private place refused: correlation",
+      "passed": true
+    },
+    {
+      "name": "private place refused: contract",
+      "passed": true
+    },
+    {
+      "name": "private place refused: error",
+      "passed": true
+    },
+    {
+      "name": "anonymous ask: HTTP 401",
+      "passed": true
+    },
+    {
+      "name": "anonymous ask: correlation",
+      "passed": true
+    },
+    {
+      "name": "anonymous ask: contract",
+      "passed": true
+    },
+    {
+      "name": "anonymous ask: error",
+      "passed": true
+    },
+    {
+      "name": "read own ask: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read own ask: correlation",
+      "passed": true
+    },
+    {
+      "name": "read own ask: contract",
+      "passed": true
+    },
+    {
+      "name": "foreign ask: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "foreign ask: correlation",
+      "passed": true
+    },
+    {
+      "name": "foreign ask: contract",
+      "passed": true
+    },
+    {
+      "name": "foreign ask: error",
+      "passed": true
+    },
+    {
+      "name": "anonymous ask read: HTTP 401",
+      "passed": true
+    },
+    {
+      "name": "anonymous ask read: correlation",
+      "passed": true
+    },
+    {
+      "name": "anonymous ask read: contract",
+      "passed": true
+    },
+    {
+      "name": "anonymous ask read: error",
+      "passed": true
+    },
+    {
+      "name": "unclear ask: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "unclear ask: correlation",
+      "passed": true
+    },
+    {
+      "name": "unclear ask: contract",
+      "passed": true
+    },
+    {
+      "name": "unclear ask gets exactly one question",
+      "passed": true
+    },
+    {
+      "name": "foreign clarification: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "foreign clarification: correlation",
+      "passed": true
+    },
+    {
+      "name": "foreign clarification: contract",
+      "passed": true
+    },
+    {
+      "name": "foreign clarification: error",
+      "passed": true
+    },
+    {
+      "name": "clarification outside the options: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "clarification outside the options: correlation",
+      "passed": true
+    },
+    {
+      "name": "clarification outside the options: contract",
+      "passed": true
+    },
+    {
+      "name": "clarification outside the options: error",
+      "passed": true
+    },
+    {
+      "name": "answer the one question: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "answer the one question: correlation",
+      "passed": true
+    },
+    {
+      "name": "answer the one question: contract",
+      "passed": true
+    },
+    {
+      "name": "answer resolves the same ask",
+      "passed": true
+    },
+    {
+      "name": "no second question: HTTP 409",
+      "passed": true
+    },
+    {
+      "name": "no second question: correlation",
+      "passed": true
+    },
+    {
+      "name": "no second question: contract",
+      "passed": true
+    },
+    {
+      "name": "no second question: error",
+      "passed": true
+    },
+    {
+      "name": "not a provider yet: HTTP 404",
+      "passed": true
+    },
+    {
+      "name": "not a provider yet: correlation",
+      "passed": true
+    },
+    {
+      "name": "not a provider yet: contract",
+      "passed": true
+    },
+    {
+      "name": "not a provider yet: error",
+      "passed": true
+    },
+    {
+      "name": "propose skills: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "propose skills: correlation",
+      "passed": true
+    },
+    {
+      "name": "propose skills: contract",
+      "passed": true
+    },
+    {
+      "name": "proposal uses only vocabulary tags and reports the rest",
+      "passed": true
+    },
+    {
+      "name": "restricted skill description: HTTP 422",
+      "passed": true
+    },
+    {
+      "name": "restricted skill description: correlation",
+      "passed": true
+    },
+    {
+      "name": "restricted skill description: contract",
+      "passed": true
+    },
+    {
+      "name": "restricted skill description: error",
+      "passed": true
+    },
+    {
+      "name": "licensed skill without licence: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "licensed skill without licence: correlation",
+      "passed": true
+    },
+    {
+      "name": "licensed skill without licence: contract",
+      "passed": true
+    },
+    {
+      "name": "licensed skill without licence: error",
+      "passed": true
+    },
+    {
+      "name": "invented skill tag: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "invented skill tag: correlation",
+      "passed": true
+    },
+    {
+      "name": "invented skill tag: contract",
+      "passed": true
+    },
+    {
+      "name": "invented skill tag: error",
+      "passed": true
+    },
+    {
+      "name": "become a provider: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "become a provider: correlation",
+      "passed": true
+    },
+    {
+      "name": "become a provider: contract",
+      "passed": true
+    },
+    {
+      "name": "same account, new provider is never scored zero",
+      "passed": true
+    },
+    {
+      "name": "read own provider profile: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read own provider profile: correlation",
+      "passed": true
+    },
+    {
+      "name": "read own provider profile: contract",
+      "passed": true
+    },
+    {
+      "name": "provider profile reads back",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 1: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 1: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 1: session",
+      "passed": true
+    },
+    {
+      "name": "dataset barber-budget-relative-time: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset barber-budget-relative-time: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset barber-budget-relative-time: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset barber-budget-relative-time: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset beauty-budget: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset beauty-budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset beauty-budget: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset beauty-budget: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset barber-defaults: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset barber-defaults: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset barber-defaults: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset barber-defaults: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset beauty-defaults: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset beauty-defaults: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset beauty-defaults: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset beauty-defaults: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset ambiguous-category: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset ambiguous-category: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset ambiguous-category: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset ambiguous-category: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset missing-category: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset missing-category: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset missing-category: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset missing-category: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset open-plumber: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset open-plumber: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset open-plumber: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset open-plumber: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset not-a-skill: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset not-a-skill: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset not-a-skill: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset not-a-skill: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 2: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 2: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 2: session",
+      "passed": true
+    },
+    {
+      "name": "dataset restricted-intent: HTTP 422",
+      "passed": true
+    },
+    {
+      "name": "dataset restricted-intent: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset restricted-intent: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset restricted-intent: error",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-category-wins: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-category-wins: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-category-wins: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-category-wins: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-budget-wins: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-budget-wins: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-budget-wins: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-budget-wins: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-offset-time: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-offset-time: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-offset-time: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset explicit-offset-time: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset minimum-budget: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset minimum-budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset minimum-budget: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset minimum-budget: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset maximum-budget: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset maximum-budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset maximum-budget: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset maximum-budget: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset low-budget: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset low-budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset low-budget: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset low-budget: error",
+      "passed": true
+    },
+    {
+      "name": "dataset absurd-budget: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset absurd-budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset absurd-budget: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset absurd-budget: error",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 3: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 3: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 3: session",
+      "passed": true
+    },
+    {
+      "name": "dataset fractional-cents: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset fractional-cents: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset fractional-cents: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset fractional-cents: error",
+      "passed": true
+    },
+    {
+      "name": "dataset negative-radius: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset negative-radius: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset negative-radius: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset negative-radius: error",
+      "passed": true
+    },
+    {
+      "name": "dataset oversized-radius: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset oversized-radius: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset oversized-radius: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset oversized-radius: error",
+      "passed": true
+    },
+    {
+      "name": "dataset unknown-field: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset unknown-field: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset unknown-field: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset unknown-field: error",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-structured-category: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-structured-category: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-structured-category: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-structured-category: error",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-latitude: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-latitude: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-latitude: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-latitude: error",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-longitude: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-longitude: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-longitude: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset invalid-longitude: error",
+      "passed": true
+    },
+    {
+      "name": "dataset missing-precision: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset missing-precision: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset missing-precision: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset missing-precision: error",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 4: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 4: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 4: session",
+      "passed": true
+    },
+    {
+      "name": "dataset malformed-timestamp: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset malformed-timestamp: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset malformed-timestamp: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset malformed-timestamp: error",
+      "passed": true
+    },
+    {
+      "name": "dataset offset-missing: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset offset-missing: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset offset-missing: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset offset-missing: error",
+      "passed": true
+    },
+    {
+      "name": "dataset empty-text: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset empty-text: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset empty-text: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset empty-text: error",
+      "passed": true
+    },
+    {
+      "name": "dataset overlong-text: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset overlong-text: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset overlong-text: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset overlong-text: error",
+      "passed": true
+    },
+    {
+      "name": "dataset whitespace-text: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset whitespace-text: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset whitespace-text: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset whitespace-text: error",
+      "passed": true
+    },
+    {
+      "name": "dataset control-character: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset control-character: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset control-character: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset control-character: error",
+      "passed": true
+    },
+    {
+      "name": "dataset past-time: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset past-time: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset past-time: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset past-time: error",
+      "passed": true
+    },
+    {
+      "name": "dataset current-time: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset current-time: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset current-time: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset current-time: error",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 5: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 5: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset guest batch 5: session",
+      "passed": true
+    },
+    {
+      "name": "dataset beyond-horizon: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset beyond-horizon: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset beyond-horizon: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset beyond-horizon: error",
+      "passed": true
+    },
+    {
+      "name": "dataset unsupported-currency: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset unsupported-currency: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset unsupported-currency: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset unsupported-currency: error",
+      "passed": true
+    },
+    {
+      "name": "dataset budget-without-currency: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset budget-without-currency: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset budget-without-currency: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset budget-without-currency: error",
+      "passed": true
+    },
+    {
+      "name": "dataset seven-day-boundary: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset seven-day-boundary: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset seven-day-boundary: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset seven-day-boundary: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset shoe-repair-tomorrow: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset shoe-repair-tomorrow: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset shoe-repair-tomorrow: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset shoe-repair-tomorrow: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset open-locksmith: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset open-locksmith: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset open-locksmith: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset open-locksmith: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset thousands-budget: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "dataset thousands-budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset thousands-budget: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset thousands-budget: canonical extraction",
+      "passed": true
+    },
+    {
+      "name": "dataset over-cap-budget: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "dataset over-cap-budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "dataset over-cap-budget: contract",
+      "passed": true
+    },
+    {
+      "name": "dataset over-cap-budget: error",
+      "passed": true
+    },
+    {
+      "name": "abuse schema guest: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "abuse schema guest: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse schema guest: session",
+      "passed": true
+    },
+    {
+      "name": "abuse numeric text: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse numeric text: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse numeric text: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse numeric text: error",
+      "passed": true
+    },
+    {
+      "name": "abuse null text: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse null text: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse null text: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse null text: error",
+      "passed": true
+    },
+    {
+      "name": "abuse null location: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse null location: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse null location: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse null location: error",
+      "passed": true
+    },
+    {
+      "name": "abuse unknown nested field: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse unknown nested field: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse unknown nested field: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse unknown nested field: error",
+      "passed": true
+    },
+    {
+      "name": "abuse string coordinate: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse string coordinate: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse string coordinate: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse string coordinate: error",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional radius: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional radius: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional radius: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional radius: error",
+      "passed": true
+    },
+    {
+      "name": "abuse invalid precision: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse invalid precision: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse invalid precision: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse invalid precision: error",
+      "passed": true
+    },
+    {
+      "name": "abuse missing category remains untrusted: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse missing category remains untrusted: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse missing category remains untrusted: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse missing category remains untrusted: error",
+      "passed": true
+    },
+    {
+      "name": "abuse boolean budget: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse boolean budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse boolean budget: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse boolean budget: error",
+      "passed": true
+    },
+    {
+      "name": "abuse grammar guest: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "abuse grammar guest: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse grammar guest: session",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional-cent text: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional-cent text: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional-cent text: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional-cent text: error",
+      "passed": true
+    },
+    {
+      "name": "abuse negative text budget: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse negative text budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse negative text budget: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse negative text budget: error",
+      "passed": true
+    },
+    {
+      "name": "abuse malformed comma text budget: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse malformed comma text budget: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse malformed comma text budget: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse malformed comma text budget: error",
+      "passed": true
+    },
+    {
+      "name": "abuse conflicting text budgets: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse conflicting text budgets: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse conflicting text budgets: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse conflicting text budgets: error",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional relative time: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional relative time: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional relative time: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse fractional relative time: error",
+      "passed": true
+    },
+    {
+      "name": "abuse negative relative time: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse negative relative time: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse negative relative time: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse negative relative time: error",
+      "passed": true
+    },
+    {
+      "name": "abuse zero relative time: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse zero relative time: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse zero relative time: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse zero relative time: error",
+      "passed": true
+    },
+    {
+      "name": "abuse oversized relative time: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse oversized relative time: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse oversized relative time: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse oversized relative time: error",
+      "passed": true
+    },
+    {
+      "name": "abuse conflicting relative times: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "abuse conflicting relative times: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse conflicting relative times: contract",
+      "passed": true
+    },
+    {
+      "name": "abuse conflicting relative times: error",
+      "passed": true
+    },
+    {
+      "name": "abuse overrides guest: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "abuse overrides guest: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse overrides guest: session",
+      "passed": true
+    },
+    {
+      "name": "authoritative budget overrides invalid extraction: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "authoritative budget overrides invalid extraction: correlation",
+      "passed": true
+    },
+    {
+      "name": "authoritative budget overrides invalid extraction: contract",
+      "passed": true
+    },
+    {
+      "name": "explicit budget is authoritative",
+      "passed": true
+    },
+    {
+      "name": "authoritative deadline overrides invalid extraction: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "authoritative deadline overrides invalid extraction: correlation",
+      "passed": true
+    },
+    {
+      "name": "authoritative deadline overrides invalid extraction: contract",
+      "passed": true
+    },
+    {
+      "name": "explicit deadline is authoritative",
+      "passed": true
+    },
+    {
+      "name": "abuse transport guest: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "abuse transport guest: correlation",
+      "passed": true
+    },
+    {
+      "name": "abuse transport guest: session",
+      "passed": true
+    },
+    {
+      "name": "missing idempotency: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "missing idempotency: correlation",
+      "passed": true
+    },
+    {
+      "name": "missing idempotency: contract",
+      "passed": true
+    },
+    {
+      "name": "missing idempotency: error",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency space: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency space: correlation",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency space: contract",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency space: error",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency short: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency short: correlation",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency short: contract",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency short: error",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency long: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency long: correlation",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency long: contract",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency long: error",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency punctuation: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency punctuation: correlation",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency punctuation: contract",
+      "passed": true
+    },
+    {
+      "name": "malformed idempotency punctuation: error",
+      "passed": true
+    },
+    {
+      "name": "oversized body: HTTP 413",
+      "passed": true
+    },
+    {
+      "name": "oversized body: correlation",
+      "passed": true
+    },
+    {
+      "name": "oversized body: contract",
+      "passed": true
+    },
+    {
+      "name": "oversized body: error",
+      "passed": true
+    },
+    {
+      "name": "malformed JSON: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "malformed JSON: correlation",
+      "passed": true
+    },
+    {
+      "name": "malformed JSON: contract",
+      "passed": true
+    },
+    {
+      "name": "malformed JSON: error",
+      "passed": true
+    },
+    {
+      "name": "duplicate JSON property: HTTP 400",
+      "passed": true
+    },
+    {
+      "name": "duplicate JSON property: correlation",
+      "passed": true
+    },
+    {
+      "name": "duplicate JSON property: contract",
+      "passed": true
+    },
+    {
+      "name": "duplicate JSON property: error",
+      "passed": true
+    },
+    {
+      "name": "wrong media type: HTTP 415",
+      "passed": true
+    },
+    {
+      "name": "wrong media type: correlation",
+      "passed": true
+    },
+    {
+      "name": "wrong media type: contract",
+      "passed": true
+    },
+    {
+      "name": "wrong media type: error",
+      "passed": true
+    },
+    {
+      "name": "rate A: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "rate A: correlation",
+      "passed": true
+    },
+    {
+      "name": "rate A: session",
+      "passed": true
+    },
+    {
+      "name": "rate C: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "rate C: correlation",
+      "passed": true
+    },
+    {
+      "name": "rate C: session",
+      "passed": true
+    },
+    {
+      "name": "rate B: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "rate B: correlation",
+      "passed": true
+    },
+    {
+      "name": "rate B: session",
+      "passed": true
+    },
+    {
+      "name": "rate D: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "rate D: correlation",
+      "passed": true
+    },
+    {
+      "name": "rate D: session",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 1: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 1: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 1: contract",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 2: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 2: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 2: contract",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 3: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 3: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 3: contract",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 4: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 4: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 4: contract",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 5: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 5: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 5: contract",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 6: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 6: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 6: contract",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 7: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 7: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 7: contract",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 8: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 8: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 8: contract",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 9: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 9: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 9: contract",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 10: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 10: correlation",
+      "passed": true
+    },
+    {
+      "name": "account limit allowed 10: contract",
+      "passed": true
+    },
+    {
+      "name": "account creation limit: HTTP 429",
+      "passed": true
+    },
+    {
+      "name": "account creation limit: correlation",
+      "passed": true
+    },
+    {
+      "name": "account creation limit: contract",
+      "passed": true
+    },
+    {
+      "name": "account creation limit: error",
+      "passed": true
+    },
+    {
+      "name": "account creation limit: retry guidance",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 1: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 1: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 1: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 2: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 2: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 2: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 3: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 3: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 3: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 4: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 4: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 4: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 5: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 5: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 5: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 6: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 6: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 6: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 7: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 7: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 7: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 8: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 8: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 8: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 9: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 9: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 9: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 10: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 10: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 10: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 11: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 11: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 11: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 12: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 12: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 12: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 13: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 13: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 13: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 14: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 14: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 14: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 15: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 15: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 15: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 16: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 16: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 16: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 17: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 17: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 17: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 18: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 18: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 18: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 19: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 19: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 19: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 20: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 20: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 20: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 21: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 21: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 21: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 22: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 22: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 22: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 23: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 23: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 23: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 24: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 24: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 24: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 25: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 25: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 25: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 26: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 26: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 26: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 27: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 27: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 27: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 28: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 28: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 28: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 29: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 29: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 29: contract",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 30: HTTP 201",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 30: correlation",
+      "passed": true
+    },
+    {
+      "name": "address limit allowed 30: contract",
+      "passed": true
+    },
+    {
+      "name": "caller address creation limit: HTTP 429",
+      "passed": true
+    },
+    {
+      "name": "caller address creation limit: correlation",
+      "passed": true
+    },
+    {
+      "name": "caller address creation limit: contract",
+      "passed": true
+    },
+    {
+      "name": "caller address creation limit: error",
+      "passed": true
+    },
+    {
+      "name": "caller address creation limit: retry guidance",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 1: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 1: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 1: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 2: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 2: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 2: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 3: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 3: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 3: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 4: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 4: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 4: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 5: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 5: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 5: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 6: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 6: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 6: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 7: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 7: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 7: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 8: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 8: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 8: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 9: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 9: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 9: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 10: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 10: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 10: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 11: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 11: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 11: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 12: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 12: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 12: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 13: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 13: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 13: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 14: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 14: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 14: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 15: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 15: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 15: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 16: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 16: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 16: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 17: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 17: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 17: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 18: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 18: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 18: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 19: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 19: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 19: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 20: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 20: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 20: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 21: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 21: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 21: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 22: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 22: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 22: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 23: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 23: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 23: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 24: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 24: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 24: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 25: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 25: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 25: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 26: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 26: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 26: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 27: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 27: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 27: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 28: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 28: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 28: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 29: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 29: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 29: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 30: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 30: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 30: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 31: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 31: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 31: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 32: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 32: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 32: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 33: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 33: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 33: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 34: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 34: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 34: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 35: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 35: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 35: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 36: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 36: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 36: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 37: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 37: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 37: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 38: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 38: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 38: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 39: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 39: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 39: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 40: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 40: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 40: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 41: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 41: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 41: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 42: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 42: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 42: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 43: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 43: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 43: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 44: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 44: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 44: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 45: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 45: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 45: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 46: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 46: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 46: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 47: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 47: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 47: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 48: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 48: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 48: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 49: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 49: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 49: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 50: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 50: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 50: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 51: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 51: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 51: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 52: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 52: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 52: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 53: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 53: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 53: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 54: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 54: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 54: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 55: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 55: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 55: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 56: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 56: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 56: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 57: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 57: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 57: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 58: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 58: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 58: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 59: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 59: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 59: contract",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 60: HTTP 200",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 60: correlation",
+      "passed": true
+    },
+    {
+      "name": "read limit allowed 60: contract",
+      "passed": true
+    },
+    {
+      "name": "caller read limit: HTTP 429",
+      "passed": true
+    },
+    {
+      "name": "caller read limit: correlation",
+      "passed": true
+    },
+    {
+      "name": "caller read limit: contract",
+      "passed": true
+    },
+    {
+      "name": "caller read limit: error",
+      "passed": true
+    },
+    {
+      "name": "caller read limit: retry guidance",
+      "passed": true
+    },
+    {
+      "name": "offers read limit: HTTP 429",
+      "passed": true
+    },
+    {
+      "name": "offers read limit: correlation",
+      "passed": true
+    },
+    {
+      "name": "offers read limit: contract",
+      "passed": true
+    },
+    {
+      "name": "offers read limit: error",
+      "passed": true
+    },
+    {
+      "name": "offers read limit: retry guidance",
+      "passed": true
+    },
+    {
+      "name": "cancel mutation limit: HTTP 429",
+      "passed": true
+    },
+    {
+      "name": "cancel mutation limit: correlation",
+      "passed": true
+    },
+    {
+      "name": "cancel mutation limit: contract",
+      "passed": true
+    },
+    {
+      "name": "cancel mutation limit: error",
+      "passed": true
+    },
+    {
+      "name": "cancel mutation limit: retry guidance",
+      "passed": true
+    },
+    {
+      "name": "clarification mutation limit: HTTP 429",
+      "passed": true
+    },
+    {
+      "name": "clarification mutation limit: correlation",
+      "passed": true
+    },
+    {
+      "name": "clarification mutation limit: contract",
+      "passed": true
+    },
+    {
+      "name": "clarification mutation limit: error",
+      "passed": true
+    },
+    {
+      "name": "clarification mutation limit: retry guidance",
+      "passed": true
+    }
+  ],
+  "exchanges": [
+    {
+      "case": "owner guest",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_8181e7da-a84e-475d-a0e7-f9b563818a8d"
+    },
+    {
+      "case": "other guest",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_efc7a2d3-0120-441b-bccd-16a5bd26ac09"
+    },
+    {
+      "case": "supported create",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_2c8bb6e5-54c1-4462-baae-f1fd50968d9c"
+    },
+    {
+      "case": "create replay",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_4d81a2c1-1d23-44f1-b8b6-1b4c9f62b29f"
+    },
+    {
+      "case": "create key conflict",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 409,
+      "correlation_id": "qa_22dc2189-2a55-4883-892e-d93196e45f81"
+    },
+    {
+      "case": "foreign GET resource",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 404,
+      "correlation_id": "qa_02be3c16-b1ef-43e6-98bc-37568251c410"
+    },
+    {
+      "case": "missing GET resource",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 404,
+      "correlation_id": "qa_6578bfda-e65c-4c69-bcde-efe8d242c992"
+    },
+    {
+      "case": "malformed GET resource",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 404,
+      "correlation_id": "qa_21c56014-afe9-4b96-892e-1b18c97b4f9e"
+    },
+    {
+      "case": "anonymous GET resource",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 401,
+      "correlation_id": "qa_0585f72d-b667-4d9b-8807-e13c9454e5dd"
+    },
+    {
+      "case": "foreign GET /offers",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}/offers",
+      "status": 404,
+      "correlation_id": "qa_b8bb4a8f-6840-49e4-a3cb-588cb96644f8"
+    },
+    {
+      "case": "missing GET /offers",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}/offers",
+      "status": 404,
+      "correlation_id": "qa_ea432a2b-db6f-4321-984d-edede66abc70"
+    },
+    {
+      "case": "malformed GET /offers",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}/offers",
+      "status": 404,
+      "correlation_id": "qa_d23c3f32-3cd4-401f-99d2-1b75f7387600"
+    },
+    {
+      "case": "anonymous GET /offers",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}/offers",
+      "status": 401,
+      "correlation_id": "qa_d58fbd29-79fa-4f88-b692-5b5fec16f4ae"
+    },
+    {
+      "case": "foreign POST /cancel",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 404,
+      "correlation_id": "qa_7dc73667-bdc4-47f1-94e5-418de5aaae65"
+    },
+    {
+      "case": "missing POST /cancel",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 404,
+      "correlation_id": "qa_1d53cfd7-170f-4d3c-9296-b084bae9c6a7"
+    },
+    {
+      "case": "malformed POST /cancel",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 404,
+      "correlation_id": "qa_8d1ba9e1-38c3-42f5-be93-db4ee83f9060"
+    },
+    {
+      "case": "anonymous POST /cancel",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 401,
+      "correlation_id": "qa_5f818c78-0db2-4466-8a5b-05d4fa643e32"
+    },
+    {
+      "case": "foreign POST /clarifications",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 404,
+      "correlation_id": "qa_feb11551-346c-4dfe-a115-30c536988ba0"
+    },
+    {
+      "case": "missing POST /clarifications",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 404,
+      "correlation_id": "qa_740ef00a-ea86-472a-9229-3ba3da1d4e50"
+    },
+    {
+      "case": "malformed POST /clarifications",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 404,
+      "correlation_id": "qa_2695df3d-3e9e-41eb-a9a9-5949eb59faba"
+    },
+    {
+      "case": "anonymous POST /clarifications",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 401,
+      "correlation_id": "qa_6b51a21e-759c-4421-8618-89c350c1b53a"
+    },
+    {
+      "case": "anonymous create",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 401,
+      "correlation_id": "qa_0d21751e-cf67-4eae-beb1-f0ef21606293"
+    },
+    {
+      "case": "poll seeded work",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_11ed0691-3c22-4a7a-ba8b-a7f6e72e867b"
+    },
+    {
+      "case": "poll seeded work",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_f02a324c-1620-44b6-9320-42fef9efb506"
+    },
+    {
+      "case": "poll seeded work",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_76046756-d43c-4f01-8cca-ca59303d8545"
+    },
+    {
+      "case": "poll seeded work",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_28074a25-7937-4bef-9885-10b039a7be8e"
+    },
+    {
+      "case": "seeded offers",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}/offers",
+      "status": 200,
+      "correlation_id": "qa_bfe1efe5-4c86-4534-804d-14dd2ea71809"
+    },
+    {
+      "case": "ambiguous create",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_e4304f3d-ba9e-4e88-bcec-4e1b0e269493"
+    },
+    {
+      "case": "draft offers empty",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}/offers",
+      "status": 200,
+      "correlation_id": "qa_56edcfcf-67fd-43e6-b062-5ca868d57b6b"
+    },
+    {
+      "case": "missing clarification idempotency",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 400,
+      "correlation_id": "qa_b1ad789c-f766-4fae-82d0-7d9f22800ef5"
+    },
+    {
+      "case": "invalid option",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 400,
+      "correlation_id": "qa_e72ffdca-4106-4ede-a5d1-74bf0c95e1a1"
+    },
+    {
+      "case": "wrong clarification identifier",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "correlation_id": "qa_f4e34023-db38-471a-82ba-e9ae6c1ce90e"
+    },
+    {
+      "case": "answer category",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 200,
+      "correlation_id": "qa_ae652340-c89b-47bc-9112-d5cd6c1e3bb9"
+    },
+    {
+      "case": "answer replay",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 200,
+      "correlation_id": "qa_11fe42b7-0699-4281-bece-b722484f8a57"
+    },
+    {
+      "case": "different answer same key",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "correlation_id": "qa_7e43dd37-91e3-48c0-af4b-b404aa2a71d3"
+    },
+    {
+      "case": "no second clarification",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "correlation_id": "qa_fc62d15b-5575-4b50-9cba-ae02732e6c93"
+    },
+    {
+      "case": "cancel ranked",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 200,
+      "correlation_id": "qa_c4d74474-3a0b-4900-82e1-8d68755f203d"
+    },
+    {
+      "case": "cancel repeat",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 200,
+      "correlation_id": "qa_35522ab3-7560-4bff-aba0-59a9af0920ab"
+    },
+    {
+      "case": "draft cancellation create",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_0670a031-ca62-4adc-b6cc-3761324c230d"
+    },
+    {
+      "case": "cancel unanswered draft",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 200,
+      "correlation_id": "qa_6b06bdfb-91d0-4a34-85e9-05fe53847524"
+    },
+    {
+      "case": "oversized clarification body",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 413,
+      "correlation_id": "qa_de78c78a-f885-4ef1-a163-5a04b6b27d25"
+    },
+    {
+      "case": "clarification media type",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 415,
+      "correlation_id": "qa_63582065-4f18-444e-9a29-0a8959e10503"
+    },
+    {
+      "case": "oversized cancellation body",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 413,
+      "correlation_id": "qa_e9b43641-dca6-4964-9060-28492e605bff"
+    },
+    {
+      "case": "answer after cancel",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "correlation_id": "qa_10eb2b37-51f3-493e-8ce6-f4d7e7e51326"
+    },
+    {
+      "case": "midflight create",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_02bad132-5abe-485f-a46c-a94514ba209a"
+    },
+    {
+      "case": "midflight cancel",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 200,
+      "correlation_id": "qa_3bb025cc-79dd-4b44-9b3b-fa130fa56cea"
+    },
+    {
+      "case": "cancellation survives worker",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_c8909f4e-35a7-4191-b784-fd85f7f4f84b"
+    },
+    {
+      "case": "concurrent duplicate 0",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_ca9e7d72-06da-4c14-b421-f6e435b9fd61"
+    },
+    {
+      "case": "concurrent duplicate 1",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_b45210d0-072d-44da-8247-ce0c84b1d1f7"
+    },
+    {
+      "case": "out-of-zone create",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_52c62541-f614-43ac-99fc-94b4c13e484d"
+    },
+    {
+      "case": "no affordable offers create",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_b51d8380-370d-4287-96f1-fe35907316f9"
+    },
+    {
+      "case": "no coverage poll",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_6584a7aa-ecd7-4ada-80b5-6b7885903be9"
+    },
+    {
+      "case": "no coverage offers",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}/offers",
+      "status": 200,
+      "correlation_id": "qa_5e542068-fef4-4c80-a4ee-08e0666b46f9"
+    },
+    {
+      "case": "no coverage cannot cancel expired",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 409,
+      "correlation_id": "qa_5f4018c9-d2ad-4e03-acdf-f90db37aa045"
+    },
+    {
+      "case": "no eligible offers poll",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_d5a8bdcd-2cc9-4613-855e-d36d019551cb"
+    },
+    {
+      "case": "no eligible offers poll",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_6a542e9b-6358-40a1-99d3-365fe89e77da"
+    },
+    {
+      "case": "no eligible offers poll",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_394559d9-0c47-4ee4-b6f0-4515e49d0ae1"
+    },
+    {
+      "case": "no eligible offers offers",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}/offers",
+      "status": 200,
+      "correlation_id": "qa_7a290fdf-f1c3-483c-bf46-28a17e6cb55b"
+    },
+    {
+      "case": "no eligible offers cannot cancel expired",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 409,
+      "correlation_id": "qa_56bfcdc9-819e-4d7f-89a7-aca6b48485da"
+    },
+    {
+      "case": "expiring unanswered draft",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_e3c5a617-72e8-4c4a-b396-61505f42f2cb"
+    },
+    {
+      "case": "unanswered draft expiration",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_4952cead-5f1a-41cd-af2a-c8a1b2561c50"
+    },
+    {
+      "case": "answer expired question",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 409,
+      "correlation_id": "qa_d0fe6fef-c79c-41ff-970a-cc9ca16d3eda"
+    },
+    {
+      "case": "ask owner",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_6d91d3a1-ec8c-4b66-8f71-22a5b6125825"
+    },
+    {
+      "case": "ask other",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_3caec3e7-e7bc-41b7-ba5f-e26a603bf110"
+    },
+    {
+      "case": "ask service request",
+      "method": "POST",
+      "route": "/v1/asks",
+      "status": 201,
+      "correlation_id": "qa_96ee83b6-1237-4d23-a621-d185b41e0fb7"
+    },
+    {
+      "case": "ask replay",
+      "method": "POST",
+      "route": "/v1/asks",
+      "status": 201,
+      "correlation_id": "qa_55524087-9391-41b5-8a58-b09843fa15e6"
+    },
+    {
+      "case": "ask key conflict",
+      "method": "POST",
+      "route": "/v1/asks",
+      "status": 409,
+      "correlation_id": "qa_2518d1ef-3036-4829-b703-f3785220e2d8"
+    },
+    {
+      "case": "ask place question",
+      "method": "POST",
+      "route": "/v1/asks",
+      "status": 201,
+      "correlation_id": "qa_a7b74a18-8ff9-497b-ac91-b8625ec84709"
+    },
+    {
+      "case": "restricted ask refused",
+      "method": "POST",
+      "route": "/v1/asks",
+      "status": 422,
+      "correlation_id": "qa_dbdc0c2b-0e94-4a78-9acb-37653e807f0b"
+    },
+    {
+      "case": "private place refused",
+      "method": "POST",
+      "route": "/v1/asks",
+      "status": 422,
+      "correlation_id": "qa_2440923d-533d-4b69-ac14-e25b42039eaf"
+    },
+    {
+      "case": "anonymous ask",
+      "method": "POST",
+      "route": "/v1/asks",
+      "status": 401,
+      "correlation_id": "qa_f9f177a9-ff4a-4b91-8cfb-5171272476c1"
+    },
+    {
+      "case": "read own ask",
+      "method": "GET",
+      "route": "/v1/asks/{ask_id}",
+      "status": 200,
+      "correlation_id": "qa_933dc155-901c-49c7-a105-3d26dede2fb6"
+    },
+    {
+      "case": "foreign ask",
+      "method": "GET",
+      "route": "/v1/asks/{ask_id}",
+      "status": 404,
+      "correlation_id": "qa_833665e5-5901-442b-bc8e-0fa4da161269"
+    },
+    {
+      "case": "anonymous ask read",
+      "method": "GET",
+      "route": "/v1/asks/{ask_id}",
+      "status": 401,
+      "correlation_id": "qa_7c862aef-1e90-4e3b-acb7-1eecd3e115c1"
+    },
+    {
+      "case": "unclear ask",
+      "method": "POST",
+      "route": "/v1/asks",
+      "status": 201,
+      "correlation_id": "qa_c6b8982a-187d-4ee8-a4e2-21291afaf10e"
+    },
+    {
+      "case": "foreign clarification",
+      "method": "POST",
+      "route": "/v1/asks/{ask_id}/clarifications",
+      "status": 404,
+      "correlation_id": "qa_2d31fe88-56f5-4a83-a123-6cac949e5eb8"
+    },
+    {
+      "case": "clarification outside the options",
+      "method": "POST",
+      "route": "/v1/asks/{ask_id}/clarifications",
+      "status": 400,
+      "correlation_id": "qa_b1779923-cdef-41e7-bf93-533d22d46d01"
+    },
+    {
+      "case": "answer the one question",
+      "method": "POST",
+      "route": "/v1/asks/{ask_id}/clarifications",
+      "status": 200,
+      "correlation_id": "qa_1bc2b333-67ee-45b2-84ff-cbb194fcbd22"
+    },
+    {
+      "case": "no second question",
+      "method": "POST",
+      "route": "/v1/asks/{ask_id}/clarifications",
+      "status": 409,
+      "correlation_id": "qa_4384834b-7fb6-4fe9-bb00-13a3479b1597"
+    },
+    {
+      "case": "not a provider yet",
+      "method": "GET",
+      "route": "/v1/providers/me",
+      "status": 404,
+      "correlation_id": "qa_605a678c-e0ff-4332-b62b-895f1c986cce"
+    },
+    {
+      "case": "propose skills",
+      "method": "POST",
+      "route": "/v1/providers/skills/propose",
+      "status": 200,
+      "correlation_id": "qa_b8736186-0ed1-47c0-a0ac-9fbac2355b05"
+    },
+    {
+      "case": "restricted skill description",
+      "method": "POST",
+      "route": "/v1/providers/skills/propose",
+      "status": 422,
+      "correlation_id": "qa_6fdf4dc6-1c46-486b-8a51-fe8f5f59b2bd"
+    },
+    {
+      "case": "licensed skill without licence",
+      "method": "POST",
+      "route": "/v1/providers/skills",
+      "status": 400,
+      "correlation_id": "qa_420ea389-a796-4fa6-89c9-7b580e2d9919"
+    },
+    {
+      "case": "invented skill tag",
+      "method": "POST",
+      "route": "/v1/providers/skills",
+      "status": 400,
+      "correlation_id": "qa_c9e94cda-97dc-406b-96ef-d46f4be9e44f"
+    },
+    {
+      "case": "become a provider",
+      "method": "POST",
+      "route": "/v1/providers/skills",
+      "status": 200,
+      "correlation_id": "qa_df9190d7-63be-4016-9740-eb0276fae097"
+    },
+    {
+      "case": "read own provider profile",
+      "method": "GET",
+      "route": "/v1/providers/me",
+      "status": 200,
+      "correlation_id": "qa_5c403c51-eba3-450f-9a38-79645a24beab"
+    },
+    {
+      "case": "dataset guest batch 1",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_4d8d372b-2503-4215-b535-f99565a2a568"
+    },
+    {
+      "case": "dataset barber-budget-relative-time",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_ba79c360-d807-465b-80c0-fae456295fd0"
+    },
+    {
+      "case": "dataset beauty-budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_70327614-24b7-4a2d-96b4-45e3b185a055"
+    },
+    {
+      "case": "dataset barber-defaults",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_3fa012c7-8a21-4608-acf1-152383f8ad5e"
+    },
+    {
+      "case": "dataset beauty-defaults",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_82c0ab7b-0b36-4aa1-b3b0-e3b29ceabb40"
+    },
+    {
+      "case": "dataset ambiguous-category",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_6f3d09c5-31bc-4f35-9c44-bb4b97ff2507"
+    },
+    {
+      "case": "dataset missing-category",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_e153c5ce-ecbf-4d05-a010-d8d5d27a5ff2"
+    },
+    {
+      "case": "dataset open-plumber",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_3e7f2f0a-feb9-439d-aea3-6ed0d4f5fba8"
+    },
+    {
+      "case": "dataset not-a-skill",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_bf684c3c-7d83-4bf3-91e2-796c71f4ba3a"
+    },
+    {
+      "case": "dataset guest batch 2",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_5e0c6f02-f9b1-4615-a13a-208cf4222165"
+    },
+    {
+      "case": "dataset restricted-intent",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 422,
+      "correlation_id": "qa_149db214-2e66-4b87-8416-e77f4d8f60ac"
+    },
+    {
+      "case": "dataset explicit-category-wins",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_4a064ac1-bff8-450f-983c-798f0ead2956"
+    },
+    {
+      "case": "dataset explicit-budget-wins",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_cd3eedaa-fa39-4251-91cb-27f53c7e4669"
+    },
+    {
+      "case": "dataset explicit-offset-time",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_e4974776-337a-47a4-9dcf-9d831907b535"
+    },
+    {
+      "case": "dataset minimum-budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_cdfaa70c-1614-4507-a4b5-1954cb97be78"
+    },
+    {
+      "case": "dataset maximum-budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_67af1b54-cf98-474f-9c48-1d59122bed0f"
+    },
+    {
+      "case": "dataset low-budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_6c1be739-6d06-4b0b-81a8-263713973a0a"
+    },
+    {
+      "case": "dataset absurd-budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_f3d40977-9a48-4588-8e25-cca11f6da6c6"
+    },
+    {
+      "case": "dataset guest batch 3",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_ab753690-1d2e-41fb-9d64-fc30550957ed"
+    },
+    {
+      "case": "dataset fractional-cents",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_e0b11191-084c-484a-affb-3d5edbf01639"
+    },
+    {
+      "case": "dataset negative-radius",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_ffb735a9-c31b-4d23-a251-05d44bb7e81c"
+    },
+    {
+      "case": "dataset oversized-radius",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_81438a9d-d2b8-40ba-b0a0-813bcb427984"
+    },
+    {
+      "case": "dataset unknown-field",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_5ef7850a-45a9-4f39-867c-e3e35cc746db"
+    },
+    {
+      "case": "dataset invalid-structured-category",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_568757c2-a18b-4371-9a02-d3a1f6360d4c"
+    },
+    {
+      "case": "dataset invalid-latitude",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_af5ea615-fac3-48df-a116-a679e4b412ee"
+    },
+    {
+      "case": "dataset invalid-longitude",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_6225d1a9-5a39-4f3f-897a-9737e68e440a"
+    },
+    {
+      "case": "dataset missing-precision",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_4184fcc7-4eab-45ce-996b-b8fce7a0990d"
+    },
+    {
+      "case": "dataset guest batch 4",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_54f4f29c-bb44-41f6-8304-57f2f5b17e5a"
+    },
+    {
+      "case": "dataset malformed-timestamp",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_58f3cbb1-e246-41b7-9424-46bf3e60266e"
+    },
+    {
+      "case": "dataset offset-missing",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_ed8d4813-1c74-4d65-a582-08e97e0056ed"
+    },
+    {
+      "case": "dataset empty-text",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_ca0f6bf6-e1c3-406b-b555-d80cfef9cbac"
+    },
+    {
+      "case": "dataset overlong-text",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_cd5d4141-382e-4375-9d06-ac3c24911611"
+    },
+    {
+      "case": "dataset whitespace-text",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_b6171689-b177-41d2-bb34-bfab7a20e153"
+    },
+    {
+      "case": "dataset control-character",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_298747ea-882a-4f5a-a88b-cba9598f7d5d"
+    },
+    {
+      "case": "dataset past-time",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_4aa9898a-7bd1-424d-a07b-5728ace96d3f"
+    },
+    {
+      "case": "dataset current-time",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_1f59177b-e0a4-4fd5-9323-fe64f95a71b6"
+    },
+    {
+      "case": "dataset guest batch 5",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_751a089b-02ad-4a1e-9b28-3c957a03fc0a"
+    },
+    {
+      "case": "dataset beyond-horizon",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_4c08b52c-28ae-45d7-aef8-d6646e7309d7"
+    },
+    {
+      "case": "dataset unsupported-currency",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_ab1f8a7b-f9fc-4b64-92dc-763fe0df610e"
+    },
+    {
+      "case": "dataset budget-without-currency",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_3999c443-a8d8-41ce-82eb-e9e5faf1f93b"
+    },
+    {
+      "case": "dataset seven-day-boundary",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_376a86cd-d48b-4ae3-ae7b-fd457af1c426"
+    },
+    {
+      "case": "dataset shoe-repair-tomorrow",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_390bcb8c-73a0-4620-b500-38292736a661"
+    },
+    {
+      "case": "dataset open-locksmith",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_a966c73e-9c10-43a1-ba8c-a91d7d9904ee"
+    },
+    {
+      "case": "dataset thousands-budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_83a6e202-27bb-448a-87cc-0513d8b211d1"
+    },
+    {
+      "case": "dataset over-cap-budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_c1b447c8-7e74-44bc-b854-effac285ad02"
+    },
+    {
+      "case": "abuse schema guest",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_82f3d4c0-1839-4bea-b499-a69df7fb118c"
+    },
+    {
+      "case": "abuse numeric text",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_638c6ced-086d-440c-b040-6e186868f320"
+    },
+    {
+      "case": "abuse null text",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_104f8b50-d9f6-4ed3-85ef-a9850ace16c1"
+    },
+    {
+      "case": "abuse null location",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_701aee96-9ac2-4352-9e04-faa5894035dd"
+    },
+    {
+      "case": "abuse unknown nested field",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_50a9c76f-2f69-4cee-9e17-2d90d0f25572"
+    },
+    {
+      "case": "abuse string coordinate",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_b84baab6-7f09-4e25-821e-6c2582b872f8"
+    },
+    {
+      "case": "abuse fractional radius",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_b9666001-ea3c-4c0b-b3bd-5cb48b947c8b"
+    },
+    {
+      "case": "abuse invalid precision",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_f0ed163d-aaf6-40c2-9c83-f25c262ba038"
+    },
+    {
+      "case": "abuse missing category remains untrusted",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_a144ab25-2583-4b99-b807-124c3e57432d"
+    },
+    {
+      "case": "abuse boolean budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_881aa230-23a2-4207-a17a-1da88fc73be0"
+    },
+    {
+      "case": "abuse grammar guest",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_48a4e3cb-2739-4c7f-b191-cb518058d034"
+    },
+    {
+      "case": "abuse fractional-cent text",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_938c0bf6-5c2b-4b81-83c5-112d5e29cc83"
+    },
+    {
+      "case": "abuse negative text budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_676589f0-d8af-469d-9c6f-c38aefda660d"
+    },
+    {
+      "case": "abuse malformed comma text budget",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_7a5dedee-b16f-474e-a102-4b624d1966b7"
+    },
+    {
+      "case": "abuse conflicting text budgets",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_109daec2-4be6-4fad-8556-27f276c8be79"
+    },
+    {
+      "case": "abuse fractional relative time",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_421dbb6a-69bf-4d1d-a411-6c4865947abc"
+    },
+    {
+      "case": "abuse negative relative time",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_ee2050e7-9f0d-4faa-97a0-d9c37190ad29"
+    },
+    {
+      "case": "abuse zero relative time",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_14f488a4-bce6-4ad7-abee-3b74a6b13974"
+    },
+    {
+      "case": "abuse oversized relative time",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_df2e6939-b749-42f3-9c78-4b6c8ae22ecb"
+    },
+    {
+      "case": "abuse conflicting relative times",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_e3aa1d71-43a2-48ef-8ea5-b89b7c311020"
+    },
+    {
+      "case": "abuse overrides guest",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_a95cd82f-0ff8-4e5b-85b0-b09e6eafcdd6"
+    },
+    {
+      "case": "authoritative budget overrides invalid extraction",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_4bfc4387-e0d6-49eb-a8da-fd4341b14e8f"
+    },
+    {
+      "case": "authoritative deadline overrides invalid extraction",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_f7c3897e-afb0-4a06-8610-06b570fe31fc"
+    },
+    {
+      "case": "abuse transport guest",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_c2360e5b-d4ad-4513-9eb4-c7707bd9d3cb"
+    },
+    {
+      "case": "missing idempotency",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_27fb9011-3377-4215-8a4f-d67165f453a7"
+    },
+    {
+      "case": "malformed idempotency space",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_16cc7e78-57cd-4ac3-890b-c55c7464fddd"
+    },
+    {
+      "case": "malformed idempotency short",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_6467b968-a60b-47e2-b7d1-edb165598dc2"
+    },
+    {
+      "case": "malformed idempotency long",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_d19eeb3d-e13b-45bf-a953-0504f63aab9a"
+    },
+    {
+      "case": "malformed idempotency punctuation",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_07f30b01-d086-498c-b196-9f3856f39390"
+    },
+    {
+      "case": "oversized body",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 413,
+      "correlation_id": "qa_0935d8e8-f7c7-4713-82c7-5cf5228f9da8"
+    },
+    {
+      "case": "malformed JSON",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_7b705262-6e43-4fa2-9488-4f6bddff3096"
+    },
+    {
+      "case": "duplicate JSON property",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 400,
+      "correlation_id": "qa_1daed1e5-2758-4c16-9e87-1cb2488d8c43"
+    },
+    {
+      "case": "wrong media type",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 415,
+      "correlation_id": "qa_7d4d283d-3b02-4bc8-991e-6bfcb2feff1e"
+    },
+    {
+      "case": "rate A",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_1299da15-78ac-4192-93d4-106da3b96b5d"
+    },
+    {
+      "case": "rate C",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_0cfe8983-b798-4d28-b997-17e77e00bdc4"
+    },
+    {
+      "case": "rate B",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_3edd8612-016a-4334-9526-20b71fde96f7"
+    },
+    {
+      "case": "rate D",
+      "method": "POST",
+      "route": "/v1/auth/guest",
+      "status": 201,
+      "correlation_id": "qa_832a8dcc-2c2a-4dcf-a53d-7a727a522082"
+    },
+    {
+      "case": "account limit allowed 1",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_43c894f4-e38c-42b7-b9fa-0dd84be8caa4"
+    },
+    {
+      "case": "account limit allowed 2",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_b7693c11-549d-420b-a77a-ae4f812bf5ae"
+    },
+    {
+      "case": "account limit allowed 3",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_3a1d5161-df73-451c-9ce8-862040fc18f8"
+    },
+    {
+      "case": "account limit allowed 4",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_8585bff3-fbd1-475d-8e45-f2a33b0f4df3"
+    },
+    {
+      "case": "account limit allowed 5",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_bddfd79f-78ae-4b65-937a-cd06e3cd3023"
+    },
+    {
+      "case": "account limit allowed 6",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_27765d23-8ee1-4425-9910-701f2831aef1"
+    },
+    {
+      "case": "account limit allowed 7",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_70f0bce2-c91b-49a0-a56e-0b2c2f806f1e"
+    },
+    {
+      "case": "account limit allowed 8",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_200b944f-cb64-4065-98f2-e2daaf69dce6"
+    },
+    {
+      "case": "account limit allowed 9",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_7f8af59a-04c2-412e-8741-2b3f7057d0df"
+    },
+    {
+      "case": "account limit allowed 10",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_a8d38c0a-b809-4d10-9e6f-4acf84b1ee34"
+    },
+    {
+      "case": "account creation limit",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 429,
+      "correlation_id": "qa_38204bea-e6f8-40fe-b706-f769b57e7284"
+    },
+    {
+      "case": "address limit allowed 1",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_40025ed0-3c1d-4257-967b-296180ca06a8"
+    },
+    {
+      "case": "address limit allowed 2",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_7e5745ee-ea13-4626-8ba3-999c1ed00cd4"
+    },
+    {
+      "case": "address limit allowed 3",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_cf85b357-3453-42fe-b944-6e1140cd451e"
+    },
+    {
+      "case": "address limit allowed 4",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_3ef100eb-da3c-4827-8810-6ca2a00e64c4"
+    },
+    {
+      "case": "address limit allowed 5",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_3e28995f-cba1-4a24-a137-2ad451d75019"
+    },
+    {
+      "case": "address limit allowed 6",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_49812629-939a-4235-b99e-01687d1c8697"
+    },
+    {
+      "case": "address limit allowed 7",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_97a9b4e3-7881-4880-be8f-b6323cbab5c6"
+    },
+    {
+      "case": "address limit allowed 8",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_24f23ea3-6662-4cd9-91ad-3f22ee540d3c"
+    },
+    {
+      "case": "address limit allowed 9",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_6132dc23-5c49-4de1-a4f8-9bb37d7ed2ca"
+    },
+    {
+      "case": "address limit allowed 10",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_613c09f7-45bf-466c-b6b2-923bd53ccd0c"
+    },
+    {
+      "case": "address limit allowed 11",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_d72a8b55-121f-45c0-b94e-9f2bb08a4711"
+    },
+    {
+      "case": "address limit allowed 12",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_429dec2e-62a0-475a-b8fe-fbcf547ee9b9"
+    },
+    {
+      "case": "address limit allowed 13",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_61a03605-750d-4c04-a802-952539c64ed6"
+    },
+    {
+      "case": "address limit allowed 14",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_c297c832-4cad-4a7d-9e08-526299d8df8c"
+    },
+    {
+      "case": "address limit allowed 15",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_a8d4bae3-48bc-43b6-b2ec-1638f901c34f"
+    },
+    {
+      "case": "address limit allowed 16",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_b1db12eb-7f11-4f85-9972-fdf6273a8dac"
+    },
+    {
+      "case": "address limit allowed 17",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_652be462-87ef-4bcf-8cfc-a7144edf3c54"
+    },
+    {
+      "case": "address limit allowed 18",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_68340c0f-247b-454f-9d25-75d0a722706e"
+    },
+    {
+      "case": "address limit allowed 19",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_60886bb4-761a-451b-9012-18aca4bcac96"
+    },
+    {
+      "case": "address limit allowed 20",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_67a7513a-ea00-4d02-a74c-f2ec708d44f9"
+    },
+    {
+      "case": "address limit allowed 21",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_f246c6eb-5588-48ee-b3f1-74817247a139"
+    },
+    {
+      "case": "address limit allowed 22",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_b1f85bf2-6e5f-4ae5-9720-f18c4d98c658"
+    },
+    {
+      "case": "address limit allowed 23",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_99c019bc-e9df-4df2-a9b6-b408445304c4"
+    },
+    {
+      "case": "address limit allowed 24",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_5186ea6a-a9c2-48ba-b131-8279d5b978ce"
+    },
+    {
+      "case": "address limit allowed 25",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_4ac0cfbe-3e46-4adf-898b-e384eecddc68"
+    },
+    {
+      "case": "address limit allowed 26",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_cc81801f-b1d0-4f2c-b075-3b2b69ab769e"
+    },
+    {
+      "case": "address limit allowed 27",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_7fd21bf9-6f51-4050-be27-5841ea7f25df"
+    },
+    {
+      "case": "address limit allowed 28",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_4df9ba8d-00aa-4c98-a6ab-65c1fd0aea6b"
+    },
+    {
+      "case": "address limit allowed 29",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_d9beca56-0764-4f22-a9b6-99b34b3a9842"
+    },
+    {
+      "case": "address limit allowed 30",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 201,
+      "correlation_id": "qa_ead4e56e-a1fc-4efa-b746-fd97fce3e0bd"
+    },
+    {
+      "case": "caller address creation limit",
+      "method": "POST",
+      "route": "/v1/requests",
+      "status": 429,
+      "correlation_id": "qa_7a65be88-f05c-49e1-8bd2-d29960d70a17"
+    },
+    {
+      "case": "read limit allowed 1",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_233f04d5-9df0-436b-ac2d-771d51a10d79"
+    },
+    {
+      "case": "read limit allowed 2",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_5c9610b0-1f92-455d-9557-99bcac60ba2d"
+    },
+    {
+      "case": "read limit allowed 3",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_e60f9fbc-27dc-410c-b242-e2e492e648e9"
+    },
+    {
+      "case": "read limit allowed 4",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_c46be24e-fd27-478c-a6db-f3660c73acf1"
+    },
+    {
+      "case": "read limit allowed 5",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_0edcd1cf-7103-4d06-a94d-ffaaf4f05ae7"
+    },
+    {
+      "case": "read limit allowed 6",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_227157b9-7088-4e3e-819c-9cbd6d4728a2"
+    },
+    {
+      "case": "read limit allowed 7",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_49bee892-66e7-40e4-8b8a-b920390b5774"
+    },
+    {
+      "case": "read limit allowed 8",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_1266d877-2b93-473d-8c6d-00164b554258"
+    },
+    {
+      "case": "read limit allowed 9",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_511a3fed-5c5e-4588-8553-7d5c930e0722"
+    },
+    {
+      "case": "read limit allowed 10",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_ea9ad6e0-f0f7-4515-ae22-3a3d47554771"
+    },
+    {
+      "case": "read limit allowed 11",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_7f24fd13-3024-4b93-8481-c7958a5e92a0"
+    },
+    {
+      "case": "read limit allowed 12",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_6e4c8d5e-8276-4cc5-9e29-3a458567d7a7"
+    },
+    {
+      "case": "read limit allowed 13",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_3bd8c7e4-820f-4279-9765-b9725a510792"
+    },
+    {
+      "case": "read limit allowed 14",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_03b35475-b459-4781-ab5d-aa1d155633a5"
+    },
+    {
+      "case": "read limit allowed 15",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_356fa22b-7298-46eb-8b77-751d64e998a4"
+    },
+    {
+      "case": "read limit allowed 16",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_bcfa9ee8-6eb9-480b-b29a-9a1dbb92af95"
+    },
+    {
+      "case": "read limit allowed 17",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_99301bb3-3edb-484f-bce0-d7b8c78caca5"
+    },
+    {
+      "case": "read limit allowed 18",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_9c9a2472-8485-48a2-a241-96a0d94cecdc"
+    },
+    {
+      "case": "read limit allowed 19",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_a363040f-2748-4a48-b780-bdbf0d8d0993"
+    },
+    {
+      "case": "read limit allowed 20",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_e2a9e757-c5a2-447c-bcc4-08691310dee5"
+    },
+    {
+      "case": "read limit allowed 21",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_90f71389-5cf2-4419-883b-2fb9b3ce144f"
+    },
+    {
+      "case": "read limit allowed 22",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_f89e0ea2-eed9-438f-a045-b82116dd2a9a"
+    },
+    {
+      "case": "read limit allowed 23",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_de43750f-ef8b-4d35-8199-ec1318c47c0d"
+    },
+    {
+      "case": "read limit allowed 24",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_fb41434c-9014-4096-aa40-423c40934a56"
+    },
+    {
+      "case": "read limit allowed 25",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_60c7844d-e95e-43dc-882c-b45a032fa675"
+    },
+    {
+      "case": "read limit allowed 26",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_8b9410eb-f5c2-4a93-8ba1-5f617555c096"
+    },
+    {
+      "case": "read limit allowed 27",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_bbbadd10-0223-4724-9c56-ccba5dc414ee"
+    },
+    {
+      "case": "read limit allowed 28",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_e49657bb-af5d-46c4-8497-bfa38ddb3c37"
+    },
+    {
+      "case": "read limit allowed 29",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_157ae6a7-337d-439f-8926-e2725dcb0142"
+    },
+    {
+      "case": "read limit allowed 30",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_018ac4aa-c3da-4c33-a0d6-78aa11896332"
+    },
+    {
+      "case": "read limit allowed 31",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_2efe6c71-2fac-4714-90c3-17f803a617db"
+    },
+    {
+      "case": "read limit allowed 32",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_00cd394f-bf4a-4a0b-80af-539fe1f02088"
+    },
+    {
+      "case": "read limit allowed 33",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_7a08d13a-b978-4402-8d02-386fb843fb59"
+    },
+    {
+      "case": "read limit allowed 34",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_f603a418-7121-41a4-9d90-3747a6ccd388"
+    },
+    {
+      "case": "read limit allowed 35",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_75286a5f-4b4d-4b26-a8c0-29d4956edf2d"
+    },
+    {
+      "case": "read limit allowed 36",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_278bd34c-a14c-43d0-9e9e-c3efa4832145"
+    },
+    {
+      "case": "read limit allowed 37",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_22f466f7-5464-4232-8646-37d8ff9adf73"
+    },
+    {
+      "case": "read limit allowed 38",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_e5e3cb14-e43c-49b9-930c-4ba707697bf5"
+    },
+    {
+      "case": "read limit allowed 39",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_b869aae3-6aaa-4a19-bdd4-2fc6c0ae122d"
+    },
+    {
+      "case": "read limit allowed 40",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_2b5a2c6a-0760-4176-a9da-6586b6b0c985"
+    },
+    {
+      "case": "read limit allowed 41",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_985512d9-0941-4617-82a3-a0d9334cfa80"
+    },
+    {
+      "case": "read limit allowed 42",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_4a77f821-e40a-4951-be9e-43b835ce2ba8"
+    },
+    {
+      "case": "read limit allowed 43",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_3d776557-e8e9-445b-9f98-0aded1344164"
+    },
+    {
+      "case": "read limit allowed 44",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_adf4d829-3d17-496d-a6de-74192b8477f0"
+    },
+    {
+      "case": "read limit allowed 45",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_1991289e-c8a6-434e-95b4-94b06d5908dc"
+    },
+    {
+      "case": "read limit allowed 46",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_79fe8674-70e0-44bb-944f-3439ae1614d0"
+    },
+    {
+      "case": "read limit allowed 47",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_1999ad10-ec35-4055-98a7-6a38d7074639"
+    },
+    {
+      "case": "read limit allowed 48",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_26947710-3fe7-4dd8-917e-d731da3058f9"
+    },
+    {
+      "case": "read limit allowed 49",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_37f8f78f-7dd3-467f-aa4b-da33c18ae36d"
+    },
+    {
+      "case": "read limit allowed 50",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_5f338e57-c76a-484a-9918-7d8da130eb38"
+    },
+    {
+      "case": "read limit allowed 51",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_803caf19-b028-49ab-89dc-1a35cf15ad7d"
+    },
+    {
+      "case": "read limit allowed 52",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_fcc1a260-37fd-4cdd-81a6-3bb0d6b6a5a4"
+    },
+    {
+      "case": "read limit allowed 53",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_8fd9c1cd-d141-48f2-845e-2ffc5108090c"
+    },
+    {
+      "case": "read limit allowed 54",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_72d31af1-f1ac-4482-a840-414f593525e9"
+    },
+    {
+      "case": "read limit allowed 55",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_6af845c9-8dd0-4f72-a322-89f75e64f939"
+    },
+    {
+      "case": "read limit allowed 56",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_2e3e5665-dde5-4bb8-a880-5e0a3d5c54c4"
+    },
+    {
+      "case": "read limit allowed 57",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_bd3263ed-c139-48fc-b411-066a27b3ef3c"
+    },
+    {
+      "case": "read limit allowed 58",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_f56ec5a9-9382-4642-ae96-16eda5247452"
+    },
+    {
+      "case": "read limit allowed 59",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_5781ffe2-5657-4015-8029-97228743ef00"
+    },
+    {
+      "case": "read limit allowed 60",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 200,
+      "correlation_id": "qa_3bb235a5-16e5-4d24-a9ac-b15bcb214049"
+    },
+    {
+      "case": "caller read limit",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}",
+      "status": 429,
+      "correlation_id": "qa_eb9249b5-1445-4cfc-9c30-53f455a89a48"
+    },
+    {
+      "case": "offers read limit",
+      "method": "GET",
+      "route": "/v1/requests/{request_id}/offers",
+      "status": 429,
+      "correlation_id": "qa_542ffed0-b5e5-4d5c-b579-73973bbdd65b"
+    },
+    {
+      "case": "cancel mutation limit",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/cancel",
+      "status": 429,
+      "correlation_id": "qa_d0f6edc4-b095-4d80-b7c3-aba261e68fb9"
+    },
+    {
+      "case": "clarification mutation limit",
+      "method": "POST",
+      "route": "/v1/requests/{request_id}/clarifications",
+      "status": 429,
+      "correlation_id": "qa_9358b448-2236-4a4d-ba69-bab58c01b6da"
+    }
+  ],
+  "limitations": [
+    "No independent two-person checkpoint or physical-device signoff.",
+    "Provider-fault injection, terminal-clock transitions, scope/consent mutation, audit rows and no-outreach persistence require separate backend database-test evidence."
+  ],
+  "dataset": {
+    "normal_provider_cases": 40,
+    "injected_provider_cases": "Backend deterministic adapter tests; not simulated by this HTTP suite."
+  },
+  "finished_at": "2026-10-02T06:05:02.885Z",
+  "passed": true,
+  "summary": {
+    "passed": 972,
+    "failed": 0,
+    "exchanges": 274
+  }
+}

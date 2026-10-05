@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-01",
+  "scope": "Person Two P2.S1 local preparation on macOS",
+  "contract_status": "proposed@0.3.0",
+  "static_contract_tests": {"passed": 127, "failed": 0},
+  "backend_non_database_tests": {"passed": 42, "failed": 0},
+  "browser_tests": {"passed": 81, "failed": 0, "viewports": [360, 768, 1280]},
+  "bruno_tooling_tests": {"passed": 3, "failed": 0},
+  "typecheck": "passed",
+  "web_lint": "passed",
+  "web_build": "passed",
+  "spectral": "zero warnings or errors",
+  "pnpm_audit": "no known vulnerabilities",
+  "live_phase2_api_tested": false,
+  "windows_tested": false,
+  "g2_passed": false,
+  "report": "docs/testing/phase2-person-two-hardening-2026-10-01.md"
+}

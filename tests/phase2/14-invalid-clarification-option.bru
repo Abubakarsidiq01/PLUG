@@ -1,0 +1,33 @@
+meta {
+  name: Invalid clarification option
+  type: http
+  seq: 14
+}
+
+post {
+  url: {{baseUrl}}/v1/requests/{{p2Draft}}/clarifications
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Owner}}
+  Idempotency-Key: {{p2Run}}-bad-option
+}
+
+body:json {
+  {"clarification_id":"{{p2Clarification}}","value":"astronaut"}
+}
+
+assert {
+  res.status: eq 400
+  res.body.error.code: eq validation_failed
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

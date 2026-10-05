@@ -1,0 +1,32 @@
+meta {
+  name: Licensed skill needs a licence
+  type: http
+  seq: 45
+}
+
+post {
+  url: {{baseUrl}}/v1/providers/skills
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Other}}
+}
+
+body:json {
+  {"skill_tags":["electrical"],"travel_radius_m":4828,"base_location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"},"availability":[{"days":"every_day","from":"08:00","to":"21:00"}],"time_zone":"America/Chicago"}
+}
+
+assert {
+  res.status: eq 400
+  res.body.error.code: eq validation_failed
+  res.body.error.details[0].code: eq licence_required
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+}

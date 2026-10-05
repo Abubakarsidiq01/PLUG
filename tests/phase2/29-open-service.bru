@@ -1,0 +1,34 @@
+meta {
+  name: Any lawful service maps onto the skill vocabulary (manual v4)
+  type: http
+  seq: 29
+}
+
+post {
+  url: {{baseUrl}}/v1/requests
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Other}}
+  Idempotency-Key: {{p2Run}}-Open-service
+}
+
+body:json {
+  {"text":"Find a plumber","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"}}
+}
+
+assert {
+  res.status: eq 201
+  res.body.constraints.category: eq plumbing_minor
+  res.body.constraints.service_name: eq Minor plumbing
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+
+}

@@ -1,14 +1,18 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-01T04:00:20.633298+00:00",
-  "updated_by": "person_one",
+  "updated_at": "2026-10-05T03:34:39.798395+00:00",
+  "updated_by": "person_one (owner approval of contract 0.5.0; admin inspection API; accessibility audit)",
+  "completed_phases": [
+    "P0",
+    "P1"
+  ],
   "current_phase": "P2",
-  "current_step": "P2.S1",
-  "current_step_title": "Prepare and jointly approve Phase 2 request contracts after manually merging PRs #32 and #30. G1 accepted for private development with explicit carried release requirements.",
+  "current_step": "P2.S22",
+  "current_step_title": "Phase 2 Person One implementation hardened and locally verified against manual v4, including direct skills and approved UI. Physical UI runner provisioning/device evidence and independent contract/design/Windows/G2 checkpoint remain open.",
   "manual_section": "27.3",
   "readme": "docs/phases/P2-ONE.md",
-  "owner": "person_one",
+  "owner": "both",
   "blocked_on": null,
   "last_gate_passed": "G1",
   "next_gate": "G2",
@@ -60,7 +64,7 @@
   "contracts": {
     "GET /health": "frozen@0.1.0",
     "GET /health/ready": "frozen@0.1.0",
-    "POST /v1/requests": "frozen@0.1.0",
+    "POST /v1/requests": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR) (served as Phase 0 stub frozen@0.1.0 until requests_v2)",
     "POST /v1/auth/apple": "frozen@0.2.2",
     "POST /v1/auth/phone/start": "frozen@0.2.2",
     "POST /v1/auth/phone/verify": "frozen@0.2.2",
@@ -72,26 +76,67 @@
     "GET /v1/me/sessions": "frozen@0.2.2",
     "GET /v1/me/sessions/{session_id}": "frozen@0.2.2",
     "DELETE /v1/me/sessions/{session_id}": "frozen@0.2.2",
-    "POST /v1/auth/google": "frozen@0.2.2"
+    "POST /v1/auth/google": "frozen@0.2.2",
+    "GET /v1/requests/{request_id}": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/requests/{request_id}/clarifications": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/requests/{request_id}/offers": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/requests/{request_id}/cancel": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/asks": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/asks/{ask_id}": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/asks/{ask_id}/clarifications": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/providers/skills/propose": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "POST /v1/providers/skills": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR) (amended 2026-10-02: business profile, 96 KiB body, custom_skills)",
+    "GET /v1/providers/me": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "contracts/skills.yaml": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR) (owned by person_two; 115 tags, amended 2026-10-02, ADR-011)",
+    "GET /v1/admin/skills": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/admin/skills/gaps": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/admin/classifications": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)",
+    "GET /v1/admin/refusals": "frozen@0.5.0 on merge (approved by person_one 2026-10-05; person_two approves the PR)"
   },
   "feature_flags": {
     "identity": "staging_only",
-    "phone_code_delivery": "off"
+    "phone_code_delivery": "off",
+    "requests_v2": "off",
+    "intent_provider": "claude when ANTHROPIC_API_KEY is set; built-in rules otherwise",
+    "provider_mode": "behind requests_v2",
+    "place_questions": "behind requests_v2 (answers are Unknown until Phase 4)",
+    "web_fallback": "off"
   },
   "next_actions": [
     {
-      "id": "P2-contract-review",
-      "owner": "person_one",
-      "task": "After owner merges #32 then #30, prepare Phase 2 OpenAPI/fixtures for create request, clarify, cancel, status and offers. Specify state transitions, one-clarification rule, idempotency, owner checks, location, money units and timestamps. No feature implementation before both approve the contract.",
+      "id": "P2-contract-0.5.0",
+      "owner": "both",
       "manual_section": "27.3",
-      "acceptance": "Contract PR reviewed by both engineers and merged; existing auth@0.2.2 unchanged."
+      "task": "Person One (owner) approved contract 0.5.0, its amendments and skills.yaml on 2026-10-05 (contracts/CHANGELOG.md). Person Two reviews and approves the pull request; merging it freezes every Phase 2 route at 0.5.0.",
+      "acceptance": "Pull request approved by Person Two and merged; Spectral, ContractTest and pnpm test:contracts green."
     },
     {
-      "id": "P2-contract-fixtures",
-      "owner": "person_two",
-      "task": "Review Phase 2 contract and supply parser/e2e fixtures covering ambiguity, empty results, expired intent, ownership denial and honest progress; preserve existing web legal branding.",
+      "id": "P2-device-evidence",
+      "owner": "person_one",
       "manual_section": "27.3",
-      "acceptance": "Fixtures agree with approved schema and contain no invented live supplier claims."
+      "task": "Done 2026-10-04 for the automated state matrix: all six walkthroughs passed on the paired iPhone at default and largest Dynamic Type (evidence/P2/ios/2026-10-04/, docs/testing/phase2-device-evidence-2026-10-04.md). Remaining: VoiceOver walkthrough on the device into evidence/P2/a11y and an independent greyscale/design review. Automated accessibility audit of six main screens passes (evidence/P2/a11y/). Checklist for the recorded pass: docs/testing/phase2-voiceover-checklist.md.",
+      "acceptance": "VoiceOver walkthrough recorded; design gate reviewed by a second person."
+    },
+    {
+      "id": "P2-admin-vocabulary-classifier",
+      "owner": "both",
+      "manual_section": "27.3 / P2-TWO.S12",
+      "task": "Backend read API done 2026-10-05: GET /v1/admin/skills, /skills/gaps, /classifications, /refusals (admin scope plus second factor, no-store, audited, no ask text or identities; AdminInspectionTest). Remaining: design and test the staff sign-in path that issues an admin session with a second factor (none exists yet, so every caller is refused), then Person Two builds the web inspector against these routes.",
+      "acceptance": "A real staff session reads the vocabulary and recent decisions in the web inspector; denied-role, paging, redaction, loading, error and empty states evidenced."
+    },
+    {
+      "id": "P2-web-v4",
+      "owner": "person_two",
+      "manual_section": "15",
+      "task": "Review the owner-authorized v4 web implementation: local Public Sans, ink-on-paper palette, sentence-case labels, dashed Not verified and accurate two-ask/provider copy. 81 browser tests passed; production screenshots are in evidence/P2/web/2026-10-02/ui-experiment. The older draft patch is historical and must not be applied over this work.",
+      "acceptance": "Owner and Person Two review the temporary design; complete independent design-gate and Lighthouse evidence."
+    },
+    {
+      "id": "P2-windows-and-checkpoint",
+      "owner": "both",
+      "manual_section": "27.3",
+      "task": "Person Two reruns pnpm test:contracts, Bruno and Playwright on Windows; then the connected checkpoint against real staging with the labelled dataset.",
+      "acceptance": "Correlation ID from the connected checkpoint present in both logs; G2 entry signed by both."
     },
     {
       "id": "release-requirements",
@@ -100,13 +145,12 @@
       "acceptance": "Requirements resolved with evidence before corresponding release or provider activation."
     }
   ],
-  "do_not_touch": [
-    "/web/**",
-    "/tests/**",
-    "/fixtures/**",
-    "/design/**"
-  ],
+  "do_not_touch": [],
   "open_risks": [
+    "Own-words skills (ADR-011) are matched by simple keywords and are not reviewed; a provider can describe a lawful skill vaguely or misleadingly. The restricted-intent policy and listed-skill rule guard them, but popular labels should be reviewed and promoted into skills.yaml through vocabulary_gaps.",
+    "Scope is open to any lawful service and any public place; the restricted-intent policy is now the only refusal path. It is rule-based, has 46 labelled vectors plus backend tests, and has not been red-teamed by a second person (Person Two P2.S11).",
+    "Skill vocabulary is 115 tags; matching quality is untested at low provider density, and place questions have no human answerers until Phase 4, so they end Unknown.",
+    "Provider rate-limit budget is shared with the request read budget per caller address (60/min, in-process memory).",
     "September 23 verification was local, on an isolated real PostgreSQL database: see docs/testing/phase-1-hardening-2026-09-23.md. G1 still needs joint staging evidence under ADR-004.",
     "The Phase 1 rate limits are counted in one process's memory (FixedWindowLimiter). That is correct for a single instance and wrong the moment there are two, and it also means the limits survive across test runs \u2014 a second walkthrough inside fifteen minutes is refused. Wire Redis in before the backend is ever run as more than one process.",
     "The missing launch-screen declaration caused a 320x480 compatibility window. Fixed and captured at full size on September 23. Largest-text controls are scrollable; physical-device visual/VoiceOver review remains pending.",
@@ -122,7 +166,8 @@
     "PRODUCT_BUNDLE_IDENTIFIER is com.abubakarsidiq01.plug.app101 (com.plug.app was already claimed by another Apple account).",
     "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file \u2014 no Figma access was available.",
     "Phone evidence includes a Google notification naming Aura; verify whether it belongs to this PLUG sign-in and correct the selected OAuth project branding if so. Original personal email notification remains private.",
-    "Apple/SMS budget deferral accepted in ADR-008. Starter legal wording cannot immunize the operator from claims and is not evidence of implemented retention, erasure or teen controls."
+    "Apple/SMS budget deferral accepted in ADR-008. Starter legal wording cannot immunize the operator from claims and is not evidence of implemented retention, erasure or teen controls.",
+    "Manual v4 supersedes ADR-009 Apple Maps listing fallback. Claude extraction has no configured live-key evidence; the restricted-intent rules still need independent red-team review; contract 0.5.0, including retention and needed_by limits, remains proposed."
   ],
   "environments": {
     "staging": "ephemeral \u2014 cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
@@ -362,6 +407,277 @@
       "compatibility_tests": 3,
       "npm_audit_vulnerabilities": 0,
       "scope": "Bruno tooling only; no gate or contract status changed."
+    },
+    "phase2_person_two": {
+      "date": "2026-10-01",
+      "branch": "p2.s1-two-fixture-hardening",
+      "status": "local_preparation_passed_contract_approval_pending",
+      "report": "docs/testing/phase2-person-two-hardening-2026-10-01.md",
+      "request_fixtures": 68,
+      "labelled_intent_cases": 42,
+      "static_contract_tests": 127,
+      "backend_non_database_tests": 42,
+      "browser_tests": 81,
+      "bruno_tooling_tests": 3,
+      "web_build": "passed Next.js 16.3.6",
+      "typecheck": "passed",
+      "lint": "passed",
+      "openapi_lint": "passed, zero warnings",
+      "pnpm_audit": "no known vulnerabilities",
+      "g2_passed": false,
+      "authorization": "User explicitly requested Person Two Phase 2 hardening; existing backend wrapper and iOS edits preserved.",
+      "not_verified": [
+        "Live Phase 2 API/Bruno and abuse cases",
+        "Intent adapter accuracy, provider fallback, state-machine/race behavior and audit/no-outreach enforcement",
+        "Windows execution on Person Two machine",
+        "Figma review and physical-device Phase 2 flow",
+        "Connected checkpoint and independent engineer approvals"
+      ]
+    },
+    "phase2_implementation_local": {
+      "date": "2026-10-01",
+      "branch": "p2.s2-all-request-flow",
+      "status": "all_automated_checks_passed_device_running_g2_pending",
+      "fix": "RequestV2Test pinned every Clock bean to 2026-10-01T20:00Z, so sessions were issued already expired against the database now() after 20:15Z and all 7 request tests returned 401. Request code now uses its own RequestClock; identity time is untouched.",
+      "backend_non_database_tests": 49,
+      "backend_database_tests": 77,
+      "static_contract_tests": 132,
+      "live_api_checks": {
+        "passed": 863,
+        "failed": 0,
+        "exchanges": 246,
+        "report": "evidence/P2/security/phase2-live-2026-10-01.json"
+      },
+      "bruno_phase2": {
+        "requests": 39,
+        "tests": 51,
+        "assertions": 63,
+        "failed": 0
+      },
+      "ios_unit_tests": {
+        "executed": 58,
+        "failed": 0,
+        "note": "includes live sign-in against a fresh isolated backend"
+      },
+      "typecheck": "passed",
+      "lint": "passed",
+      "openapi_lint": "passed, zero warnings",
+      "environment": "fresh disposable plug_phase2_qa_rerun database, JAR snapshot on 127.0.0.1:18083, requests_v2 on, no SMS/model provider",
+      "g2_passed": false,
+      "not_verified": [
+        "Physical-device state screenshots and VoiceOver walkthrough",
+        "Device failure/recovery evidence",
+        "Figma review",
+        "Windows execution on Person Two machine",
+        "Contract 0.3.0 approval, connected staging checkpoint and both G2 signatures"
+      ],
+      "report": "docs/testing/phase2-implementation-2026-10-01.md",
+      "automation": {
+        "verify_all": "tools/phase2-verify-all.sh",
+        "phone": "tools/run-phase2-phone.sh",
+        "ui_evidence": "tools/run-phase2-ui-evidence.sh"
+      },
+      "ios_ui_screenshot_tests": {
+        "passed": 2,
+        "screenshots": 18,
+        "evidence": "evidence/P2/simulator/2026-10-01",
+        "source": "synthetic fixture server, not G2 device evidence"
+      },
+      "phone": "Signed Debug build installed and launched on the paired iPhone 13 Pro Max against the isolated backend via Quick Tunnel; guest sign-in 201 and GET /v1/me 200 in the backend log.",
+      "environment_repairs": "Stopped stale 18080/18082 backends; restarted infra-postgres-1 and the 8080 Phase 1 backend (guest sign-in 201)."
+    },
+    "phase2_open_scope_design": {
+      "date": "2026-10-01",
+      "report": "docs/testing/phase2-open-scope-design-2026-10-01.md",
+      "adr": "docs/decisions/ADR-009-open-service-scope.md",
+      "contract": "proposed@0.4.0",
+      "backend": "unit + database (PostGIS, V5, 46-vector dataset) + Checkstyle + JAR passed",
+      "static_contract_tests": {
+        "passed": 135,
+        "failed": 0
+      },
+      "live_api_checks": {
+        "passed": 879,
+        "failed": 0,
+        "exchanges": 250,
+        "report": "evidence/P2/security/phase2-live-2026-10-01.json"
+      },
+      "bruno_phase2": {
+        "requests": 39,
+        "failed": 0
+      },
+      "ios_unit_tests": {
+        "executed": 58,
+        "failed": 0
+      },
+      "website": {
+        "playwright": "81/81 incl. axe at 360/768/1280",
+        "evidence": "evidence/P2/web"
+      },
+      "design_source": "manual \u00a79-\u00a711, \u00a716, Figures 7, 8, 10, 14; invented warm palette reverted",
+      "claude_live": "not tested: no ANTHROPIC_API_KEY configured",
+      "g2_passed": false,
+      "owner_followups": [
+        "Privacy Policy draft says no AI/maps processing; ADR-009 makes that untrue - legal update needed",
+        "Confirm website facts: invite-only, iPhone, United States, free while testing, Ruston demo zone",
+        "Join call-to-action routes to support email; a real interest form needs a backend route"
+      ],
+      "ios_ui_screenshot_tests": {
+        "passed": 2,
+        "screenshots": 20,
+        "evidence": "evidence/P2/simulator/2026-10-01",
+        "source": "synthetic fixture server, not G2 device evidence"
+      },
+      "phone": "Signed blueprint-design build installed and launched on the paired iPhone against the isolated backend via Quick Tunnel."
+    },
+    "phase2_temporary_ui_hardening": {
+      "date": "2026-10-02",
+      "report": "docs/testing/phase2-hardening-ui-experiment-2026-10-02.md",
+      "backend_unit": 55,
+      "backend_database": 82,
+      "contract_tests": 181,
+      "live_api_checks": 972,
+      "bruno_requests": 49,
+      "ios_tests": 65,
+      "web_tests": 81,
+      "web_build": "passed",
+      "ios_screenshot_walks": "default and largest passed; largest repeated after row-layout correction; answered-place source walkthrough passed at both sizes",
+      "status": "local verification; temporary visual design awaiting owner review; G2 not signed",
+      "ios_screenshots": 36,
+      "ios_request_tests_final": 22,
+      "greyscale": "filled and dashed specimens exported and visually checked; independent device review pending",
+      "physical_phone_preview": {
+        "date": "2026-10-02",
+        "device": "paired iPhone 13 Pro Max",
+        "result": "Signed Debug build installed and launched successfully at owner request",
+        "backend": "Local Phase 2 on port 18085 with temporary HTTPS tunnel; requests_v2 enabled",
+        "scope": "Interactive preview only; not a physical-device test matrix or G2 approval"
+      }
+    },
+    "phase2_business_profiles": {
+      "date": "2026-10-02",
+      "report": "docs/testing/phase2-hardening-ui-experiment-2026-10-02.md",
+      "backend_unit": 57,
+      "backend_database": 83,
+      "contract_tests": 182,
+      "live_api_checks": 988,
+      "bruno_requests": 49,
+      "ios_tests": 67,
+      "ios_screenshots": 44,
+      "evidence": "evidence/P2/simulator/2026-10-02/business-final/ (with greyscale/)",
+      "manual": "PLUG_Production_Master_Manual_v4.docx \u00a727.3 Phase 2 amendments; steps P2.S20-P2.S21",
+      "status": "local verification; G2 not signed"
+    },
+    "phase2_custom_skills": {
+      "date": "2026-10-02",
+      "decision": "docs/decisions/ADR-011-provider-described-skills.md",
+      "vocabulary_tags": 115,
+      "backend_unit": 63,
+      "backend_database": 84,
+      "contract_tests": 185,
+      "live_api_checks": 1004,
+      "bruno_requests": 49,
+      "ios_tests": 67,
+      "ios_screenshots": 46,
+      "evidence": "evidence/P2/simulator/2026-10-02/custom-skills/ (with greyscale/)",
+      "status": "local verification; G2 not signed"
+    },
+    "phase2_visual_home": {
+      "date": "2026-10-03",
+      "report": "docs/testing/phase2-quiet-ui-2026-10-02.md",
+      "ui_tests": 2,
+      "text_sizes": [
+        "default",
+        "accessibility XXXL"
+      ],
+      "screenshots": 12,
+      "evidence": "evidence/P2/simulator/2026-10-03/visual-home/",
+      "signed_iphone_build": "passed",
+      "device_install": "Installed and launched paired-device connection build on physical iPhone, 2026-10-03.",
+      "preview_connection": "Working via private CoreDevice paired interface only. Phone source fd64:fdaf:a52::1 reached relay on host fd64:fdaf:a52::2:18086: POST /v1/auth/refresh 200, GET /v1/me 200, GET /v1/providers/me 404 (no profile). No public tunnel opened. Paired addresses may change on reconnection.",
+      "status": "local verification only; G2 remains unsigned",
+      "preview_runtime": {
+        "relay_script": "/tmp/plug-paired-relay.py",
+        "relay_log": "/tmp/plug-paired-relay.log",
+        "backend": "127.0.0.1:18080",
+        "note": "Relay binds only paired IPv6 host address, accepts paired phone plus host self-checks, and retains backend authentication. Keep devices connected. Debug-only local-network permission description added."
+      }
+    },
+    "phase2_direct_skills": {
+      "date": "2026-10-03",
+      "report": "docs/testing/phase2-direct-skills-2026-10-03.md",
+      "backend": "63 unit, 8 contract, 8 focused PostGIS tests passed",
+      "ios": "Direct entry and save passed at normal/largest text; suggestions-failure fallback covered",
+      "phone": "Signed build installed and launched; real phone refresh and account requests returned 200",
+      "connection": "Private paired relay on [fd64:4a1e:3bad::2]:18086 to loopback 18085; held paired connection; no public tunnel",
+      "gate": "G2 remains open"
+    },
+    "phase2_marketplace_preview": {
+      "date": "2026-10-03",
+      "decision": "docs/decisions/ADR-012-marketplace-visual-preview.md",
+      "report": "docs/testing/phase2-marketplace-preview-2026-10-03.md",
+      "status": "temporary preview awaiting owner visual feedback",
+      "ios": "Combined default/largest home, offers, profiles, tab preservation, cancellation and direct-skill flows passed; targeted accessibility refinement rerun passed in 96 seconds",
+      "screenshots": "evidence/P2/simulator/2026-10-03/marketplace/",
+      "phone": "Signed build installed and launched; real device refresh/me returned 200 through private relay",
+      "gate": "G2 remains open"
+    },
+    "phase2_remaining_pages": {
+      "report": "docs/testing/phase2-remaining-pages-2026-10-04.md",
+      "approved_home_and_navigation": "Exact source-section comparison passed; unchanged",
+      "ui_tests": "All six request screenshot methods passed across initial run and targeted reruns. Largest-text walkthrough passed after correcting text replacement in test; final business/Profile/Activity/account test passed at both sizes after adding guest restoration to fixture server.",
+      "final_account_result": "/var/folders/4_/r37l0rj13lg1zdw6nk3l208w0000gn/T/plug-phase2-ui.XQhW7c/ui.xcresult",
+      "screenshots": "evidence/P2/simulator/2026-10-04/results-redesign/",
+      "physical_phone": "Signed build installed and launched; requests and offers returned HTTP 200 over private paired relay.",
+      "gate": "G2 remains open; synthetic screenshots are not live gate evidence."
+    },
+    "phase2_person_one_hardening": {
+      "date": "2026-10-04",
+      "report": "docs/testing/phase2-person-one-hardening-2026-10-04.md",
+      "backend_unit_tests": 65,
+      "backend_database_tests": 88,
+      "static_contract_tests": 185,
+      "live_api_checks": 1008,
+      "live_api_exchanges": 283,
+      "bruno": {
+        "requests": 49,
+        "tests": 64,
+        "assertions": 88
+      },
+      "ios_unit_integration_tests": 67,
+      "backend_recovery_checks": 5,
+      "physical_ui_matrix": "Blocked: valid app profile exists, separate UI runner profile missing; Xcode CLI reports No Accounts despite owner confirming GUI sign-in. Target team/automatic signing aligned; owner following signing steps.",
+      "g2_passed": false,
+      "phone": "Final signed app installed and launched; hardened backend uses immutable JAR and preserved plug_phase2_live database; private relay address automatically rediscovered."
+    },
+    "phase2_device_evidence": {
+      "date": "2026-10-04",
+      "device": "paired iPhone (iPhone14,3)",
+      "walkthroughs": "6 of 6 passed on device and on simulator, default and largest Dynamic Type",
+      "device_screenshots": 60,
+      "ios_tests": 67,
+      "report": "docs/testing/phase2-device-evidence-2026-10-04.md",
+      "fixes": "hidden system tab bar hit-testing, content behind custom bar, bar over keyboard, sign-in tab bounce, Ask field Clear button",
+      "status": "local evidence; G2 not signed"
+    }
+  },
+  "implementation_authorization": {
+    "date": "2026-10-01",
+    "scope": "User explicitly requested all Phase Two work using all available agents and the Mac after being told the contract approval gate was pending. Proceed with local implementation against 0.3.0; no independent human signature or merge approval is inferred.",
+    "branch": "p2.s2-all-request-flow",
+    "preserve": [
+      "existing user iOS project/scheme/config changes",
+      "existing backend/gradlew.bat edits",
+      "live user accounts and Phase 1 services"
+    ],
+    "gate": "G2 remains unsigned until its actual evidence and approvals exist."
+  },
+  "decisions": {
+    "ADR-009": {
+      "date": "2026-10-01",
+      "title": "Any lawful service, Claude extraction, nearby-business discovery",
+      "file": "docs/decisions/ADR-009-open-service-scope.md",
+      "accepted_by": "owner"
     }
   }
 }

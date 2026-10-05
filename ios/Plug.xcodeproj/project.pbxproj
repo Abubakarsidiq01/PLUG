@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-        B10000000000000000000001 = {isa = PBXBuildFile; productRef = B10000000000000000000002; };
-        B10000000000000000000003 = {isa = PBXBuildFile; productRef = B10000000000000000000004; };
 		000000000000000000041001 /* PlugApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042001 /* PlugApp.swift */; };
 		000000000000000000041002 /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042002 /* AppEnvironment.swift */; };
 		000000000000000000041003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000042003 /* APIClient.swift */; };
@@ -38,8 +36,29 @@
 		A10000000000000000000D /* Core/Networking/PlugJSON.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000C /* Core/Networking/PlugJSON.swift */; };
 		A1000000000000000000E4 /* LiveBackendTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000E3 /* LiveBackendTests.swift */; };
 		A1000000000000000000F8 /* SignInScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000F7 /* SignInScreenshotTests.swift */; };
+		B10000000000000000000001 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = B10000000000000000000002 /* GoogleSignIn */; };
+		B10000000000000000000003 /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = B10000000000000000000004 /* GoogleSignInSwift */; };
+		C10000000000000000000001 /* Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002 /* Resources/Assets.xcassets */; };
+		D20000000000000000001001 /* Features/Requests/RequestModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000001 /* Features/Requests/RequestModels.swift */; };
+		D20000000000000000001002 /* Features/Requests/RequestService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000002 /* Features/Requests/RequestService.swift */; };
+		D20000000000000000001003 /* Features/Requests/RequestModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000003 /* Features/Requests/RequestModel.swift */; };
+		D20000000000000000001004 /* Features/Requests/RequestLocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000004 /* Features/Requests/RequestLocationModel.swift */; };
+		D20000000000000000001005 /* Features/Requests/AskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000005 /* Features/Requests/AskView.swift */; };
+		D20000000000000000001006 /* Features/Requests/ProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000006 /* Features/Requests/ProviderView.swift */; };
+		D30000000000000000001001 /* RequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000001 /* RequestTests.swift */; };
+		D30000000000000000001002 /* ../../fixtures/requests.create in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000002 /* ../../fixtures/requests.create */; };
+		D30000000000000000001003 /* ../../fixtures/requests.get in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000003 /* ../../fixtures/requests.get */; };
+		D30000000000000000001004 /* ../../fixtures/requests.clarify in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000004 /* ../../fixtures/requests.clarify */; };
+		D30000000000000000001005 /* ../../fixtures/requests.cancel in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000005 /* ../../fixtures/requests.cancel */; };
+		D30000000000000000001006 /* ../../fixtures/requests.offers in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000006 /* ../../fixtures/requests.offers */; };
+		D30000000000000000001007 /* ../../fixtures/asks.create in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000007 /* ../../fixtures/asks.create */; };
+		D30000000000000000001008 /* ../../fixtures/asks.get in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000008 /* ../../fixtures/asks.get */; };
+		D30000000000000000001009 /* ../../fixtures/asks.clarify in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000009 /* ../../fixtures/asks.clarify */; };
+		D30000000000000000001010 /* ../../fixtures/providers.propose in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000010 /* ../../fixtures/providers.propose */; };
+		D30000000000000000001011 /* ../../fixtures/providers.skills in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000011 /* ../../fixtures/providers.skills */; };
+		D30000000000000000001012 /* ../../fixtures/providers.me in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000012 /* ../../fixtures/providers.me */; };
+		D40000000000000000000101 /* RequestScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40000000000000000000001 /* RequestScreenshotTests.swift */; };
 		E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */ = {isa = PBXBuildFile; fileRef = 7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */; };
-		C10000000000000000000001 /* Assets in Resources */ = {isa = PBXBuildFile; fileRef = C10000000000000000000002; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,7 +79,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-        B10000000000000000000006 = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Plug/Resources/Authentication.xcconfig; sourceTree = SOURCE_ROOT; };
 		000000000000000000042001 /* PlugApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlugApp.swift; sourceTree = "<group>"; };
 		000000000000000000042002 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppEnvironment.swift; sourceTree = "<group>"; };
 		000000000000000000042003 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -95,7 +113,27 @@
 		A1000000000000000000E3 /* LiveBackendTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveBackendTests.swift; sourceTree = "<group>"; };
 		A1000000000000000000F2 /* PlugUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1000000000000000000F7 /* SignInScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignInScreenshotTests.swift; sourceTree = "<group>"; };
-		C10000000000000000000002 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
+		B10000000000000000000006 /* Plug/Resources/Authentication.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Plug/Resources/Authentication.xcconfig; sourceTree = SOURCE_ROOT; };
+		C10000000000000000000002 /* Resources/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
+		D20000000000000000000001 /* Features/Requests/RequestModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/RequestModels.swift; sourceTree = "<group>"; };
+		D20000000000000000000002 /* Features/Requests/RequestService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/RequestService.swift; sourceTree = "<group>"; };
+		D20000000000000000000003 /* Features/Requests/RequestModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/RequestModel.swift; sourceTree = "<group>"; };
+		D20000000000000000000004 /* Features/Requests/RequestLocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/RequestLocationModel.swift; sourceTree = "<group>"; };
+		D20000000000000000000005 /* Features/Requests/AskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/AskView.swift; sourceTree = "<group>"; };
+		D20000000000000000000006 /* Features/Requests/ProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/ProviderView.swift; sourceTree = "<group>"; };
+		D30000000000000000000001 /* RequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestTests.swift; sourceTree = "<group>"; };
+		D30000000000000000000002 /* ../../fixtures/requests.create */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.create; sourceTree = "<group>"; };
+		D30000000000000000000003 /* ../../fixtures/requests.get */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.get; sourceTree = "<group>"; };
+		D30000000000000000000004 /* ../../fixtures/requests.clarify */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.clarify; sourceTree = "<group>"; };
+		D30000000000000000000005 /* ../../fixtures/requests.cancel */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.cancel; sourceTree = "<group>"; };
+		D30000000000000000000006 /* ../../fixtures/requests.offers */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.offers; sourceTree = "<group>"; };
+		D30000000000000000000007 /* ../../fixtures/asks.create */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/asks.create; sourceTree = "<group>"; };
+		D30000000000000000000008 /* ../../fixtures/asks.get */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/asks.get; sourceTree = "<group>"; };
+		D30000000000000000000009 /* ../../fixtures/asks.clarify */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/asks.clarify; sourceTree = "<group>"; };
+		D30000000000000000000010 /* ../../fixtures/providers.propose */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/providers.propose; sourceTree = "<group>"; };
+		D30000000000000000000011 /* ../../fixtures/providers.skills */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/providers.skills; sourceTree = "<group>"; };
+		D30000000000000000000012 /* ../../fixtures/providers.me */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/providers.me; sourceTree = "<group>"; };
+		D40000000000000000000001 /* RequestScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestScreenshotTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,7 +141,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
- B10000000000000000000001, B10000000000000000000003,
+				B10000000000000000000001 /* GoogleSignIn in Frameworks */,
+				B10000000000000000000003 /* GoogleSignInSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,17 +172,24 @@
 				A1000000000000000000F6 /* PlugUITests */,
 				000000000000000000047004 /* Products */,
 				000000000000000000047005 /* Frameworks */,
+				9BAE22263067725A001FB49D /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
 		000000000000000000047002 /* Plug */ = {
 			isa = PBXGroup;
 			children = (
+				D20000000000000000000005 /* Features/Requests/AskView.swift */,
+				D20000000000000000000006 /* Features/Requests/ProviderView.swift */,
+				D20000000000000000000004 /* Features/Requests/RequestLocationModel.swift */,
+				D20000000000000000000003 /* Features/Requests/RequestModel.swift */,
+				D20000000000000000000002 /* Features/Requests/RequestService.swift */,
+				D20000000000000000000001 /* Features/Requests/RequestModels.swift */,
 				000000000000000000047006 /* App */,
 				000000000000000000047007 /* Core/Networking */,
 				000000000000000000047008 /* Features/Engineering */,
 				00000000000000000004200A /* Core/DesignSystem/PlugTokens.swift */,
-                C10000000000000000000002 /* Assets.xcassets */,
+				C10000000000000000000002 /* Resources/Assets.xcassets */,
 				A10000000000000000000001 /* Core/Networking/Endpoint.swift */,
 				A10000000000000000000002 /* Core/Networking/APIError.swift */,
 				A10000000000000000000003 /* Core/Storage/KeychainStore.swift */,
@@ -166,6 +212,18 @@
 		000000000000000000047003 /* PlugTests */ = {
 			isa = PBXGroup;
 			children = (
+				D30000000000000000000006 /* ../../fixtures/requests.offers */,
+				D30000000000000000000007 /* ../../fixtures/asks.create */,
+				D30000000000000000000008 /* ../../fixtures/asks.get */,
+				D30000000000000000000009 /* ../../fixtures/asks.clarify */,
+				D30000000000000000000010 /* ../../fixtures/providers.propose */,
+				D30000000000000000000011 /* ../../fixtures/providers.skills */,
+				D30000000000000000000012 /* ../../fixtures/providers.me */,
+				D30000000000000000000005 /* ../../fixtures/requests.cancel */,
+				D30000000000000000000004 /* ../../fixtures/requests.clarify */,
+				D30000000000000000000003 /* ../../fixtures/requests.get */,
+				D30000000000000000000002 /* ../../fixtures/requests.create */,
+				D30000000000000000000001 /* RequestTests.swift */,
 				000000000000000000042005 /* HealthResponseTests.swift */,
 				000000000000000000042009 /* ../../contracts/examples/health-response.json */,
 				000000000000000000042011 /* APIClientTests.swift */,
@@ -222,9 +280,18 @@
 			path = Features/Engineering;
 			sourceTree = "<group>";
 		};
+		9BAE22263067725A001FB49D /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				B10000000000000000000006 /* Plug/Resources/Authentication.xcconfig */,
+			);
+			name = "Recovered References";
+			sourceTree = "<group>";
+		};
 		A1000000000000000000F6 /* PlugUITests */ = {
 			isa = PBXGroup;
 			children = (
+				D40000000000000000000001 /* RequestScreenshotTests.swift */,
 				A1000000000000000000F7 /* SignInScreenshotTests.swift */,
 			);
 			path = PlugUITests;
@@ -245,8 +312,11 @@
 			);
 			dependencies = (
 			);
-			packageProductDependencies = (B10000000000000000000002, B10000000000000000000004);
-            name = Plug;
+			name = Plug;
+			packageProductDependencies = (
+				B10000000000000000000002 /* GoogleSignIn */,
+				B10000000000000000000004 /* GoogleSignInSwift */,
+			);
 			productName = Plug;
 			productReference = 000000000000000000042006 /* Plug.app */;
 			productType = "com.apple.product-type.application";
@@ -295,7 +365,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1600;
-				LastUpgradeCheck = 1600;
+				LastUpgradeCheck = 2660;
 				TargetAttributes = {
 					000000000000000000054001 = {
 						CreatedOnToolsVersion = 16.0;
@@ -319,10 +389,12 @@
 				Base,
 			);
 			mainGroup = 000000000000000000047001;
+			packageReferences = (
+				B10000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			productRefGroup = 000000000000000000047004 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
-            packageReferences = (B10000000000000000000005);
 			targets = (
 				000000000000000000054001 /* Plug */,
 				000000000000000000054002 /* PlugTests */,
@@ -336,7 +408,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-                C10000000000000000000001 /* Assets in Resources */,
+				C10000000000000000000001 /* Resources/Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,6 +416,17 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D30000000000000000001006 /* ../../fixtures/requests.offers in Resources */,
+				D30000000000000000001007 /* ../../fixtures/asks.create in Resources */,
+				D30000000000000000001008 /* ../../fixtures/asks.get in Resources */,
+				D30000000000000000001009 /* ../../fixtures/asks.clarify in Resources */,
+				D30000000000000000001010 /* ../../fixtures/providers.propose in Resources */,
+				D30000000000000000001011 /* ../../fixtures/providers.skills in Resources */,
+				D30000000000000000001012 /* ../../fixtures/providers.me in Resources */,
+				D30000000000000000001005 /* ../../fixtures/requests.cancel in Resources */,
+				D30000000000000000001004 /* ../../fixtures/requests.clarify in Resources */,
+				D30000000000000000001003 /* ../../fixtures/requests.get in Resources */,
+				D30000000000000000001002 /* ../../fixtures/requests.create in Resources */,
 				000000000000000000041007 /* ../../contracts/examples/health-response.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -362,6 +445,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D20000000000000000001005 /* Features/Requests/AskView.swift in Sources */,
+				D20000000000000000001006 /* Features/Requests/ProviderView.swift in Sources */,
+				D20000000000000000001004 /* Features/Requests/RequestLocationModel.swift in Sources */,
+				D20000000000000000001003 /* Features/Requests/RequestModel.swift in Sources */,
+				D20000000000000000001002 /* Features/Requests/RequestService.swift in Sources */,
+				D20000000000000000001001 /* Features/Requests/RequestModels.swift in Sources */,
 				000000000000000000041001 /* PlugApp.swift in Sources */,
 				000000000000000000041002 /* AppEnvironment.swift in Sources */,
 				000000000000000000041003 /* APIClient.swift in Sources */,
@@ -388,6 +477,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D30000000000000000001001 /* RequestTests.swift in Sources */,
 				000000000000000000041005 /* HealthResponseTests.swift in Sources */,
 				000000000000000000041009 /* APIClientTests.swift in Sources */,
 				A1000000000000000000E4 /* LiveBackendTests.swift in Sources */,
@@ -403,6 +493,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D40000000000000000000101 /* RequestScreenshotTests.swift in Sources */,
 				A1000000000000000000F8 /* SignInScreenshotTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -422,22 +513,44 @@
 		};
 /* End PBXTargetDependency section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-        B10000000000000000000005 = {isa = XCRemoteSwiftPackageReference; repositoryURL = "https://github.com/google/GoogleSignIn-iOS"; requirement = {kind = exactVersion; version = 9.2.0; }; };
-/* End XCRemoteSwiftPackageReference section */
-/* Begin XCSwiftPackageProductDependency section */
-        B10000000000000000000002 = {isa = XCSwiftPackageProductDependency; package = B10000000000000000000005; productName = GoogleSignIn; };
-        B10000000000000000000004 = {isa = XCSwiftPackageProductDependency; package = B10000000000000000000005; productName = GoogleSignInSwift; };
-/* End XCSwiftPackageProductDependency section */
 /* Begin XCBuildConfiguration section */
 		000000000000000000043065 /* Debug */ = {
 			isa = XCBuildConfiguration;
-            baseConfigurationReference = B10000000000000000000006;
+			baseConfigurationReference = B10000000000000000000006 /* Plug/Resources/Authentication.xcconfig */;
 			buildSettings = {
-                ONLY_ACTIVE_ARCH = YES;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_VERSION = 5.0;
 			};
@@ -445,11 +558,40 @@
 		};
 		000000000000000000043066 /* Release */ = {
 			isa = XCBuildConfiguration;
-            baseConfigurationReference = B10000000000000000000006;
+			baseConfigurationReference = B10000000000000000000006 /* Plug/Resources/Authentication.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
@@ -457,6 +599,8 @@
 		0000000000000000000430C9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = Plug/Resources/Plug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -467,8 +611,7 @@
 				INFOPLIST_FILE = "Plug/Resources/Debug-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-                PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
@@ -480,6 +623,8 @@
 		0000000000000000000430CA /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_ENTITLEMENTS = Plug/Resources/Plug.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -490,8 +635,7 @@
 				INFOPLIST_FILE = "Plug/Resources/Release-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				MARKETING_VERSION = 0.1.0;
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-                PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
+				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -503,6 +647,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				DEVELOPMENT_TEAM = W5A7U9W369;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.plug.app.tests;
@@ -516,6 +662,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				DEVELOPMENT_TEAM = W5A7U9W369;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.plug.app.tests;
@@ -528,6 +676,10 @@
 		A1000000000000000000FA /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = W5A7U9W369;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101.uitests;
@@ -540,6 +692,10 @@
 		A1000000000000000000FB /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = W5A7U9W369;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.abubakarsidiq01.plug.app101.uitests;
@@ -589,6 +745,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B10000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = exactVersion;
+				version = 9.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B10000000000000000000002 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B10000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		B10000000000000000000004 /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B10000000000000000000005 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 000000000000000000050001 /* Project object */;
 }

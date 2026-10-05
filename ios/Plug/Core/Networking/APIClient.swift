@@ -17,8 +17,6 @@ struct APIClient {
         return URLSession(configuration: configuration)
     }()
 
-    private static let maximumBytes = 16_384
-
     func health() async throws -> HealthCheck {
         let (http, data) = try await perform(try request(method: "GET", path: "health"), expectingBody: true)
         guard http.statusCode == 200 else { throw URLError(.badServerResponse) }
@@ -36,7 +34,7 @@ struct APIClient {
     /// A non-2xx becomes an APIError carrying the server's stable error code, because the
     /// screens branch on that code and never on the status alone.
     func send<Response: Decodable>(_ endpoint: Endpoint, as type: Response.Type) async throws -> Response {
-        let (http, data) = try await perform(try request(for: endpoint), expectingBody: true)
+        let (http, data) = try await perform(try request(for: endpoint), expectingBody: true, maximumBytes: endpoint.maximumResponseBytes)
         let requestID = correlationID(of: http)
         guard (200..<300).contains(http.statusCode) else {
             throw APIError(status: http.statusCode, body: data, requestID: requestID)
@@ -69,6 +67,7 @@ struct APIClient {
         if let accessToken = endpoint.accessToken {
             built.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         }
+        if let key = endpoint.idempotencyKey { built.setValue(key, forHTTPHeaderField: "Idempotency-Key") }
         return built
     }
 
@@ -85,7 +84,7 @@ struct APIClient {
 
     /// Bounds the download while it arrives. Checking Data.count after data(for:) has
     /// already buffered an arbitrarily large response is too late.
-    private func perform(_ request: URLRequest, expectingBody: Bool) async throws -> (HTTPURLResponse, Data) {
+    private func perform(_ request: URLRequest, expectingBody: Bool, maximumBytes: Int = 16_384) async throws -> (HTTPURLResponse, Data) {
         let (bytes, response) = try await session.bytes(for: request)
         defer { bytes.task.cancel() }
         guard let http = response as? HTTPURLResponse else { throw URLError(.badServerResponse) }
@@ -93,12 +92,12 @@ struct APIClient {
             return (http, Data())
         }
         guard Self.isJSON(http) else { throw URLError(.badServerResponse) }
-        guard response.expectedContentLength <= Int64(Self.maximumBytes) else {
+        guard response.expectedContentLength <= Int64(maximumBytes) else {
             throw URLError(.dataLengthExceedsMaximum)
         }
         var data = Data()
         for try await byte in bytes {
-            guard data.count < Self.maximumBytes else { throw URLError(.dataLengthExceedsMaximum) }
+            guard data.count < maximumBytes else { throw URLError(.dataLengthExceedsMaximum) }
             data.append(byte)
         }
         if expectingBody && data.isEmpty { throw URLError(.cannotParseResponse) }

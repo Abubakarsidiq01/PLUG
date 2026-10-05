@@ -1,0 +1,30 @@
+meta {
+  name: Cancel request
+  type: http
+  seq: 19
+}
+
+post {
+  url: {{baseUrl}}/v1/requests/{{p2Request}}/cancel
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{p2Owner}}
+}
+
+assert {
+  res.status: eq 200
+}
+
+script:post-response {
+  bru.setVar("p2CancelBody", JSON.stringify(res.getBody()));
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("canceled", function () { expect(res.getBody().status).to.deep.equal("canceled"); });  test("no next action", function () { expect(res.getBody().next_action).to.deep.equal("none"); });
+}

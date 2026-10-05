@@ -17,7 +17,15 @@
 | **Other lane** | `docs/phases/P2-TWO.md` |
 
 **Outcome this phase must reach**
-“Barber under $35 in 30 minutes” produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
+“I need to repair my shoe for $45 tomorrow, who is available?” — or “Barber under $35 in 30 minutes” — produces validated structured results with honest progress, at most one clarifying question, and no fabricated values anywhere.
+
+> **Redesigned to manual v4 ([ADR-010](../decisions/ADR-010-manual-v4-asks-skills-providers.md), 2026-10-02, proposed).**
+> One field takes two kinds of ask: a service request or a question about a public place.
+> Skills come only from `contracts/skills.yaml`; the restricted-intent policy is the only
+> refusal; any account can add provider skills. Design follows manual v4 §10 and Figures
+> A1–A3: ink on paper, no brand colour. Contract 0.5.0 supersedes the unmerged 0.4.0.
+> [ADR-009](../decisions/ADR-009-open-service-scope.md)'s Apple Maps listing and free-form
+> categories are withdrawn; its Claude extraction and budget rules stand.
 
 **Why it matters**
 This is where the product becomes itself. It is also where the temptation to let the model decide things is strongest, and where a single fabricated price would undermine the entire premise.
@@ -75,11 +83,15 @@ stop and open a contract pull request instead.
 
 ## 1. Environment
 
+Follow [the isolated Phase 2 runbook](../runbooks/phase2-local.md) to create
+`plug_phase2_tests` and `plug_phase2_live`. Automated database tests erase test data;
+never point them at the phone's live database.
+
 ```bash
-docker compose up -d postgres redis
-./gradlew :backend:flywayMigrate
-./gradlew :backend:bootRun          # http://localhost:8080
-open ios/PLUG.xcodeproj             # scheme: PLUG-Staging
+sh tools/run-phase2-local.sh      # loopback port 18080; migrations run at startup
+open ios/Plug.xcodeproj           # scheme: Plug
+# Or build/install using the private paired-device connection:
+sh tools/run-phase2-phone.sh
 ```
 
 If any of those commands fails on a clean machine, that is a bug in
@@ -89,6 +101,8 @@ documentation is part of the work.
 ---
 
 ## 2. Your steps
+
+Person One hardening and current verification: [2026-10-04 report](../testing/phase2-person-one-hardening-2026-10-04.md). Implementation checks pass locally; open boxes below also require the actual shared approvals and device evidence, so they are not a claim that the code is missing.
 
 Each line is one state token. Do them in order, update `PROJECT_STATE.json` as
 you go, and open one pull request per step or per small group of related steps.
@@ -102,6 +116,26 @@ you go, and open one pull request per step or per small group of related steps.
 - [ ] **P2.S7** — Return only structured, validated seeded offers. The app never fabricates price, availability, wait or confirmation.
 - [ ] **P2.S8** — Add request-creation rate limits, request-size limits and restricted-intent policy enforcement.
 - [ ] **P2.S9** — Build the SwiftUI Ask, clarification, progress, results and offer-detail screens from Figma, including the offline, no-match, parser-error and cached states.
+
+Manual v4 adds ten steps. Implemented and verified locally on 2026-10-02 behind
+`requests_v2`; every box stays open until contract 0.5.0 is approved by both engineers and
+G2 is signed. Evidence: `docs/testing/phase2-v4-verification-2026-10-02.md`.
+
+- [ ] **P2.S10** — Freeze the AskEnvelope: one endpoint accepts both kinds of ask. The server classifies into `service_request` or `place_question` and returns `ask_type`. *(Proposed in 0.5.0: `POST /v1/asks`, `GET /v1/asks/{ask_id}`, `POST /v1/asks/{ask_id}/clarifications`.)*
+- [ ] **P2.S11** — Classifier with strict structured output and a deterministic fallback. An unclassifiable ask returns one clarifying question, never a guess. *(`IntentAdapter`, `ClaudeIntentProvider`.)*
+- [ ] **P2.S12** — Extract skill tags against the controlled vocabulary; it grows by migration, never by model invention. *(`SkillVocabulary`, V6 seeds `skill_vocabulary`; startup fails if it disagrees with `skills.yaml`.)*
+- [ ] **P2.S13** — Remove every remaining category allow-list. Scope is any lawful service and any public place.
+- [ ] **P2.S14** — Restricted-intent policy as the only block, stricter because scope is open. Runs before any model call; refusals are audited. *(`RestrictedIntentPolicy`.)*
+- [ ] **P2.S15** — `POST /v1/providers/skills`: a normal user adds skills, radius and availability to the same account. *(`ProviderService`; also `/propose` and `/me`.)*
+- [ ] **P2.S16** — `provider_profiles`, `provider_skills`, `skill_vocabulary`, `provider_availability` migrations. *(V6, with `provider_scores`, `request_matches`, `asks`, `place_questions`, `vocabulary_gaps`.)*
+- [ ] **P2.S17** — Matching: skill overlap, inside the provider's own radius, inside their availability; ranked per §19A; fanout 6, cap 16; never the asker. *(`MatchService`.)*
+- [ ] **P2.S18** — SwiftUI Ask screen: both ask types in one field, grouped examples, the four answer states of Figure A1. *(`AskView.swift`.)*
+- [ ] **P2.S19** — Provider onboarding in SwiftUI: plain words in, editable tag chips out, radius and availability. *(`ProviderView.swift`, Inbox tab once a profile exists.)*
+- [ ] **P2.S20** — *(Amendment, 2026-10-02.)* The answer is its own page: system back and a left-edge swipe return to Ask; a request still asking people survives going back and can be reopened or stopped. *(`AskView.swift`; UI walk swipes back from an offer and from a running request.)*
+- [ ] **P2.S21** — *(Amendment, 2026-10-02, owner-authorized, built with Codex.)* Optional business profile on provider setup: name, description, one JPEG thumbnail (≤ 48 KiB, ≤ 512 px, re-encoded without metadata) and up to five `https://` links, opened only on a tap; shown on offers only through an explicit `provider_id`. *(`BusinessProfiles`, V7, contract 0.5.0 amendment.)*
+- [ ] **P2.S22** — *(Amendment, 2026-10-02, owner decision, [ADR-011](../decisions/ADR-011-provider-described-skills.md).)* Vocabulary grows to 115 tags; a provider may keep up to five skills in their own words, and an ask naming no listed skill finds them by keywords (one-word skills need that word, longer ones two). Listed skills always win; the policy and the licence rule cannot be bypassed. *(`CustomSkills`, V8, own-skill chips in `ProviderView.swift`.)*
+- [ ] **P2.S23–S26** — *(Amendments, 3–4 October 2026.)* Direct skill entry; the marketplace design and bottom navigation (ADR-012); admission-before-classification hardening and the no-coverage invitation; the full state walkthrough passing on a physical iPhone with the navigation fixes it exposed (`docs/testing/phase2-device-evidence-2026-10-04.md`).
+- [ ] **P2.S27** — *(Amendment, 5 October 2026.)* Staff inspection read API for P2-TWO.S12: `GET /v1/admin/skills`, `/skills/gaps`, `/classifications`, `/refusals` — admin scope plus second factor, no-store, audited, no ask text or identities (`AdminInspection`, `AdminInspectionTest`). Automated accessibility audit of six main screens (`testAccessibilityAudit`, `evidence/P2/a11y/`). Contract 0.5.0 approved by the owner; frozen when Person Two approves and merges.
 
 ---
 
@@ -126,14 +160,20 @@ verbal description.
 - [ ] Race and cancellation tests: cancelling mid-flight is safe and idempotent.
 - [ ] Model-provider failure test: a timeout or invalid schema produces the deterministic fallback, not a 500.
 - [ ] Restricted-intent test: a prohibited request creates no outreach and writes an audit event.
+- [ ] Open-service test: any lawful service (e.g. shoe repair) maps onto vocabulary tags, and model output that fails validation or invents a tag falls back to the rules.
+- [ ] Classification tests: service asks, place questions, unclear asks (one question) and refused asks, including private places.
+- [ ] Provider tests: licence required, invented tag refused, same `user_id`, never matched to their own ask, `new` score never 0.
 
 Verify with:
 
 ```bash
-./gradlew :backend:test :backend:contractTest
-./gradlew :backend:test --tests '*ArchitectureTest'
-xcodebuild test -scheme PLUG-Staging -destination 'platform=iOS Simulator,name=iPhone 15'
-# Then, on a REAL device, run this phase's primary flow before claiming it works.
+./backend/dev check contractTest
+# With the isolated database variables from the runbook:
+./backend/dev databaseTest
+xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+# Capture real-device states using tools/run-phase2-device-evidence.sh and record
+# the separate VoiceOver walkthrough before claiming the device gate has passed.
 ```
 
 ---
@@ -153,7 +193,10 @@ xcodebuild test -scheme PLUG-Staging -destination 'platform=iOS Simulator,name=i
 
 - [ ] A supported request produces validated structured offers on a real device.
 - [ ] Progress counts are real and visibly change as the server works.
-- [ ] An unsupported category fails closed with a clear message.
+- [ ] A service with no participating supplier ends `no_coverage` honestly — never invented prices or availability.
+- [ ] A place question nobody nearby can answer shows Unknown with real counts; a web answer, if any, is dashed and Not verified.
+- [ ] A person can offer a service from the same account and sees the Inbox tab.
+- [ ] The §16.8 design gate passes on every screen built in this phase.
 - [ ] A provider failure degrades to the deterministic path without an error screen.
 - [ ] `PROJECT_STATE.json` carries a signed `G2` entry.
 
@@ -169,6 +212,14 @@ Store everything under `evidence/P2/`:
 - [ ] `a11y/` — VoiceOver walkthrough of the primary flow
 - [ ] `logs/` — the request ID from the connected checkpoint, in the backend log
 - [ ] The correlation ID from the connected checkpoint, quoted in the tracker
+
+---
+
+## 7a. Design gate (§16.8)
+
+Run on every screen built in this phase before G2. The 2026-10-02 run is recorded in
+`docs/testing/phase2-v4-verification-2026-10-02.md`; the physical-device and greyscale
+review by a second person is still required.
 
 ---
 

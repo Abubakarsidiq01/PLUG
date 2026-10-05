@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "Choose one of the offered options.",
+    "request_id": "req_95d67750-4f78-4a85-9c79-53aa9c811c7b",
+    "details": [
+      {
+        "field": "value",
+        "code": "not_an_option",
+        "message": "Choose one of the offered options."
+      }
+    ]
+  }
+}

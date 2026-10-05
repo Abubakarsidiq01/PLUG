@@ -1,0 +1,32 @@
+{
+  "skills": [
+    {
+      "tag": "barber",
+      "display": "Barber",
+      "parent": "hair",
+      "requires_licence": false,
+      "provider_count": 3
+    },
+    {
+      "tag": "electrical",
+      "display": "Electrical work",
+      "parent": "home",
+      "requires_licence": true,
+      "provider_count": 1
+    },
+    {
+      "tag": "tutoring",
+      "display": "Tutoring",
+      "parent": "lessons",
+      "requires_licence": false,
+      "provider_count": 0
+    }
+  ],
+  "custom_skills": [
+    {
+      "tag": "custom_chimney_sweep",
+      "label": "Chimney sweeping",
+      "provider_count": 2
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Replay answer
+  type: http
+  seq: 16
+}
+
+post {
+  url: {{baseUrl}}/v1/requests/{{p2Draft}}/clarifications
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Owner}}
+  Idempotency-Key: {{p2Run}}-answer
+}
+
+body:json {
+  {"clarification_id":"{{p2Clarification}}","value":"barber"}
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("same canonical response", function () { expect(res.getBody()).to.deep.equal(JSON.parse(bru.getVar("p2AnswerBody"))); });
+}

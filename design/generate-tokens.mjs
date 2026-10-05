@@ -8,6 +8,13 @@ import { dirname, join } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const tokens = JSON.parse(readFileSync(join(here, "tokens.json"), "utf8"));
+// Transitional v3 names for frozen Phase 0/1 code (manual v4 §10). Each resolves to a v4 token.
+const aliases = JSON.parse(readFileSync(join(here, "token-aliases.json"), "utf8"));
+// A colour group is either one value ("paper") or a scale ("ink": {"900": ...}).
+const colorEntries = () => Object.entries(tokens.color).flatMap(([group, scale]) =>
+  typeof scale === "string" ? [[[group], scale]] : Object.entries(scale).map(([step, value]) => [[group, step], value]));
+const typeEntries = () => Object.entries(tokens.type).filter(([name]) => name !== "family");
+const camel = (parts) => kebab(...parts).replace(/-([a-zA-Z0-9])/g, (_, c) => c.toUpperCase());
 const outDir = join(here, "generated");
 mkdirSync(outDir, { recursive: true });
 
@@ -26,10 +33,8 @@ const cssLines = [
   ":root {",
 ];
 
-for (const [group, scale] of Object.entries(tokens.color)) {
-  for (const [step, value] of Object.entries(scale)) {
-    cssLines.push(`  --color-${kebab(group, step)}: ${value};`);
-  }
+for (const [parts, value] of colorEntries()) {
+  cssLines.push(`  --color-${kebab(...parts)}: ${value};`);
 }
 for (const [step, value] of Object.entries(tokens.space)) {
   cssLines.push(`  --space-${step}: ${value}px;`);
@@ -37,7 +42,9 @@ for (const [step, value] of Object.entries(tokens.space)) {
 for (const [step, value] of Object.entries(tokens.radius)) {
   cssLines.push(`  --radius-${step}: ${value}px;`);
 }
-for (const [name, scale] of Object.entries(tokens.type)) {
+cssLines.push(`  --font-sans: ${tokens.type.family.web};`);
+cssLines.push(`  --font-mono: ${tokens.type.family.mono};`);
+for (const [name, scale] of typeEntries()) {
   cssLines.push(`  --type-${name}-size: ${scale.size}px;`);
   cssLines.push(`  --type-${name}-line: ${scale.line}px;`);
   cssLines.push(`  --type-${name}-weight: ${scale.weight};`);
@@ -50,6 +57,13 @@ cssLines.push(`  --motion-easing: ${tokens.motion.easing};`);
 cssLines.push(`  --elevation-flat: ${resolveRef(tokens.elevation.flat)};`);
 cssLines.push(`  --elevation-raised: ${tokens.elevation.raised};`);
 cssLines.push(`  --target-min-touch: ${tokens.target.minTouch}px;`);
+cssLines.push("  /* Transitional v3 aliases for frozen phases (design/token-aliases.json). */");
+for (const [name, ref] of Object.entries(aliases.color)) {
+  cssLines.push(`  --color-${name.replace(/([A-Z])/g, "-$1").replace(/([a-z])([0-9])/g, "$1-$2").toLowerCase()}: var(--color-${ref.split(".").join("-")});`);
+}
+for (const [name, ref] of Object.entries(aliases.radius)) {
+  cssLines.push(`  --radius-${name}: var(--radius-${ref});`);
+}
 cssLines.push("}");
 writeFileSync(join(outDir, "tokens.css"), cssLines.join("\n") + "\n");
 
@@ -70,11 +84,12 @@ const swiftLines = [
   "enum PlugTokens {",
   "    enum Color {",
 ];
-for (const [group, scale] of Object.entries(tokens.color)) {
-  for (const [step, value] of Object.entries(scale)) {
-    const name = kebab(group, step).replace(/-([a-zA-Z0-9])/g, (_, c) => c.toUpperCase());
-    swiftLines.push(`        static let ${name} = ${swiftColorHex(value)}`);
-  }
+for (const [parts, value] of colorEntries()) {
+  swiftLines.push(`        static let ${camel(parts)} = ${swiftColorHex(value)}`);
+}
+swiftLines.push("        // Transitional v3 names for frozen Phase 0/1 code (design/token-aliases.json).");
+for (const [name, ref] of Object.entries(aliases.color)) {
+  swiftLines.push(`        static let ${name} = ${camel(ref.split("."))}`);
 }
 swiftLines.push("    }");
 swiftLines.push("    enum Space {");
@@ -86,9 +101,12 @@ swiftLines.push("    enum Radius {");
 for (const [step, value] of Object.entries(tokens.radius)) {
   swiftLines.push(`        static let ${step}: CGFloat = ${value}`);
 }
+for (const [name, ref] of Object.entries(aliases.radius)) {
+  swiftLines.push(`        static let ${name}: CGFloat = ${ref}`);
+}
 swiftLines.push("    }");
 swiftLines.push("    enum TypeSize {");
-for (const [name, value] of Object.entries(tokens.type)) {
+for (const [name, value] of typeEntries()) {
   swiftLines.push(`        static let ${name}: CGFloat = ${value.size}`);
 }
 swiftLines.push("    }");

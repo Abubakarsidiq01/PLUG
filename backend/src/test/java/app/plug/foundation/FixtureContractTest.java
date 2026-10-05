@@ -25,7 +25,21 @@ class FixtureContractTest {
     // The schema of the successful body for each operation folder. Error files are
     // recognised by their envelope and always checked against Error.
     private static final Map<String, String> SUCCESS_SCHEMA = Map.ofEntries(
-            Map.entry("requests.create", "RequestResponse"),
+            Map.entry("requests.create", "RequestResource"),
+            Map.entry("requests.get", "RequestResource"),
+            Map.entry("requests.clarify", "RequestResource"),
+            Map.entry("requests.cancel", "RequestResource"),
+            Map.entry("requests.offers", "OfferList"),
+            Map.entry("asks.create", "AskResult"),
+            Map.entry("asks.get", "AskResult"),
+            Map.entry("asks.clarify", "AskResult"),
+            Map.entry("providers.propose", "SkillProposal"),
+            Map.entry("providers.skills", "ProviderProfile"),
+            Map.entry("providers.me", "ProviderProfile"),
+            Map.entry("admin.skills", "AdminSkillVocabulary"),
+            Map.entry("admin.gaps", "AdminVocabularyGapPage"),
+            Map.entry("admin.classifications", "AdminClassificationPage"),
+            Map.entry("admin.refusals", "AdminRefusalPage"),
             Map.entry("auth.apple", "Session"),
             Map.entry("auth.google", "Session"),
             Map.entry("auth.guest", "Session"),
@@ -48,6 +62,9 @@ class FixtureContractTest {
             JsonNode body = JSON.readTree(file.toFile());
             String schema = body.has("error") ? "Error" : SUCCESS_SCHEMA.get(operation);
             assertNotNull(schema, "no schema mapped for fixture folder " + operation);
+            if (isPhaseZeroStubFixture(operation, body)) {
+                schema = "Phase0RequestResponse";
+            }
             ContractSchemas.validate(schema, body);
         }
     }
@@ -81,6 +98,14 @@ class FixtureContractTest {
                 assertFalse(declaresIdempotencyKey(paths.get(route)), route + " promises an unimplemented replay");
             }
         });
+    }
+
+    // Contract 0.3.0 replaced the Phase 0 stub, but Person Two's requests.create fixtures
+    // are rewritten in the fixture pull request (manual.docx §7.2). Until then the old success
+    // body is recognised by its RECEIVED status and held to the deprecated stub schema;
+    // remove this with Phase0RequestResponse.
+    private static boolean isPhaseZeroStubFixture(String operation, JsonNode body) {
+        return operation.equals("requests.create") && "RECEIVED".equals(body.path("status").asText());
     }
 
     private static boolean declaresIdempotencyKey(JsonNode pathItem) {
