@@ -488,8 +488,20 @@ struct ProviderOnboardingView: View {
             case .evenings: return "Evenings, 5 to 9"
             }
         }
-        var from: String { ["mornings": "08:00", "afternoons": "12:00", "evenings": "17:00"][rawValue]! }
-        var to: String { ["mornings": "12:00", "afternoons": "17:00", "evenings": "21:00"][rawValue]! }
+        var from: String {
+            switch self {
+            case .mornings: return "08:00"
+            case .afternoons: return "12:00"
+            case .evenings: return "17:00"
+            }
+        }
+        var to: String {
+            switch self {
+            case .mornings: return "12:00"
+            case .afternoons: return "17:00"
+            case .evenings: return "21:00"
+            }
+        }
     }
 }
 
@@ -593,7 +605,6 @@ extension AvailabilityWindow {
         return parts[1] == 0 ? date.formatted(.dateTime.hour()) : date.formatted(.dateTime.hour().minute())
     }
 }
-
 
 private struct BusinessLinkDraft: Identifiable {
     let id = UUID()

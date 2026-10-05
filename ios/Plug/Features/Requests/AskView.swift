@@ -1066,7 +1066,6 @@ final class VoiceDictation: ObservableObject {
     }
 }
 
-
 /// A quiet monogram when a business has chosen not to share a photo.
 struct BusinessPortrait: View {
     let name: String
@@ -1154,7 +1153,6 @@ struct BusinessLinks: View {
         }
     }
 }
-
 
 /// Secondary actions read as actions, without another competing filled or outlined box.
 struct RequestTextActionStyle: ButtonStyle {

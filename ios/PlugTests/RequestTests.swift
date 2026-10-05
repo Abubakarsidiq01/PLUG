@@ -371,7 +371,7 @@ final class RequestTests: XCTestCase {
         json["offers"] = (0..<20).map { index -> [String: Any] in
             var offer = original
             offer["offer_id"] = "off_\(index)"
-            var place = offer["place"] as! [String: Any]
+            var place = (offer["place"] as? [String: Any]) ?? [:]
             place["address"] = String(repeating: "A", count: 200)
             place["name"] = String(repeating: "B", count: 120)
             offer["place"] = place

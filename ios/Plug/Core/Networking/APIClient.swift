@@ -17,7 +17,6 @@ struct APIClient {
         return URLSession(configuration: configuration)
     }()
 
-
     func health() async throws -> HealthCheck {
         let (http, data) = try await perform(try request(method: "GET", path: "health"), expectingBody: true)
         guard http.statusCode == 200 else { throw URLError(.badServerResponse) }
