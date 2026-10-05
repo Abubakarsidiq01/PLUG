@@ -24,6 +24,26 @@ fi
 if [ -n "${ANTHROPIC_API_KEY:-}" ]; then echo 'Intent extraction: Claude (rules on any failure).'
 else echo 'Intent extraction: built-in rules (set ANTHROPIC_API_KEY in secrets/anthropic.env for Claude).'; fi
 
+# ADR-013 staff accounts. secrets/staff.env may set PLUG_STAFF_OWNER_EMAIL (the first owner,
+# invited once while no staff account exists) and, for real email, RESEND_API_KEY and
+# PLUG_STAFF_MAIL_FROM. Only those three lines are read. Without a Resend key, staff mail goes
+# to the owner-only file backend/build/development-staff-mail.txt on this machine.
+for plug_staff_var in PLUG_STAFF_OWNER_EMAIL RESEND_API_KEY PLUG_STAFF_MAIL_FROM; do
+    eval "plug_staff_current=\${$plug_staff_var:-}"
+    if [ -z "$plug_staff_current" ] && [ -f secrets/staff.env ]; then
+        plug_staff_value=$(sed -n "s/^$plug_staff_var=//p" secrets/staff.env | tail -n 1 | sed -e 's/^["'"'"']//' -e 's/["'"'"']$//')
+        if [ -n "$plug_staff_value" ]; then export "$plug_staff_var=$plug_staff_value"; fi
+    fi
+done
+if [ -n "${RESEND_API_KEY:-}" ]; then
+    export PLUG_STAFF_MAIL_DELIVERY=resend
+    echo 'Staff email: Resend.'
+else
+    export PLUG_STAFF_MAIL_DELIVERY=development
+    export PLUG_STAFF_DEVELOPMENT_MAIL_FILE="$PWD/backend/build/development-staff-mail.txt"
+    echo "Staff email: local file $PLUG_STAFF_DEVELOPMENT_MAIL_FILE (set RESEND_API_KEY in secrets/staff.env for real email)."
+fi
+
 case "$PLUG_DATABASE_URL" in
     jdbc:postgresql://127.0.0.1:*/plug_phase2_live) ;;
     *) echo 'This launcher requires a loopback plug_phase2_live database, separate from automated test resets.' >&2; exit 1 ;;

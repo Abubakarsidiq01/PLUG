@@ -47,6 +47,7 @@ abstract class IdentityTestSupport {
     @Autowired MockMvc mvc;
     @Autowired JdbcTemplate jdbc;
     @Autowired RecordingPhoneCodeSender codes;
+    @Autowired RecordingStaffMailer mail;
 
     final ObjectMapper json = new ObjectMapper();
     private String callerAddress;
@@ -61,6 +62,37 @@ abstract class IdentityTestSupport {
         jdbc.execute("TRUNCATE sessions, identities, consents, phone_challenges, apple_token_uses, google_token_uses,"
                 + " audit_events, users RESTART IDENTITY CASCADE");
         codes.clear();
+        mail.clear();
+    }
+
+    // Stands in for Resend: keeps each staff email in memory so a test can read the code
+    // or invitation the person would have received.
+    static final class RecordingStaffMailer implements StaffMailer {
+        record Message(String to, String subject, String text) {}
+
+        private final List<Message> sent = new ArrayList<>();
+
+        @Override
+        public void send(String to, String subject, String text) {
+            sent.add(new Message(to, subject, text));
+        }
+
+        @Override
+        public boolean isAvailable() {
+            return true;
+        }
+
+        Message latest() {
+            return sent.get(sent.size() - 1);
+        }
+
+        int count() {
+            return sent.size();
+        }
+
+        void clear() {
+            sent.clear();
+        }
     }
 
     // Stands in for the messaging provider Phase 3 will connect, so the verification path
@@ -97,6 +129,12 @@ abstract class IdentityTestSupport {
         @Primary
         RecordingPhoneCodeSender recordingPhoneCodeSender() {
             return new RecordingPhoneCodeSender();
+        }
+
+        @Bean
+        @Primary
+        RecordingStaffMailer recordingStaffMailer() {
+            return new RecordingStaffMailer();
         }
     }
 

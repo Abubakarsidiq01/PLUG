@@ -63,7 +63,7 @@ cp backend/build/libs/plug-api-0.0.1-SNAPSHOT.jar "$jar"
 java=$(ls -d .tools/jdk-*/Contents/Home/bin/java 2>/dev/null | head -n 1)
 [ -n "$java" ] || java=$(command -v java)
 # No ANTHROPIC_API_KEY: the labelled dataset asserts the deterministic rules, reproducibly.
-ANTHROPIC_API_KEY= PLUG_ENVIRONMENT=local PLUG_BIND_ADDRESS=127.0.0.1 PLUG_REQUESTS_V2_ENABLED=true PLUG_IDENTITY_PHONE_DELIVERY=none \
+ANTHROPIC_API_KEY= PLUG_ENVIRONMENT=local PLUG_BIND_ADDRESS=127.0.0.1 PLUG_REQUESTS_V2_ENABLED=true PLUG_IDENTITY_PHONE_DELIVERY=none PLUG_STAFF_MAIL_DELIVERY=none \
     PLUG_DATABASE_URL="jdbc:postgresql://127.0.0.1:55433/$live_db" PLUG_DATABASE_USER=plug \
     PLUG_DATABASE_PASSWORD="$password" PLUG_IDENTITY_PEPPER="$pepper" \
     "$java" -jar "$jar" --spring.profiles.active=db --server.port="$live_port" >"$work/live-backend.log" 2>&1 &

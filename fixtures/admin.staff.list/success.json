@@ -1,0 +1,25 @@
+{
+  "staff": [
+    {
+      "user_id": "usr_7d3c1f52-0b8e-4c6a-9f61-2a4b8e0c9d11",
+      "email": "owner@example.com",
+      "role": "owner",
+      "status": "active",
+      "created_at": "2026-10-05T14:02:11Z"
+    },
+    {
+      "user_id": "usr_c0a94e7b-5d21-4f3e-8b6c-91e2f4a7d530",
+      "email": "partner@example.com",
+      "role": "staff",
+      "status": "active",
+      "created_at": "2026-10-05T14:20:45Z"
+    },
+    {
+      "user_id": "usr_4e8b2a90-63f1-4d7c-a5e2-0c9d1b7f3a64",
+      "email": "former@example.com",
+      "role": "staff",
+      "status": "disabled",
+      "created_at": "2026-10-05T15:01:09Z"
+    }
+  ]
+}

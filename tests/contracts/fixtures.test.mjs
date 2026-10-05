@@ -23,6 +23,9 @@ test('every request fixture is registered exactly once and every documented resp
     for (const method of ['get', 'post']) {
       if (!item[method]) continue;
       for (const status of Object.keys(item[method].responses)) {
+        // A bodyless response (204) has nothing to fixture.
+        const response = item[method].responses[status];
+        if (!response.$ref && !response.content) continue;
         assert.ok(rows.some(row => row.path === path && row.method === method && String(row.status) === status),
           `Missing coverage: ${method} ${path} ${status}`);
       }
@@ -41,7 +44,7 @@ for (const row of rows) {
     if (schema === 'Error') {
       const codes = { 400: 'validation_failed', 401: 'unauthenticated', 403: 'forbidden',
         404: 'not_found', 409: 'conflict', 413: 'validation_failed', 415: 'validation_failed',
-        422: 'restricted_intent', 429: 'rate_limited', 500: 'internal_error' };
+        422: 'restricted_intent', 429: 'rate_limited', 500: 'internal_error', 503: 'dependency_unavailable' };
       assert.equal(body.error.code, codes[row.status], 'Wrong error for HTTP status');
       assert.equal(body.error.code, row.error_code);
       if (row.details) assert.deepEqual(body.error.details, row.details);

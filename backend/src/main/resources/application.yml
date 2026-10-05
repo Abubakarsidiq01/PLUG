@@ -56,6 +56,16 @@ plug:
     auth-token: ${PLUG_SMS_AUTH_TOKEN:}
     messaging-service-sid: ${PLUG_SMS_MESSAGING_SERVICE_SID:}
     from-number: ${PLUG_SMS_FROM_NUMBER:}
+  staff:
+    # Staff accounts (ADR-013). none refuses staff sign-in with dependency_unavailable;
+    # development writes mail to build/development-staff-mail.txt on a local machine only;
+    # resend sends real email with the key from secret storage.
+    mail-delivery: ${PLUG_STAFF_MAIL_DELIVERY:none}
+    resend-api-key: ${RESEND_API_KEY:}
+    mail-from: ${PLUG_STAFF_MAIL_FROM:}
+    console-url: ${PLUG_STAFF_CONSOLE_URL:http://localhost:5173}
+    # The first owner's email. Used once, while no staff account exists.
+    owner-email: ${PLUG_STAFF_OWNER_EMAIL:}
   identity:
     # Off by default. The module needs a database, and turning it on is what the db and
     # staging profiles do. With it off the auth routes are not registered at all, which is

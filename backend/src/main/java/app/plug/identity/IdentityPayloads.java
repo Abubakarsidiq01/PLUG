@@ -36,7 +36,11 @@ final class IdentityPayloads {
         }
     }
 
-    record ConsentResponse(String currentVersion, String acceptedVersion, Instant acceptedAt) {
+    // accepted_version is required and nullable in the contract: a staff account never
+    // accepts the customer terms, so it must be written as null rather than left out.
+    record ConsentResponse(String currentVersion,
+            @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.ALWAYS)
+            String acceptedVersion, Instant acceptedAt) {
         static ConsentResponse from(AccountService.ConsentState state) {
             return new ConsentResponse(state.currentVersion(), state.acceptedVersion(), state.acceptedAt());
         }

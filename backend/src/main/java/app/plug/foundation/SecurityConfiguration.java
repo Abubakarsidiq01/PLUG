@@ -64,6 +64,10 @@ public class SecurityConfiguration {
         }
         auth.requestMatchers(HttpMethod.POST, "/v1/auth/apple", "/v1/auth/google", "/v1/auth/phone/start", "/v1/auth/phone/verify",
                         "/v1/auth/guest", "/v1/auth/refresh").permitAll()
+                // Staff sign-in (ADR-013): reachable without a session, limited per email,
+                // address and challenge. The session it issues is the only way into /v1/admin.
+                .requestMatchers(HttpMethod.POST, "/v1/staff/login", "/v1/staff/login/verify", "/v1/staff/invites/accept")
+                    .permitAll()
                 .requestMatchers(HttpMethod.POST, "/v1/auth/logout", "/v1/me/consent").authenticated()
                 .requestMatchers(HttpMethod.GET, "/v1/me").authenticated()
                 // Listing and remotely revoking sessions is an account-security capability.

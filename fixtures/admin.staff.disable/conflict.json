@@ -1,0 +1,7 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "You cannot disable your own account. Ask another owner.",
+    "request_id": "req_01H8XK4Q7N"
+  }
+}
