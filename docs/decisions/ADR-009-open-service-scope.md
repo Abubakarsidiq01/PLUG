@@ -20,7 +20,7 @@ extracts the service, budget, time and place and answers with results that match
    policy (illegal goods and services, stalking, private-person tracking, fraud,
    weapons, cyber abuse) still refuses with 422, creates nothing and writes an audit event.
 2. **Claude extracts structure.** The intent adapter calls the Claude API (official Java
-   SDK, model `claude-opus-5-5` by default, low effort, strict JSON schema, 6-second
+   SDK, model `claude-sonnet-5-5` by default (`PLUG_ANTHROPIC_MODEL`), low effort, strict JSON schema, 6-second
    deadline). Its output is untrusted input: schema- and range-checked before use, never
    allowed to set status, offers, prices or truth labels. Explicit client fields win; then
    unambiguous rule-based parses (dollar amounts, relative times); then Claude. A timeout,
@@ -47,3 +47,11 @@ extracts the service, budget, time and place and answers with results that match
   businesses that have not consented (§2.1 Supplier contact is unchanged).
 - The labelled dataset, fixtures, Bruno, live suite and UI tests drop unsupported-category
   expectations and cover open services instead.
+
+### Model choice — 2026-10-05
+
+First live-key run: `claude-opus-5-5` sometimes took over 6 seconds on these asks (2.1–6.2 s
+across four), so the rules answered instead. `claude-sonnet-5-5` gave the same answers on the
+same four asks (place name, own-words label, weekend deadline, budget, tags) in 1.4–3.5 s;
+`claude-haiku-4-5` was as quick but misread "this weekend" and missed a listed tag. The default
+is now `claude-sonnet-5-5`; `PLUG_ANTHROPIC_MODEL` overrides it without a code change.

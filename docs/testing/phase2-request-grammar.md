@@ -7,7 +7,7 @@ canonical implementation. Clients send the person's text and display the returne
 constraints, question, status and `next_action`. QA must never add a second parser
 in the app, web console or Bruno collection.
 
-When `ANTHROPIC_API_KEY` is set, the provider is Claude (`claude-opus-5-5`, low
+When `ANTHROPIC_API_KEY` is set, the provider is Claude (`claude-sonnet-5-5`, low
 effort, strict JSON schema). Without a key the rules below do all the extraction.
 Provider output is untrusted: it must validate before use and cannot supply offers,
 prices, truth labels or state. Stated money, times and distances parsed by the rules

@@ -49,7 +49,7 @@ plug:
     enabled: ${PLUG_REQUESTS_V2_ENABLED:false}
     # Intent extraction (ADR-009). Empty key: the built-in rules extract everything.
     anthropic-api-key: ${ANTHROPIC_API_KEY:}
-    anthropic-model: ${PLUG_ANTHROPIC_MODEL:claude-opus-5-5}
+    anthropic-model: ${PLUG_ANTHROPIC_MODEL:claude-sonnet-5-5}
     intent-timeout: ${PLUG_INTENT_TIMEOUT:6s}
   sms:
     account-sid: ${PLUG_SMS_ACCOUNT_SID:}
