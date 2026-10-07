@@ -81,7 +81,10 @@ public final class SkillVocabulary {
             Map.entry("replacement", "replace|replaces|replacing"),
             Map.entry("lessons", "teach|teaches|teaching"),
             Map.entry("install", "install|installs|installing"));
-    private static final String DETERMINER = "(?:(?:my|a|an|the|your|their|his|her|our|people's|peoples|someone's|customers')\\s+)?";
+    // "my", or "my mom's", and a size where things have one: "clean my mom's house", "mount a
+    // 55 inch TV". Nothing here can name a skill, so it never changes which skill matches.
+    private static final String DETERMINER = "(?:(?:my|a|an|the|your|their|his|her|our|people's|peoples|someone's|customers')\\s+)?"
+            + "(?:[\\p{L}]+'s\\s+)?(?:\\d{1,3}(?:\\s*-?\\s*(?:inch|in|\")|\")\\s+)?";
 
     public Skill get(String tag) { return byTag.get(tag); }
     public boolean contains(String tag) { return tag != null && byTag.containsKey(tag); }

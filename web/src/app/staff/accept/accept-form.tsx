@@ -8,12 +8,17 @@ const initial: AcceptState = { error: null };
 export function AcceptForm() {
   const [state, formAction, pending] = useActionState(acceptInvite, initial);
   const invite = useRef<HTMLInputElement>(null);
+  const token = useRef<string | null>(null);
 
   // The emailed link carries the invitation after the #, which browsers never send to a
-  // server. Copy it into the field, again after a failed attempt clears the form.
+  // server. Keep it here, take it out of the address bar and history, and copy it into the
+  // field, again after a failed attempt clears the form.
   useEffect(() => {
-    const token = new URLSearchParams(window.location.hash.slice(1)).get("token");
-    if (token && invite.current && invite.current.value === "") invite.current.value = token;
+    if (token.current === null) {
+      token.current = new URLSearchParams(window.location.hash.slice(1)).get("token") ?? "";
+      if (window.location.hash) window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+    if (token.current && invite.current && invite.current.value === "") invite.current.value = token.current;
   }, [state]);
 
   return (

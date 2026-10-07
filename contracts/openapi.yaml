@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.6.0
+  version: 0.6.1
   description: >
     Phase 0, Phase 1 and Phase 2 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
@@ -1255,9 +1255,12 @@ components:
         client may only send vocabulary tags; anything else is 400 with code unknown_skill.
         A custom_ tag appears only on a request created from the person's own words (0.6.0):
         either matched by keywords to a skill providers described in their own words, or, when
-        a clear service ask names nothing listed and nothing offered, the service in the
-        asker's words (service_name holds those words). Matching then reaches providers whose
-        own words share its keywords. Display service_name; never parse the tag.
+        a clear service ask names nothing listed and nothing offered and the model read it as a
+        lawful service (0.6.1), the service as the model named it in the asker's words
+        (service_name). Without a model reading the ask the person gets the one question
+        instead. A name that matches a listed skill becomes that skill, licence rule included.
+        Matching reaches providers whose own words share the keywords of service_name and the
+        ask. Display service_name; never parse the tag.
     Currency:
       type: string
       pattern: '^[A-Z]{3}$'

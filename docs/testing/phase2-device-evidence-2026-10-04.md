@@ -49,3 +49,13 @@ instead of Select All, which is unreliable at accessibility sizes.
 VoiceOver walkthrough on the device, an independent design and greyscale review, Person Two's
 contract approval and Windows run, the admin vocabulary view, and the joint staging checkpoint
 with both signatures.
+
+## Privacy correction, 7 October 2026
+
+Person Two's review found notification banners from the capture phone, showing chat and
+people's names, in five largest-text captures: `device-p2-empty-offer-gap-largest.png`,
+`device-p2-place-web-largest.png`, `device-p2-progress-largest.png`,
+`device-p2-restricted-largest.png` and `device-p2-resume-largest.png`, and their `greyscale/`
+copies. The top band of each (above the page content) is now covered and labelled
+"Notification hidden for privacy"; nothing below it changed. The originals remain in earlier
+commits of the repository's history. Next device capture: turn on Do Not Disturb first.

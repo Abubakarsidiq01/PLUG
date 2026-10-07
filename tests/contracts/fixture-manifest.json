@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.6.0",
+  "contract_version": "0.6.1",
   "status": "proposed",
   "clock": "2026-10-01T20:00:10Z",
   "responses": [
@@ -1205,6 +1205,125 @@
       "path": "/v1/admin/staff/{user_id}/disable",
       "status": 500,
       "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/staff.login/success.json",
+      "method": "post",
+      "path": "/v1/staff/login",
+      "status": 202
+    },
+    {
+      "file": "fixtures/staff.login/validation-error.json",
+      "method": "post",
+      "path": "/v1/staff/login",
+      "status": 400,
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "email",
+          "code": "invalid"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/staff.login/rate-limited.json",
+      "method": "post",
+      "path": "/v1/staff/login",
+      "status": 429,
+      "error_code": "rate_limited"
+    },
+    {
+      "file": "fixtures/staff.login/unavailable.json",
+      "method": "post",
+      "path": "/v1/staff/login",
+      "status": 503,
+      "error_code": "dependency_unavailable"
+    },
+    {
+      "file": "fixtures/staff.login/transient-error.json",
+      "method": "post",
+      "path": "/v1/staff/login",
+      "status": 500,
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/staff.verify/success.json",
+      "method": "post",
+      "path": "/v1/staff/login/verify",
+      "status": 201
+    },
+    {
+      "file": "fixtures/staff.verify/invalid-code.json",
+      "method": "post",
+      "path": "/v1/staff/login/verify",
+      "status": 400,
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "code",
+          "code": "invalid"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/staff.verify/code-expired.json",
+      "method": "post",
+      "path": "/v1/staff/login/verify",
+      "status": 400,
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "code",
+          "code": "expired"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/staff.verify/rate-limited.json",
+      "method": "post",
+      "path": "/v1/staff/login/verify",
+      "status": 429,
+      "error_code": "rate_limited"
+    },
+    {
+      "file": "fixtures/staff.verify/transient-error.json",
+      "method": "post",
+      "path": "/v1/staff/login/verify",
+      "status": 500,
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/staff.accept/invite-expired.json",
+      "method": "post",
+      "path": "/v1/staff/invites/accept",
+      "status": 400,
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "invite_token",
+          "code": "expired"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/staff.accept/password-too-weak.json",
+      "method": "post",
+      "path": "/v1/staff/invites/accept",
+      "status": 400,
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "password",
+          "code": "too_weak"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/staff.accept/transient-error.json",
+      "method": "post",
+      "path": "/v1/staff/invites/accept",
+      "status": 500,
+      "error_code": "internal_error"
     }
   ],
   "not_applicable": {
@@ -1236,6 +1355,9 @@
     ],
     "admin.staff.disable": [
       "success: disabling returns 204 with no body"
+    ],
+    "staff.accept": [
+      "success: accepting returns 204 with no body"
     ]
   }
 }

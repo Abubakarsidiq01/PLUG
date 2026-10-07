@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "That invitation has expired or was already used. Ask for a new one.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "invite_token",
+        "code": "expired"
+      }
+    ]
+  }
+}

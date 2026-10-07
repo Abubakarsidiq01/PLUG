@@ -73,8 +73,10 @@ public class MatchService {
                         rs.getDouble("response_rate"), rs.getInt("trust_score"), rs.getString("time_zone"),
                         windows(rs.getString("user_id")), days(rs.getString("user_id"))),
                 c.location().longitude(), c.location().latitude(), requester, c.skillTags().toArray(String[]::new),
-                // A provider-described skill (ADR-011) reaches every provider whose own words share its keywords.
-                (c.category() != null && c.category().startsWith("custom_") ? CustomSkills.keywords(request.text())
+                // A provider-described skill (ADR-011) reaches every provider whose own words share its keywords:
+                // the asker's words and the request's name, which for an own-words request is Claude's label.
+                (c.category() != null && c.category().startsWith("custom_")
+                        ? CustomSkills.keywords(c.serviceName() + " " + request.text())
                         : List.<String>of()).toArray(String[]::new),
                 c.location().longitude(), c.location().latitude(), c.licenceRequired(), request.requestId());
         List<Candidate> chosen = candidates.stream()

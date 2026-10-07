@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { components } from "@/generated/api";
-import { callApi, cookieBase, reference, storeSession, type Session } from "@/lib/staff-api";
+import { callApi, clientAddress, cookieBase, reference, storeSession, type Session } from "@/lib/staff-api";
 import { CHALLENGE_COOKIE } from "@/lib/staff-console";
 
 type Challenge = components["schemas"]["StaffLoginChallenge"];
@@ -22,7 +22,11 @@ export async function startLogin(formData: FormData): Promise<never> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   if (!email || !password || email.length > 254 || password.length > 256) redirect(`${login}?error=check`);
-  const result = await callApi<Challenge>("/v1/staff/login", { method: "POST", body: { email, password } });
+  const result = await callApi<Challenge>("/v1/staff/login", {
+    method: "POST",
+    body: { email, password },
+    forwardedFor: await clientAddress(),
+  });
   if (!result.ok) redirect(`${login}?error=${failure(result.status)}${reference(result.error)}`);
   const jar = await cookies();
   jar.set(CHALLENGE_COOKIE, result.data.challenge_id, {
@@ -42,6 +46,7 @@ export async function verifyLogin(formData: FormData): Promise<never> {
   const result = await callApi<Session>("/v1/staff/login/verify", {
     method: "POST",
     body: { challenge_id: challenge, code },
+    forwardedFor: await clientAddress(),
   });
   if (!result.ok) {
     const wrongCode = result.status === 400 && result.error?.details?.[0]?.code === "invalid";

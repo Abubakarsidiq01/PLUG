@@ -19,7 +19,7 @@ final class RequestScreenshotTests: XCTestCase {
             let example = app.buttons["ask-example-barber"]
             reveal(example, in: app)
             if largest { app.swipeUp() }
-            capture("visual-examples-\(suffix)")
+            capture("visual-examples-\(suffix)", onlyIfChanged: true)
             example.tap()
             let field = app.textFields["request-text"]
             XCTAssertEqual(field.value as? String, "Someone to do knotless braids, $120 max")
@@ -164,7 +164,7 @@ final class RequestScreenshotTests: XCTestCase {
             let sources = app.staticTexts["Who answered"]
             reveal(sources, in: app)
             XCTAssertTrue(app.staticTexts["Who answered"].exists)
-            capture("place-sources-\(suffix)")
+            capture("place-sources-\(suffix)", onlyIfChanged: true)
         }
     }
 
@@ -342,7 +342,7 @@ final class RequestScreenshotTests: XCTestCase {
         // Nobody covers this service: the screen invites the person to offer it instead of ending there.
         let gap = app.buttons["offer-the-gap"]
         reveal(gap, in: app)
-        capture("empty-offer-gap-\(suffix)")
+        capture("empty-offer-gap-\(suffix)", onlyIfChanged: true)
         askAgain(app)
 
         try submit(app, text: "restricted request")
@@ -356,10 +356,16 @@ final class RequestScreenshotTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["place-progress"].waitForExistence(timeout: 20))
         capture("place-asking-\(suffix)")
         XCTAssertTrue(app.staticTexts["No answers"].waitForExistence(timeout: 20))
-        capture("place-unknown-\(suffix)")
         let web = app.staticTexts["Usually busy at this hour"]
         reveal(web, in: app)
         capture("place-web-\(suffix)")
+        askAgain(app)
+
+        // Unknown on its own: nobody answered and there is no web summary either.
+        try submit(app, text: "How long is the line at Walmart right now? no web")
+        XCTAssertTrue(app.staticTexts["No answers"].waitForExistence(timeout: 30))
+        XCTAssertFalse(app.staticTexts["From the web"].exists)
+        capture("place-unknown-\(suffix)")
         askAgain(app)
 
         try submit(app, text: "cached barber")
@@ -474,8 +480,15 @@ final class RequestScreenshotTests: XCTestCase {
         }
         XCTAssertTrue(clear(), "Expected control to remain reachable when scrolling")
     }
-    private func capture(_ name: String) {
-        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+    private var lastCapture: Data?
+
+    /// A second view of the same state is kept only when the screen moved. At default text size
+    /// the lower part is often already on screen, and an identical file is not evidence of anything.
+    private func capture(_ name: String, onlyIfChanged: Bool = false) {
+        let shot = XCUIScreen.main.screenshot()
+        if onlyIfChanged && shot.pngRepresentation == lastCapture { return }
+        lastCapture = shot.pngRepresentation
+        let attachment = XCTAttachment(screenshot: shot)
         attachment.name = "synthetic-p2-\(name).png"
         attachment.lifetime = .keepAlways
         add(attachment)

@@ -78,14 +78,14 @@ class IntentAdapterTest {
     }
     @Test void modelMustSupplyEverySchemaFieldAndAtMostFiveTags() throws Exception {
         String valid = "{\"ask_type\":\"service_request\",\"skill_tags\":[\"nails\"],"
-                + "\"place_name\":null,\"budget_cents\":null,\"needed_by\":null,\"max_distance_m\":null,\"service_label\":null}";
+                + "\"place_name\":null,\"budget_cents\":null,\"needed_by\":null,\"max_distance_m\":null,\"service_label\":null,\"restricted\":false}";
         // A complete structured reading is accepted, proving that this is not an
         // always-fallback test. Incomplete/malformed readings must use the rules.
         try (var adapter = adapter((text, now, zone, deadline) -> valid)) {
             assertThat(extract(adapter, "Barber").category()).isEqualTo("nails");
         }
         for (String field : List.of("ask_type", "skill_tags", "place_name", "budget_cents", "needed_by", "max_distance_m",
-                "service_label")) {
+                "service_label", "restricted")) {
             var missing = (com.fasterxml.jackson.databind.node.ObjectNode) JSON.readTree(valid);
             missing.remove(field);
             try (var adapter = adapter((text, now, zone, deadline) -> missing.toString())) {
@@ -112,7 +112,7 @@ class IntentAdapterTest {
             }
         };
         String labelled = "{\"ask_type\":\"service_request\",\"skill_tags\":[],\"place_name\":null,\"budget_cents\":null,"
-                + "\"needed_by\":null,\"max_distance_m\":null,\"service_label\":\"bring dead iphones back\"}";
+                + "\"needed_by\":null,\"max_distance_m\":null,\"service_label\":\"bring dead iphones back\",\"restricted\":false}";
         try (var adapter = adapter((text, now, zone, deadline) -> labelled).withCustomSkills(skills)) {
             var result = adapter.classify("I want my bricked phone revived", HERE, "America/Chicago", "usr_asker");
             assertThat(result.askType()).isEqualTo(IntentAdapter.AskType.SERVICE_REQUEST);
@@ -125,21 +125,43 @@ class IntentAdapterTest {
             assertThat(adapter.classify("Someone to regrout my tiles", HERE, "America/Chicago", "usr_asker")
                     .clarificationField()).isEqualTo("ask");
         }
+        // Without a model the rules cannot tell a new trade from a harmful ask in new words
+        // (Person Two's 2026-10-06 rerun), so nothing is created in the person's words.
         try (var adapter = adapter(NONE).withCustomSkills(skills)) {
-            var rules = adapter.classify("Someone to regrout my bathroom tiles under $80", HERE, "America/Chicago", "usr_asker");
-            assertThat(rules.constraints().serviceName()).isEqualTo("Regrout bathroom tiles");
-            assertThat(rules.constraints().budgetCents()).isEqualTo(8000);
+            assertThat(adapter.classify("Someone to regrout my bathroom tiles under $80", HERE, "America/Chicago", "usr_asker")
+                    .clarificationField()).isEqualTo("ask");
             assertThat(adapter.classify("Something nearby", HERE, "America/Chicago", "usr_asker").clarificationField()).isEqualTo("ask");
             assertThat(adapter.classify("Barber", HERE, "America/Chicago", "usr_asker").constraints().category()).isEqualTo("barber");
             assertThat(adapter.classify("How long is the line at Walmart?", HERE, "America/Chicago", "usr_asker").askType())
                     .isEqualTo(IntentAdapter.AskType.PLACE_QUESTION);
         }
-        assertThat(registered).containsExactly("Bring dead iphones back", "Regrout bathroom tiles");
+        // A label naming a listed skill becomes that skill, so its licence rule applies.
+        String listed = labelled.replace("bring dead iphones back", "install track lighting");
+        try (var adapter = adapter((text, now, zone, deadline) -> listed).withCustomSkills(skills)) {
+            var result = adapter.classify("Brighten up my kitchen ceiling", HERE, "America/Chicago", "usr_asker");
+            assertThat(result.constraints().category()).isEqualTo("electrical");
+            assertThat(result.constraints().licenceRequired()).isTrue();
+        }
+        // A label the policy refuses, and an ask the model judged harmful, are refused.
+        String hidden = labelled.replace("bring dead iphones back", "hidden camera install");
+        try (var adapter = adapter((text, now, zone, deadline) -> hidden).withCustomSkills(skills)) {
+            assertThatThrownBy(() -> adapter.classify("Someone discreet for a small job", HERE, "America/Chicago", "usr_asker"))
+                    .isInstanceOf(IntentAdapter.Refused.class).hasMessage("stalking_tracking");
+        }
+        String flagged = labelled.replace("\"restricted\":false", "\"restricted\":true");
+        try (var adapter = adapter((text, now, zone, deadline) -> flagged).withCustomSkills(skills)) {
+            assertThatThrownBy(() -> adapter.classify("Teach my roommate a lesson he will not forget", HERE, "America/Chicago",
+                    "usr_asker")).isInstanceOf(IntentAdapter.Refused.class).hasMessage("model_flagged");
+            // An explicit, already chosen skill was judged when the ask was made.
+            assertThat(adapter.extract(new Create("Barber", "barber", null, null, null, null, HERE, null)).constraints()
+                    .category()).isEqualTo("barber");
+        }
+        assertThat(registered).containsExactly("Bring dead iphones back");
     }
 
     @Test void skillTagsComeOnlyFromTheVocabulary() {
         String model = "{\"ask_type\":\"service_request\",\"skill_tags\":[\"underwater_basket_weaving\",\"laptop_repair\"],"
-                + "\"place_name\":null,\"budget_cents\":99900,\"needed_by\":null,\"max_distance_m\":null,\"service_label\":null}";
+                + "\"place_name\":null,\"budget_cents\":99900,\"needed_by\":null,\"max_distance_m\":null,\"service_label\":null,\"restricted\":false}";
         try (var adapter = adapter((text,now,zone,deadline)->model)) {
             var result = ask(adapter, "My macbook screen cracked, fix it for $45");
             assertThat(result.constraints().skillTags()).as("an invented tag is dropped").containsExactly("laptop_repair");

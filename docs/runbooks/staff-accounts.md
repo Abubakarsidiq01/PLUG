@@ -24,10 +24,22 @@ The owner email setting does nothing once a staff account exists, so it can stay
 
 ## Adding and removing people (owner only)
 
+In the staff console: sign in at `/admin/login`, open **Staff** (`/admin/staff`), then use
+**Send invitation** or **Disable**. Invited people open the emailed link, which lands on
+`/staff/accept`. The terminal does the same:
+
 - `node tools/staff.mjs invite partner@example.com staff` (or `owner`). They follow steps 3–4.
 - `node tools/staff.mjs list`
 - `node tools/staff.mjs disable usr_…`: their sessions end immediately. Inviting them again
   restores them with a new password.
+
+## Running the console in an environment
+
+- Web server: `PLUG_API_URL` (HTTPS, or HTTP to the same machine).
+- Backend: `PLUG_STAFF_CONSOLE_URL` set to the site's origin, so invitation links open
+  `/staff/accept`, and `PLUG_TRUSTED_PROXIES` set to the web server's address as the backend
+  sees it. Without it every staff sign-in through the console shares one limit of 20 per 15
+  minutes; with it each person's own address is counted.
 
 ## Signing in day to day
 

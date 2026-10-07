@@ -8,7 +8,7 @@ import { ACCESS_COOKIE, REFRESH_COOKIE } from "@/lib/staff-console";
 // PLUG_API_URL is deliberately not read in this file. A proxy's environment is fixed when
 // the site is built, so the switch is checked where it is read per request: the page and
 // the refresh route send everyone to /admin/login when it is not set.
-const consolePaths = ["/admin", "/admin/session/refresh"];
+const consolePaths = ["/admin", "/admin/staff", "/admin/session/refresh"];
 
 export function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;

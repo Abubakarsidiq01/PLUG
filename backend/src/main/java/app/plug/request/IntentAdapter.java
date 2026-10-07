@@ -41,7 +41,23 @@ public class IntentAdapter implements AutoCloseable {
     }
     /** The model's untrusted output. Every field is validated before use. */
     public record Extracted(String askType, List<String> skillTags, String placeName, Integer budgetCents,
-            Instant neededBy, Integer maxDistanceM, String serviceLabel) {}
+            Instant neededBy, Integer maxDistanceM, String serviceLabel, Boolean restricted) {}
+
+    /// The model judged the ask harmful (illegal, violent, sexual, about a private person, or an
+    /// unsupported regulated service). The caller refuses it exactly as the rules would: 422,
+    /// nothing created, an audit event. The rules still run first and do not depend on this.
+    public static final class Refused extends RuntimeException {
+        private final String rule;
+
+        Refused(String rule) {
+            super(rule, null, false, false);
+            this.rule = rule;
+        }
+
+        public String rule() { return rule; }
+    }
+
+    private static final RestrictedIntentPolicy POLICY = new RestrictedIntentPolicy();
     public enum AskType { SERVICE_REQUEST, PLACE_QUESTION, UNCLEAR }
     /** The classification: constraints for a service ask, the place for a place question, or the one question. */
     public record Result(AskType askType, Constraints constraints, String clarificationField,
@@ -53,11 +69,6 @@ public class IntentAdapter implements AutoCloseable {
     public static final int MAX_BUDGET = 500_000;
     static final int DEFAULT_DISTANCE_M = 10_000;
     static final Option PLACE_OPTION = new Option("place_question", "Something happening at a place");
-    /// Words that make an ask a request for someone to do something, used only when nothing listed
-    /// matched and no model reading exists: "someone to", "need", "fix", "who can"…
-    static final Pattern SERVICE_CUE = Pattern.compile("\\b(someone|somebody|anyone|need|needs|needed|want|wants|"
-            + "looking for|who can|can you|can someone|help (?:me|with)|hire|book|fix|repair|install|clean|make|build|"
-            + "teach|paint|move|deliver|cook|bake|sew|style|tutor|train|groom|wash|replace|remove|set up|setup)\\b");
     /** Offered when nothing could be resolved: common asks first. */
     static final List<String> POPULAR = List.of("barber", "braids", "nails", "plumbing_minor", "laptop_repair",
             "house_cleaning", "moving_help", "auto_repair");
@@ -65,8 +76,21 @@ public class IntentAdapter implements AutoCloseable {
     private static final Pattern PLACE = Pattern.compile("\\b(how (long|busy|crowded|packed|full) (is|are)|"
             + "how long is the (line|wait|queue)|(line|queue|wait|traffic) (at|in|on)|"
             + "is (it|the|there|\\w+) .{0,40}\\b(busy|crowded|packed|quiet|open|closed|full)\\b|"
-            + "(busy|crowded|packed) (right )?now|parking (at|near)|any (seats|tables|parking) (at|in))");
+            + "(busy|crowded|packed) (right )?now|parking (at|near)|any (seats|tables|parking) (at|in)|"
+            // "Is the DMV line long", "is the court at the city park free", "tables free at the union".
+            + "(line|wait|queue) (is )?(long|short)|"
+            + "(court|courts|table|tables|seat|seats|machine|machines|lane|lanes|spot|spots)\\b.{0,40}\\b(free|available|open))");
     private static final Pattern PLACE_NAME = Pattern.compile("\\b(?:at|in|on)\\s+(?:the\\s+)?([^?.!,]{2,80})");
+    // The place as the subject of the question: "how busy is the campus gym", "is the DMV
+    // busy", "is the post office still open". Tried before "at/in/on", which would read "the
+    // basketball court at the city park free" as "city park free".
+    private static final Pattern PLACE_SUBJECT = Pattern.compile("\\b(?:how (?:long|busy|crowded|packed|full) (?:is|are)"
+            + "|\\b(?:is|are)) (?:the )?(?!(?:the )?(?:it|there|line|wait|queue|anyone|anybody|someone|somebody|my|his|her|"
+            + "their)\\b)([^?.!,]{2,80}?)(?:\\s+(?:line|wait|queue))?(?:\\s+still)?"
+            + "(?:\\s+(?:busy|crowded|packed|quiet|open|closed|full|long|short|free|available))?"
+            + "(?:\\s+(?:right now|now|today|tonight|this morning|this afternoon|this evening))?\\s*(?:[?.!]|$)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern PLACE_STATE = Pattern.compile("(?:\\s+(?:line|wait|queue))?(?:\\s+still)?\\s+"
+            + "(?:busy|crowded|packed|quiet|open|closed|full|long|short|free|available)$", Pattern.CASE_INSENSITIVE);
 
     private final ObjectMapper mapper;
     private final Clock clock;
@@ -127,6 +151,11 @@ public class IntentAdapter implements AutoCloseable {
         checkTime(input.neededBy());
         String text = normalize(input.text());
         Extracted model = provided(input.text(), zone);
+        // A skill the person already chose (the one question's answer, or a client field) was
+        // judged when the ask was made; otherwise a model refusal ends the ask here.
+        if (model != null && Boolean.TRUE.equals(model.restricted()) && input.category() == null) {
+            throw new Refused("model_flagged");
+        }
 
         boolean placeByRules = PLACE.matcher(text).find();
         List<SkillVocabulary.Skill> ruleSkills = vocabulary.findIn(text);
@@ -141,19 +170,26 @@ public class IntentAdapter implements AutoCloseable {
         // Listed skills always win. Only an ask that names none, and is not about a place, is
         // checked against skills providers described in their own words.
         CustomSkills.Match custom = null;
+        List<SkillVocabulary.Skill> labelSkills = List.of();
         if (type != AskType.PLACE_QUESTION && input.category() == null && ruleSkills.isEmpty() && modelSkills.isEmpty()
                 && customSkills != null && requesterId != null) {
             custom = customSkills.bestFor(input.text(), requesterId).orElse(null);
             // Still nothing: a service asked for in the person's own words (owner decision
-            // 2026-10-05) is created under those words and matched by their keywords. Claude's
-            // label is used when it gave one; otherwise the meaningful words of a clear request.
-            if (custom == null && (model == null || !"unclear".equals(model.askType()))) {
-                String label = model != null && "service_request".equals(model.askType())
-                        ? CustomSkills.cleanLabel(model.serviceLabel()) : null;
-                if (label == null && model == null && SERVICE_CUE.matcher(text).find()) label = CustomSkills.labelFrom(input.text());
-                if (label != null) custom = customSkills.register(label).orElse(null);
+            // 2026-10-05) is created under those words and matched by their keywords. Only when
+            // the model read the ask as a lawful service and named it (ADR-011, 2026-10-07
+            // amendment): the rules alone cannot tell a new trade from a harmful ask in new words,
+            // so without a model the person gets the one question. A label that names a listed
+            // skill becomes that skill, so its licence rule always applies.
+            if (custom == null && model != null && "service_request".equals(model.askType())) {
+                String label = CustomSkills.cleanLabel(model.serviceLabel());
+                if (label != null) {
+                    var refusal = POLICY.refusal(label);
+                    if (refusal.isPresent()) throw new Refused(refusal.get());
+                    labelSkills = vocabulary.findIn(label);
+                    if (labelSkills.isEmpty()) custom = customSkills.register(label).orElse(null);
+                }
             }
-            if (custom != null) type = AskType.SERVICE_REQUEST;
+            if (custom != null || !labelSkills.isEmpty()) type = AskType.SERVICE_REQUEST;
         }
 
         if (type == AskType.PLACE_QUESTION) {
@@ -162,7 +198,7 @@ public class IntentAdapter implements AutoCloseable {
         }
 
         List<SkillVocabulary.Skill> skills = input.category() != null ? List.of(vocabulary.get(input.category()))
-                : !modelSkills.isEmpty() ? modelSkills : ruleSkills;
+                : !modelSkills.isEmpty() ? modelSkills : !ruleSkills.isEmpty() ? ruleSkills : labelSkills;
         skills = skills.stream().distinct().limit(5).toList();
         // Money, time and distance only matter once a service ask exists.
         Integer budget = input.budgetCents() != null ? input.budgetCents() : budget(text);
@@ -199,6 +235,13 @@ public class IntentAdapter implements AutoCloseable {
     }
 
     static String placeName(String text) {
+        Matcher subject = PLACE_SUBJECT.matcher(text.strip());
+        if (subject.find()) {
+            String candidate = PLACE_STATE.matcher(subject.group(1).trim()).replaceAll("").trim();
+            if (candidate.length() >= 2 && !candidate.matches("(?i).*\\b(line|wait|queue)$")) {
+                return candidate.length() > 120 ? candidate.substring(0, 120) : candidate;
+            }
+        }
         Matcher matcher = PLACE_NAME.matcher(text);
         String found = null;
         while (matcher.find()) {
@@ -234,6 +277,7 @@ public class IntentAdapter implements AutoCloseable {
         if (value.budgetCents() != null && (value.budgetCents() < MIN_BUDGET || value.budgetCents() > MAX_BUDGET)) return false;
         if (value.maxDistanceM() != null && (value.maxDistanceM() < 100 || value.maxDistanceM() > 50_000)) return false;
         if (value.serviceLabel() != null && CustomSkills.cleanLabel(value.serviceLabel()) == null) return false;
+        if (value.restricted() == null) return false;
         try { checkTime(value.neededBy()); } catch (ApiException invalid) { return false; }
         return true;
     }

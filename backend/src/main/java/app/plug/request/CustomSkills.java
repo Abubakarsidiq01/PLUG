@@ -55,7 +55,9 @@ public class CustomSkills {
 
     private static String stem(String word) {
         // "sweeping" and "sweep" are the same skill; short words like "wing" are left alone.
-        if (word.length() > 6 && word.endsWith("ing")) word = word.substring(0, word.length() - 3);
+        // Repeated, so a verb ending in "ing" and its gerund meet: "restringing" and "restring"
+        // both become "restr", where stripping once left them different and unmatched.
+        while (word.length() > 6 && word.endsWith("ing")) word = word.substring(0, word.length() - 3);
         if (word.length() > 4 && word.endsWith("ies")) return word.substring(0, word.length() - 3) + "y";
         if (word.length() > 4 && word.matches(".*(ss|sh|ch|x|z)es")) return word.substring(0, word.length() - 2);
         if (word.length() > 3 && word.endsWith("s") && !word.endsWith("ss") && !word.endsWith("us")) {
@@ -75,36 +77,10 @@ public class CustomSkills {
         return Character.toUpperCase(label.charAt(0)) + label.substring(1);
     }
 
-    /// The meaningful words of an ask, in the person's order and spelling: "Someone to regrout my
-    /// bathroom tiles tomorrow under $80" -> "Regrout bathroom tiles". Null when nothing remains.
-    static String labelFrom(String text) {
-        String normal = Normalizer.normalize(text, Normalizer.Form.NFKC).replace('’', '\'');
-        List<String> words = new ArrayList<>();
-        for (String raw : normal.split("[^\\p{L}\\p{N}']+")) {
-            String word = raw.replaceAll("^'+|'+$", "");
-            String lower = word.toLowerCase(Locale.ROOT).replaceAll("'s$", "");
-            boolean action = words.isEmpty() && ACTIONS.contains(lower);
-            if (!action && (lower.length() < 3 || IGNORED.contains(lower) || IGNORED.contains(stem(lower))
-                    || lower.chars().allMatch(Character::isDigit) || TIME_WORDS.contains(lower) || VAGUE.contains(lower))) {
-                continue;
-            }
-            words.add(words.isEmpty() ? word.toLowerCase(Locale.ROOT) : word);
-            if (words.size() == 4) break;
-        }
-        return cleanLabel(String.join(" ", words));
-    }
-
-    /// Kept at the start of a label so it reads as the ask did ("Fix gate", not "Gate").
-    private static final Set<String> ACTIONS = Set.of("fix", "repair", "install", "make", "build", "clean", "paint",
-            "move", "replace", "remove", "teach", "tutor", "cook", "bake", "sew", "wash", "assemble", "mount");
     /// Words that name no service at all; an ask made only of these still gets the one question.
     private static final Set<String> VAGUE = Set.of("something", "anything", "everything", "stuff", "thing", "things",
             "whatever", "idea", "ideas", "question", "questions", "favor", "favour", "task", "tasks", "errand", "errands",
             "free", "look", "able", "willing", "really", "very", "around", "here", "there", "right", "time");
-    private static final Set<String> TIME_WORDS = Set.of("morning", "afternoon", "evening", "night", "tonight",
-            "weekend", "weekday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
-            "mile", "miles", "km", "kilometer", "kilometers", "kilometre", "kilometres", "within", "max", "maximum");
-
     /// Registers the person's own words as a request skill so the request can reference it.
     Optional<Match> register(String label) {
         List<String> keywords = keywords(label);

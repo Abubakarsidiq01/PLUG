@@ -65,7 +65,13 @@ public class RequestService {
         Resource prior = prepareCreate(caller, "create", key, input, Resource.class);
         if (prior != null) return prior;
         // A slow provider must not hold the account lock or a database connection.
-        IntentAdapter.Result extracted = intent.extract(input, caller.userId());
+        IntentAdapter.Result extracted;
+        try {
+            extracted = intent.extract(input, caller.userId());
+        } catch (IntentAdapter.Refused refused) {
+            refuse(caller, refused.rule());
+            throw refused;
+        }
         return transaction.execute(ignored -> {
             lockAccount(caller);
             requireConsent(caller);

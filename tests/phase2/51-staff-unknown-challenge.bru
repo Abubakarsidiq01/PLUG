@@ -1,0 +1,30 @@
+meta {
+  name: Unknown staff challenge is expired
+  type: http
+  seq: 51
+}
+
+post {
+  url: {{baseUrl}}/v1/staff/login/verify
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"challenge_id":"slc_00000000-0000-0000-0000-000000000000","code":"123456"}
+}
+
+assert {
+  res.status: eq 400
+  res.body.error.details[0].code: eq expired
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+}

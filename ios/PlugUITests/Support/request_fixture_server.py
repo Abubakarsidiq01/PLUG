@@ -55,13 +55,14 @@ class Handler(BaseHTTPRequestHandler):
                 "place_question": None, "clarification": None, "created_at": request["created_at"]}
 
     def place_ask(self, ask_id, text, status):
+        # "no web" in the ask: Unknown with nothing from the web either.
         now = datetime.now(timezone.utc)
         place = {"question_id": f"plq_ui-{Handler.counter}", "text": text,
                  "place_name": "Walmart on Ben White", "status": status,
                  "progress": {"notified": 3, "opened": 1, "answered": 0}, "answer": None,
                  "web_answer": None, "created_at": stamp(now - timedelta(minutes=1)),
                  "expires_at": stamp(now + timedelta(minutes=9))}
-        if status == "unknown":
+        if status == "unknown" and "no web" not in text:
             # Figure A1 screen 4: what the web says, never promoted above Not verified.
             place["web_answer"] = {"headline": "Usually busy at this hour",
                                    "summary": "Popular-times data says weekday evenings are the busiest. Nobody checked today.",

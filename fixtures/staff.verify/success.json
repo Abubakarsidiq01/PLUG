@@ -1,0 +1,17 @@
+{
+  "access_token": "pat_example-staff-access-token",
+  "access_token_expires_at": "2026-10-07T15:15:00Z",
+  "refresh_token": "prt_example-staff-refresh-token",
+  "refresh_token_expires_at": "2026-10-08T03:00:00Z",
+  "account": {
+    "user_id": "usr_7d3c1f52-0b8e-4c6a-9f61-2a4b8e0c9d11",
+    "type": "staff",
+    "scopes": [
+      "admin"
+    ]
+  },
+  "consent": {
+    "current_version": "2026-09-01",
+    "accepted_version": null
+  }
+}

@@ -1,0 +1,30 @@
+meta {
+  name: Staff sign-in refused without staff email
+  type: http
+  seq: 50
+}
+
+post {
+  url: {{baseUrl}}/v1/staff/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {"email":"nobody@example.com","password":"not a real password"}
+}
+
+assert {
+  res.status: eq 503
+  res.body.error.code: eq dependency_unavailable
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+}

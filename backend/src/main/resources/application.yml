@@ -88,3 +88,6 @@ plug:
     # Set twilio for real SMS. Development writes local test codes only; none fails closed.
     phone-delivery: ${PLUG_IDENTITY_PHONE_DELIVERY:none}
     google-client-id: ${PLUG_GOOGLE_SERVER_CLIENT_ID:}
+    # Exact addresses allowed to pass on their caller's address in X-Forwarded-For, such as
+    # the staff console's web server (ADR-013). Empty: every limit counts the connection.
+    trusted-proxies: ${PLUG_TRUSTED_PROXIES:}
