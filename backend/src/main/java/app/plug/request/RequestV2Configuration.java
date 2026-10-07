@@ -36,7 +36,7 @@ public class RequestV2Configuration {
     @Bean
     @org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean(IntentAdapter.Provider.class)
     IntentAdapter.Provider intentProvider(@Value("${plug.requests-v2.anthropic-api-key:}") String apiKey,
-            @Value("${plug.requests-v2.anthropic-model:claude-opus-5-5}") String model,
+            @Value("${plug.requests-v2.anthropic-model:claude-sonnet-5-5}") String model,
             @Value("${plug.requests-v2.intent-timeout:6s}") Duration timeout, SkillVocabulary vocabulary) {
         if (apiKey.isBlank()) return (text, now, zone, deadline) -> null;
         return new ClaudeIntentProvider(apiKey, model, timeout, vocabulary);

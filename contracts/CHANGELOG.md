@@ -11,6 +11,25 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.6.0 — 2026-10-05 — additive — proposed
+Approved by Person One (project owner) on 2026-10-05; Person Two approves the pull request.
+**Staff accounts (ADR-013):** `POST /v1/staff/login`, `POST /v1/staff/login/verify`,
+`POST /v1/staff/invites/accept`, `GET /v1/admin/staff`, `POST /v1/admin/staff/invites` and
+`POST /v1/admin/staff/{user_id}/disable`; `Account.type` gains `staff` (admin scope only). Staff
+are invited by email, sign in with email, password and an emailed six-digit code, and only that
+session carries the second factor `/v1/admin` requires. `Consent.accepted_version` is now always
+written (null for staff), as the schema already required.
+**Asks in the person's own words (ADR-011 amendment):** a clear service ask naming no listed
+skill and no provider's own words now creates a request whose `category` is a `custom_` tag
+and whose `service_name` is the service in the asker's words, instead of the category
+question. No shape changes.
+Fixtures: `fixtures/admin.staff.{list,invite,disable}/`; manifest at 0.6.0.
+Migration note: V9 (expand only: `staff` account type, `staff_accounts`, `staff_invites`,
+`staff_login_challenges`).
+Rollback: `PLUG_STAFF_MAIL_DELIVERY=none` refuses every staff sign-in (503); disabling staff
+accounts revokes their sessions. Own-words requests stop if the adapter change is reverted;
+existing custom requests keep their labels.
+
 ### 0.5.0 — 2026-10-05 — approval — frozen on merge
 Approved by Person One (project owner) on 2026-10-05 for everything listed under 0.5.0 and its
 amendments, including `contracts/skills.yaml`. Person Two's approval of the pull request that

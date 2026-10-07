@@ -66,8 +66,12 @@ public record IdentitySettings(
     // A guest's refresh window is shorter. It represents a device rather than a person who
     // proved anything, so it is worth less to keep alive and worth more to expire.
     public Duration refreshTtlFor(AccountType type) {
+        // Staff sign in again with a fresh code at least every twelve hours.
+        if (type == AccountType.STAFF) return refreshTokenTtl.compareTo(STAFF_REFRESH) < 0 ? refreshTokenTtl : STAFF_REFRESH;
         return type == AccountType.GUEST ? guestRefreshTokenTtl : refreshTokenTtl;
     }
+
+    private static final Duration STAFF_REFRESH = Duration.ofHours(12);
 
     private static boolean isPositive(Duration value) {
         return value != null && !value.isNegative() && !value.isZero();

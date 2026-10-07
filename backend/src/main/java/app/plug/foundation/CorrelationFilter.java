@@ -55,6 +55,7 @@ public class CorrelationFilter extends OncePerRequestFilter {
         for (String suffix : java.util.List.of("offers", "clarifications", "cancel")) {
             if (path.matches("/v1/requests/[^/]+/" + suffix)) return "/v1/requests/{request_id}/" + suffix;
         }
+        if (path.matches("/v1/admin/staff/[^/]+/disable")) return "/v1/admin/staff/{user_id}/disable";
         return path.startsWith("/v1/me/sessions/") ? "/v1/me/sessions/{session_id}" : "unmapped";
     }
 
@@ -74,7 +75,9 @@ public class CorrelationFilter extends OncePerRequestFilter {
                     "/v1/auth/guest", "/v1/auth/refresh", "/v1/auth/logout",
                     "/v1/me", "/v1/me/consent", "/v1/me/sessions",
                     "/v1/asks", "/v1/providers/skills", "/v1/providers/skills/propose", "/v1/providers/me",
-                    "/v1/admin/skills", "/v1/admin/skills/gaps", "/v1/admin/classifications", "/v1/admin/refusals" -> path;
+                    "/v1/admin/skills", "/v1/admin/skills/gaps", "/v1/admin/classifications", "/v1/admin/refusals",
+                    "/v1/staff/login", "/v1/staff/login/verify", "/v1/staff/invites/accept",
+                    "/v1/admin/staff", "/v1/admin/staff/invites" -> path;
             default -> safeResourcePath(path);
         };
     }

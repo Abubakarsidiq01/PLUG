@@ -78,13 +78,14 @@ class IntentAdapterTest {
     }
     @Test void modelMustSupplyEverySchemaFieldAndAtMostFiveTags() throws Exception {
         String valid = "{\"ask_type\":\"service_request\",\"skill_tags\":[\"nails\"],"
-                + "\"place_name\":null,\"budget_cents\":null,\"needed_by\":null,\"max_distance_m\":null}";
+                + "\"place_name\":null,\"budget_cents\":null,\"needed_by\":null,\"max_distance_m\":null,\"service_label\":null}";
         // A complete structured reading is accepted, proving that this is not an
         // always-fallback test. Incomplete/malformed readings must use the rules.
         try (var adapter = adapter((text, now, zone, deadline) -> valid)) {
             assertThat(extract(adapter, "Barber").category()).isEqualTo("nails");
         }
-        for (String field : List.of("ask_type", "skill_tags", "place_name", "budget_cents", "needed_by", "max_distance_m")) {
+        for (String field : List.of("ask_type", "skill_tags", "place_name", "budget_cents", "needed_by", "max_distance_m",
+                "service_label")) {
             var missing = (com.fasterxml.jackson.databind.node.ObjectNode) JSON.readTree(valid);
             missing.remove(field);
             try (var adapter = adapter((text, now, zone, deadline) -> missing.toString())) {
@@ -99,9 +100,46 @@ class IntentAdapterTest {
             }
         }
     }
+    /// Owner decision 2026-10-05: a clear service ask that names nothing listed becomes a request
+    /// in the person's own words. Claude's label is used when it gives one; "unclear" still asks.
+    @Test void anUnlistedServiceIsRequestedInThePersonsOwnWords() {
+        List<String> registered = new java.util.ArrayList<>();
+        var skills = new CustomSkills(null) {
+            @Override public java.util.Optional<Match> bestFor(String text, String requesterId) { return java.util.Optional.empty(); }
+            @Override java.util.Optional<Match> register(String label) {
+                registered.add(label);
+                return java.util.Optional.of(new Match(tag(keywords(label)), label));
+            }
+        };
+        String labelled = "{\"ask_type\":\"service_request\",\"skill_tags\":[],\"place_name\":null,\"budget_cents\":null,"
+                + "\"needed_by\":null,\"max_distance_m\":null,\"service_label\":\"bring dead iphones back\"}";
+        try (var adapter = adapter((text, now, zone, deadline) -> labelled).withCustomSkills(skills)) {
+            var result = adapter.classify("I want my bricked phone revived", HERE, "America/Chicago", "usr_asker");
+            assertThat(result.askType()).isEqualTo(IntentAdapter.AskType.SERVICE_REQUEST);
+            assertThat(result.constraints().serviceName()).isEqualTo("Bring dead iphones back");
+            assertThat(result.constraints().category()).startsWith("custom_");
+            assertThat(result.clarificationField()).isNull();
+        }
+        String unclear = labelled.replace("service_request", "unclear");
+        try (var adapter = adapter((text, now, zone, deadline) -> unclear).withCustomSkills(skills)) {
+            assertThat(adapter.classify("Someone to regrout my tiles", HERE, "America/Chicago", "usr_asker")
+                    .clarificationField()).isEqualTo("ask");
+        }
+        try (var adapter = adapter(NONE).withCustomSkills(skills)) {
+            var rules = adapter.classify("Someone to regrout my bathroom tiles under $80", HERE, "America/Chicago", "usr_asker");
+            assertThat(rules.constraints().serviceName()).isEqualTo("Regrout bathroom tiles");
+            assertThat(rules.constraints().budgetCents()).isEqualTo(8000);
+            assertThat(adapter.classify("Something nearby", HERE, "America/Chicago", "usr_asker").clarificationField()).isEqualTo("ask");
+            assertThat(adapter.classify("Barber", HERE, "America/Chicago", "usr_asker").constraints().category()).isEqualTo("barber");
+            assertThat(adapter.classify("How long is the line at Walmart?", HERE, "America/Chicago", "usr_asker").askType())
+                    .isEqualTo(IntentAdapter.AskType.PLACE_QUESTION);
+        }
+        assertThat(registered).containsExactly("Bring dead iphones back", "Regrout bathroom tiles");
+    }
+
     @Test void skillTagsComeOnlyFromTheVocabulary() {
         String model = "{\"ask_type\":\"service_request\",\"skill_tags\":[\"underwater_basket_weaving\",\"laptop_repair\"],"
-                + "\"place_name\":null,\"budget_cents\":99900,\"needed_by\":null,\"max_distance_m\":null}";
+                + "\"place_name\":null,\"budget_cents\":99900,\"needed_by\":null,\"max_distance_m\":null,\"service_label\":null}";
         try (var adapter = adapter((text,now,zone,deadline)->model)) {
             var result = ask(adapter, "My macbook screen cracked, fix it for $45");
             assertThat(result.constraints().skillTags()).as("an invented tag is dropped").containsExactly("laptop_repair");

@@ -25,7 +25,7 @@ const perAccount = new Map();
 const created = [];
 const sessions = [];
 
-function route(path) { return path.replace(/\/requests\/[^/]+/, '/requests/{request_id}').replace(/\/asks\/[^/]+/, '/asks/{ask_id}'); }
+function route(path) { return path.replace(/\/requests\/[^/]+/, '/requests/{request_id}').replace(/\/asks\/[^/]+/, '/asks/{ask_id}').replace(/\/admin\/staff\/usr_[^/]+/, '/admin/staff/{user_id}'); }
 function check(name, fn) {
   try { fn(); report.checks.push({ name, passed: true }); }
   catch { report.checks.push({ name, passed: false }); throw new Error(`Check failed: ${name}`); }
@@ -69,7 +69,7 @@ async function http(name, path, { method = 'GET', token, body, raw, idempotency,
   try { data = await response.json(); } catch { throw new Error(`Non-JSON response: ${name}`); }
   check(`${name}: HTTP ${expected}`, () => assert.equal(response.status, expected));
   check(`${name}: correlation`, () => assert.equal(id, correlation));
-  if (/^\/v1\/(requests|asks|providers|admin)/.test(path)) {
+  if (/^\/v1\/(requests|asks|providers|admin|staff)/.test(path)) {
     check(`${name}: contract`, () => {
       const schema = responseSchema(route(path), method.toLowerCase(), expected);
       validateSchema(schema, data);
@@ -271,6 +271,14 @@ async function asks() {
   await http('foreign ask', `/v1/asks/${service.ask_id}`, { token: other, expected: 404, error: 'not_found' });
   await http('anonymous ask read', `/v1/asks/${service.ask_id}`, { expected: 401, error: 'unauthenticated' });
   const unclear = await ask('unclear ask', owner, 'Something');
+  // A clear service nobody lists or offers becomes a request in the person's own words (0.6.0).
+  const own = await ask('ask in own words', owner, 'Someone to regrout my bathroom tiles under $80');
+  check('own-words service is requested under those words', () => {
+    assert.equal(own.ask_type, 'service_request');
+    assert.match(own.request.constraints.service_name, /grout/i); // the rules say "Regrout bathroom tiles"; Claude may word it its own way
+    assert.match(own.request.constraints.category, /^custom_/);
+    assert.equal(own.request.constraints.budget_cents, 8000);
+  });
   check('unclear ask gets exactly one question', () => {
     assert.equal(unclear.ask_type, null);
     assert.equal(unclear.clarification.field, 'ask');
@@ -315,6 +323,16 @@ async function asks() {
     await http(`anonymous ${route}`, route, { expected: 401, error: 'unauthenticated' });
     await http(`guest ${route}`, route, { token: other, expected: 403, error: 'forbidden' });
   }
+  // Staff accounts (ADR-013): customer sessions never manage staff, and a server without
+  // staff email refuses sign-in rather than pretending a code was sent.
+  await http('anonymous staff list', '/v1/admin/staff', { expected: 401, error: 'unauthenticated' });
+  await http('guest staff list', '/v1/admin/staff', { token: other, expected: 403, error: 'forbidden' });
+  await http('guest staff invite', '/v1/admin/staff/invites', { method: 'POST', token: other, body: { email: 'x@example.com', role: 'owner' }, expected: 403, error: 'forbidden' });
+  await http('guest staff disable', `/v1/admin/staff/usr_${randomUUID()}/disable`, { method: 'POST', token: other, expected: 403, error: 'forbidden' });
+  await http('staff login without mail', '/v1/staff/login', { method: 'POST', body: { email: 'nobody@example.com', password: 'not a real password' }, expected: 503, error: 'dependency_unavailable' });
+  await http('staff login malformed', '/v1/staff/login', { method: 'POST', body: {}, expected: 400, error: 'validation_failed' });
+  await http('staff unknown challenge', '/v1/staff/login/verify', { method: 'POST', body: { challenge_id: `slc_${randomUUID()}`, code: '123456' }, expected: 400, error: 'validation_failed', detail: 'expired' });
+  await http('staff unknown invitation', '/v1/staff/invites/accept', { method: 'POST', body: { invite_token: 'sti_not-a-real-invitation', password: 'a long and unusual phrase' }, expected: 400, error: 'validation_failed', detail: 'expired' });
   // Skills in the provider's own words (ADR-011), found by an ask's keywords; listed skills always win.
   const ownWords = { ...setup, skill_tags: [], custom_skills: ['chimney sweeping'] };
   await http('direct licensed skill still requires a licence', '/v1/providers/skills', { method: 'POST', token: other, body: { ...ownWords, custom_skills: ['electrician work'] }, expected: 400, error: 'validation_failed', detail: 'licence_required' });

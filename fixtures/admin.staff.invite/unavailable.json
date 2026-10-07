@@ -1,0 +1,8 @@
+{
+  "error": {
+    "code": "dependency_unavailable",
+    "message": "Staff email is not configured on this server.",
+    "request_id": "req_01H8XK4Q7N",
+    "retry_after_seconds": 60
+  }
+}

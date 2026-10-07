@@ -21,6 +21,22 @@ class CustomSkillsTest {
     }
 
     @Test
+    void anAskNamingNoListedSkillIsLabelledInThePersonsOwnWords() {
+        assertEquals("Regrout bathroom tiles", CustomSkills.labelFrom("Someone to regrout my bathroom tiles tomorrow under $80"));
+        assertEquals("Fix garden gate", CustomSkills.labelFrom("I need someone to fix my garden gate this weekend"));
+        assertEquals("Chimney", CustomSkills.labelFrom("Is anyone free to look at my chimney?"));
+        assertEquals("Assemble IKEA wardrobe", CustomSkills.labelFrom("Can someone assemble my IKEA wardrobe within 5 miles"));
+        for (String vague : List.of("Something", "I need help with something", "Can someone do a favor for me today",
+                "Fix it please", "Need someone now", "")) {
+            assertEquals(null, CustomSkills.labelFrom(vague), vague);
+        }
+        assertEquals("Tile regrouting", CustomSkills.cleanLabel("  tile   regrouting "));
+        for (String bad : List.of("ab", "x".repeat(41), "tiles\u0000", "<script>", "something", "stuff and things")) {
+            assertEquals(null, CustomSkills.cleanLabel(bad), bad);
+        }
+    }
+
+    @Test
     void tagIsStableAndFitsTheCategoryPattern() {
         assertEquals("custom_crochet_loc", CustomSkills.tag(CustomSkills.keywords("crochet locs")));
         assertEquals(CustomSkills.tag(CustomSkills.keywords("Crochet LOCS")), CustomSkills.tag(CustomSkills.keywords("crochet locs")));
