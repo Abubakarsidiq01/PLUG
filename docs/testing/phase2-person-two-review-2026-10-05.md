@@ -4,6 +4,10 @@ Person Two's review of `main` at `99fd6f8` (pull request #35), run on her own Wi
 It covers the items handed over after the merge: the drafted artefacts, the design gate,
 the v4 website, the Windows run and the admin page. It is not a G2 signature.
 
+> Rerun on `main` at `27dffc3` (contract 0.6.0) on 2026-10-06:
+> `phase2-person-two-rerun-2026-10-06.md`. The restricted-intent finding in section 2.1 is
+> worse there, and the admin page in section 7 is now connected to staff sign-in.
+
 ## Summary
 
 | Item | Result |

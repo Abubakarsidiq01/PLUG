@@ -105,6 +105,14 @@ you go, and open one pull request per step or per small group of related steps.
 - Web v4: reviewed and kept; Lighthouse recorded.
 - Windows run: done on `main` at `99fd6f8`.
 
+**Person Two status, 6 October 2026, on contract 0.6.0** ([rerun record](../testing/phase2-person-two-rerun-2026-10-06.md)):
+
+- Windows run repeated on `main` at `27dffc3`: contracts 312/312, live suite 1072/1072, Bruno 49/49, Playwright 138.
+- P2.S7 and P2.S11: same 30 rows differ, but nine of the 15 unrefused restricted asks are now created as requests in the asker's own words. Blocks G2.
+- P2.S5: asking guide updated for own-words requests.
+- P2.S10: the new simulator screenshots reviewed in greyscale; four pairs of captures are identical.
+- P2.S12: staff sign-in, invitation and the live inspector are built under `/admin`. Closed unless the web server has `PLUG_API_URL`. Checked against the real backend on loopback. Not switched on in any environment.
+
 No step is ticked: each one still needs the connected checkpoint.
 
 ---
