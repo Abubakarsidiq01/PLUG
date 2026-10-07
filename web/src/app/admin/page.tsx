@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { AdminInspector, type InspectorData, type InspectorPaging } from "../_components/admin-inspector";
 import { callApi, type ApiResult } from "@/lib/staff-api";
 import { ACCESS_COOKIE, REFRESH_COOKIE, apiOrigin } from "@/lib/staff-console";
@@ -25,6 +26,8 @@ function withCursor(path: string, cursor: string | null): string {
 }
 
 export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
+  // Decide per request. Without this the build would freeze the page as "closed".
+  await connection();
   if (apiOrigin() === null) redirect(loginUrl);
   const jar = await cookies();
   const params = await searchParams;

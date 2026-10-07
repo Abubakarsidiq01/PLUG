@@ -185,6 +185,10 @@ Staff sign-in exists since 0.6.0, so the inspector is now connected.
   on every read. A 403 shows the denied notice, a 401 is refreshed once and then sent to
   sign-in, and one failed read shows no data at all.
 - Sign-in gives the same next step for a right and a wrong password, as the API does.
+- `PLUG_API_URL` is read on each request, never when the site is built. The first CI run
+  caught the console page and the proxy fixing the switch at build time, so a site built
+  without the variable stayed closed after it was set. Both now decide per request, and
+  the CI-mode run (build first, then set the variable) passes 138/138.
 - `/preview/admin` and its fixtures are unchanged.
 
 Tested two ways:
