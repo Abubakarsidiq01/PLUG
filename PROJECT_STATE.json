@@ -1,8 +1,8 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-05T14:34:31.412916+00:00",
-  "updated_by": "person_one (contract 0.5.0 merged; 0.6.0 proposed: staff accounts ADR-013, asks in own words)",
+  "updated_at": "2026-10-07T04:18:25.234+00:00",
+  "updated_by": "person_two (merged main 27dffc3; Windows rerun on 0.6.0; staff console sign-in and live inspector)",
   "completed_phases": [
     "P0",
     "P1"
@@ -120,28 +120,28 @@
       "id": "P2-device-evidence",
       "owner": "person_one",
       "manual_section": "27.3",
-      "task": "Done 2026-10-04 for the automated state matrix: all six walkthroughs passed on the paired iPhone at default and largest Dynamic Type (evidence/P2/ios/2026-10-04/, docs/testing/phase2-device-evidence-2026-10-04.md). Remaining: VoiceOver walkthrough on the device into evidence/P2/a11y and an independent greyscale/design review. Automated accessibility audit of six main screens passes (evidence/P2/a11y/). Checklist for the recorded pass: docs/testing/phase2-voiceover-checklist.md.",
+      "task": "Done 2026-10-04 for the automated state matrix: all six walkthroughs passed on the paired iPhone at default and largest Dynamic Type (evidence/P2/ios/2026-10-04/, docs/testing/phase2-device-evidence-2026-10-04.md). Remaining: VoiceOver walkthrough on the device into evidence/P2/a11y and an independent greyscale/design review. Automated accessibility audit of six main screens passes (evidence/P2/a11y/). Checklist for the recorded pass: docs/testing/phase2-voiceover-checklist.md. 2026-10-05: Person Two's design review from the screenshots is in docs/testing/phase2-person-two-review-2026-10-05.md section 5. Six findings, including notification banners with personal names in five largest-text captures that need recapturing. 2026-10-06: Person Two reviewed the 64 simulator captures in evidence/P2/simulator/2026-10-05 in greyscale (rerun record section 4): four pairs of captures are identical files and several labels are cut at largest text.",
       "acceptance": "VoiceOver walkthrough recorded; design gate reviewed by a second person."
     },
     {
       "id": "P2-admin-vocabulary-classifier",
       "owner": "both",
       "manual_section": "27.3 / P2-TWO.S12",
-      "task": "Backend read API done 2026-10-05 (GET /v1/admin/skills, /skills/gaps, /classifications, /refusals). Staff sign-in done 2026-10-05 (ADR-013; StaffAccountsTest; docs/runbooks/staff-accounts.md; node tools/staff.mjs). Remaining: configure Resend and the first owner per environment, then Person Two builds the web inspector with staff sign-in against these routes and fixtures/admin.*.",
+      "task": "Backend read API done 2026-10-05 (GET /v1/admin/skills, /skills/gaps, /classifications, /refusals). Staff sign-in done 2026-10-05 (ADR-013; StaffAccountsTest; docs/runbooks/staff-accounts.md; node tools/staff.mjs). 2026-10-05: Person Two built the inspector against fixtures/admin.* as components plus a local preview at /preview/admin (404 unless PLUG_ADMIN_PREVIEW=fixtures; calls no API). /admin stays closed. Types are generated from the contract. Evidence: evidence/P2/web/2026-10-05/admin-inspector. 2026-10-06: Person Two added staff sign-in (/admin/login), the invitation page (/staff/accept) and the live inspector (/admin) to the web console. It is closed unless the web server has PLUG_API_URL; tokens stay in HttpOnly cookies and the API authorizes every read. Checked against the real backend on loopback and by 12 Playwright tests against a fixture stand-in (docs/testing/phase2-person-two-rerun-2026-10-06.md section 5; evidence/P2/web/2026-10-06/staff-console). Remaining: configure Resend, the first owner, PLUG_STAFF_CONSOLE_URL and the web server's PLUG_API_URL per environment, then evidence from a real staff session there. Staff invite/list/disable stay in tools/staff.mjs.",
       "acceptance": "A real staff session reads the vocabulary and recent decisions in the web inspector; denied-role, paging, redaction, loading, error and empty states evidenced."
     },
     {
       "id": "P2-web-v4",
       "owner": "person_two",
       "manual_section": "15",
-      "task": "Review the owner-authorized v4 web implementation: local Public Sans, ink-on-paper palette, sentence-case labels, dashed Not verified and accurate two-ask/provider copy. 81 browser tests passed; production screenshots are in evidence/P2/web/2026-10-02/ui-experiment. The older draft patch is historical and must not be applied over this work.",
+      "task": "Review the owner-authorized v4 web implementation: local Public Sans, ink-on-paper palette, sentence-case labels, dashed Not verified and accurate two-ask/provider copy. 81 browser tests passed; production screenshots are in evidence/P2/web/2026-10-02/ui-experiment. The older draft patch is historical and must not be applied over this work. 2026-10-05: Person Two reviewed and keeps the v4 site. Lighthouse mobile on the production build: accessibility, best practices and SEO 100 on all four public pages, performance 85 to 87 (evidence/P2/windows/2026-10-05/lighthouse-summary.json). Still open: owner review and a performance rerun on a quiet machine.",
       "acceptance": "Owner and Person Two review the temporary design; complete independent design-gate and Lighthouse evidence."
     },
     {
       "id": "P2-windows-and-checkpoint",
       "owner": "both",
       "manual_section": "27.3",
-      "task": "Person Two reruns pnpm test:contracts, Bruno and Playwright on Windows; then the connected checkpoint against real staging with the labelled dataset.",
+      "task": "Person Two reruns pnpm test:contracts, Bruno and Playwright on Windows; then the connected checkpoint against real staging with the labelled dataset. 2026-10-05: Person Two's Windows rerun on main 99fd6f8 is done: contracts 296/296 with the 91-row ask dataset, live suite 1036/1036, Bruno 49/49, Playwright 102/102 (evidence/P2/windows/2026-10-05, docs/testing/phase2-person-two-review-2026-10-05.md). The dataset differs from the build on 30 of 91 rows; 15 are restricted asks that are not refused. Still open: the restricted-intent fix and rerun, then the connected checkpoint. 2026-10-06: rerun on main 27dffc3 (contract 0.6.0): contracts 312/312, live suite 1072/1072, Bruno 49/49, Playwright 138 (evidence/P2/windows/2026-10-06, docs/testing/phase2-person-two-rerun-2026-10-06.md). The same 30 rows differ, but nine of the 15 unrefused restricted asks are now created as requests, eight in the asker's own words.",
       "acceptance": "Correlation ID from the connected checkpoint present in both logs; G2 entry signed by both."
     },
     {
@@ -173,7 +173,8 @@
     "docs/design/figma-implementation-checklist.md exists as a checklist document, not linked to an actual Figma file — no Figma access was available.",
     "Phone evidence includes a Google notification naming Aura; verify whether it belongs to this PLUG sign-in and correct the selected OAuth project branding if so. Original personal email notification remains private.",
     "Apple/SMS budget deferral accepted in ADR-008. Starter legal wording cannot immunize the operator from claims and is not evidence of implemented retention, erasure or teen controls.",
-    "Manual v4 supersedes ADR-009 Apple Maps listing fallback. Claude extraction has no configured live-key evidence; the restricted-intent rules still need independent red-team review; contract 0.5.0, including retention and needed_by limits, remains proposed."
+    "Manual v4 supersedes ADR-009 Apple Maps listing fallback. Claude extraction has no configured live-key evidence; the restricted-intent rules still need independent red-team review; contract 0.5.0, including retention and needed_by limits, remains proposed.",
+    "Restricted-intent policy matches listed phrases only. On 2026-10-05, 15 of 31 labelled restricted asks in fixtures/intents/asks.jsonl were not refused; one became a photography request. See docs/testing/phase2-person-two-review-2026-10-05.md section 2.1. Blocks G2 until fixed and rerun. 2026-10-06 on contract 0.6.0: worse. Own-words requests turn nine of those 15 into created requests (\"Pay someone to beat up my roommate\" becomes a submitted request named \"Pay beat roommate\"); see docs/testing/phase2-person-two-rerun-2026-10-06.md section 2.1."
   ],
   "environments": {
     "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",

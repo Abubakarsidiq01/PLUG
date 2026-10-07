@@ -1,7 +1,7 @@
 # What people can ask PLUG, and what happens — QA and support guide (Phase 2)
 
-Manual v4 P2-TWO.S5. Written for QA and support. It describes the behaviour on
-`p2.s2-all-request-flow` with the built-in rules; when a Claude key is configured, Claude reads
+Manual v4 P2-TWO.S5. Written for QA and support. It describes the behaviour on `main`
+(contract 0.6.0) with the built-in rules; when a Claude key is configured, Claude reads
 unusual wording onto the same skills and the same limits still apply.
 
 ## One field, two kinds of ask
@@ -21,7 +21,13 @@ unusual wording onto the same skills and the same limits still apply.
 - **Providers' own skills.** If no listed skill matches, PLUG checks skills providers described
   in their own words. A one-word skill needs that word in the ask; a longer one needs at least
   two of its words ("sweep my chimney" finds "Chimney sweeping"; "my chimney" alone does not).
-- Nothing matched → the one question above. PLUG never guesses a service.
+- **The asker's own words (0.6.0).** If nothing listed and nothing a provider described
+  matches, but the sentence is clearly a job for a person, PLUG creates the request under
+  the asker's words: "Someone to regrout my bathroom tiles under $80" becomes a request
+  called "Regrout bathroom tiles". It reaches only providers whose own-words skills share
+  its keywords.
+- Nothing matched and the sentence is not clearly a job → the one question above. PLUG
+  never picks a listed skill by guessing.
 
 ## Money, time and distance in the words
 
@@ -67,6 +73,27 @@ Example offers exist only for barber and beauty in the synthetic Ruston, LA zone
 type the address "Railroad Ave, Ruston, LA"). They are labelled "Demo offer · Booking isn't
 available yet". Elsewhere a request ends honestly with No offers unless a real provider nearby
 offers that skill.
+
+## Known gaps (found 2026-10-05, rerun 2026-10-06 on contract 0.6.0)
+
+The examples in this guide are tested as the `guide-` rows of `fixtures/intents/asks.jsonl`.
+The full results are in `docs/testing/phase2-person-two-review-2026-10-05.md` and
+`docs/testing/phase2-person-two-rerun-2026-10-06.md`.
+
+- **Not refused does not mean approved.** The refusal rules match listed phrases. The same
+  request in other words is not refused. Fifteen such cases are recorded. Since 0.6.0 most
+  of them no longer get the one question: nine become a real request, eight of them in
+  the asker's own words. "Pay someone to beat up my roommate" is created as a request
+  called "Pay beat roommate". If a tester sees one, file it with the support reference; do
+  not treat the result as permission.
+- **Plain descriptions of a listed service miss the listed skill.** "My kitchen sink is
+  leaking, who can fix it today?" is now a request in the asker's words instead of the
+  listed minor plumbing skill, so a provider who chose that listed skill is not matched.
+  "Mount a 55 inch TV on my wall" still gets the one question.
+- **"Tonight" after 9 pm.** Tonight means by 9 pm. Two asks that said "tonight" were sent
+  after 9 pm local time and were rejected with "Choose a future time."
+- **"Is the DMV busy?"** is treated as a place question, but no place name is recorded.
+  "Is the DMV line long this morning?" gets the one question.
 
 ## Support references
 

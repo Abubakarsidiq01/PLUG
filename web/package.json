@@ -9,6 +9,7 @@
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit",
     "test:unit": "pnpm --workspace-root test:contracts",
+    "generate:api": "openapi-typescript ../contracts/openapi.yaml -o src/generated/api.ts",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.3.6",
+    "openapi-typescript": "7",
     "typescript": "^6"
   }
 }
