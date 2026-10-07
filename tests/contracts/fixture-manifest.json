@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.5.0",
+  "contract_version": "0.6.0",
   "status": "proposed",
   "clock": "2026-10-01T20:00:10Z",
   "responses": [
@@ -1089,6 +1089,122 @@
       "path": "/v1/admin/refusals",
       "status": 400,
       "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/admin.staff.list/success.json",
+      "method": "get",
+      "path": "/v1/admin/staff",
+      "status": 200
+    },
+    {
+      "file": "fixtures/admin.staff.list/auth-error.json",
+      "method": "get",
+      "path": "/v1/admin/staff",
+      "status": 401,
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/admin.staff.list/forbidden.json",
+      "method": "get",
+      "path": "/v1/admin/staff",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.staff.list/transient-error.json",
+      "method": "get",
+      "path": "/v1/admin/staff",
+      "status": 500,
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/admin.staff.invite/success.json",
+      "method": "post",
+      "path": "/v1/admin/staff/invites",
+      "status": 201
+    },
+    {
+      "file": "fixtures/admin.staff.invite/validation-error.json",
+      "method": "post",
+      "path": "/v1/admin/staff/invites",
+      "status": 400,
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "email",
+          "code": "invalid"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/admin.staff.invite/auth-error.json",
+      "method": "post",
+      "path": "/v1/admin/staff/invites",
+      "status": 401,
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/admin.staff.invite/forbidden.json",
+      "method": "post",
+      "path": "/v1/admin/staff/invites",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.staff.invite/conflict.json",
+      "method": "post",
+      "path": "/v1/admin/staff/invites",
+      "status": 409,
+      "error_code": "conflict"
+    },
+    {
+      "file": "fixtures/admin.staff.invite/unavailable.json",
+      "method": "post",
+      "path": "/v1/admin/staff/invites",
+      "status": 503,
+      "error_code": "dependency_unavailable"
+    },
+    {
+      "file": "fixtures/admin.staff.invite/transient-error.json",
+      "method": "post",
+      "path": "/v1/admin/staff/invites",
+      "status": 500,
+      "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/admin.staff.disable/auth-error.json",
+      "method": "post",
+      "path": "/v1/admin/staff/{user_id}/disable",
+      "status": 401,
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/admin.staff.disable/forbidden.json",
+      "method": "post",
+      "path": "/v1/admin/staff/{user_id}/disable",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.staff.disable/not-found.json",
+      "method": "post",
+      "path": "/v1/admin/staff/{user_id}/disable",
+      "status": 404,
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/admin.staff.disable/conflict.json",
+      "method": "post",
+      "path": "/v1/admin/staff/{user_id}/disable",
+      "status": 409,
+      "error_code": "conflict"
+    },
+    {
+      "file": "fixtures/admin.staff.disable/transient-error.json",
+      "method": "post",
+      "path": "/v1/admin/staff/{user_id}/disable",
+      "status": 500,
+      "error_code": "internal_error"
     }
   ],
   "not_applicable": {
@@ -1117,6 +1233,9 @@
     ],
     "providers.me": [
       "empty: a person who is not a provider receives 404, which opens the onboarding flow"
+    ],
+    "admin.staff.disable": [
+      "success: disabling returns 204 with no body"
     ]
   }
 }

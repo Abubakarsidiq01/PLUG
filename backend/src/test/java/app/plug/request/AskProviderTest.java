@@ -304,8 +304,13 @@ class AskProviderTest {
         assertThat(jdbc.queryForList("SELECT provider_id FROM request_matches WHERE request_id=?", String.class,
                 request.path("request_id").asText())).contains(sweeper.at("/account/user_id").asText());
 
-        // One shared word is not enough for a two-word skill, and nobody is matched to their own skill.
-        assertThat(ask(guest(), "Is anyone free to look at my chimney?").path("ask_type").isNull()).isTrue();
+        // One shared word is not enough for a two-word skill: the ask becomes a request in the
+        // person's own words that does not reach the sweeper. Nobody is matched to their own skill.
+        var looked = ask(guest(), "Is anyone free to look at my chimney?").path("request");
+        assertThat(looked.at("/constraints/service_name").asText()).isEqualTo("Chimney");
+        service.workOnce();
+        assertThat(jdbc.queryForList("SELECT provider_id FROM request_matches WHERE request_id=?", String.class,
+                looked.path("request_id").asText())).doesNotContain(sweeper.at("/account/user_id").asText());
         assertThat(ask(sweeper, "Chimney sweeping please").path("ask_type").isNull()).isTrue();
 
         // Omitting custom_skills keeps them; listed skills can sit alongside.
@@ -313,6 +318,27 @@ class AskProviderTest {
                 "every_day", null);
         assertThat(both.path("custom_skills").get(0).asText()).isEqualTo("Chimney sweeping");
         assertThat(both.at("/skills/0/tag").asText()).isEqualTo("handyman");
+    }
+
+    @Test void anUnlistedServiceIsRequestedInThePersonsWordsAndReachesProvidersWhoSayTheSame() throws Exception {
+        var tiler = guest();
+        send(tiler, "/v1/providers/skills", ownWords("[\"bathroom tile regrouting\"]"), false).andExpect(status().isOk());
+        var asker = guest();
+        var result = ask(asker, "Someone to regrout my bathroom tiles under $80");
+        assertThat(result.path("ask_type").asText()).isEqualTo("service_request");
+        var request = result.path("request");
+        assertThat(request.at("/constraints/service_name").asText()).isEqualTo("Bathroom tile regrouting");
+        service.workOnce();
+        assertThat(jdbc.queryForList("SELECT provider_id FROM request_matches WHERE request_id=?", String.class,
+                request.path("request_id").asText())).contains(tiler.at("/account/user_id").asText());
+
+        // Nobody offers it yet: the request still exists, in the person's own words.
+        var fresh = ask(asker, "I need someone to restring my grandfather's harp this weekend").path("request");
+        assertThat(fresh.at("/constraints/service_name").asText()).isEqualTo("Restring grandfather's harp");
+        assertThat(fresh.at("/constraints/category").asText()).startsWith("custom_");
+        assertThat(jdbc.queryForObject("SELECT display FROM skill_vocabulary WHERE tag=?", String.class,
+                fresh.at("/constraints/category").asText())).isEqualTo("Restring grandfather's harp");
+        assertThat(ask(asker, "Something").path("ask_type").isNull()).isTrue();
     }
 
     @Test void matchingRespectsEachProvidersOwnRadiusAvailabilityAndLicence() throws Exception {

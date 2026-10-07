@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "Enter a valid email address.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "email",
+        "code": "invalid"
+      }
+    ]
+  }
+}

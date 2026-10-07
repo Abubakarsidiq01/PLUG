@@ -85,7 +85,10 @@ final class RequestScreenshotTests: XCTestCase {
             var issues: [String] = []
             try app.performAccessibilityAudit(for: .all) { issue in
                 let element = issue.element.map { "\($0.elementType.rawValue) '\($0.label)' \($0.identifier)" } ?? "-"
-                let accepted = Self.acceptedAuditFinding(issue)
+                let bar = app.buttons["navigation-ask"]
+                // The bar's background starts above its buttons; text under it is not visible.
+                let barTop = bar.exists && !bar.frame.isEmpty ? bar.frame.minY - 16 : .greatestFiniteMagnitude
+                let accepted = Self.acceptedAuditFinding(issue, barTop: barTop)
                 issues.append("\(accepted ? "accepted" : "FAIL") | \(screen) | \(issue.compactDescription) | \(element)")
                 return true
             }
@@ -97,6 +100,10 @@ final class RequestScreenshotTests: XCTestCase {
             XCTAssertTrue(failures.isEmpty, failures.joined(separator: "\n"))
         }
         try audit("ask-home")
+        // The place tile sits under the bottom bar at first; audit it again once it is in view.
+        let placeTile = app.buttons["ask-example-place"]
+        reveal(placeTile, in: app)
+        try audit("ask-home-scrolled")
         try submit(app, text: "business sorting barber under $35")
         XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
         try audit("results")
@@ -127,8 +134,10 @@ final class RequestScreenshotTests: XCTestCase {
     /// Ask field's own line is short, but its whole 70 pt box focuses it on a tap. PLUG's type scale
     /// grows through @ScaledMetric rather than system text styles, which the audit reports as
     /// "partially unsupported"; the largest-size device screenshots show it scaling. Text that
-    /// does not scale at all still fails, except the wordmark.
-    static func acceptedAuditFinding(_ issue: XCUIAccessibilityAuditIssue) -> Bool {
+    /// does not scale at all still fails, except the wordmark. Contrast is measured from the
+    /// pixels on screen, so text scrolled beneath the opaque bottom bar is measured against the
+    /// bar; that text is audited again once scrolled into view (ask-home-scrolled).
+    static func acceptedAuditFinding(_ issue: XCUIAccessibilityAuditIssue, barTop: CGFloat) -> Bool {
         guard let element = issue.element else { return true }
         let navigation = ["Ask", "Inbox", "Activity", "Profile"].contains(element.label)
         switch issue.auditType {
@@ -136,7 +145,7 @@ final class RequestScreenshotTests: XCTestCase {
             return issue.compactDescription.contains("partially") || navigation
                 || element.label == "plug" || element.label == "Cancel"
         case .contrast:
-            return !element.isEnabled
+            return !element.isEnabled || element.frame.maxY > barTop
         case .hitRegion:
             return element.identifier == "request-text"
         default:

@@ -64,6 +64,57 @@ public class CustomSkills {
         return word;
     }
 
+    /// A label as the person might see it: their words, trimmed to 3–40 characters, or null.
+    static String cleanLabel(String raw) {
+        if (raw == null) return null;
+        String label = raw.strip().replaceAll("\\s+", " ");
+        if (label.length() < 3 || label.length() > 40 || !label.matches("[\\p{L}\\p{N} &'./+-]+")) return null;
+        String specific = String.join(" ", java.util.Arrays.stream(label.toLowerCase(Locale.ROOT).split("[^\\p{L}\\p{N}']+"))
+                .filter(word -> !VAGUE.contains(word)).toList());
+        if (keywords(specific).isEmpty()) return null;
+        return Character.toUpperCase(label.charAt(0)) + label.substring(1);
+    }
+
+    /// The meaningful words of an ask, in the person's order and spelling: "Someone to regrout my
+    /// bathroom tiles tomorrow under $80" -> "Regrout bathroom tiles". Null when nothing remains.
+    static String labelFrom(String text) {
+        String normal = Normalizer.normalize(text, Normalizer.Form.NFKC).replace('’', '\'');
+        List<String> words = new ArrayList<>();
+        for (String raw : normal.split("[^\\p{L}\\p{N}']+")) {
+            String word = raw.replaceAll("^'+|'+$", "");
+            String lower = word.toLowerCase(Locale.ROOT).replaceAll("'s$", "");
+            boolean action = words.isEmpty() && ACTIONS.contains(lower);
+            if (!action && (lower.length() < 3 || IGNORED.contains(lower) || IGNORED.contains(stem(lower))
+                    || lower.chars().allMatch(Character::isDigit) || TIME_WORDS.contains(lower) || VAGUE.contains(lower))) {
+                continue;
+            }
+            words.add(words.isEmpty() ? word.toLowerCase(Locale.ROOT) : word);
+            if (words.size() == 4) break;
+        }
+        return cleanLabel(String.join(" ", words));
+    }
+
+    /// Kept at the start of a label so it reads as the ask did ("Fix gate", not "Gate").
+    private static final Set<String> ACTIONS = Set.of("fix", "repair", "install", "make", "build", "clean", "paint",
+            "move", "replace", "remove", "teach", "tutor", "cook", "bake", "sew", "wash", "assemble", "mount");
+    /// Words that name no service at all; an ask made only of these still gets the one question.
+    private static final Set<String> VAGUE = Set.of("something", "anything", "everything", "stuff", "thing", "things",
+            "whatever", "idea", "ideas", "question", "questions", "favor", "favour", "task", "tasks", "errand", "errands",
+            "free", "look", "able", "willing", "really", "very", "around", "here", "there", "right", "time");
+    private static final Set<String> TIME_WORDS = Set.of("morning", "afternoon", "evening", "night", "tonight",
+            "weekend", "weekday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
+            "mile", "miles", "km", "kilometer", "kilometers", "kilometre", "kilometres", "within", "max", "maximum");
+
+    /// Registers the person's own words as a request skill so the request can reference it.
+    Optional<Match> register(String label) {
+        List<String> keywords = keywords(label);
+        if (keywords.isEmpty() || keywords.size() > 8) return Optional.empty();
+        String tag = tag(keywords);
+        jdbc.update("INSERT INTO skill_vocabulary(tag,display,parent,requires_licence) VALUES(?,?,'custom',FALSE)"
+                + " ON CONFLICT (tag) DO NOTHING", tag, label);
+        return Optional.of(new Match(tag, label));
+    }
+
     /// A stable tag for a label: "Crochet locs" -> custom_crochet_loc.
     static String tag(List<String> keywords) {
         String original = String.join("_", keywords);

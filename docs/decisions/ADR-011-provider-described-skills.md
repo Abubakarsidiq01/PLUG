@@ -58,3 +58,17 @@ existing 40-character category limit. This prevents unrelated long or non-Latin 
 from sharing the same tag. Existing stored tags are not rewritten; re-saving a profile
 uses the hardened identifier. Matching still uses the provider's keywords and clients
 still display the label, never the identifier. No endpoint or response shape changes.
+
+### Asks in the person's own words — 2026-10-05 (contract 0.6.0)
+
+Owner decision: "any name of skills or anything the user typed should be used in matching
+keywords and displayed to them". A clear service ask that names no listed skill and matches no
+provider's own words is no longer turned into a category question. It becomes a request
+labelled in the asker's words: Claude's `service_label` when a key is configured (validated:
+3–40 characters, letters, digits and simple punctuation, at least one specific word), otherwise
+the meaningful words of the ask after a service cue such as "someone to", "need" or "fix"
+("Someone to regrout my bathroom tiles under $80" -> "Regrout bathroom tiles"). The label is
+registered as a `custom_` tag and matching reaches every provider whose own words share its
+keywords, under the usual rules. Listed skills still win; place questions, refusals and vague
+asks ("Something", "I need help with something") are unchanged, and Claude answering
+"unclear" still asks the one question. Claude still never creates a listed tag.

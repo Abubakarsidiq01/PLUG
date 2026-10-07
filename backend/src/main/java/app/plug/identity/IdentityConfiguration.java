@@ -97,6 +97,45 @@ public class IdentityConfiguration {
         return new PhoneVerificationService(challenges, limiter, sender, audit, secrets, settings, clock);
     }
 
+    // Staff mail (ADR-013): none fails closed, development writes a local owner-only file,
+    // resend sends real email.
+    @Bean
+    StaffMailer staffMailer(Environment environment) {
+        String delivery = environment.getProperty("plug.staff.mail-delivery", "none");
+        return switch (delivery) {
+            case "development" -> new StaffMailer.Development(environment.getRequiredProperty("plug.environment"),
+                    Path.of(environment.getProperty("plug.staff.development-mail-file", "build/development-staff-mail.txt")));
+            case "resend" -> new StaffMailer.Resend(environment.getProperty("plug.staff.resend-api-key", ""),
+                    environment.getProperty("plug.staff.mail-from", ""));
+            case "none" -> new StaffMailer.None();
+            default -> throw new IllegalStateException("plug.staff.mail-delivery must be none, development or resend.");
+        };
+    }
+
+    @Bean
+    StaffAccounts staffAccounts(JdbcTemplate jdbc, IdentityRepository identities, SessionService sessions, AuditLog audit,
+            Secrets secrets, StaffMailer mailer, IdentitySettings settings, Clock clock, Environment environment) {
+        return new StaffAccounts(jdbc, identities, sessions, audit, secrets, mailer, settings, clock,
+                environment.getProperty("plug.staff.console-url", "http://localhost:5173"));
+    }
+
+    // The first owner is invited once, from configuration, while no staff account exists.
+    @Bean
+    org.springframework.context.ApplicationListener<org.springframework.boot.context.event.ApplicationReadyEvent>
+            staffBootstrap(StaffAccounts staff, StaffMailer mailer, Environment environment) {
+        return ready -> {
+            String owner = environment.getProperty("plug.staff.owner-email", "");
+            if (owner.isBlank()) return;
+            if (!mailer.isAvailable()) {
+                org.slf4j.LoggerFactory.getLogger(StaffAccounts.class)
+                        .warn("staff_bootstrap_skipped reason=no_mail_delivery");
+                return;
+            }
+            staff.bootstrap(owner).ifPresent(invite -> org.slf4j.LoggerFactory.getLogger(StaffAccounts.class)
+                    .info("staff_bootstrap_invited invite={}", invite.inviteId()));
+        };
+    }
+
     @Bean
     AccountService accountService(IdentityRepository identities, SessionService sessions,
             AppleIdentityVerifier apple, GoogleIdentityVerifier google, PhoneVerificationService phones, AuditLog audit,

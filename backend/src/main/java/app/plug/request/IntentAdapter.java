@@ -41,7 +41,7 @@ public class IntentAdapter implements AutoCloseable {
     }
     /** The model's untrusted output. Every field is validated before use. */
     public record Extracted(String askType, List<String> skillTags, String placeName, Integer budgetCents,
-            Instant neededBy, Integer maxDistanceM) {}
+            Instant neededBy, Integer maxDistanceM, String serviceLabel) {}
     public enum AskType { SERVICE_REQUEST, PLACE_QUESTION, UNCLEAR }
     /** The classification: constraints for a service ask, the place for a place question, or the one question. */
     public record Result(AskType askType, Constraints constraints, String clarificationField,
@@ -53,6 +53,11 @@ public class IntentAdapter implements AutoCloseable {
     public static final int MAX_BUDGET = 500_000;
     static final int DEFAULT_DISTANCE_M = 10_000;
     static final Option PLACE_OPTION = new Option("place_question", "Something happening at a place");
+    /// Words that make an ask a request for someone to do something, used only when nothing listed
+    /// matched and no model reading exists: "someone to", "need", "fix", "who can"…
+    static final Pattern SERVICE_CUE = Pattern.compile("\\b(someone|somebody|anyone|need|needs|needed|want|wants|"
+            + "looking for|who can|can you|can someone|help (?:me|with)|hire|book|fix|repair|install|clean|make|build|"
+            + "teach|paint|move|deliver|cook|bake|sew|style|tutor|train|groom|wash|replace|remove|set up|setup)\\b");
     /** Offered when nothing could be resolved: common asks first. */
     static final List<String> POPULAR = List.of("barber", "braids", "nails", "plumbing_minor", "laptop_repair",
             "house_cleaning", "moving_help", "auto_repair");
@@ -139,6 +144,15 @@ public class IntentAdapter implements AutoCloseable {
         if (type != AskType.PLACE_QUESTION && input.category() == null && ruleSkills.isEmpty() && modelSkills.isEmpty()
                 && customSkills != null && requesterId != null) {
             custom = customSkills.bestFor(input.text(), requesterId).orElse(null);
+            // Still nothing: a service asked for in the person's own words (owner decision
+            // 2026-10-05) is created under those words and matched by their keywords. Claude's
+            // label is used when it gave one; otherwise the meaningful words of a clear request.
+            if (custom == null && (model == null || !"unclear".equals(model.askType()))) {
+                String label = model != null && "service_request".equals(model.askType())
+                        ? CustomSkills.cleanLabel(model.serviceLabel()) : null;
+                if (label == null && model == null && SERVICE_CUE.matcher(text).find()) label = CustomSkills.labelFrom(input.text());
+                if (label != null) custom = customSkills.register(label).orElse(null);
+            }
             if (custom != null) type = AskType.SERVICE_REQUEST;
         }
 
@@ -219,6 +233,7 @@ public class IntentAdapter implements AutoCloseable {
                 || value.placeName().codePoints().anyMatch(Character::isISOControl))) return false;
         if (value.budgetCents() != null && (value.budgetCents() < MIN_BUDGET || value.budgetCents() > MAX_BUDGET)) return false;
         if (value.maxDistanceM() != null && (value.maxDistanceM() < 100 || value.maxDistanceM() > 50_000)) return false;
+        if (value.serviceLabel() != null && CustomSkills.cleanLabel(value.serviceLabel()) == null) return false;
         try { checkTime(value.neededBy()); } catch (ApiException invalid) { return false; }
         return true;
     }
