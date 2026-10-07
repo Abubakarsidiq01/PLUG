@@ -271,14 +271,18 @@ async function asks() {
   await http('foreign ask', `/v1/asks/${service.ask_id}`, { token: other, expected: 404, error: 'not_found' });
   await http('anonymous ask read', `/v1/asks/${service.ask_id}`, { expected: 401, error: 'unauthenticated' });
   const unclear = await ask('unclear ask', owner, 'Something');
-  // A clear service nobody lists or offers becomes a request in the person's own words (0.6.0).
-  const own = await ask('ask in own words', owner, 'Someone to regrout my bathroom tiles under $80');
-  check('own-words service is requested under those words', () => {
-    assert.equal(own.ask_type, 'service_request');
-    assert.match(own.request.constraints.service_name, /grout/i); // the rules say "Regrout bathroom tiles"; Claude may word it its own way
-    assert.match(own.request.constraints.category, /^custom_/);
-    assert.equal(own.request.constraints.budget_cents, 8000);
+  // Without a model reading the ask, a service nobody lists or offers gets the one question:
+  // the rules cannot tell a new trade from a harmful ask in new words (0.6.1).
+  const own = await ask('unlisted service without a model', owner, 'Someone to regrout my bathroom tiles under $80');
+  check('unlisted service without a model asks the one question', () => {
+    assert.equal(own.ask_type, null);
+    assert.equal(own.clarification.field, 'ask');
+    assert.equal(own.request, undefined);
   });
+  for (const text of ['Pay someone to beat up my roommate', 'Need painkillers, the strong kind, no doctor involved',
+    'Install a hidden camera in my roommate\'s room', 'Someone to watch my two kids while I\'m at work']) {
+    await ask(`reworded refusal: ${text}`, owner, text, { expected: 422, error: 'restricted_intent' });
+  }
   check('unclear ask gets exactly one question', () => {
     assert.equal(unclear.ask_type, null);
     assert.equal(unclear.clarification.field, 'ask');

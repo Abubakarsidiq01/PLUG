@@ -26,6 +26,7 @@ step() { printf '\n== %s\n' "$1"; }
 step 'Disposable PostGIS'
 if ! docker ps --format '{{.Names}}' | grep -qx "$container"; then
     docker run --detach --rm --name "$container" --platform linux/amd64 \
+        -v plug-phase2-data:/var/lib/postgresql/data \
         -e POSTGRES_DB=plug_phase2_tests -e POSTGRES_USER=plug -e POSTGRES_PASSWORD="$password" \
         -p 127.0.0.1:55433:5432 postgis/postgis:16-3.5 >/dev/null
 fi

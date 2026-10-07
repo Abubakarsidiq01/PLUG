@@ -74,26 +74,28 @@ type the address "Railroad Ave, Ruston, LA"). They are labelled "Demo offer · B
 available yet". Elsewhere a request ends honestly with No offers unless a real provider nearby
 offers that skill.
 
-## Known gaps (found 2026-10-05, rerun 2026-10-06 on contract 0.6.0)
+## Known gaps (found 2026-10-05, rerun 2026-10-06, fixed 2026-10-07 on contract 0.6.1)
 
-The examples in this guide are tested as the `guide-` rows of `fixtures/intents/asks.jsonl`.
-The full results are in `docs/testing/phase2-person-two-review-2026-10-05.md` and
-`docs/testing/phase2-person-two-rerun-2026-10-06.md`.
+The examples in this guide are tested as the `guide-` rows of `fixtures/intents/asks.jsonl`,
+which is now also a backend test (`AsksDatasetTest`). Results:
+`docs/testing/phase2-person-two-review-2026-10-05.md`,
+`docs/testing/phase2-person-two-rerun-2026-10-06.md` and
+`docs/testing/phase2-person-one-fixes-2026-10-07.md`.
 
-- **Not refused does not mean approved.** The refusal rules match listed phrases. The same
-  request in other words is not refused. Fifteen such cases are recorded. Since 0.6.0 most
-  of them no longer get the one question: nine become a real request, eight of them in
-  the asker's own words. "Pay someone to beat up my roommate" is created as a request
-  called "Pay beat roommate". If a tester sees one, file it with the support reference; do
-  not treat the result as permission.
-- **Plain descriptions of a listed service miss the listed skill.** "My kitchen sink is
-  leaking, who can fix it today?" is now a request in the asker's words instead of the
-  listed minor plumbing skill, so a provider who chose that listed skill is not matched.
-  "Mount a 55 inch TV on my wall" still gets the one question.
-- **"Tonight" after 9 pm.** Tonight means by 9 pm. Two asks that said "tonight" were sent
-  after 9 pm local time and were rejected with "Choose a future time."
-- **"Is the DMV busy?"** is treated as a place question, but no place name is recorded.
-  "Is the DMV line long this morning?" gets the one question.
+- **Not refused still does not mean approved.** The rules now refuse the same intents in other
+  words (violence against a person, drugs without a prescription, forged documents, following
+  or checking on a particular person, hidden cameras, diagnosis, childcare, therapy), and with
+  a Claude key the model can refuse what the rules miss. A new wording can still get through:
+  if a tester sees one, file it with the support reference.
+- **Requests in the asker's own words need Claude.** With a Claude key, a service nobody lists
+  becomes a request named in the asker's words. Without one, the person gets the one question.
+- **Plain descriptions of a listed service** ("my kitchen sink is leaking", "mount a 55 inch
+  TV", "clean my mom's house", "my car won't start") now reach the listed skill, licence rule
+  included.
+- **"Tonight" after 9 pm.** Tonight means by 9 pm, so an ask sent later that says "tonight" is
+  rejected with "Choose a future time." Unchanged.
+- **Place names.** "Is the DMV busy?" records "DMV" and "Is the DMV line long this morning?" is
+  a place question; "How busy is the campus gym" records "campus gym".
 
 ## Support references
 

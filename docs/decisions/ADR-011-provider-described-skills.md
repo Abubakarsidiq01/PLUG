@@ -72,3 +72,31 @@ registered as a `custom_` tag and matching reaches every provider whose own word
 keywords, under the usual rules. Listed skills still win; place questions, refusals and vague
 asks ("Something", "I need help with something") are unchanged, and Claude answering
 "unclear" still asks the one question. Claude still never creates a listed tag.
+
+### Own-words requests need a model's reading — 2026-10-07 (contract 0.6.1)
+
+Person Two's rerun of the labelled ask dataset on 0.6.0 (`docs/testing/phase2-person-two-rerun-2026-10-06.md`
+§2.1) found that, with the rules alone, reworded harmful asks ("Pay someone to beat up my
+roommate", painkillers "no doctor involved", a hidden camera in a roommate's room, watching
+someone's kids) became requests in the asker's words, and that described problems ("my
+kitchen sink is leaking") missed the listed skill and its licence rule. Fixed in four layers:
+
+1. **Policy.** `RestrictedIntentPolicy` refuses the same intents in other words: violence
+   against a person, prescription drugs without a prescription, forged documents described
+   rather than named, tailing, following or checking where a particular person is, doing
+   something "without her knowing", hidden cameras, diagnosis of a body complaint, watching or
+   minding children, therapy and mental-health counselling. Ordinary asks that share words
+   ("shoot my daughter's graduation", "diagnose my car", "psychology tutor", "passport photo")
+   are tested to stay accepted.
+2. **Model.** Claude's schema gains `restricted`; an ask it flags is refused like a rule
+   refusal (422, nothing created, audit `restricted_intent:model_flagged`). The rules still run
+   first and do not depend on it.
+3. **Own words only with a model.** A request in the asker's words is created only from the
+   model's `service_label`, after the policy checks the label too. With the rules alone the
+   person gets the one question, as before 0.6.0.
+4. **Listed skills win.** A label that names a listed skill becomes that skill, so its licence
+   rule applies. Synonyms from Person Two's review were added to `skills.yaml`, and the matcher
+   now reads "clean my mom's house" and "mount a 55 inch TV".
+
+The dataset is now a backend test (`AsksDatasetTest`, 91/91 with the rules) and the
+model paths are tested against a scripted model (`OwnWordsWithModelTest`).

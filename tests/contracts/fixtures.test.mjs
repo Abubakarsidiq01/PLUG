@@ -13,13 +13,13 @@ const readFixture = (operation, outcome) => readJSON(`fixtures/requests.${operat
 test('every request fixture is registered exactly once and every documented response has coverage', () => {
   assert.equal(manifest.contract_version, contract.info.version);
   const files = readdirSync(new URL('fixtures/', root))
-    .filter(name => /^(requests|asks|providers|admin)\./.test(name))
+    .filter(name => /^(requests|asks|providers|admin|staff)\./.test(name))
     .flatMap(folder => readdirSync(new URL(`fixtures/${folder}/`, root))
       .filter(name => name.endsWith('.json')).map(name => `fixtures/${folder}/${name}`));
   assert.equal(new Set(rows.map(row => row.file)).size, rows.length);
   assert.deepEqual(rows.map(row => row.file).sort(), files.sort());
   for (const [path, item] of Object.entries(contract.paths)) {
-    if (!/^\/v1\/(requests|asks|providers|admin)/.test(path)) continue;
+    if (!/^\/v1\/(requests|asks|providers|admin|staff)/.test(path)) continue;
     for (const method of ['get', 'post']) {
       if (!item[method]) continue;
       for (const status of Object.keys(item[method].responses)) {

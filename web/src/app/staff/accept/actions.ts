@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { callApi } from "@/lib/staff-api";
+import { callApi, clientAddress } from "@/lib/staff-api";
 
 export type AcceptState = { error: string | null };
 
@@ -22,6 +22,7 @@ export async function acceptInvite(_previous: AcceptState, formData: FormData): 
   const result = await callApi<null>("/v1/staff/invites/accept", {
     method: "POST",
     body: { invite_token: inviteToken, password },
+    forwardedFor: await clientAddress(),
   });
   if (!result.ok) {
     const detail = result.status === 400 ? result.error?.details?.[0]?.code : undefined;

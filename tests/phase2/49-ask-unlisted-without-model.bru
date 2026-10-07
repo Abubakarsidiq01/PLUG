@@ -1,0 +1,33 @@
+meta {
+  name: Unlisted service without a model gets the one question
+  type: http
+  seq: 49
+}
+
+post {
+  url: {{baseUrl}}/v1/asks
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Owner}}
+  Idempotency-Key: {{p2Run}}-ask-unlisted
+}
+
+body:json {
+  {"text":"Someone to regrout my bathroom tiles","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"}}
+}
+
+assert {
+  res.status: eq 201
+  res.body.clarification.field: eq ask
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("no request is created in the person's words by the rules", function () { expect(res.getBody().request).to.be.oneOf([undefined, null]); });
+}

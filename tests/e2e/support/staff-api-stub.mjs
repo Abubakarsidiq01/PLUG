@@ -6,6 +6,7 @@
 //   email staff@example.com, password "stub staff password", code 123456
 //   email reader@example.com signs in, then every admin read is refused (403)
 //   email down@example.com gets 503, as when staff email is not configured
+//   staff@example.com is the owner in the Staff list; inviting taken@example.com is a conflict
 import { createServer } from 'node:http';
 import { readFileSync } from 'node:fs';
 
@@ -19,6 +20,10 @@ const people = {
   'reader@example.com': { token: 'stub-access-refused', refresh: 'stub-refresh-refused' },
 };
 const challenges = new Map(); // challenge id -> email
+// The Staff list starts as the fixture; staff@example.com is its owner (the first row).
+const staffList = fixture('admin.staff.list', 'success').staff.map((member, index) =>
+  index === 0 ? { ...member, email: 'staff@example.com' } : member);
+const ownerId = staffList[0].user_id;
 let issued = 0;
 const revoked = new Set();
 
@@ -29,7 +34,7 @@ function session(person) {
     access_token_expires_at: soon(15),
     refresh_token: person.refresh,
     refresh_token_expires_at: soon(720),
-    account: { ...fixture('auth.guest', 'success').account, type: 'staff', scopes: ['admin'] },
+    account: { user_id: person === people['staff@example.com'] ? ownerId : 'usr_stub-reader', type: 'staff', scopes: ['admin'] },
     consent: { ...fixture('auth.guest', 'success').consent, accepted_version: null },
   };
 }
@@ -56,6 +61,20 @@ createServer(async (request, response) => {
   const bearer = (request.headers.authorization || '').replace(/^Bearer /, '');
 
   if (request.method === 'GET' && url.pathname === '/health') return send(200, { status: 'ok' });
+
+  const signedIn = Object.values(people).some(person => person.token === bearer) && !revoked.has(bearer);
+  const owner = bearer === people['staff@example.com'].token;
+
+  if (request.method === 'GET' && url.pathname === '/v1/me') {
+    if (!signedIn) return send(401, error('unauthenticated', 'Sign in again.'));
+    return send(200, { account: session(owner ? people['staff@example.com'] : people['reader@example.com']).account,
+      consent: { current_version: '2026-09-01', accepted_version: null } });
+  }
+  if (request.method === 'GET' && url.pathname === '/v1/admin/staff') {
+    if (!signedIn) return send(401, error('unauthenticated', 'Sign in again.'));
+    if (!owner) return send(403, fixture('admin.staff.list', 'forbidden'));
+    return send(200, { staff: staffList });
+  }
 
   if (request.method === 'GET' && pages[url.pathname]) {
     // An unknown, run-out or revoked token is 401. A real session that may not read is 403.
@@ -93,6 +112,17 @@ createServer(async (request, response) => {
       if (/password/i.test(data.password)) return send(400, error('validation_failed', 'Too weak.', { details: [{ field: 'password', code: 'too_weak' }] }));
       return send(204);
     }
+    case '/v1/admin/staff/invites': {
+      if (!signedIn) return send(401, error('unauthenticated', 'Sign in again.'));
+      if (!owner) return send(403, fixture('admin.staff.invite', 'forbidden'));
+      if (data.email === 'taken@example.com') return send(409, fixture('admin.staff.invite', 'conflict'));
+      // Listed at once, as if the invitation had been accepted, so a test can then disable them.
+      if (!staffList.some(item => item.email === data.email)) {
+        staffList.push({ user_id: `usr_stub-${staffList.length + 1}`, email: data.email, role: data.role, status: 'active',
+          created_at: new Date().toISOString() });
+      }
+      return send(201, { ...fixture('admin.staff.invite', 'success'), email: data.email, role: data.role });
+    }
     case '/v1/auth/refresh': {
       const person = Object.values(people).find(item => item.refresh === data.refresh_token);
       if (!person) return send(401, error('unauthenticated', 'Sign in again.'));
@@ -103,7 +133,18 @@ createServer(async (request, response) => {
       if (bearer) revoked.add(bearer);
       return send(204);
     }
-    default:
+    default: {
+      const disable = url.pathname.match(/^\/v1\/admin\/staff\/(usr_[A-Za-z0-9-]+)\/disable$/);
+      if (disable) {
+        if (!signedIn) return send(401, error('unauthenticated', 'Sign in again.'));
+        if (!owner) return send(403, fixture('admin.staff.disable', 'forbidden'));
+        const member = staffList.find(item => item.user_id === disable[1]);
+        if (!member) return send(404, fixture('admin.staff.disable', 'not-found'));
+        if (member.user_id === ownerId) return send(409, fixture('admin.staff.disable', 'conflict'));
+        member.status = 'disabled';
+        return send(204);
+      }
       return send(404, error('not_found', 'No such route.'));
+    }
   }
 }).listen(port, '127.0.0.1', () => console.log(`Staff API stub on http://127.0.0.1:${port}`));

@@ -57,3 +57,15 @@ chose B with an emailed code, rejecting authenticator-app QR codes.
   Passkeys can replace the emailed code later without changing the account model.
 - Until the web console exists, `node tools/staff.mjs` performs accept, login, list, invite,
   disable and logout against any PLUG server.
+
+### Staff console and caller addresses — 2026-10-07
+
+- Person Two's web console (`/admin/login`, `/staff/accept`, `/admin`) is the staff interface;
+  `/admin/staff` adds the list, invitations and disabling for owners, so `tools/staff.mjs` is
+  now a fallback.
+- Sign-in limits count the caller's address. Through the console every request comes from the
+  web server, so the backend believes `X-Forwarded-For` only from addresses listed in
+  `PLUG_TRUSTED_PROXIES` (empty by default), and only that proxy's own last hop. The console
+  passes on the address its own ingress reported.
+- The invitation token is removed from the address bar and history once the page has read it,
+  and a request a proxy marks as HTTPS always gets Secure cookies.

@@ -43,14 +43,14 @@ struct ProviderOnboardingView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                        HStack(spacing: 14) {
-                            Image(systemName: "person.crop.circle.badge.plus")
-                                .font(.system(size: 28, weight: .regular))
-                                .frame(width: 60, height: 60)
-                                .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 20))
-                            Text(current == nil ? "Offer a service" : "What you offer")
-                                .font(.system(.title2, design: .rounded, weight: .bold))
-                        }.foregroundStyle(PlugTokens.Color.ink900)
+                        // The sheet's name is in the navigation bar, so it stays visible however far the
+                        // sheet is scrolled; at the largest sizes a header title went under Cancel.
+                        Image(systemName: "person.crop.circle.badge.plus")
+                            .font(.system(size: 28, weight: .regular))
+                            .frame(width: 60, height: 60)
+                            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 20))
+                            .foregroundStyle(PlugTokens.Color.ink900)
+                            .accessibilityHidden(true)
                         Text("Turn what you do into a local connection.")
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                     }
@@ -103,6 +103,8 @@ struct ProviderOnboardingView: View {
             .scrollDismissesKeyboard(.interactively)
             .background(PlugTokens.Color.paper)
             // A paper bar, so scrolled text never runs under Cancel at large text sizes.
+            .navigationTitle(current == nil ? "Offer a service" : "What you offer")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
@@ -206,8 +208,16 @@ struct ProviderOnboardingView: View {
     private var describeStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
             Text("What do you do?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-            TextField("For example: Wig install", text: $description, axis: .vertical)
-                .plugText(.body).lineLimit(2...5).focused($describing)
+            ZStack(alignment: .topLeading) {
+                // Wraps at large sizes and meets the contrast floor, unlike the system placeholder.
+                if description.isEmpty {
+                    Text("For example: Wig install").plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .allowsHitTesting(false).accessibilityHidden(true)
+                }
+                TextField("", text: $description, axis: .vertical)
+                    .plugText(.body).lineLimit(2...5).focused($describing)
+            }
                 .padding(PlugTokens.Space.s3)
                 .frame(minHeight: PlugTokens.minTouchTarget)
                 .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
@@ -618,11 +628,17 @@ private struct ProviderChoice: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            Text(title).plugText(.label)
+            HStack(spacing: 6) {
+                if selected { Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).accessibilityHidden(true) }
+                Text(title).plugText(.label)
+            }
                 .padding(.horizontal, 16).padding(.vertical, 12)
                 .frame(minHeight: 44)
-                .foregroundStyle(selected ? PlugTokens.Color.card : PlugTokens.Color.ink900)
-                .background(selected ? PlugTokens.Color.ink900 : PlugTokens.Color.paper, in: Capsule())
+                // Selected is outlined, not filled: the one ink-filled control stays the primary action.
+                .foregroundStyle(PlugTokens.Color.ink900)
+                .background(selected ? PlugTokens.Color.card : PlugTokens.Color.paper, in: Capsule())
+                .overlay(Capsule().strokeBorder(selected ? PlugTokens.Color.ink900 : PlugTokens.Color.rule300,
+                                                lineWidth: selected ? 2 : 1))
         }
         .buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
     }

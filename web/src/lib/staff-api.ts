@@ -17,13 +17,16 @@ export type ApiResult<T> =
 
 export async function callApi<T>(
   path: string,
-  init: { method?: "GET" | "POST"; body?: unknown; token?: string } = {},
+  init: { method?: "GET" | "POST"; body?: unknown; token?: string; forwardedFor?: string | null } = {},
 ): Promise<ApiResult<T>> {
   const origin = apiOrigin();
   if (origin === null) return { ok: false, status: 0, error: null };
   const requestHeaders: Record<string, string> = { Accept: "application/json" };
   if (init.body !== undefined) requestHeaders["Content-Type"] = "application/json";
   if (init.token) requestHeaders.Authorization = `Bearer ${init.token}`;
+  // The API counts sign-in attempts per caller address. It believes this header only from a
+  // server listed in its PLUG_TRUSTED_PROXIES, so every staff member gets their own limit.
+  if (init.forwardedFor) requestHeaders["X-Forwarded-For"] = init.forwardedFor;
   try {
     const response = await fetch(new URL(path, origin), {
       method: init.method ?? "GET",
@@ -42,11 +45,21 @@ export async function callApi<T>(
   }
 }
 
-// Secure everywhere except a server reached on this machine, where there is no HTTPS.
+// Secure everywhere except a server reached on this machine over plain HTTP. A request a proxy
+// marks as HTTPS is always Secure, even when the proxy rewrites the host to localhost.
 export async function cookieBase(path: string) {
-  const host = (await headers()).get("host") ?? "";
-  const hostname = host.replace(/:\d+$/, "");
-  return { httpOnly: true, secure: !isLoopback(hostname), sameSite: "strict" as const, path };
+  const incoming = await headers();
+  const hostname = (incoming.get("host") ?? "").replace(/:\d+$/, "");
+  const https = incoming.get("x-forwarded-proto")?.split(",")[0]?.trim() === "https";
+  return { httpOnly: true, secure: https || !isLoopback(hostname), sameSite: "strict" as const, path };
+}
+
+// The browser's address as this site's own ingress reported it, if it did. Only an address is
+// passed on; anything else is dropped.
+export async function clientAddress(): Promise<string | null> {
+  const incoming = await headers();
+  const candidate = (incoming.get("x-forwarded-for")?.split(",")[0] ?? incoming.get("x-real-ip") ?? "").trim();
+  return /^[0-9A-Fa-f.:]{2,45}$/.test(candidate) ? candidate : null;
 }
 
 export async function storeSession(session: Session): Promise<void> {

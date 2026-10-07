@@ -11,6 +11,19 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.6.1 — 2026-10-07 — clarification — proposed
+Approved by Person One (project owner) on 2026-10-07; Person Two approves the pull request.
+No shape changes. `Category`: a request is created in the asker's own words only when the model
+read the ask as a lawful service and named it; without a model reading the ask the person gets
+the one question (Person Two's 2026-10-06 rerun showed the rules alone turning reworded harmful
+asks into requests). A name that matches a listed skill becomes that skill, licence rule
+included, and matching uses the request's name as well as the ask's words.
+Fixtures: `fixtures/staff.{login,verify,accept}/` (the three staff sign-in routes, raised by
+Person Two), and `tests/contracts/fixtures.test.mjs` now requires coverage under `/v1/staff`
+too; responses without a body (204) need no fixture. Manifest at 0.6.1.
+Migration note: none.
+Rollback: none needed; the behaviour change is in the intent adapter.
+
 ### 0.6.0 — 2026-10-05 — additive — proposed
 Approved by Person One (project owner) on 2026-10-05; Person Two approves the pull request.
 **Staff accounts (ADR-013):** `POST /v1/staff/login`, `POST /v1/staff/login/verify`,

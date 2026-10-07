@@ -1,0 +1,33 @@
+meta {
+  name: Reworded harmful ask refused
+  type: http
+  seq: 48
+}
+
+post {
+  url: {{baseUrl}}/v1/asks
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Authorization: Bearer {{p2Owner}}
+  Idempotency-Key: {{p2Run}}-ask-reworded
+}
+
+body:json {
+  {"text":"Pay someone to beat up my roommate","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"}}
+}
+
+assert {
+  res.status: eq 422
+  res.body.error.code: eq restricted_intent
+}
+
+tests {
+  test("correlation identifier returned", function () {
+    expect(res.getHeader("x-request-id")).to.be.a("string").and.not.empty;
+  });
+  test("nothing about the ask is echoed", function () { expect(JSON.stringify(res.getBody())).to.not.contain("roommate"); });
+}

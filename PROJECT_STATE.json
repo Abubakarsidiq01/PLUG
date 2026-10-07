@@ -1,8 +1,8 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-07T04:18:25.234+00:00",
-  "updated_by": "person_two (merged main 27dffc3; Windows rerun on 0.6.0; staff console sign-in and live inspector)",
+  "updated_at": "2026-10-07T21:32:38.702700+00:00",
+  "updated_by": "person_one (0.6.1: fixes from Person Two's review and rerun; staff console management; dependency updates)",
   "completed_phases": [
     "P0",
     "P1"
@@ -81,7 +81,7 @@
     "POST /v1/requests/{request_id}/clarifications": "frozen@0.5.0 (merged in PR #35)",
     "GET /v1/requests/{request_id}/offers": "frozen@0.5.0 (merged in PR #35)",
     "POST /v1/requests/{request_id}/cancel": "frozen@0.5.0 (merged in PR #35)",
-    "POST /v1/asks": "frozen@0.5.0 (merged in PR #35) (0.6.0 proposed: own-words requests, behaviour only)",
+    "POST /v1/asks": "frozen@0.5.0 (merged in PR #35); 0.6.0 own-words requests merged in PR #36; 0.6.1 proposed: own words only from the model's reading",
     "GET /v1/asks/{ask_id}": "frozen@0.5.0 (merged in PR #35)",
     "POST /v1/asks/{ask_id}/clarifications": "frozen@0.5.0 (merged in PR #35)",
     "POST /v1/providers/skills/propose": "frozen@0.5.0 (merged in PR #35)",
@@ -92,12 +92,12 @@
     "GET /v1/admin/skills/gaps": "frozen@0.5.0 (merged in PR #35)",
     "GET /v1/admin/classifications": "frozen@0.5.0 (merged in PR #35)",
     "GET /v1/admin/refusals": "frozen@0.5.0 (merged in PR #35)",
-    "POST /v1/staff/login": "proposed@0.6.0 (approved by person_one 2026-10-05; person_two approves the PR; ADR-013)",
-    "POST /v1/staff/login/verify": "proposed@0.6.0 (approved by person_one 2026-10-05; person_two approves the PR; ADR-013)",
-    "POST /v1/staff/invites/accept": "proposed@0.6.0 (approved by person_one 2026-10-05; person_two approves the PR; ADR-013)",
-    "GET /v1/admin/staff": "proposed@0.6.0 (approved by person_one 2026-10-05; person_two approves the PR; ADR-013)",
-    "POST /v1/admin/staff/invites": "proposed@0.6.0 (approved by person_one 2026-10-05; person_two approves the PR; ADR-013)",
-    "POST /v1/admin/staff/{user_id}/disable": "proposed@0.6.0 (approved by person_one 2026-10-05; person_two approves the PR; ADR-013)"
+    "POST /v1/staff/login": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1",
+    "POST /v1/staff/login/verify": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1",
+    "POST /v1/staff/invites/accept": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1",
+    "GET /v1/admin/staff": "frozen@0.6.0 (merged in PR #36)",
+    "POST /v1/admin/staff/invites": "frozen@0.6.0 (merged in PR #36)",
+    "POST /v1/admin/staff/{user_id}/disable": "frozen@0.6.0 (merged in PR #36)"
   },
   "feature_flags": {
     "identity": "staging_only",
@@ -110,24 +110,24 @@
   },
   "next_actions": [
     {
-      "id": "P2-contract-0.6.0",
+      "id": "P2-contract-0.6.1",
       "owner": "both",
       "manual_section": "27.3",
-      "task": "Contract 0.5.0 is frozen (PR #35 merged). 0.6.0 adds staff accounts (ADR-013: invited by email, email + password + emailed six-digit code, owner/staff roles) and requests in the asker's own words (ADR-011 amendment). Approved by Person One 2026-10-05; Person Two reviews and approves the pull request.",
+      "task": "Contract 0.6.0 is frozen (PR #36 merged). 0.6.1 clarifies own-words requests (only from the model's reading) and adds fixtures for the three staff sign-in routes. Approved by Person One 2026-10-07; Person Two approves the pull request.",
       "acceptance": "Pull request approved by Person Two and merged; Spectral, ContractTest and pnpm test:contracts green."
     },
     {
       "id": "P2-device-evidence",
       "owner": "person_one",
       "manual_section": "27.3",
-      "task": "Done 2026-10-04 for the automated state matrix: all six walkthroughs passed on the paired iPhone at default and largest Dynamic Type (evidence/P2/ios/2026-10-04/, docs/testing/phase2-device-evidence-2026-10-04.md). Remaining: VoiceOver walkthrough on the device into evidence/P2/a11y and an independent greyscale/design review. Automated accessibility audit of six main screens passes (evidence/P2/a11y/). Checklist for the recorded pass: docs/testing/phase2-voiceover-checklist.md. 2026-10-05: Person Two's design review from the screenshots is in docs/testing/phase2-person-two-review-2026-10-05.md section 5. Six findings, including notification banners with personal names in five largest-text captures that need recapturing. 2026-10-06: Person Two reviewed the 64 simulator captures in evidence/P2/simulator/2026-10-05 in greyscale (rerun record section 4): four pairs of captures are identical files and several labels are cut at largest text.",
+      "task": "Done 2026-10-04 for the automated state matrix: all six walkthroughs passed on the paired iPhone at default and largest Dynamic Type (evidence/P2/ios/2026-10-04/, docs/testing/phase2-device-evidence-2026-10-04.md). Remaining: VoiceOver walkthrough on the device into evidence/P2/a11y and an independent greyscale/design review. Automated accessibility audit of six main screens passes (evidence/P2/a11y/). Checklist for the recorded pass: docs/testing/phase2-voiceover-checklist.md. 2026-10-05: Person Two's design review from the screenshots is in docs/testing/phase2-person-two-review-2026-10-05.md section 5. Six findings, including notification banners with personal names in five largest-text captures that need recapturing. 2026-10-06: Person Two reviewed the 64 simulator captures in evidence/P2/simulator/2026-10-05 in greyscale (rerun record section 4): four pairs of captures are identical files and several labels are cut at largest text. 7 October: five largest-text device captures had notification banners with people's names; the banner band is covered. Recapture with Do Not Disturb at the next device session.",
       "acceptance": "VoiceOver walkthrough recorded; design gate reviewed by a second person."
     },
     {
       "id": "P2-admin-vocabulary-classifier",
       "owner": "both",
       "manual_section": "27.3 / P2-TWO.S12",
-      "task": "Backend read API done 2026-10-05 (GET /v1/admin/skills, /skills/gaps, /classifications, /refusals). Staff sign-in done 2026-10-05 (ADR-013; StaffAccountsTest; docs/runbooks/staff-accounts.md; node tools/staff.mjs). 2026-10-05: Person Two built the inspector against fixtures/admin.* as components plus a local preview at /preview/admin (404 unless PLUG_ADMIN_PREVIEW=fixtures; calls no API). /admin stays closed. Types are generated from the contract. Evidence: evidence/P2/web/2026-10-05/admin-inspector. 2026-10-06: Person Two added staff sign-in (/admin/login), the invitation page (/staff/accept) and the live inspector (/admin) to the web console. It is closed unless the web server has PLUG_API_URL; tokens stay in HttpOnly cookies and the API authorizes every read. Checked against the real backend on loopback and by 12 Playwright tests against a fixture stand-in (docs/testing/phase2-person-two-rerun-2026-10-06.md section 5; evidence/P2/web/2026-10-06/staff-console). Remaining: configure Resend, the first owner, PLUG_STAFF_CONSOLE_URL and the web server's PLUG_API_URL per environment, then evidence from a real staff session there. Staff invite/list/disable stay in tools/staff.mjs.",
+      "task": "Done in code: inspection API, staff accounts (ADR-013), Person Two's console (/admin/login, /staff/accept, /admin) and /admin/staff for owners. Remaining: switch the console on in an environment (PLUG_API_URL, Resend, the first owner, PLUG_STAFF_CONSOLE_URL, PLUG_TRUSTED_PROXIES) and record a real staff session there.",
       "acceptance": "A real staff session reads the vocabulary and recent decisions in the web inspector; denied-role, paging, redaction, loading, error and empty states evidenced."
     },
     {

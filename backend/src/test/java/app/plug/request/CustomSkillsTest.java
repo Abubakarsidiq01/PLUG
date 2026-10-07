@@ -18,18 +18,11 @@ class CustomSkillsTest {
         assertEquals(List.of("chimney", "sweep"), CustomSkills.keywords("Chimney sweeping"));
         assertEquals(List.of("sweep", "chimney"), CustomSkills.keywords("Can someone sweep my chimney tomorrow?"));
         assertTrue(CustomSkills.keywords("I need help today please").isEmpty());
+        assertEquals(CustomSkills.keywords("harp restringing"), CustomSkills.keywords("restring harp").reversed());
     }
 
     @Test
-    void anAskNamingNoListedSkillIsLabelledInThePersonsOwnWords() {
-        assertEquals("Regrout bathroom tiles", CustomSkills.labelFrom("Someone to regrout my bathroom tiles tomorrow under $80"));
-        assertEquals("Fix garden gate", CustomSkills.labelFrom("I need someone to fix my garden gate this weekend"));
-        assertEquals("Chimney", CustomSkills.labelFrom("Is anyone free to look at my chimney?"));
-        assertEquals("Assemble IKEA wardrobe", CustomSkills.labelFrom("Can someone assemble my IKEA wardrobe within 5 miles"));
-        for (String vague : List.of("Something", "I need help with something", "Can someone do a favor for me today",
-                "Fix it please", "Need someone now", "")) {
-            assertEquals(null, CustomSkills.labelFrom(vague), vague);
-        }
+    void aModelLabelIsKeptOnlyWhenItNamesSomething() {
         assertEquals("Tile regrouting", CustomSkills.cleanLabel("  tile   regrouting "));
         for (String bad : List.of("ab", "x".repeat(41), "tiles\u0000", "<script>", "something", "stuff and things")) {
             assertEquals(null, CustomSkills.cleanLabel(bad), bad);

@@ -22,15 +22,30 @@ public final class RestrictedIntentPolicy {
     private static final Pattern TOOLS = Pattern.compile(
             "\\b((nail|glue|heat|staple|caulk|caulking|spray|paint|grease|massage|tattoo) guns?|bath bombs?)\\b");
 
+    // People an ask may be about. Used where a verb alone is ordinary ("beat the traffic",
+    // "watch the game") and only an object that is a person makes it harmful.
+    private static final String PERSON = "(?:him|her|them|someone|somebody|a person|people|"
+            + "(?:my|his|her|their|our|that|this) (?:ex|roommate|room mate|boyfriend|girlfriend|husband|wife|partner|"
+            + "neighbou?r|coworker|co-worker|boss|friend|brother|sister|cousin|landlord|teacher|classmate|"
+            + "dad|mom|mother|father|son|daughter|kid|child|guy|girl|man|woman)s?)";
+
     static final List<Rule> RULES = List.of(
             rule("illegal_goods", "cocaine|crack cocaine|heroin|meth|methamphetamine|fentanyl|mdma|ecstasy|lsd|"
                     + "ketamine|xanax without|oxy(?:codone|contin)? without|stolen\\w*|counterfeit\\w*|fake ids?|"
                     + "forged \\w+|credit card numbers|ssn|social security numbers?|buy (?:a |some )?(?:weed|drugs)|"
-                    + "sell (?:me )?(?:weed|drugs)"),
+                    + "sell (?:me )?(?:weed|drugs)|"
+                    // Prescription drugs, however they are named, without the prescription.
+                    + "(?:pain ?killers?|opioids?|opiates?|percocets?|vicodin|adderall|oxy\\w*|xanax|codeine|"
+                    + "pills?|meds|medication)\\b[^.?!]{0,40}(?:no doctor|without (?:a |any )?(?:doctor|prescription|script)|"
+                    + "no prescription|no script)|"
+                    // Forged documents, described rather than named.
+                    + "(?:driver'?s )?licen[cs]e that says|fake (?:driver'?s )?(?:licen[cs]e|passport|diploma|degree|id card)|"
+                    + "(?:make|forge) (?:me )?(?:a |an )?(?:driver'?s licen[cs]e|passport|id|id card|diploma)(?! photo)"),
             rule("weapons", "guns?|firearms?|handguns?|rifles?|ammo|ammunition|silencers?|suppressors?|"
                     + "explosives?|bombs?|grenades?|ghost guns?|3d printed guns?"),
             rule("violence", "kill (?:him|her|them|someone|somebody|a person|people|my \\w+)|murder|assassinat\\w*|hitman|hit man|hurt (?:him|her|them|someone|somebody)|"
-                    + "beat (?:him|her|them|someone|somebody) up|rough (?:him|her|them|someone) up|kidnap\\w*|poison (?:him|her|them|someone|somebody|my \\w+)"),
+                    + "beat (?:him|her|them|someone|somebody) up|rough (?:him|her|them|someone) up|kidnap\\w*|poison (?:him|her|them|someone|somebody|my \\w+)|"
+                    + "beat (?:up )?" + PERSON + "(?: up)?|(?:hurt|attack|assault|stab|threaten) " + PERSON),
             rule("sexual_services", "escorts?|escort service|prostitut\\w*|sex work\\w*|happy ending|"
                     + "sugar (?:daddy|baby)|nudes|onlyfans account"),
             rule("fraud_cyber", "hack\\w*|phishing|ddos|crack (?:a |the |my |his |her )?password|"
@@ -46,11 +61,25 @@ public final class RestrictedIntentPolicy {
                     + "(?:watch|monitor|check on) (?:my |his |her )?(?:ex|wife|husband|girlfriend|boyfriend|partner|"
                     + "neighbou?r)\\w*|is (?:he|she|my ex) (?:home|at home|there)|who is (?:he|she) (?:with|seeing)|"
                     + "(?:whose|run a|look up a) (?:license|licence) plate|look up (?:a |this )?person|"
-                    + "phone number of (?:my ex|him|her|someone|somebody|a person)"),
+                    + "phone number of (?:my ex|him|her|someone|somebody|a person)|"
+                    // Watching where a particular person is, in other words.
+                    + "tail " + PERSON + "|follow " + PERSON + "|" + PERSON + "'?s? (?:phone )?number|"
+                    + "(?:check|see|find out|tell me) (?:if|whether) " + PERSON + " (?:is|was) (?:at|home|there|with|in)|"
+                    + "is (?:my|his|her|their) (?:ex|roommate|boyfriend|girlfriend|husband|wife|partner|neighbou?r|coworker|boss) "
+                    + "(?:at|in|still at|home)|"
+                    + "is (?:anyone|anybody|someone|somebody) (?:home|in|there|inside) at \\d+|"
+                    + "(?:still )?parked (?:outside|in front of|by) (?:the|his|her|their|a) (?:house|home|apartment|place)|"
+                    + "without (?:him|her|them|his|her|their) (?:knowing|knowledge|consent|permission)|"
+                    + "(?:hidden|secret|spy|covert) cam(?:era)?s?|spy ?cams?"),
             rule("unsupported_regulated", "babysit\\w*|nanny|nannies|child ?care|daycare|look after (?:my )?(?:kids?|child|baby)|"
-                    + "elder ?care|caregiver|carer for|diagnose (?:me|my|him|her)|medical diagnosis|prescribe|"
+                    + "elder ?care|caregiver|carer for|diagnose (?:me|him|her)|medical diagnosis|prescribe|"
                     + "prescription without|medical advice|legal advice|"
-                    + "lawyer|attorney|financial advice|tax advice|invest my money"));
+                    + "lawyer|attorney|financial advice|tax advice|invest my money|"
+                    // Childcare and medical care described rather than named.
+                    + "diagnos\\w* (?:my|this|a|the|his|her|our) (?:\\w+ )?(?:rash|pain|symptoms?|illness|sickness|condition|skin|mole|"
+                    + "injury|cough|fever|infection|lump|bite|allergy|allergies)|(?:watch|mind|look after|care for|sit with) (?:my |our |his |her |the )?(?:\\w+ )?"
+                    + "(?:kids?|children|child|baby|babies|toddlers?|infants?)|(?<!massage )therap(?:ist|y|ists)|"
+                    + "(?:mental health|grief|marriage|couples?) counsell?(?:or|ing)|psychiatrists?|psychiatric|psychologists?"));
 
     /// A place question must be about a public place (manual v4 §2.2, §19A.1). Checked only
     /// once an ask is classified as a place question: "clean her house" is an ordinary job,

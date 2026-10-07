@@ -304,13 +304,10 @@ class AskProviderTest {
         assertThat(jdbc.queryForList("SELECT provider_id FROM request_matches WHERE request_id=?", String.class,
                 request.path("request_id").asText())).contains(sweeper.at("/account/user_id").asText());
 
-        // One shared word is not enough for a two-word skill: the ask becomes a request in the
-        // person's own words that does not reach the sweeper. Nobody is matched to their own skill.
-        var looked = ask(guest(), "Is anyone free to look at my chimney?").path("request");
-        assertThat(looked.at("/constraints/service_name").asText()).isEqualTo("Chimney");
-        service.workOnce();
-        assertThat(jdbc.queryForList("SELECT provider_id FROM request_matches WHERE request_id=?", String.class,
-                looked.path("request_id").asText())).doesNotContain(sweeper.at("/account/user_id").asText());
+        // One shared word is not enough for a two-word skill, and without a model reading the
+        // ask nothing is created in the person's own words: the one question. Nobody is
+        // matched to their own skill.
+        assertThat(ask(guest(), "Is anyone free to look at my chimney?").path("ask_type").isNull()).isTrue();
         assertThat(ask(sweeper, "Chimney sweeping please").path("ask_type").isNull()).isTrue();
 
         // Omitting custom_skills keeps them; listed skills can sit alongside.
@@ -320,7 +317,7 @@ class AskProviderTest {
         assertThat(both.at("/skills/0/tag").asText()).isEqualTo("handyman");
     }
 
-    @Test void anUnlistedServiceIsRequestedInThePersonsWordsAndReachesProvidersWhoSayTheSame() throws Exception {
+    @Test void anAskReachesProvidersWhoDescribedTheSameSkillInTheirOwnWords() throws Exception {
         var tiler = guest();
         send(tiler, "/v1/providers/skills", ownWords("[\"bathroom tile regrouting\"]"), false).andExpect(status().isOk());
         var asker = guest();
@@ -332,12 +329,9 @@ class AskProviderTest {
         assertThat(jdbc.queryForList("SELECT provider_id FROM request_matches WHERE request_id=?", String.class,
                 request.path("request_id").asText())).contains(tiler.at("/account/user_id").asText());
 
-        // Nobody offers it yet: the request still exists, in the person's own words.
-        var fresh = ask(asker, "I need someone to restring my grandfather's harp this weekend").path("request");
-        assertThat(fresh.at("/constraints/service_name").asText()).isEqualTo("Restring grandfather's harp");
-        assertThat(fresh.at("/constraints/category").asText()).startsWith("custom_");
-        assertThat(jdbc.queryForObject("SELECT display FROM skill_vocabulary WHERE tag=?", String.class,
-                fresh.at("/constraints/category").asText())).isEqualTo("Restring grandfather's harp");
+        // Nobody offers it and no model read it: the one question, never a request named by
+        // the rules (OwnWordsWithModelTest covers the model's label).
+        assertThat(ask(asker, "I need someone to restring my grandfather's harp this weekend").path("ask_type").isNull()).isTrue();
         assertThat(ask(asker, "Something").path("ask_type").isNull()).isTrue();
     }
 

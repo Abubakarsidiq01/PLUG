@@ -38,6 +38,22 @@ class RequestV2Test {
     @Autowired ObjectMapper mapper;
     @Autowired JdbcTemplate jdbc;
     @Autowired RequestService service;
+    @Autowired org.springframework.transaction.PlatformTransactionManager transactions;
+    private final java.util.List<String> users = new java.util.ArrayList<>();
+
+    /// The worker takes the 20 least recently updated active requests a pass. Requests left by
+    /// one test here could fill that batch in a later one and leave its request untouched, which
+    /// failed seededFlowPersistsHonestProgressOffersAndReplay intermittently.
+    @org.junit.jupiter.api.AfterEach void removeOnlyThisTestsRecords() {
+        new org.springframework.transaction.support.TransactionTemplate(transactions).executeWithoutResult(ignored -> {
+            for (String user : users) {
+                jdbc.update("DELETE FROM asks WHERE user_id=?", user);
+                jdbc.update("DELETE FROM request_idempotency WHERE user_id=?", user);
+                jdbc.update("DELETE FROM requests WHERE user_id=?", user);
+            }
+            for (String user : users) jdbc.update("DELETE FROM users WHERE id=?", user);
+        });
+    }
     static final String BODY = """
             {"text":"Barber under $35 in 30 minutes","location":{"latitude":32.528,"longitude":-92.714,"precision":"coarse"}}
             """;
@@ -47,9 +63,11 @@ class RequestV2Test {
         }
     }
     JsonNode guest() throws Exception {
-        return json(mvc.perform(post("/v1/auth/guest").with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })
+        JsonNode session = json(mvc.perform(post("/v1/auth/guest").with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })
                 .contentType(MediaType.APPLICATION_JSON).content("{\"consent_version\":\"2026-09-01\"}"))
                 .andExpect(status().isCreated()));
+        users.add(session.at("/account/user_id").asText());
+        return session;
     }
     ResultActions create(JsonNode guest, String body, String key) throws Exception {
         return mvc.perform(post("/v1/requests").with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })

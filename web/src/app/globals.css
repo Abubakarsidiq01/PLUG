@@ -1043,3 +1043,24 @@ ol {
   align-items: center;
   min-height: var(--target-min-touch);
 }
+
+/* Staff page (ADR-013): the invitation form keeps a readable line length. */
+.staff-invite {
+  max-width: 32rem;
+  min-width: 0;
+}
+
+.staff-invite .field-input {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.inspector-table form {
+  margin: 0;
+}
+
+/* Keeps visually hidden headings inside the scrolling table, not out on the page. */
+.inspector-scroll {
+  position: relative;
+}

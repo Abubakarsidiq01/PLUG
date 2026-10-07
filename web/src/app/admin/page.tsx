@@ -49,9 +49,12 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
   ]);
 
   const actions = (
-    <form action={signOut}>
-      <button type="submit" className="button button-secondary">Sign out</button>
-    </form>
+    <>
+      <a className="text-link" href="/admin/staff">Staff</a>
+      <form action={signOut}>
+        <button type="submit" className="button button-secondary">Sign out</button>
+      </form>
+    </>
   );
   const results: ApiResult<unknown>[] = [skills, gaps, classifications, refusals];
   if (results.some((result) => result.status === 401)) redirect(refreshUrl);

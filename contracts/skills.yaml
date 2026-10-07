@@ -55,7 +55,7 @@
   parent: tech
 - tag: phone_repair
   display: Phone repair
-  synonyms: [phone repair, cracked screen, iphone repair, phone screen, battery replacement]
+  synonyms: [phone repair, cracked screen, iphone repair, phone screen, battery replacement, cracked iphone, cracked phone, iphone screen, broken phone screen]
   parent: tech
 - tag: shoe_repair
   display: Shoe repair
@@ -73,14 +73,14 @@
 # Home
 - tag: plumbing_minor
   display: Minor plumbing
-  synonyms: [plumber, plumbing, leaking sink, leaky sink, leaking tap, blocked drain, clogged drain, running toilet, clogged toilet, tap replacement]
+  synonyms: [plumber, plumbing, leaking sink, leaky sink, leaking tap, blocked drain, clogged drain, running toilet, clogged toilet, tap replacement, sink is leaking, sink leaking, leaking faucet, leaky faucet, leaking pipe, pipe is leaking]
   parent: home
   note: >
     Minor work only. Anything requiring a licence routes to the licensed-trade policy in
     the restricted-intent rules, which asks for the licence number before a match is made.
 - tag: electrical
   display: Electrical work
-  synonyms: [electrician, electrical, wiring, rewire, outlet, breaker, light fitting]
+  synonyms: [electrician, electrical, wiring, rewire, outlet, breaker, light fitting, track lighting, light fixture]
   parent: home
   requires_licence: true
 - tag: handyman
@@ -93,11 +93,11 @@
   parent: home
 - tag: tv_mounting
   display: TV mounting
-  synonyms: [tv mounting, mount a tv, mount my tv, wall mount tv]
+  synonyms: [tv mounting, mount a tv, mount my tv, wall mount tv, tv on my wall, tv on the wall]
   parent: home
 - tag: house_cleaning
   display: House cleaning
-  synonyms: [cleaner, cleaning, house cleaning, deep clean, maid, move out clean]
+  synonyms: [cleaner, cleaning, house cleaning, deep clean, maid, move out clean, deep cleaned, deep cleaning, house cleaned]
   parent: home
 - tag: moving_help
   display: Moving help
@@ -109,7 +109,7 @@
   parent: home
 - tag: lawn_care
   display: Lawn care
-  synonyms: [lawn care, mow, mowing, yard work, leaf removal, gardening]
+  synonyms: [lawn care, mow, mowing, yard work, leaf removal, gardening, weeds, weeding, weed control]
   parent: home
 - tag: locksmith
   display: Locksmith
@@ -120,7 +120,7 @@
 # Vehicles
 - tag: auto_repair
   display: Auto repair
-  synonyms: [mechanic, car repair, auto repair, oil change, brakes, flat tire, flat tyre, car battery, check engine]
+  synonyms: [mechanic, car repair, auto repair, oil change, brakes, flat tire, flat tyre, car battery, check engine, "car won't start", car wont start, car will not start]
   parent: vehicle
 - tag: car_wash
   display: Car wash

@@ -70,6 +70,15 @@ public class IdentityConfiguration {
         return new GoogleIdentityVerifier(environment.getProperty("plug.identity.google-client-id", ""), jdbc);
     }
 
+    // Listed proxies may pass on their caller's address (CallerAddress). Exact addresses only.
+    @Bean
+    Object trustedProxies(Environment environment) {
+        var proxies = java.util.Arrays.stream(environment.getProperty("plug.identity.trusted-proxies", "").split(","))
+                .map(String::strip).filter(value -> !value.isEmpty()).toList();
+        CallerAddress.trust(proxies);
+        return proxies;
+    }
+
     @Bean
     OtpRateLimiter otpRateLimiter(AuditLog audit) {
         return new OtpRateLimiter(audit);
