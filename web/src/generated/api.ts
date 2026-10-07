@@ -613,6 +613,126 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/staff/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Staff sign-in, step one; emails a six-digit code
+         * @description ADR-013. The response is the same 202 whether the email is unknown, the password is wrong, or both are right; only the last stores a challenge and emails a code, so this route cannot be used to discover who is staff. Limited per email, per caller address and, on verification, per challenge. 503 dependency_unavailable when staff email is not configured.
+         */
+        post: operations["startStaffLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/staff/login/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Staff sign-in, step two; the emailed code buys a staff session
+         * @description ADR-013. A wrong code is validation_failed with details[0].code "invalid"; an unknown, used or expired challenge, including the one returned for wrong credentials, is "expired". Five wrong codes are rate_limited. The session issued has account type staff, scope admin and a completed second factor; its refresh window is at most 12 hours. Sign out with POST /v1/auth/logout.
+         */
+        post: operations["verifyStaffLogin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/staff/invites/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Choose a password with an emailed staff invitation
+         * @description ADR-013. The invitation token arrives only by email, works once and expires after 72 hours; a newer invitation to the same address replaces it. Unknown, used, replaced and expired tokens are all validation_failed on invite_token with code "expired". The password must be 12 to 64 characters ("length") and not easily guessed ("too_weak"). Then sign in with POST /v1/staff/login.
+         */
+        post: operations["acceptStaffInvite"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Every staff account
+         * @description ADR-013. Admin scope and a completed second factor, like all of /v1/admin. Never cached; every read is audited.
+         */
+        get: operations["listStaff"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Invite a person to run PLUG; an owner only
+         * @description ADR-013. Emails a single-use invitation valid for 72 hours and replaces any earlier open invitation to the same address. The token is never returned here. 403 unless the caller is an active owner; 409 if the address already has an active staff account; 503 when staff email is not configured. Audited.
+         */
+        post: operations["inviteStaff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/staff/{user_id}/disable": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Disable a staff account and end its sessions; an owner only
+         * @description ADR-013. Takes effect at once: every session of that account is revoked and it can no longer sign in. An owner cannot disable themselves (409). A new invitation restores a disabled person. Audited.
+         */
+        post: operations["disableStaff"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -691,7 +811,7 @@ export interface components {
             precision: "coarse" | "fine";
         };
         /**
-         * @description A skill tag from the controlled vocabulary in contracts/skills.yaml (manual v4 §12B.3), or a provider-described skill `custom_<keywords>` (ADR-011). The model never creates a tag; a value it produced that is in neither is dropped, never stored. A client may only send vocabulary tags; anything else is 400 with code unknown_skill. A custom_ tag appears only on a request the server matched, by keywords, to skills providers described in their own words. Display service_name; never parse the tag.
+         * @description A skill tag from the controlled vocabulary in contracts/skills.yaml (manual v4 §12B.3), or a provider-described skill `custom_<keywords>` (ADR-011). The model never creates a tag; a value it produced that is in neither is dropped, never stored. A client may only send vocabulary tags; anything else is 400 with code unknown_skill. A custom_ tag appears only on a request created from the person's own words (0.6.0): either matched by keywords to a skill providers described in their own words, or, when a clear service ask names nothing listed and nothing offered, the service in the asker's words (service_name holds those words). Matching then reaches providers whose own words share its keywords. Display service_name; never parse the tag.
          * @example shoe_repair
          */
         Category: string;
@@ -990,6 +1110,54 @@ export interface components {
             }[];
             next_cursor: string | null;
         };
+        StaffLogin: {
+            /** Format: email */
+            email: string;
+            /** @description Never logged or stored readable. */
+            password: string;
+        };
+        StaffLoginChallenge: {
+            challenge_id: string;
+            /** Format: date-time */
+            expires_at: string;
+        };
+        StaffLoginVerify: {
+            challenge_id: string;
+            /** @description The six digits from the email. Never logged, in any form. */
+            code: string;
+        };
+        StaffInviteAccept: {
+            invite_token: string;
+            password: string;
+        };
+        StaffInviteRequest: {
+            /** Format: email */
+            email: string;
+            /** @enum {string} */
+            role: "owner" | "staff";
+        };
+        StaffInvite: {
+            invite_id: string;
+            /** Format: email */
+            email: string;
+            /** @enum {string} */
+            role: "owner" | "staff";
+            /** Format: date-time */
+            expires_at: string;
+        };
+        StaffList: {
+            staff: {
+                user_id: string;
+                /** Format: email */
+                email: string;
+                /** @enum {string} */
+                role: "owner" | "staff";
+                /** @enum {string} */
+                status: "active" | "disabled";
+                /** Format: date-time */
+                created_at: string;
+            }[];
+        };
         /** @description Adds provider capability to the caller's existing account (manual v4 §2.3). No second account and no role switch: the same user_id. Replaces the caller's skills, radius and availability. A requires_licence tag needs licence_ref (400 licence_required). This route accepts at most 96 KiB of JSON for the optional thumbnail; other request routes retain their 16 KiB limit. Oversized bodies return 413 validation_failed. */
         ProviderSetup: {
             /** @description Vocabulary tags only. May be empty when custom_skills holds at least one skill (400 required otherwise). */
@@ -1086,8 +1254,11 @@ export interface components {
         Account: {
             /** @description Stable for the life of the account, including across a guest upgrade. Phase 2 and everything after it use this identifier; there is no second client identity. */
             user_id: string;
-            /** @enum {string} */
-            type: "guest" | "phone" | "apple" | "google";
+            /**
+             * @description staff (0.6.0, ADR-013) is a separate account for the people who run PLUG. It holds the admin scope only and is never issued by the customer sign-in routes.
+             * @enum {string}
+             */
+            type: "guest" | "phone" | "apple" | "google" | "staff";
             /** @description What this session may do. A guest holds guest only. */
             scopes: ("guest" | "member" | "admin")[];
         };
@@ -2179,6 +2350,187 @@ export interface operations {
             400: components["responses"]["ValidationFailed"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    startStaffLogin: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffLogin"];
+            };
+        };
+        responses: {
+            /** @description A code was emailed if the email and password are right. */
+            202: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffLoginChallenge"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["DependencyUnavailable"];
+        };
+    };
+    verifyStaffLogin: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffLoginVerify"];
+            };
+        };
+        responses: {
+            /** @description Verified. A staff session was issued. */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Session"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    acceptStaffInvite: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffInviteAccept"];
+            };
+        };
+        responses: {
+            /** @description The staff account is ready. */
+            204: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["ValidationFailed"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    listStaff: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Staff-only data. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffList"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    inviteStaff: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StaffInviteRequest"];
+            };
+        };
+        responses: {
+            /** @description The invitation was emailed. */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StaffInvite"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["Conflict"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["DependencyUnavailable"];
+        };
+    };
+    disableStaff: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Disabled. */
+            204: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["Conflict"];
             500: components["responses"]["InternalError"];
         };
     };

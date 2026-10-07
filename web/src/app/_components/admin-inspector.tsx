@@ -5,6 +5,7 @@ import type { components } from "@/generated/api";
 // recent decisions. Every shape here comes from the generated contract types, so a
 // state added to the contract fails the build instead of rendering an empty cell.
 // This file only draws data it is handed. It never fetches and never classifies.
+// /preview/admin hands it the fixtures; /admin hands it what the API returned.
 type Schemas = components["schemas"];
 type Classification = Schemas["AdminClassificationPage"]["items"][number];
 
@@ -15,11 +16,15 @@ export type InspectorData = {
   refusals: Schemas["AdminRefusalPage"];
 };
 
+// Links for one paged table: the next page, and the way back once past the first.
+type PageLinks = { next: string | null; first: string | null };
+export type InspectorPaging = Partial<Record<"gaps" | "classifications" | "refusals", PageLinks>>;
+
 export type InspectorView =
-  | { kind: "ready"; data: InspectorData; source: "sample" | "live" }
+  | { kind: "ready"; data: InspectorData; source: "sample" | "live"; paging?: InspectorPaging }
   | { kind: "loading" }
-  | { kind: "denied"; requestId: string }
-  | { kind: "unavailable"; requestId: string };
+  | { kind: "denied"; requestId?: string }
+  | { kind: "unavailable"; requestId?: string };
 
 const stateNames: Record<Classification["state"], string> = {
   resolved: "Resolved",
@@ -68,9 +73,15 @@ function DataTable({ label, columns, empty, children }: { label: string; columns
 
 // next_cursor means the server has more rows. Paging needs a live session, so the
 // sample view states that more exist instead of offering a link that goes nowhere.
-function More({ cursor }: { cursor: string | null }) {
-  if (cursor === null) return null;
-  return <p className="inspector-more">More entries exist beyond this page.</p>;
+function More({ cursor, links }: { cursor: string | null; links?: PageLinks }) {
+  if (!links) return cursor === null ? null : <p className="inspector-more">More entries exist beyond this page.</p>;
+  if (links.next === null && links.first === null) return null;
+  return (
+    <p className="inspector-more inspector-pager">
+      {links.first === null ? null : <a className="text-link" href={links.first}>Back to the newest</a>}
+      {links.next === null ? null : <a className="text-link" href={links.next}>Older entries</a>}
+    </p>
+  );
 }
 
 function Notice({ title, body, requestId }: { title: string; body: string; requestId?: string }) {
@@ -83,7 +94,7 @@ function Notice({ title, body, requestId }: { title: string; body: string; reque
   );
 }
 
-function Ready({ data }: { data: InspectorData }) {
+function Ready({ data, paging }: { data: InspectorData; paging?: InspectorPaging }) {
   return (
     <>
       <Section
@@ -134,7 +145,7 @@ function Ready({ data }: { data: InspectorData }) {
             </tr>
           ))}
         </DataTable>
-        <More cursor={data.gaps.next_cursor} />
+        <More cursor={data.gaps.next_cursor} links={paging?.gaps} />
       </Section>
 
       <Section
@@ -157,7 +168,7 @@ function Ready({ data }: { data: InspectorData }) {
             </tr>
           ))}
         </DataTable>
-        <More cursor={data.classifications.next_cursor} />
+        <More cursor={data.classifications.next_cursor} links={paging?.classifications} />
       </Section>
 
       <Section
@@ -173,13 +184,13 @@ function Ready({ data }: { data: InspectorData }) {
             </tr>
           ))}
         </DataTable>
-        <More cursor={data.refusals.next_cursor} />
+        <More cursor={data.refusals.next_cursor} links={paging?.refusals} />
       </Section>
     </>
   );
 }
 
-export function AdminInspector({ view }: { view: InspectorView }) {
+export function AdminInspector({ view, actions }: { view: InspectorView; actions?: ReactNode }) {
   return (
     <main>
       <div className="page-head">
@@ -190,10 +201,11 @@ export function AdminInspector({ view }: { view: InspectorView }) {
           {view.kind === "ready" && view.source === "sample" ? (
             <p className="inspector-sample">Sample data from the repository fixtures. Nothing on this page is live.</p>
           ) : null}
+          {actions ? <div className="inspector-actions">{actions}</div> : null}
         </div>
       </div>
       <div className="container inspector-body">
-        {view.kind === "ready" ? <Ready data={view.data} /> : null}
+        {view.kind === "ready" ? <Ready data={view.data} paging={view.paging} /> : null}
         {view.kind === "loading" ? <p className="card inspector-empty" role="status">Loading the inspector.</p> : null}
         {view.kind === "denied" ? (
           <Notice
