@@ -91,7 +91,8 @@ struct AskView: View {
             HStack {
                 HStack(spacing: 8) {
                     Image("PlugMark").renderingMode(.template).resizable().scaledToFit().frame(width: 23, height: 30)
-                    Text("plug").font(.system(size: 30, weight: .heavy, design: .rounded)).tracking(-1.4)
+                    // One wordmark everywhere: the website and the app both say PLUG (owner decision, 2026-10-07).
+                    Text("PLUG").font(.system(size: 28, weight: .heavy, design: .rounded)).tracking(0.5)
                 }
                 Spacer()
                 Label("Around you", systemImage: "location")

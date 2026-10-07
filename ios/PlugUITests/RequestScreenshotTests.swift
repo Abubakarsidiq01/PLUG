@@ -143,7 +143,7 @@ final class RequestScreenshotTests: XCTestCase {
         switch issue.auditType {
         case .dynamicType:
             return issue.compactDescription.contains("partially") || navigation
-                || element.label == "plug" || element.label == "Cancel"
+                || element.label == "PLUG" || element.label == "Cancel"
         case .contrast:
             return !element.isEnabled || element.frame.maxY > barTop
         case .hitRegion:

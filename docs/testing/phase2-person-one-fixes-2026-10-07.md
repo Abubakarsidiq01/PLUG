@@ -83,7 +83,7 @@ again), and the console needs switching on in an environment.
 | More than one ink control | "View details" is outlined; selected filters and chips are outlined with a check |
 | "Meet your options" headline | The headline is the result: "3 offers" |
 | Shadows on back and refresh | System navigation controls; unchanged |
-| Lowercase "plug" against the site's "PLUG" | Brand decision for the owner |
+| Lowercase "plug" against the site's "PLUG" | The app says "PLUG" too (owner decision, 2026-10-07) |
 | Three tabs or four | Inbox appears only once the person offers a service; by design |
 
 ## 8. Abuse cases (P2.S6)

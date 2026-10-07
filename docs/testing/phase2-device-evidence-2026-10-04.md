@@ -58,4 +58,6 @@ people's names, in five largest-text captures: `device-p2-empty-offer-gap-larges
 `device-p2-restricted-largest.png` and `device-p2-resume-largest.png`, and their `greyscale/`
 copies. The top band of each (above the page content) is now covered and labelled
 "Notification hidden for privacy"; nothing below it changed. The originals remain in earlier
-commits of the repository's history. Next device capture: turn on Do Not Disturb first.
+commits of the repository's history. The owner chose not to rewrite history to remove them
+(2026-10-07): rewriting `main` would force both engineers to re-sync for no change to the code.
+Next device capture: turn on Do Not Disturb first.

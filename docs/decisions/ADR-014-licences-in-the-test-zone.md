@@ -1,7 +1,8 @@
 # ADR-014: Which skills require a licence during the private test
 
-- Status: Accepted for the private test by Person One (project owner) on 2026-10-07, answering
-  Person Two's four vocabulary questions (`docs/testing/phase2-person-two-review-2026-10-05.md`
+- Status: Accepted by the project owner on 2026-10-07 ("do what I did that won't spoil my own
+  work … I want as many skills as possible"): no new licence flags; the existing ones stay. It
+  answers Person Two's four vocabulary questions (`docs/testing/phase2-person-two-review-2026-10-05.md`
   §3). Revisit before any public launch (Phase 5), with advice on the states PLUG opens in.
 - Relates to: `contracts/skills.yaml` (`requires_licence`), ADR-011.
 
