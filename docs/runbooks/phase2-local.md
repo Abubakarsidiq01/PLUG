@@ -5,10 +5,13 @@ to exercise it while preserving existing Phase 1 app accounts. These commands us
 disposable test credentials, never production secrets. No real supplier outreach
 or paid provider is enabled by this setup.
 
-Create a disposable PostGIS instance once:
+Create the PostGIS instance once. The named volume keeps `plug_phase2_live` (your app's
+test accounts, including staff) across container and Docker restarts; the test databases
+are still dropped and recreated by every verifier run:
 
 ```sh
 docker run --detach --rm --name plug-phase2-validation --platform linux/amd64 \
+  -v plug-phase2-data:/var/lib/postgresql/data \
   -e POSTGRES_DB=plug_phase2_tests -e POSTGRES_USER=plug \
   -e POSTGRES_PASSWORD=phase2-local-validation-only \
   -p 127.0.0.1:55433:5432 postgis/postgis:16-3.5
