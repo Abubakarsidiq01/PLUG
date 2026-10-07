@@ -1,8 +1,8 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-07T21:32:38.702700+00:00",
-  "updated_by": "person_one (0.6.1: fixes from Person Two's review and rerun; staff console management; dependency updates)",
+  "updated_at": "2026-10-07T23:53:45.482013+00:00",
+  "updated_by": "person_one (connected checkpoint kit; 0.6.1 merged)",
   "completed_phases": [
     "P0",
     "P1"
@@ -81,7 +81,7 @@
     "POST /v1/requests/{request_id}/clarifications": "frozen@0.5.0 (merged in PR #35)",
     "GET /v1/requests/{request_id}/offers": "frozen@0.5.0 (merged in PR #35)",
     "POST /v1/requests/{request_id}/cancel": "frozen@0.5.0 (merged in PR #35)",
-    "POST /v1/asks": "frozen@0.5.0 (merged in PR #35); 0.6.0 own-words requests merged in PR #36; 0.6.1 proposed: own words only from the model's reading",
+    "POST /v1/asks": "frozen@0.5.0 (merged in PR #35); 0.6.0 own-words requests merged in PR #36; 0.6.1 merged in PR #40: own words only from the model's reading",
     "GET /v1/asks/{ask_id}": "frozen@0.5.0 (merged in PR #35)",
     "POST /v1/asks/{ask_id}/clarifications": "frozen@0.5.0 (merged in PR #35)",
     "POST /v1/providers/skills/propose": "frozen@0.5.0 (merged in PR #35)",
@@ -92,9 +92,9 @@
     "GET /v1/admin/skills/gaps": "frozen@0.5.0 (merged in PR #35)",
     "GET /v1/admin/classifications": "frozen@0.5.0 (merged in PR #35)",
     "GET /v1/admin/refusals": "frozen@0.5.0 (merged in PR #35)",
-    "POST /v1/staff/login": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1",
-    "POST /v1/staff/login/verify": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1",
-    "POST /v1/staff/invites/accept": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1",
+    "POST /v1/staff/login": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1 (PR #40)",
+    "POST /v1/staff/login/verify": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1 (PR #40)",
+    "POST /v1/staff/invites/accept": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1 (PR #40)",
     "GET /v1/admin/staff": "frozen@0.6.0 (merged in PR #36)",
     "POST /v1/admin/staff/invites": "frozen@0.6.0 (merged in PR #36)",
     "POST /v1/admin/staff/{user_id}/disable": "frozen@0.6.0 (merged in PR #36)"
@@ -113,8 +113,8 @@
       "id": "P2-contract-0.6.1",
       "owner": "both",
       "manual_section": "27.3",
-      "task": "Contract 0.6.0 is frozen (PR #36 merged). 0.6.1 clarifies own-words requests (only from the model's reading) and adds fixtures for the three staff sign-in routes. Approved by Person One 2026-10-07; Person Two approves the pull request.",
-      "acceptance": "Pull request approved by Person Two and merged; Spectral, ContractTest and pnpm test:contracts green."
+      "task": "Done: contract 0.6.1 merged with both approvals (PR #40, 2026-10-07).",
+      "acceptance": "Merged."
     },
     {
       "id": "P2-device-evidence",
@@ -141,7 +141,7 @@
       "id": "P2-windows-and-checkpoint",
       "owner": "both",
       "manual_section": "27.3",
-      "task": "Person Two reruns pnpm test:contracts, Bruno and Playwright on Windows; then the connected checkpoint against real staging with the labelled dataset. 2026-10-05: Person Two's Windows rerun on main 99fd6f8 is done: contracts 296/296 with the 91-row ask dataset, live suite 1036/1036, Bruno 49/49, Playwright 102/102 (evidence/P2/windows/2026-10-05, docs/testing/phase2-person-two-review-2026-10-05.md). The dataset differs from the build on 30 of 91 rows; 15 are restricted asks that are not refused. Still open: the restricted-intent fix and rerun, then the connected checkpoint. 2026-10-06: rerun on main 27dffc3 (contract 0.6.0): contracts 312/312, live suite 1072/1072, Bruno 49/49, Playwright 138 (evidence/P2/windows/2026-10-06, docs/testing/phase2-person-two-rerun-2026-10-06.md). The same 30 rows differ, but nine of the 15 unrefused restricted asks are now created as requests, eight in the asker's own words.",
+      "task": "Kit ready and rehearsed (docs/runbooks/phase2-connected-checkpoint.md): Person One runs sh tools/run-phase2-checkpoint.sh --phone; Person Two runs node tools/checkpoint-partner.mjs <API>; staff console signed in with real accounts; tools/checkpoint-record.py writes the evidence; tools/sign-g2.py records G2 once both sign. Person Two also reruns contracts, Bruno and Playwright on Windows on main.",
       "acceptance": "Correlation ID from the connected checkpoint present in both logs; G2 entry signed by both."
     },
     {
