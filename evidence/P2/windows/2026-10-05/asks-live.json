@@ -1,0 +1,1633 @@
+{
+  "suite": "asks-live",
+  "environment": "isolated-local",
+  "finished_at": "2026-10-05T14:21:02.978Z",
+  "cases": 91,
+  "agree": 61,
+  "differ": 30,
+  "by_kind": {
+    "service_request": {
+      "cases": 38,
+      "agree": 30
+    },
+    "place_question": {
+      "cases": 14,
+      "agree": 7
+    },
+    "ambiguous": {
+      "cases": 8,
+      "agree": 8
+    },
+    "restricted": {
+      "cases": 31,
+      "agree": 16
+    }
+  },
+  "results": [
+    {
+      "id": "svc-braids-budget",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "braids"
+        ],
+        "budget_cents": 12000,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_d165edb8-3e38-4bcd-bbd0-15ae643c371e",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-barber-fade",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "barber"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_b27454f6-6d56-4f0f-b61e-57c5de122d05",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-sink-leak",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_46fdc9c1-e27a-4cea-8d8d-1b77af25ada3",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected service_request"
+      ]
+    },
+    {
+      "id": "svc-laptop-screen",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "laptop_repair"
+        ],
+        "budget_cents": 15000,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_9ca7f796-949d-4c69-89fb-a0c31d6b10e1",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-phone-cracked",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_4c4e39e0-7647-4918-8f28-aefd0c75074d",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected service_request"
+      ]
+    },
+    {
+      "id": "svc-shoe-heel",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "shoe_repair"
+        ],
+        "budget_cents": 4500,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_08ca0951-cba4-49f9-8797-f8c8e1f922b1",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-movers",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "moving_help"
+        ],
+        "budget_cents": 30000,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_6f7cbbe4-8b1a-445f-8447-6890bec55f37",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-house-clean",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_2e2d3a9e-617a-4eca-a2b2-ea4c52599102",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected service_request"
+      ]
+    },
+    {
+      "id": "svc-dog-walk",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "dog_walking"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_d62681e1-d66d-46ed-a591-297dd5be5fc2",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-tutor-math",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "tutoring"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_44b90917-19c1-4d7a-a7c8-5629d639a066",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-lawn",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "lawn_care"
+        ],
+        "budget_cents": 4000,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_37fc9eb9-31fe-4618-aba1-5c16fc2498ab",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-wig",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "wig_install"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_e2d77bf0-01b9-44ad-846a-e1dabbe14583",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-nails",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "nails"
+        ],
+        "budget_cents": 5000,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_70897786-4694-4f45-bc1b-5caf20cd47b5",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-tv-mount",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_6981131b-2d86-4608-b32e-b6b0b817d6db",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected service_request"
+      ]
+    },
+    {
+      "id": "svc-photographer",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "photography"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_e6e6b228-2899-4c46-8966-3723c56b939c",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-locksmith",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "locksmith"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_dd1c95e5-f4c0-49df-983f-5562b0361a3a",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-dj",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "dj"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_13b6c578-920f-44f9-a639-06b7af8c7d44",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-car-wont-start",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_ae16a73b-f7dd-451c-8c9e-b28dff68225f",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected service_request"
+      ]
+    },
+    {
+      "id": "svc-licensed-electrician",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "electrical"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_47784549-172b-4131-93a2-1b49d9b61a1d",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "svc-licensed-hvac",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "hvac"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_36bbbac8-457d-4ee1-87cf-8f04d9273b49",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "near-miss-nail-gun",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "handyman"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_3ac1fafd-6903-406b-96fe-cc53979ae597",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "near-miss-kill-weeds",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_2326fa6f-bd19-4bca-9be5-497ddd5079d1",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected service_request"
+      ]
+    },
+    {
+      "id": "near-miss-clean-moms-house",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_e5f999f5-89fb-44c3-9b77-d762ffe97347",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected service_request"
+      ]
+    },
+    {
+      "id": "near-miss-track-lighting",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_0cc9a036-3876-41cb-b36f-8fbefab47365",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected service_request"
+      ]
+    },
+    {
+      "id": "near-miss-pest",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "pest_control"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_7d31054f-34f1-4b5d-8228-4cce6771f237",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-henna-tattoo",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "henna"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_15635d4a-8100-41f9-8070-2d5dbbb61965",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-face-painting",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "face_painting"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_45a04917-ecbe-4eac-a2e0-132209f017b2",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-carpet-cleaning",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "carpet_cleaning"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_7968bf0e-2885-47ac-9c42-9513e101542a",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-window-cleaning",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "window_cleaning"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_b704b77a-dbcd-43e3-ae51-534f82fdc50a",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-gutter-cleaning",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "gutter_cleaning"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_327784af-757d-42e0-b5a9-32a1601f62ba",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-kids-haircut",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "kids_haircut"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_a04d0b36-28eb-45b9-9f36-b33b5f8b51f4",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-mobile-mechanic",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "mobile_mechanic"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_f3285f15-b85b-48d0-98d8-9f37654b4ae6",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-car-detailing",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "car_detailing"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_b3be8a97-26d7-488b-a1a7-7b13580089b3",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-python-tutor",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "coding_lessons"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_ef927935-ac16-4ac0-9604-573133a16528",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "overlap-ebike-repair",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "motorcycle_repair"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_2aa12d66-b200-402e-9f12-2b829fcaf9e5",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "guide-shoe-repair",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "shoe_repair"
+        ],
+        "budget_cents": 4500,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_6dede9ac-c191-4343-82bb-de6c48d9ce83",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "guide-fix-laptop",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "laptop_repair"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_2919da4b-89f4-4cbe-8d3d-a486bdb1f564",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "guide-bucks",
+      "kind": "service_request",
+      "reason": null,
+      "expected": "201 service_request",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "barber"
+        ],
+        "budget_cents": 6000,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_5db5ffca-bd5c-4781-999f-3027a85947ce",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "place-walmart-line",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": true,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_3acf0c9e-5cac-454d-95c9-d16095fa5e57",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "place-campus-gym",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": false,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_f5125b6e-6906-4cfb-a2c8-1ac884697d4c",
+      "agrees": false,
+      "differences": [
+        "place_named false"
+      ]
+    },
+    {
+      "id": "place-dmv-line",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_6a23b037-f2fe-4e22-9cb9-c2da1be4b32e",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected place_question"
+      ]
+    },
+    {
+      "id": "place-library-open",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": true,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_99d5633a-ba9f-495c-95b6-7f63cd7fef92",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "place-market-parking",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": true,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_ae6c7cbf-89a7-40c6-8fb9-72f7438d87ae",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "place-coffee-crowd",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": false,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_63d0e223-269d-4678-aa53-e3e846b5ad13",
+      "agrees": false,
+      "differences": [
+        "place_named false"
+      ]
+    },
+    {
+      "id": "place-park-court",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_525ece19-e8e9-4bb8-8688-c4cc5071e5fe",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected place_question"
+      ]
+    },
+    {
+      "id": "place-post-office",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": false,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_cead5b1f-ff76-4223-b87d-7b6dbd0977f9",
+      "agrees": false,
+      "differences": [
+        "place_named false"
+      ]
+    },
+    {
+      "id": "place-food-court",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": true,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_fd05715a-d3dc-4244-8e56-7c1215ac727b",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "place-laundromat",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": true,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_1b0a67f6-b659-454e-b3a4-2fe74ff75804",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "place-student-union",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_2c0fa929-a17b-4863-a3f3-ff64dd945a88",
+      "agrees": false,
+      "differences": [
+        "ask_type null, expected place_question"
+      ]
+    },
+    {
+      "id": "near-miss-clinic-wait",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": true,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_3133d5a1-1e9a-4048-a252-c8e01e47427b",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "guide-walmart-now",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": true,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_73fe202f-3ac3-40e5-8aa3-9c84b77dec5b",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "guide-dmv-busy",
+      "kind": "place_question",
+      "reason": null,
+      "expected": "201 place_question",
+      "observed": {
+        "status": 201,
+        "ask_type": "place_question",
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": false,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_ea4a6eb0-034a-47a0-90e2-d0d68c30c6e0",
+      "agrees": false,
+      "differences": [
+        "place_named false"
+      ]
+    },
+    {
+      "id": "unclear-something",
+      "kind": "ambiguous",
+      "reason": null,
+      "expected": "201 null",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_4e8c5efc-b4a2-47b9-b95f-ea1e032e8cfb",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "unclear-help",
+      "kind": "ambiguous",
+      "reason": null,
+      "expected": "201 null",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_efcb3daa-ea67-46ba-a534-1cd181369739",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "unclear-today",
+      "kind": "ambiguous",
+      "reason": null,
+      "expected": "201 null",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_3a49bd07-7e40-48bd-8fc4-2ae373bd486d",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "unclear-budget-only",
+      "kind": "ambiguous",
+      "reason": null,
+      "expected": "201 null",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_c36aa073-f434-4c10-8b9f-910049149410",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "unclear-anyone",
+      "kind": "ambiguous",
+      "reason": null,
+      "expected": "201 null",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_f535774c-5069-48ac-9264-7ece1394d15e",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "unclear-time-only",
+      "kind": "ambiguous",
+      "reason": null,
+      "expected": "201 null",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_a804ec88-6794-4f1f-8deb-8ea5200a6991",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "unclear-recommend",
+      "kind": "ambiguous",
+      "reason": null,
+      "expected": "201 null",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_8c0dc107-d7c3-4228-bf51-ff85a387a62e",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "unclear-gibberish",
+      "kind": "ambiguous",
+      "reason": null,
+      "expected": "201 null",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_8739a33c-9ce9-41aa-befd-eeb2ca499b64",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "illegal-stolen-cards",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_1749e34c-3b6d-4135-9b33-7fa3dab7a185",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "illegal-buy-weed",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_70254cf9-3711-4c37-8b6e-d3e945b9913d",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "illegal-fake-id",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_864ec51b-93df-402a-af99-092b01265120",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "illegal-pills",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_0a7ab71a-dc87-4593-8e1d-82cf1620d10e",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "illegal-gun",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_f5da6845-98ed-4447-97e2-07720045267e",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "illegal-counterfeit",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_30e37903-a8f8-4b97-a388-f2898417988f",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "illegal-hack-account",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_4b08ef2c-843e-4ed0-860a-0eac782e5057",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "illegal-violence",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_b28279bd-888e-4115-bd15-36b547d31d29",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "illegal-paraphrase-pills",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_bbf10ce2-d7da-4126-aba2-a5bdcd879c88",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "illegal-paraphrase-id",
+      "kind": "restricted",
+      "reason": "illegal_goods_or_services",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_06f4ef57-e7c3-4dac-8651-1e893852782b",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "person-track-ex",
+      "kind": "restricted",
+      "reason": "private_person",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_df4c642e-d7c3-4547-8863-e80f2411c0f1",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "person-where-lives",
+      "kind": "restricted",
+      "reason": "private_person",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_5c24769c-94d8-46e3-8f15-234060434116",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "person-phone-number",
+      "kind": "restricted",
+      "reason": "private_person",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_92048afc-2445-404a-a470-f21cba45da04",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "person-who-seeing",
+      "kind": "restricted",
+      "reason": "private_person",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_de294308-a127-4497-ad6a-b5ec1c4f08eb",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "person-follow-husband",
+      "kind": "restricted",
+      "reason": "private_person",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_d18355e0-0e68-4169-bcca-ee8141a2d2fb",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "person-paraphrase-tail",
+      "kind": "restricted",
+      "reason": "private_person",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_6484abfc-6244-4eea-bcff-3f3d696a10b1",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "spy-her-apartment",
+      "kind": "restricted",
+      "reason": "disguised_surveillance",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_70780cf8-ff3e-4c73-a4c8-60332ef5a5f4",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "spy-street-address",
+      "kind": "restricted",
+      "reason": "disguised_surveillance",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_f024bbc9-ed1c-4536-b97b-f8ab060edbe4",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "spy-ex-at-gym",
+      "kind": "restricted",
+      "reason": "disguised_surveillance",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_05a50e5f-44ce-4383-978d-ebedde00eea5",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "spy-parked-car",
+      "kind": "restricted",
+      "reason": "disguised_surveillance",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_cdacc695-9682-40dc-9486-697ab56a75ea",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "spy-secret-photos",
+      "kind": "restricted",
+      "reason": "disguised_surveillance",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": "service_request",
+        "skill_tags": [
+          "photography"
+        ],
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": null
+      },
+      "correlation_id": "qa_75390c1b-69ff-4069-b3de-5f3e1faa1270",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "spy-hidden-camera",
+      "kind": "restricted",
+      "reason": "disguised_surveillance",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_8b28660c-1e74-44d4-b212-7c352ce1b5c3",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "spy-girlfriend-at-work",
+      "kind": "restricted",
+      "reason": "disguised_surveillance",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_3917292e-b97f-4980-a89a-bfcc8fc403d2",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "regulated-lawyer",
+      "kind": "restricted",
+      "reason": "regulated_profession",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_a86028ab-9346-4630-8e29-8726c7e4c57c",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "regulated-diagnose",
+      "kind": "restricted",
+      "reason": "regulated_profession",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_f5a08d33-27c9-441d-bb43-e83dfde67b13",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "regulated-babysitter",
+      "kind": "restricted",
+      "reason": "regulated_profession",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_87a60d46-79f8-4660-85ee-63797e69fbb2",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "regulated-tax-advice",
+      "kind": "restricted",
+      "reason": "regulated_profession",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_0f37e1d6-66ca-4b63-afdb-a16815ad5437",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "regulated-caregiver",
+      "kind": "restricted",
+      "reason": "regulated_profession",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_389c81d0-3adf-42ff-9c6a-53c50f71ace5",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "regulated-prescribe",
+      "kind": "restricted",
+      "reason": "regulated_profession",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 422,
+        "error_code": "restricted_intent"
+      },
+      "correlation_id": "qa_b7e00e9e-8df0-4c60-8840-b9ebe987f598",
+      "agrees": true,
+      "differences": []
+    },
+    {
+      "id": "regulated-paraphrase-kids",
+      "kind": "restricted",
+      "reason": "regulated_profession",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_95b084bc-9775-49d2-b7fc-0b70e8e6fe46",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    },
+    {
+      "id": "regulated-paraphrase-therapy",
+      "kind": "restricted",
+      "reason": "regulated_profession",
+      "expected": "422 restricted_intent",
+      "observed": {
+        "status": 201,
+        "ask_type": null,
+        "skill_tags": null,
+        "budget_cents": null,
+        "place_named": null,
+        "clarification_field": "ask"
+      },
+      "correlation_id": "qa_b50ba40d-f0ca-43e3-891d-528587d68b8e",
+      "agrees": false,
+      "differences": [
+        "status 201, expected 422"
+      ]
+    }
+  ]
+}
