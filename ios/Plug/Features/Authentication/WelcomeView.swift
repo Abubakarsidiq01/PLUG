@@ -84,10 +84,7 @@ struct WelcomeView: View {
 
     private var header: some View {
         VStack(spacing: PlugTokens.Space.s6) {
-            Image("PlugMark").resizable().scaledToFit()
-                .frame(width: PlugTokens.Space.s16, height: PlugTokens.Space.s16 + PlugTokens.Space.s4)
-                .accessibilityHidden(true)
-            Text("PLUG").plugText(.title).accessibilityAddTraits(.isHeader)
+            PlugLogotype(size: 46).accessibilityAddTraits(.isHeader)
             Text("Real-time truth.\nBetter local decisions.")
                 .plugText(.body)
                 .multilineTextAlignment(.center)

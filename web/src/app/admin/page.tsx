@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import { AdminInspector, type InspectorData, type InspectorPaging } from "../_components/admin-inspector";
 import { callApi, type ApiResult } from "@/lib/staff-api";
 import { ACCESS_COOKIE, REFRESH_COOKIE, apiOrigin } from "@/lib/staff-console";
-import { signOut } from "./actions";
+import { ConsoleNav } from "./console-nav";
 
 // The staff console (manual v4 P2-TWO.S12). Closed unless the server has PLUG_API_URL.
 // The cookie only carries the token: the API decides on every read whether this is a
@@ -48,14 +48,7 @@ export default async function AdminHome({ searchParams }: PageProps<"/admin">) {
     callApi<InspectorData["refusals"]>(withCursor("/v1/admin/refusals", cursors.refusals), { token }),
   ]);
 
-  const actions = (
-    <>
-      <a className="text-link" href="/admin/staff">Staff</a>
-      <form action={signOut}>
-        <button type="submit" className="button button-secondary">Sign out</button>
-      </form>
-    </>
-  );
+  const actions = <ConsoleNav current="inspector" />;
   const results: ApiResult<unknown>[] = [skills, gaps, classifications, refusals];
   if (results.some((result) => result.status === 401)) redirect(refreshUrl);
   const failed = results.find((result) => !result.ok);
