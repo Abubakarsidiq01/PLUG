@@ -277,27 +277,23 @@ ol {
   color: var(--color-ink-900);
 }
 
-.logo-tile {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--space-8);
-  height: var(--space-8);
-  border-radius: var(--radius-md);
-  background: var(--color-brand-600);
-  color: var(--color-surface-0);
-}
-
+/* The mark is the letter P: its bowl (48 of 80 units) matches the capital height
+   (0.7em in Public Sans) and its tail drops below the baseline like a descender. */
 .logo-mark {
-  height: var(--space-4);
+  display: inline-block;
+  height: 1.17em;
   width: auto;
+  margin-right: 0.03em;
+  vertical-align: -0.41em;
 }
 
+/* Same weight as the app's logotype; sized to the old tile's 32 px presence. */
 .logo-word {
-  font-size: var(--type-title3-size);
-  line-height: var(--type-title3-line);
-  font-weight: var(--type-display-weight);
-  letter-spacing: var(--type-title2-tracking);
+  font-size: 1.5rem;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .site-nav ul {
@@ -1023,13 +1019,64 @@ ol {
   margin-top: var(--space-4);
 }
 
-.inspector-actions {
-  margin-top: var(--space-4);
+/* Staff console bar: sections left, Sign out right, one rule under them. */
+.console-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-6);
+  margin-bottom: var(--space-8);
+  border-bottom: 1px solid var(--color-rule-300);
 }
 
-.inspector-actions .button {
+.console-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.console-sections a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min-touch);
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: var(--color-ink-600);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.console-sections a:hover {
+  color: var(--color-ink-900);
+}
+
+.console-sections a[aria-current="page"] {
+  border-bottom-color: var(--color-ink-900);
+  color: var(--color-ink-900);
+}
+
+.console-bar form {
+  margin: 0;
+}
+
+.console-sign-out {
+  min-height: var(--target-min-touch);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-ink-600);
+  font: inherit;
+  font-weight: 600;
   cursor: pointer;
-  font-family: inherit;
+}
+
+.console-sign-out:hover {
+  color: var(--color-ink-900);
+  text-decoration: underline;
 }
 
 .inspector-pager {
@@ -1048,6 +1095,7 @@ ol {
 .staff-invite {
   max-width: 32rem;
   min-width: 0;
+  padding: var(--space-6);
 }
 
 .staff-invite .field-input {
@@ -1056,8 +1104,43 @@ ol {
   max-width: 100%;
 }
 
+.role-choice {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.role-choice legend {
+  margin-bottom: var(--space-2);
+  padding: 0;
+}
+
+.role-choice label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--target-min-touch);
+  color: var(--color-ink-900);
+  cursor: pointer;
+}
+
+.role-choice input {
+  width: 1.125rem;
+  height: 1.125rem;
+  margin: 0;
+  accent-color: var(--color-ink-900);
+  flex: none;
+}
+
 .inspector-table form {
   margin: 0;
+}
+
+/* A row with a Disable button is taller; centre the text on it instead of hanging at the top. */
+.staff-table td {
+  vertical-align: middle;
 }
 
 /* Keeps visually hidden headings inside the scrolling table, not out on the page. */

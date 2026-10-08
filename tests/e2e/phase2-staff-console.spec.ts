@@ -145,7 +145,8 @@ test("an owner sees the staff, invites someone and disables someone; the API dec
   const newcomer = `new.person.${testInfo.project.name}@example.com`;
   await signIn(page);
   await page.getByRole("link", { name: "Staff" }).click();
-  await expect(page).toHaveURL(`${site}/admin/staff`);
+  // ?r=1 when a parallel test signed the shared stand-in user out and the page refreshed.
+  await expect(page).toHaveURL(new RegExp(`^${site}/admin/staff(\\?r=1)?$`));
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Staff");
   const table = page.getByRole("region", { name: "Staff table" });
   await expect(table.getByText("partner@example.com")).toBeVisible();

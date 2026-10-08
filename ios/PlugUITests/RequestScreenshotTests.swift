@@ -128,7 +128,7 @@ final class RequestScreenshotTests: XCTestCase {
     }
 
     /// Documented exceptions; everything else fails the audit. Manual v4 §11.6 caps the bottom
-    /// navigation labels at xxxLarge with the large-content viewer, the wordmark is a fixed logo,
+    /// navigation labels at xxxLarge with the large-content viewer, the wordmark is a fixed logo (the P mark plus "LUG"),
     /// disabled controls are exempt from contrast (WCAG 1.4.3), system controls are Apple's, and a
     /// partial Dynamic Type or text finding without an element (off-screen) is not actionable. The
     /// Ask field's own line is short, but its whole 70 pt box focuses it on a tap. PLUG's type scale
@@ -143,7 +143,7 @@ final class RequestScreenshotTests: XCTestCase {
         switch issue.auditType {
         case .dynamicType:
             return issue.compactDescription.contains("partially") || navigation
-                || element.label == "PLUG" || element.label == "Cancel"
+                || ["PLUG", "LUG"].contains(element.label) || element.label == "Cancel"
         case .contrast:
             return !element.isEnabled || element.frame.maxY > barTop
         case .hitRegion:

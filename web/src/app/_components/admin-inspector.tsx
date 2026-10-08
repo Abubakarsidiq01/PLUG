@@ -195,13 +195,13 @@ export function AdminInspector({ view, actions }: { view: InspectorView; actions
     <main>
       <div className="page-head">
         <div className="container">
+          {actions}
           <p className="overline">Admin</p>
           <h1 className="title1">Classifier inspector</h1>
           <p className="page-lede">The skill vocabulary and how recent asks were classified.</p>
           {view.kind === "ready" && view.source === "sample" ? (
             <p className="inspector-sample">Sample data from the repository fixtures. Nothing on this page is live.</p>
           ) : null}
-          {actions ? <div className="inspector-actions">{actions}</div> : null}
         </div>
       </div>
       <div className="container inspector-body">

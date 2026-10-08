@@ -89,11 +89,8 @@ struct AskView: View {
     private var home: some View {
         page {
             HStack {
-                HStack(spacing: 8) {
-                    Image("PlugMark").renderingMode(.template).resizable().scaledToFit().frame(width: 23, height: 30)
-                    // One wordmark everywhere: the website and the app both say PLUG (owner decision, 2026-10-07).
-                    Text("PLUG").font(.system(size: 28, weight: .heavy, design: .rounded)).tracking(0.5)
-                }
+                // One logotype everywhere, the app and the website (owner decision, 2026-10-08).
+                PlugLogotype(size: 28)
                 Spacer()
                 Label("Around you", systemImage: "location")
                     .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)

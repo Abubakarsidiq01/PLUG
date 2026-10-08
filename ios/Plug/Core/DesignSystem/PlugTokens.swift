@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 // Compatibility names for the generated shared tokens; values have one source.
 enum PlugColor {
@@ -33,18 +34,34 @@ enum AuthLayout {
     static let contentWidth = PlugTokens.Space.s12 * 9
 }
 
-struct PlugWordmark: View {
+/// The PLUG logotype, the same on the app and the website: the designed P is the letter P,
+/// followed by "LUG", all in ink. The mark's bowl sits on the cap height and its tail drops
+/// below the baseline like a descender. A fixed-size brand lockup; content around it scales.
+struct PlugLogotype: View {
+    var size: CGFloat = 28
+
     var body: some View {
-        HStack(spacing: PlugTokens.Space.s2) {
-            Image("PlugMark").resizable().scaledToFit()
-                .frame(width: PlugTokens.Space.s6, height: PlugTokens.Space.s8)
-            Text("PLUG").font(.title2.weight(.bold))
-                .dynamicTypeSize(.large) // Fixed brand lockup; content still follows Dynamic Type.
-                .foregroundStyle(PlugTokens.Color.ink900)
+        HStack(alignment: .firstTextBaseline, spacing: size * 0.03) {
+            Image("PlugMark").renderingMode(.template).resizable().scaledToFit()
+                .frame(width: markHeight * 64 / 80, height: markHeight)
+                // In the mark's 80-unit box the bowl spans 4…52; 52 is the baseline.
+                .alignmentGuide(.firstTextBaseline) { dimensions in dimensions.height * 52 / 80 }
+            Text("LUG").font(.system(size: size, weight: .heavy, design: .rounded)).tracking(size * 0.02)
         }
+        .foregroundStyle(PlugTokens.Color.ink900)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("PLUG")
     }
+
+    /// The bowl (48 of the mark's 80 units) matches the capital letters' height.
+    private var markHeight: CGFloat {
+        let capHeight = UIFont.systemFont(ofSize: size, weight: .heavy).capHeight
+        return capHeight * 80 / 48
+    }
+}
+
+struct PlugWordmark: View {
+    var body: some View { PlugLogotype(size: 22) }
 }
 
 struct AuthActionStyle: ButtonStyle {

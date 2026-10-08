@@ -5,7 +5,7 @@ import { connection } from "next/server";
 import type { components } from "@/generated/api";
 import { callApi } from "@/lib/staff-api";
 import { ACCESS_COOKIE, REFRESH_COOKIE, apiOrigin } from "@/lib/staff-console";
-import { signOut } from "../actions";
+import { ConsoleNav } from "../console-nav";
 import { disableStaff, inviteStaff } from "./actions";
 
 // Staff accounts (ADR-013): who can open this console, and, for owners, inviting and
@@ -53,14 +53,7 @@ export default async function StaffPage({ searchParams }: PageProps<"/admin/staf
   const problem = typeof params.error === "string" ? errors[params.error] : undefined;
   const reference = typeof params.ref === "string" && /^req_[A-Za-z0-9-]{1,80}$/.test(params.ref) ? params.ref : null;
 
-  const actions = (
-    <>
-      <a className="text-link" href="/admin">Classifier inspector</a>
-      <form action={signOut}>
-        <button type="submit" className="button button-secondary">Sign out</button>
-      </form>
-    </>
-  );
+  const actions = <ConsoleNav current="staff" />;
 
   let body;
   if (!list.ok || !me.ok) {
@@ -81,7 +74,7 @@ export default async function StaffPage({ searchParams }: PageProps<"/admin/staf
           <h2 id="staff-members" className="title2">People</h2>
           <p className="inspector-note">Everyone with a staff account. A disabled account cannot sign in and has no sessions.</p>
           <div className="card table-card inspector-scroll" role="region" aria-label="Staff table" tabIndex={0}>
-            <table className="truth-table inspector-table">
+            <table className="truth-table inspector-table staff-table">
               <thead>
                 <tr>
                   <th scope="col">Email</th>
@@ -123,13 +116,17 @@ export default async function StaffPage({ searchParams }: PageProps<"/admin/staf
                 <span className="field-label">Email</span>
                 <input className="field-input" type="email" name="email" autoComplete="off" maxLength={254} required />
               </label>
-              <label className="field">
-                <span className="field-label">Role</span>
-                <select className="field-input" name="role" defaultValue="staff">
-                  <option value="staff">Staff (read only)</option>
-                  <option value="owner">Owner (invite and disable)</option>
-                </select>
-              </label>
+              <fieldset className="role-choice">
+                <legend className="field-label">Role</legend>
+                <label>
+                  <input type="radio" name="role" value="staff" defaultChecked />
+                  <span><strong>Staff</strong> can read the console.</span>
+                </label>
+                <label>
+                  <input type="radio" name="role" value="owner" />
+                  <span><strong>Owner</strong> can also invite and disable people.</span>
+                </label>
+              </fieldset>
               <button type="submit" className="button button-primary">Send invitation</button>
             </form>
           </section>
@@ -142,10 +139,10 @@ export default async function StaffPage({ searchParams }: PageProps<"/admin/staf
     <main>
       <div className="page-head">
         <div className="container">
+          {actions}
           <p className="overline">Admin</p>
           <h1 className="title1">Staff</h1>
           <p className="page-lede">Who can open the staff console.</p>
-          <div className="inspector-actions">{actions}</div>
         </div>
       </div>
       <div className="container inspector-body">

@@ -15,15 +15,14 @@ export function PlugMark({ className }: { className?: string }) {
   );
 }
 
-// Figure 14: the mark on a brand tile beside the PLUG wordmark. The logo always
-// links to / (§15.3 launch checklist).
+// The PLUG logotype, the same as the app's: the designed P is the letter P, then "LUG",
+// in ink (owner decision, 2026-10-08). The logo always links to / (§15.3 launch checklist).
 export function Logo() {
   return (
     <Link href="/" className="logo" aria-label="PLUG home">
-      <span className="logo-tile" aria-hidden="true">
-        <PlugMark className="logo-mark" />
+      <span className="logo-word" aria-hidden="true">
+        <PlugMark className="logo-mark" />LUG
       </span>
-      <span className="logo-word" aria-hidden="true">PLUG</span>
     </Link>
   );
 }
