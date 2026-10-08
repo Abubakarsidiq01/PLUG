@@ -62,8 +62,8 @@ python3 tools/checkpoint-record.py SESSION_DIR PHONE_SUPPORT_REFERENCE PARTNER_I
 
 ## 6. Sign G2
 
-When both agree every G2 item is met or formally excepted (the record, the VoiceOver
-walkthrough, the device captures, the design sign-off):
+When both agree every G2 item is met or formally excepted (the record, the device captures, the
+design sign-off, and the exceptions in `docs/testing/phase2-g2-exceptions.md`):
 
 ```
 python3 tools/sign-g2.py --record evidence/P2/logs/connected-checkpoint-<date>.md --both-confirm

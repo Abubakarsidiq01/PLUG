@@ -1,5 +1,9 @@
 # VoiceOver walkthrough — Phase 2 (owner, on the iPhone)
 
+> **Status:** not required for G2. The owner excepted it on 8 October 2026; the automated
+> accessibility audit is the mitigation, and this pass is due before any public release
+> (`docs/testing/phase2-g2-exceptions.md`). Kept here for that pass.
+
 The manual requires a recorded VoiceOver pass of the primary flow (§12.3, evidence/P2/a11y).
 The automated audit (`evidence/P2/a11y/<date>/automated-accessibility-audit.txt`) covers
 contrast, hit areas, clipping and labels; this pass proves the flow is usable by ear.
