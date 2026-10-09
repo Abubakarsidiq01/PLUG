@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class RateLimitTest {
     @Test
     void newClientsCannotGrowTheTrackingTableWithoutLimit() throws Exception {
-        var filter = new RequestLimitsFilter(2);
+        var filter = new RequestLimitsFilter(2, RateWindow.MINUTE);
         for (int i = 0; i <= 4096; i++) {
             var request = new MockHttpServletRequest("POST", "/v1/requests");
             request.setRemoteAddr("client-" + i);
@@ -21,7 +21,7 @@ class RateLimitTest {
 
     @Test
     void forwardedHeadersCannotBypassTheLimit() throws Exception {
-        var filter = new RequestLimitsFilter(2);
+        var filter = new RequestLimitsFilter(2, RateWindow.MINUTE);
         for (int i = 0; i < 3; i++) {
             var request = new MockHttpServletRequest("POST", "/v1/requests");
             request.setRemoteAddr("127.0.0.1");

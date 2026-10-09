@@ -2,6 +2,7 @@ package app.plug.request;
 
 import app.plug.foundation.ApiException;
 import app.plug.foundation.FixedWindowLimiter;
+import app.plug.foundation.RateWindow;
 import app.plug.security.PlugPrincipal;
 import app.plug.request.RequestPayloads.Answer;
 import app.plug.request.RequestPayloads.Clarification;
@@ -46,8 +47,9 @@ public class RequestService {
     private final MatchService matches;
     private final String consent;
     final FixedWindowLimiter limiter = new FixedWindowLimiter(4096);
+    final RateWindow window;
     public RequestService(JdbcTemplate jdbc, PlatformTransactionManager manager, ObjectMapper mapper, RequestClock clock,
-            IntentAdapter intent, RestrictedIntentPolicy policy, MatchService matches,
+            IntentAdapter intent, RestrictedIntentPolicy policy, MatchService matches, RateWindow window,
             @Value("${plug.identity.consent-version}") String consent) {
         this.jdbc = jdbc;
         this.transaction = new TransactionTemplate(manager);
@@ -57,6 +59,7 @@ public class RequestService {
         this.policy = policy;
         this.matches = matches;
         this.consent = consent;
+        this.window = window;
     }
     public Resource create(PlugPrincipal caller, String key, Create input) {
         requireCaller(caller);
@@ -90,7 +93,7 @@ public class RequestService {
             requireConsent(caller);
             T prior = replay(caller, operation, key, input, type);
             if (prior != null) return prior;
-            if (!limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
+            if (!limiter.tryConsume(caller.userId(), 10, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
             return null;
         });
     }
@@ -101,7 +104,7 @@ public class RequestService {
         if (refusal.isPresent()) refuse(caller, refusal.get());
     }
     void refuse(PlugPrincipal caller, String rule) {
-        if (!limiter.tryConsume(caller.userId(), 10, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
+        if (!limiter.tryConsume(caller.userId(), 10, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
         jdbc.update("INSERT INTO audit_events(actor_id,actor_role,action,resource,resource_id,reason,request_id)"
                 + " VALUES(?,?,'request.restricted','request','none',?,?)",
                 caller.userId(), "customer", "restricted_intent:" + rule, MDC.get("request_id"));

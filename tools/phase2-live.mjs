@@ -19,6 +19,9 @@ if (output) writeFileSync(output, JSON.stringify({ suite: report.suite, started_
 const location = { latitude: 32.528, longitude: -92.714, precision: 'coarse' };
 const input = (fields = {}) => ({ text: 'Barber under $35 in 30 minutes', location, ...fields });
 const key = () => `qa-${randomUUID()}`;
+// The backend's rate window plus a second of margin. A disposable local backend may run a
+// shorter window (PLUG_RATE_WINDOW_SECONDS); this must match it, or the limits never fire.
+const windowMs = (Number(process.env.PHASE2_RATE_WINDOW_SECONDS) || 60) * 1000 + 1000;
 let calls = [];
 let resourceCalls = [];
 const perAccount = new Map();
@@ -32,9 +35,9 @@ function check(name, fn) {
 }
 async function pace(token) {
   const now = Date.now();
-  calls = calls.filter(t => now - t < 61000);
-  const account = (perAccount.get(token) || []).filter(t => now - t < 61000);
-  const waits = [calls.length >= 29 ? calls[0] + 61000 - now : 0, account.length >= 9 ? account[0] + 61000 - now : 0];
+  calls = calls.filter(t => now - t < windowMs);
+  const account = (perAccount.get(token) || []).filter(t => now - t < windowMs);
+  const waits = [calls.length >= 29 ? calls[0] + windowMs - now : 0, account.length >= 9 ? account[0] + windowMs - now : 0];
   if (Math.max(...waits) > 0) {
     console.log('Waiting for the documented creation limit window.');
     await sleep(Math.max(...waits));
@@ -47,11 +50,11 @@ async function http(name, path, { method = 'GET', token, body, raw, idempotency,
   if (method === 'POST' && (path === '/v1/requests' || path === '/v1/asks') && paced) await pace(token);
   // Every v2 resource route, providers included, draws on one per-address budget.
   if (/^\/v1\/(requests\/|asks\/|providers\/|admin\/)/.test(path) && paced) {
-    resourceCalls = resourceCalls.filter(t => Date.now() - t < 61000);
+    resourceCalls = resourceCalls.filter(t => Date.now() - t < windowMs);
     if (resourceCalls.length >= 55) {
       console.log('Waiting for the resource-route limit window.');
-      await sleep(resourceCalls[0] + 61000 - Date.now());
-      resourceCalls = resourceCalls.filter(t => Date.now() - t < 61000);
+      await sleep(resourceCalls[0] + windowMs - Date.now());
+      resourceCalls = resourceCalls.filter(t => Date.now() - t < windowMs);
     }
     resourceCalls.push(Date.now());
   }
@@ -391,13 +394,13 @@ async function abuse() {
 
 async function limits() {
   console.log('Waiting for a clean creation window before rate-limit assertions.');
-  await sleep(61000);
+  await sleep(windowMs);
   const tokens = await Promise.all(['rate A', 'rate B', 'rate C', 'rate D'].map(guest));
   for (let i = 0; i < 10; i++) await create(`account limit allowed ${i + 1}`, tokens[0], input(), { paced: false });
   await create('account creation limit', tokens[0], input(), { paced: false, expected: 429, error: 'rate_limited' });
   // Start a fresh window so account-denied requests cannot affect address accounting.
   console.log('Waiting for a clean address-rate window.');
-  await sleep(61000);
+  await sleep(windowMs);
   let readable;
   for (let i = 0; i < 30; i++) {
     const result = await create(`address limit allowed ${i + 1}`, tokens[Math.floor(i / 10)], input(), { paced: false });

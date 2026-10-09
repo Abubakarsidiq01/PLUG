@@ -45,6 +45,8 @@ logging:
 plug:
   environment: ${PLUG_ENVIRONMENT:local}
   requests-per-minute: 60
+  # The per-minute limits' window, in seconds. Only a disposable local run may shorten it.
+  rate-window-seconds: ${PLUG_RATE_WINDOW_SECONDS:60}
   requests-v2:
     enabled: ${PLUG_REQUESTS_V2_ENABLED:false}
     # Intent extraction (ADR-009). Empty key: the built-in rules extract everything.

@@ -10,8 +10,6 @@ import app.plug.security.PlugPrincipal;
 import java.sql.Timestamp;
 import java.time.Clock;
 import java.time.DateTimeException;
-import java.time.Duration;
-import java.time.Instant;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -46,7 +44,9 @@ public class ProviderService {
     /// Plain words onto the vocabulary. Nothing is saved except the vocabulary gap backlog.
     public SkillProposal propose(PlugPrincipal caller, String description) {
         requests.requireCaller(caller);
-        if (!requests.limiter.tryConsume("propose:" + caller.userId(), 30, Duration.ofMinutes(1))) throw ApiException.rateLimited(60);
+        if (!requests.limiter.tryConsume("propose:" + caller.userId(), 30, requests.window.length())) {
+            throw ApiException.rateLimited(requests.window.retryAfterSeconds());
+        }
         // "I sell weed" is not a skill. The same policy that guards asks guards offers.
         policy.refusal(description).ifPresent(rule -> requests.refuse(caller, rule));
         var vocabulary = intent.vocabulary();
