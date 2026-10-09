@@ -417,9 +417,22 @@ final class RequestScreenshotTests: XCTestCase {
         }
     }
     /// The system back gesture: a drag from the left edge of the screen.
+    /// Back to the previous screen with the edge swipe a person uses. On a physical iPhone with
+    /// iOS 26.7 the synthesized swipe is sometimes ignored, so the screen is checked, the swipe
+    /// tried once more, and then the visible back button is tapped.
     private func swipeBack(_ app: XCUIApplication) {
-        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
-        start.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5)))
+        let bar = app.navigationBars.firstMatch
+        let title = bar.exists ? bar.identifier : ""
+        for _ in 0..<2 {
+            let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.01, dy: 0.5))
+            start.press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5)))
+            if title.isEmpty { return }
+            let left = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                 object: app.navigationBars[title])
+            if XCTWaiter().wait(for: [left], timeout: 2) == .completed { return }
+        }
+        let back = app.navigationBars[title].buttons.firstMatch
+        if back.exists { back.tap() }
     }
     private func allowLocation() {
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")

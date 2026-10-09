@@ -38,8 +38,8 @@ entry = {
     'summary': (f'Live, two-person connected checkpoint against the shared backend through public HTTPS tunnels '
                 f'(ADR-004) at commit {commit}. Request IDs from the iPhone and from Person Two\'s machine were found '
                 f'in the same backend log: {", ".join(ids)}. Contract 0.6.1 merged with both approvals.'),
-    'evidence': [args.record, args.record.replace('.md', '.log'), 'docs/testing/phase2-person-one-fixes-2026-10-07.md',
-                 'docs/testing/phase2-person-two-rerun-2026-10-06.md'],
+    'evidence': [args.record, args.record.replace('.md', '.log'), 'docs/testing/phase2-g2-exceptions.md',
+                 'docs/testing/phase2-person-one-fixes-2026-10-07.md', 'docs/testing/phase2-person-two-rerun-2026-10-06.md'],
 }
 print(json.dumps(entry, indent=2))
 if not args.both_confirm:

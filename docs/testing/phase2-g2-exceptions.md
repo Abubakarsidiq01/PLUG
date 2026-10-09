@@ -1,0 +1,11 @@
+# Phase 2: formal exceptions for G2
+
+Manual §27.3, "Closing the phase": every requirement not met is either fixed or formally
+excepted, and an exception has an owner, a mitigation and an expiry. These are the four.
+
+| Requirement | Decision | Owner | Mitigation | Expires |
+|---|---|---|---|---|
+| `evidence/P2/a11y/`: a recorded VoiceOver walkthrough of the primary flow | Not done for Phase 2 (owner decision, 2026-10-08) | Person One | Apple's automated accessibility audit runs on the six main screens in every verifier run and fails on anything but documented exceptions (contrast, hit areas, clipping, element detection, labels, Dynamic Type): `testAccessibilityAudit`, `evidence/P2/a11y/`. Every control the walkthroughs use is found by its accessibility label or identifier, so unlabelled controls fail the tests. | Before any public release (Phase 5 launch review): a VoiceOver pass is required then, using `docs/testing/phase2-voiceover-checklist.md`. |
+| Connected checkpoint against real staging with the `staging` profile | Run against the `db` profile through public HTTPS tunnels (ADR-004) | Both | Same backend code, both engineers at once, the iPhone over mobile data and Person Two's own PC; request IDs matched in the backend log and audit events: `evidence/P2/logs/connected-checkpoint-2026-10-07.md`. | When AWS staging exists (ADR-004: no later than Phase 3). |
+| Design review against Figma (P2-TWO.S3, S10) | No Figma file exists; reviewed from device and simulator screenshots in colour and greyscale | Person Two | `docs/testing/phase2-person-two-review-2026-10-05.md`, `docs/testing/phase2-person-two-rerun-2026-10-06.md` and the fixes in `docs/testing/phase2-person-one-fixes-2026-10-07.md`. | When a Figma file is made, or the Phase 3 design gate. |
+| Staff sign-in codes and invitations sent by email | Written to a local, owner-only file; passed privately at the checkpoint | Person One | Codes are single-use, expire in 10 minutes and are never logged; the second factor still gates every admin route. Resend is wired and switched on by two settings (`docs/runbooks/staff-accounts.md`). | When a sending domain exists, and before staff use the console outside the checkpoint. |

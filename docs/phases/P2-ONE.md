@@ -176,8 +176,8 @@ Verify with:
 ./backend/dev databaseTest
 xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
-# Capture real-device states using tools/run-phase2-device-evidence.sh and record
-# the separate VoiceOver walkthrough before claiming the device gate has passed.
+# Capture real-device states using tools/run-phase2-device-evidence.sh. The VoiceOver
+# walkthrough is a formal G2 exception (docs/testing/phase2-g2-exceptions.md).
 ```
 
 ---
@@ -213,7 +213,7 @@ Store everything under `evidence/P2/`:
 - [ ] `ios/` — one screenshot per required state from the matrix in §12,
       on a real device, at default and largest Dynamic Type
 - [ ] `failures/` — at least one deliberate failure, recovered, recorded
-- [ ] `a11y/` — VoiceOver walkthrough of the primary flow
+- [ ] `a11y/` — VoiceOver walkthrough of the primary flow. *Formally excepted for Phase 2 by the owner on 8 October 2026; the automated accessibility audit is the mitigation and a VoiceOver pass is due before any public release (`docs/testing/phase2-g2-exceptions.md`).*
 - [ ] `logs/` — the request ID from the connected checkpoint, in the backend log
 - [ ] The correlation ID from the connected checkpoint, quoted in the tracker
 

@@ -1,8 +1,8 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-07T23:53:45.482013+00:00",
-  "updated_by": "person_one (connected checkpoint kit; 0.6.1 merged)",
+  "updated_at": "2026-10-08T06:04:54.962931+00:00",
+  "updated_by": "person_one (G2 exceptions; device captures)",
   "completed_phases": [
     "P0",
     "P1"
@@ -120,8 +120,8 @@
       "id": "P2-device-evidence",
       "owner": "person_one",
       "manual_section": "27.3",
-      "task": "Done 2026-10-04 for the automated state matrix: all six walkthroughs passed on the paired iPhone at default and largest Dynamic Type (evidence/P2/ios/2026-10-04/, docs/testing/phase2-device-evidence-2026-10-04.md). Remaining: VoiceOver walkthrough on the device into evidence/P2/a11y and an independent greyscale/design review. Automated accessibility audit of six main screens passes (evidence/P2/a11y/). Checklist for the recorded pass: docs/testing/phase2-voiceover-checklist.md. 2026-10-05: Person Two's design review from the screenshots is in docs/testing/phase2-person-two-review-2026-10-05.md section 5. Six findings, including notification banners with personal names in five largest-text captures that need recapturing. 2026-10-06: Person Two reviewed the 64 simulator captures in evidence/P2/simulator/2026-10-05 in greyscale (rerun record section 4): four pairs of captures are identical files and several labels are cut at largest text. 7 October: five largest-text device captures had notification banners with people's names; the banner band is covered. Recapture with Do Not Disturb at the next device session.",
-      "acceptance": "VoiceOver walkthrough recorded; design gate reviewed by a second person."
+      "task": "Device captures: rerun on the iPhone with Do Not Disturb on, with the PLUG logotype (2026-10-08). VoiceOver walkthrough: formally excepted for Phase 2 by the owner on 2026-10-08, mitigated by the automated accessibility audit, due before any public release (docs/testing/phase2-g2-exceptions.md). Design: Person Two reviewed from screenshots; her findings are fixed (docs/testing/phase2-person-one-fixes-2026-10-07.md); her sign-off remains.",
+      "acceptance": "Device captures committed; Person Two signs off the design; exceptions accepted by both at G2."
     },
     {
       "id": "P2-admin-vocabulary-classifier",
