@@ -16,11 +16,7 @@ final class IdentityRecords {
 
     record SessionRow(String id, String userId, String chainId, AccountType accountType,
             Instant accessExpiresAt, Instant refreshExpiresAt, boolean multiFactorVerified,
-            Instant createdAt, Instant lastUsedAt, Instant revokedAt, String revokedReason) {
-        boolean isLive(Instant now) {
-            return revokedAt == null && refreshExpiresAt.isAfter(now);
-        }
-    }
+            Instant createdAt, Instant lastUsedAt, Instant revokedAt, String revokedReason) {}
 
     record ConsentRow(String version, Instant acceptedAt) {}
 

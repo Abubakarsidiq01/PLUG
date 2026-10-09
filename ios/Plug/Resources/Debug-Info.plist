@@ -34,8 +34,6 @@
 	<string>$(PLUG_PHONE_SIGN_IN_ENABLED)</string>
 	<key>PlugRequestsV2Enabled</key>
 	<string>$(PLUG_REQUESTS_V2_ENABLED)</string>
-	<key>PlugWebURL</key>
-	<string>$(PLUG_DEVELOPMENT_WEB_URL)</string>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

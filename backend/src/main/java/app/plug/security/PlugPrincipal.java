@@ -26,10 +26,6 @@ public record PlugPrincipal(String userId, String sessionId, Set<String> scopes,
     // The only representation that may ever reach a log line or an analytics event. A user
     // id is a stable identifier for a real person, so the full value stays in the database
     // and in admin views that record who looked at it.
-    public String userHash() {
-        return hashForLogging(userId);
-    }
-
     public static String hashForLogging(String value) {
         return Integer.toHexString(value.hashCode() & 0x7fffffff);
     }

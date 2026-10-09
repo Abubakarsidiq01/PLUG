@@ -35,7 +35,7 @@ final class LiveBackendTests: XCTestCase {
         guard await Self.isReachable(url) else {
             throw XCTSkip("No backend is answering at \(value). Start one to run this test.")
         }
-        environment = AppEnvironment(baseURL: url, webBaseURL: nil)
+        environment = AppEnvironment(baseURL: url)
     }
 
     private static func isReachable(_ baseURL: URL) async -> Bool {

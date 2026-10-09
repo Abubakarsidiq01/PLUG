@@ -274,18 +274,6 @@ final class AuthenticationModel: ObservableObject {
 /// The published version of the Terms and Privacy Policy this build displays. It is sent
 /// with every sign-in, and the server refuses a version it has not published — so this
 /// constant and the server's `plug.identity.consent-version` move together or not at all.
-///
-/// The link targets are the routes Person Two builds in /web. The host is configuration
-/// rather than a constant here, because no production domain has been decided yet and
-/// writing a guess into the app would make it look as though one had been.
 enum PlugConsent {
     static let version = "2026-09-01"
-
-    static func termsURL(_ environment: AppEnvironment) -> URL? {
-        environment.webBaseURL?.appending(path: "terms")
-    }
-
-    static func privacyURL(_ environment: AppEnvironment) -> URL? {
-        environment.webBaseURL?.appending(path: "privacy")
-    }
 }

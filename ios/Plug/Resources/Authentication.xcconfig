@@ -6,7 +6,6 @@ PLUG_GOOGLE_REVERSED_CLIENT_ID =
 PLUG_APPLE_SIGN_IN_ENABLED = NO
 PLUG_PHONE_SIGN_IN_ENABLED = NO
 PLUG_DEVELOPMENT_API_URL =
-PLUG_DEVELOPMENT_WEB_URL =
 // Phase 2 is enabled only against a backend with the same preview flag.
 PLUG_REQUESTS_V2_ENABLED = NO
 #include? "Local.xcconfig"

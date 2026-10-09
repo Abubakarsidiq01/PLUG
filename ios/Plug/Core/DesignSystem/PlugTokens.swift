@@ -4,30 +4,12 @@ import UIKit
 // Compatibility names for the generated shared tokens; values have one source.
 enum PlugColor {
     static let brand = PlugTokens.Color.brand600
-    static let surface = PlugTokens.Color.surface50
 }
 
 enum PlugSpacing {
     static let small = PlugTokens.Space.s2
     static let medium = PlugTokens.Space.s4
     static let large = PlugTokens.Space.s6
-}
-
-struct PlugCard<Content: View>: View {
-    let content: Content
-    init(@ViewBuilder content: () -> Content) { self.content = content() }
-    var body: some View {
-        content.padding(PlugSpacing.medium)
-            .background(PlugColor.surface, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.lg))
-    }
-}
-
-struct PlugStatusBadge: View {
-    let label: String
-    var body: some View {
-        Text(label).font(.caption.weight(.semibold)).padding(PlugSpacing.small)
-            .background(PlugColor.surface, in: Capsule())
-    }
 }
 
 enum AuthLayout {
@@ -206,48 +188,6 @@ struct PlugCardModifier: ViewModifier {
 
 extension View {
     func plugCard() -> some View { modifier(PlugCardModifier()) }
-}
-
-/// Manual v4 Figure A2 chip: radius.badge; selected is an ink fill with a card label, the
-/// way the approved screens draw a chosen skill or radius. Colour stays out of it.
-struct PlugChip: View {
-    let title: String
-    let selected: Bool
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .plugText(.label)
-                .padding(.horizontal, PlugTokens.Space.s3)
-                .frame(minHeight: PlugTokens.minTouchTarget)
-                .foregroundStyle(selected ? PlugTokens.Color.card : PlugTokens.Color.ink900)
-                .background(selected ? PlugTokens.Color.ink900 : PlugTokens.Color.card,
-                            in: RoundedRectangle(cornerRadius: PlugTokens.Radius.badge))
-                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.badge)
-                    .strokeBorder(selected ? PlugTokens.Color.ink900 : PlugTokens.Color.rule300))
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-}
-
-/// Figure 8 destructive button: white fill, danger border and label; pressed fills danger.50.
-struct PlugDestructiveStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var enabled
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .plugText(.action)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, PlugTokens.Space.s4)
-            .padding(.vertical, PlugTokens.Space.s3)
-            .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
-            .foregroundStyle(PlugTokens.Color.alert600)
-            .background(configuration.isPressed ? PlugTokens.Color.alert50 : PlugTokens.Color.card,
-                        in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control).strokeBorder(PlugTokens.Color.alertBorder))
-            .opacity(enabled ? 1 : 0.5)
-    }
 }
 
 /// Wraps chips onto as many lines as the width and Dynamic Type size need.

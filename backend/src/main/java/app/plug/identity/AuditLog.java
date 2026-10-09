@@ -1,6 +1,5 @@
 package app.plug.identity;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -42,11 +41,5 @@ class AuditLog {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     void recordAnonymous(String action, String addressPrefix, String reason) {
         record(ACTOR_ANONYMOUS, ACTOR_ANONYMOUS, action, "address", addressPrefix, reason);
-    }
-
-    Map<String, Object> mostRecent(String actorId) {
-        var rows = jdbc.queryForList("SELECT action, resource, reason, occurred_at FROM audit_events"
-                + " WHERE actor_id = ? ORDER BY occurred_at DESC, id DESC LIMIT 1", actorId);
-        return rows.isEmpty() ? Map.of() : rows.get(0);
     }
 }
