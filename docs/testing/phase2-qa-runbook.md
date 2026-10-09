@@ -59,11 +59,14 @@ a partial result has `passed: false` and cannot establish acceptance. A new run
 first replaces any prior report with a `passed: false` running marker, so a killed
 process cannot leave stale success evidence behind.
 
-The live run takes several minutes because it observes actual one-minute rate
-windows. It paces ordinary cases below both quotas, then deliberately tests ten
+The runner paces ordinary cases below both quotas, then deliberately tests ten
 creations per account, thirty per caller address, and sixty resource-route calls
 per address. Forwarding headers cannot manufacture a new trusted address.
-No quota is disabled to produce a passing result.
+No quota is disabled to produce a passing result. Against staging the windows are one
+minute and the run takes several minutes. A disposable local backend may shorten the
+window (`PLUG_RATE_WINDOW_SECONDS=10`, refused outside `PLUG_ENVIRONMENT=local`); pass the
+same value as `PHASE2_RATE_WINDOW_SECONDS` and the run takes about a minute, with the
+same counts. The verifier and CI do this.
 
 | Coverage | Live collection / runner | Additional evidence required |
 |---|---|---|

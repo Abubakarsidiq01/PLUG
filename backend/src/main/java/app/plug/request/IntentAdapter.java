@@ -61,9 +61,7 @@ public class IntentAdapter implements AutoCloseable {
     public enum AskType { SERVICE_REQUEST, PLACE_QUESTION, UNCLEAR }
     /** The classification: constraints for a service ask, the place for a place question, or the one question. */
     public record Result(AskType askType, Constraints constraints, String clarificationField,
-            List<Option> clarificationOptions, String placeName) {
-        public List<Option> clarificationOptionsOrNull() { return clarificationOptions; }
-    }
+            List<Option> clarificationOptions, String placeName) {}
 
     public static final int MIN_BUDGET = 500;
     public static final int MAX_BUDGET = 500_000;

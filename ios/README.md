@@ -31,7 +31,6 @@ the Keychain refuses every call, and `KeychainStoreTests` can only skip.
 | Scheme environment variable | What it is |
 |---|---|
 | `PLUG_API_URL` | The backend. Release builds require `https` and will not fall back. |
-| `PLUG_WEB_URL` | Where the public Terms and Privacy pages live. Unset, the consent labels render as plain text rather than as links that go nowhere. |
 
 Tokens live in the Keychain and nowhere else — not `UserDefaults`, not a file, not a log
 line, not an analytics property, not a crash breadcrumb. `SessionStore` is the only type

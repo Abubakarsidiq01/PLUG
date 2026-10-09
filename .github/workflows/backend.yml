@@ -70,7 +70,7 @@ jobs:
         run: |
           java -jar backend/build/libs/plug-api-0.0.1-SNAPSHOT.jar \
             --spring.profiles.active=db --server.port=18080 \
-            --plug.requests-v2.enabled=true > backend/build/phase2-api.log 2>&1 &
+            --plug.requests-v2.enabled=true --plug.rate-window-seconds=10 > backend/build/phase2-api.log 2>&1 &
           api_pid=$!
           trap 'kill "$api_pid" 2>/dev/null || true' EXIT
           ready=false
@@ -83,7 +83,8 @@ jobs:
             sleep 1
           done
           if [ "$ready" != true ]; then echo "Phase 2 API did not become ready"; exit 1; fi
-          PHASE2_DISPOSABLE=1 PHASE2_BASE_URL=http://127.0.0.1:18080 \
+          # Same counts as staging, in a ten-second window (local only; RateWindow).
+          PHASE2_DISPOSABLE=1 PHASE2_BASE_URL=http://127.0.0.1:18080 PHASE2_RATE_WINDOW_SECONDS=10 \
             PHASE2_REPORT=backend/build/phase2-live.json node tools/phase2-live.mjs
       - uses: actions/upload-artifact@v7
         if: always()

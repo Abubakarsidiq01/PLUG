@@ -3,7 +3,6 @@ package app.plug.identity;
 import app.plug.identity.IdentityRecords.ConsentRow;
 import app.plug.identity.IdentityRecords.UserRow;
 import java.sql.ResultSet;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.dao.DuplicateKeyException;

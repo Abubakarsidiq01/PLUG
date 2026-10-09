@@ -1142,16 +1142,6 @@ struct BusinessIdentity: View {
     }
 }
 
-private struct OfferFact: View {
-    let symbol: String
-    let text: String
-    var body: some View {
-        Label(text, systemImage: symbol).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-            .padding(.horizontal, 12).padding(.vertical, 10)
-            .background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: 12))
-    }
-}
-
 struct BusinessLinks: View {
     let links: [BusinessLink]
     var body: some View {

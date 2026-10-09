@@ -60,9 +60,9 @@ final class RequestScreenshotTests: XCTestCase {
             let base = app.buttons["Use my approximate location"]
             reveal(base, in: app)
             base.tap()
-            allowLocation()
             let located = app.descendants(matching: .any)
                 .matching(NSPredicate(format: "label CONTAINS 'Current approximate location'")).firstMatch
+            allowLocation(unless: { located.exists })
             for _ in 0..<2 where !located.waitForExistence(timeout: 20) {
                 reveal(base, in: app)
                 base.tap()
@@ -279,9 +279,9 @@ final class RequestScreenshotTests: XCTestCase {
         let base = app.buttons["Use my approximate location"]
         reveal(base, in: app)
         base.tap()
-        allowLocation()
         let located = app.descendants(matching: .any)
             .matching(NSPredicate(format: "label CONTAINS 'Current approximate location'")).firstMatch
+        allowLocation(unless: { located.exists })
         // The simulator's one-shot location occasionally answers "unknown"; ask again before failing.
         for _ in 0..<2 where !located.waitForExistence(timeout: 20) {
             reveal(base, in: app)
@@ -308,10 +308,10 @@ final class RequestScreenshotTests: XCTestCase {
         barber.tap()
         let details = app.buttons["View details"].firstMatch
         XCTAssertTrue(details.waitForExistence(timeout: 20))
-        // Counts tick to the server's numbers; capture once they have settled.
-        let settled = app.descendants(matching: .any)
-            .matching(NSPredicate(format: "label BEGINSWITH 'Providers notified' AND NOT (label ENDSWITH ' 0')")).firstMatch
-        _ = settled.waitForExistence(timeout: 20)
+        // Counts tick to the server's numbers; capture once they have settled. A request that
+        // already has its offers shows no counts, and there is nothing to wait for.
+        let notified = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Notified'")).firstMatch
+        _ = until({ !notified.exists || !notified.label.hasSuffix(" 0") }, timeout: 20)
         capture("results-\(suffix)")
         reveal(details, in: app)
         details.tap()
@@ -407,16 +407,16 @@ final class RequestScreenshotTests: XCTestCase {
         let ask = app.buttons["ask-submit"]
         reveal(ask, in: app, upward: false)
         ask.tap()
-        allowLocation()
         // The simulator's location service occasionally answers a one-shot request with
-        // "unknown"; the app then offers the address path. Ask again before failing.
+        // "unknown"; the app then offers the address path. Ask again before failing. Leaving
+        // the composer means the ask went through, so neither wait runs its full length.
         let address = app.descendants(matching: .any).matching(identifier: "request-address").firstMatch
-        if address.waitForExistence(timeout: 3) {
+        allowLocation(unless: { address.exists || !ask.exists })
+        if until({ address.exists || !ask.exists }, timeout: 3), address.exists {
             reveal(ask, in: app, upward: false)
             ask.tap()
         }
     }
-    /// The system back gesture: a drag from the left edge of the screen.
     /// Back to the previous screen with the edge swipe a person uses. On a physical iPhone with
     /// iOS 26.7 the synthesized swipe is sometimes ignored, so the screen is checked, the swipe
     /// tried once more, and then the visible back button is tapped.
@@ -434,11 +434,16 @@ final class RequestScreenshotTests: XCTestCase {
         let back = app.navigationBars[title].buttons.firstMatch
         if back.exists { back.tap() }
     }
-    private func allowLocation() {
-        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        if springboard.buttons["Allow While Using App"].waitForExistence(timeout: 2) {
-            springboard.buttons["Allow While Using App"].tap()
-        }
+    /// Answers the location prompt if it appears. The app asks for permission before it moves
+    /// on, so once `settled` holds no prompt is coming and the wait ends there.
+    private func allowLocation(unless settled: @escaping () -> Bool) {
+        let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Allow While Using App"]
+        if until({ allow.exists || settled() }, timeout: 2), allow.exists { allow.tap() }
+    }
+    /// True as soon as `condition` holds, false if it still does not after `timeout` seconds.
+    private func until(_ condition: @escaping () -> Bool, timeout: TimeInterval) -> Bool {
+        let met = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in condition() }, object: nil)
+        return XCTWaiter().wait(for: [met], timeout: timeout) == .completed
     }
     private func dismissKeyboard(_ app: XCUIApplication) {
         let done = app.toolbars.buttons["Done"]

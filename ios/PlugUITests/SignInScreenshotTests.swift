@@ -224,9 +224,6 @@ final class SignInScreenshotTests: XCTestCase {
         if let api = ProcessInfo.processInfo.environment["PLUG_API_URL"], !api.isEmpty {
             app.launchEnvironment["PLUG_API_URL"] = api
         }
-        if let web = ProcessInfo.processInfo.environment["PLUG_WEB_URL"], !web.isEmpty {
-            app.launchEnvironment["PLUG_WEB_URL"] = web
-        }
         app.launch()
         return app
     }

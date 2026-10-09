@@ -21,61 +21,6 @@ struct CreateServiceRequest: Encodable, Equatable {
     var maxDistanceM: Int? = nil
 }
 
-/// Structured controls for the composer (§9.1: chips first, typing is the fallback).
-/// `.fromRequest` sends nothing, so PLUG reads that constraint from the person's words.
-struct RequestFilters: Equatable {
-    enum Budget: Int, CaseIterable, Identifiable {
-        case fromRequest = 0, under25 = 2500, under50 = 5000, under100 = 10000, under250 = 25000
-        var id: Int { rawValue }
-        var cents: Int? { self == .fromRequest ? nil : rawValue }
-        var title: String {
-            switch self {
-            case .fromRequest: return "From my words"
-            default: return "Under " + (Decimal(rawValue) / 100).formatted(.currency(code: "USD").precision(.fractionLength(0)))
-            }
-        }
-    }
-    enum Time: String, CaseIterable, Identifiable {
-        case fromRequest, withinHour, today, tomorrow
-        var id: String { rawValue }
-        var title: String {
-            switch self {
-            case .fromRequest: return "From my words"
-            case .withinHour: return "Within 1 hour"
-            case .today: return "Today"
-            case .tomorrow: return "Tomorrow"
-            }
-        }
-        /// The latest acceptable time, in the person's calendar. Today means by 11:59 PM.
-        func deadline(now: Date, calendar: Calendar = .current) -> Date? {
-            switch self {
-            case .fromRequest: return nil
-            case .withinHour: return now.addingTimeInterval(3600)
-            case .today, .tomorrow:
-                let day = calendar.startOfDay(for: now).addingTimeInterval(self == .today ? 0 : 86_400)
-                return calendar.date(bySettingHour: 23, minute: 59, second: 0, of: day)
-            }
-        }
-    }
-    enum Distance: Int, CaseIterable, Identifiable {
-        case fromRequest = 0, mile1 = 1609, miles3 = 4828, miles10 = 16093, miles25 = 40234
-        var id: Int { rawValue }
-        var metres: Int? { self == .fromRequest ? nil : rawValue }
-        var title: String {
-            switch self {
-            case .fromRequest: return "From my words"
-            case .mile1: return "1 mi"
-            case .miles3: return "3 mi"
-            case .miles10: return "10 mi"
-            case .miles25: return "25 mi"
-            }
-        }
-    }
-    var budget = Budget.fromRequest
-    var time = Time.fromRequest
-    var distance = Distance.fromRequest
-}
-
 struct ServiceRequest: Decodable, Equatable {
     let requestId: String
     let status: Status

@@ -8,6 +8,7 @@ The words of the ask choose the state: "clarify", "progress", "empty", "restrict
 "cached", and "line"/"busy" for a place question. Anything else is a service request.
 """
 import json
+import threading
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -25,10 +26,22 @@ def stamp(value):
 
 
 class Handler(BaseHTTPRequestHandler):
+    # Two simulators may share this server, so each guest gets its own token and provider
+    # profile, and identifiers come from one locked counter.
     requests = {}
     asks = {}
-    provider = None
+    providers = {}
     counter = 0
+    lock = threading.Lock()
+
+    @staticmethod
+    def next_id():
+        with Handler.lock:
+            Handler.counter += 1
+            return Handler.counter
+
+    def caller(self):
+        return self.headers.get("Authorization", "")
 
     def log_message(self, *args):
         pass  # No tokens, prompts or coordinates in logs.
@@ -43,8 +56,7 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(data)
 
     def new_request(self, text, state):
-        Handler.counter += 1
-        identifier = f"req_ui-{Handler.counter}"
+        identifier = f"req_ui-{Handler.next_id()}"
         request = fixture("requests.get", state)
         request.update(request_id=identifier, text=text)
         Handler.requests[identifier] = {"request": request, "polls": 0, "mode": text.lower()}
@@ -57,7 +69,7 @@ class Handler(BaseHTTPRequestHandler):
     def place_ask(self, ask_id, text, status):
         # "no web" in the ask: Unknown with nothing from the web either.
         now = datetime.now(timezone.utc)
-        place = {"question_id": f"plq_ui-{Handler.counter}", "text": text,
+        place = {"question_id": ask_id.replace("ask_", "plq_"), "text": text,
                  "place_name": "Walmart on Ben White", "status": status,
                  "progress": {"notified": 3, "opened": 1, "answered": 0}, "answer": None,
                  "web_answer": None, "created_at": stamp(now - timedelta(minutes=1)),
@@ -80,8 +92,8 @@ class Handler(BaseHTTPRequestHandler):
             return
         if path == "/v1/auth/guest":
             now = datetime.now(timezone.utc)
-            Handler.provider = None
-            return self.respond({"access_token": "pat_fixture", "refresh_token": "prt_fixture",
+            guest = Handler.next_id()
+            return self.respond({"access_token": f"pat_fixture-{guest}", "refresh_token": f"prt_fixture-{guest}",
                 "access_token_expires_at": stamp(now + timedelta(hours=1)),
                 "refresh_token_expires_at": stamp(now + timedelta(days=1)),
                 "account": {"user_id": "usr_ios-fixture", "type": "guest", "scopes": ["guest"]},
@@ -91,8 +103,7 @@ class Handler(BaseHTTPRequestHandler):
             mode = text.lower()
             if "restricted" in mode:
                 return self.respond(fixture("asks.create", "restricted-intent"), 422)
-            Handler.counter += 1
-            ask_id = f"ask_ui-{Handler.counter}"
+            ask_id = f"ask_ui-{Handler.next_id()}"
             if "clarify" in mode:
                 result = fixture("asks.create", "clarification")
                 result["ask_id"] = ask_id
@@ -136,7 +147,7 @@ class Handler(BaseHTTPRequestHandler):
                            accepting=body.get("accepting", True),
                            custom_skills=[label[:1].upper() + label[1:] for label in body.get("custom_skills") or []])
             profile["business"] = body.get("business", {})
-            Handler.provider = profile
+            Handler.providers[self.caller()] = profile
             return self.respond(profile)
         identifier = path.split("/")[3]
         record = self.requests[identifier]
@@ -157,9 +168,10 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/health":
             return self.respond({"status": "UP", "version": "synthetic-ui-fixtures"})
         if path == "/v1/providers/me":
-            if Handler.provider is None:
+            profile = Handler.providers.get(self.caller())
+            if profile is None:
                 return self.respond(fixture("providers.me", "not-a-provider"), 404)
-            return self.respond(Handler.provider)
+            return self.respond(profile)
         if path.startswith("/v1/asks/"):
             ask_id = path.split("/")[3]
             record = Handler.asks[ask_id]

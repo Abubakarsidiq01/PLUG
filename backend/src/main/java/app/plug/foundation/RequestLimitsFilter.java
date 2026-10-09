@@ -9,7 +9,8 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.time.Duration;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -21,17 +22,18 @@ import org.springframework.web.util.UrlPathHelper;
 @Order(Ordered.HIGHEST_PRECEDENCE + 20)
 public class RequestLimitsFilter extends OncePerRequestFilter {
     private static final int MAX_BODY = 16_384;
-    private static final Duration WINDOW = Duration.ofMinutes(1);
     // Shared with the identity module's one-time-code limits through FixedWindowLimiter,
     // so the bucket cap and sweep behaviour are defined in one place.
     private final FixedWindowLimiter limiter = new FixedWindowLimiter(4096);
     private final int limit;
+    private final RateWindow window;
     @Value("${plug.requests-v2.enabled:false}")
     private boolean requestsV2;
 
-    public RequestLimitsFilter(@Value("${plug.requests-per-minute}") int limit) {
+    public RequestLimitsFilter(@Value("${plug.requests-per-minute}") int limit, RateWindow window) {
         if (limit < 1) throw new IllegalArgumentException("The request limit must be positive.");
         this.limit = limit;
+        this.window = window;
     }
 
     @Override
@@ -51,10 +53,10 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
         boolean creation = requestsV2 && (path.equals("/v1/requests") || path.equals("/v1/asks"))
                 && request.getMethod().equals("POST");
         if (!limiter.tryConsume(request.getRemoteAddr() + (creation ? ":create" : ":read"),
-                creation ? 30 : limit, WINDOW)) {
-            response.setHeader("Retry-After", "60");
+                creation ? 30 : limit, window.length())) {
+            response.setHeader("Retry-After", String.valueOf(window.retryAfterSeconds()));
             HttpErrors.write(request, response, 429, "rate_limited", "Too many requests. Try again shortly.",
-                    java.util.List.of(), 60);
+                    List.of(), window.retryAfterSeconds());
             return;
         }
         if (!request.getMethod().equals("POST")) {
@@ -66,14 +68,12 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
         // maps to validation_failed with a details entry that names the actual problem.
         int bodyLimit = requestsV2 && path.equals("/v1/providers/skills") ? 98_304 : MAX_BODY;
         if (request.getContentLengthLong() > bodyLimit) {
-            HttpErrors.write(request, response, 413, "validation_failed", "The request body is too large.",
-                    java.util.List.of(java.util.Map.of("field", "body", "code", "too_large")), null);
+            tooLarge(request, response);
             return;
         }
         byte[] body = request.getInputStream().readNBytes(bodyLimit + 1);
         if (body.length > bodyLimit) {
-            HttpErrors.write(request, response, 413, "validation_failed", "The request body is too large.",
-                    java.util.List.of(java.util.Map.of("field", "body", "code", "too_large")), null);
+            tooLarge(request, response);
             return;
         }
         chain.doFilter(new HttpServletRequestWrapper(request) {
@@ -90,5 +90,10 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
                 };
             }
         }, response);
+    }
+
+    private static void tooLarge(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        HttpErrors.write(request, response, 413, "validation_failed", "The request body is too large.",
+                List.of(Map.of("field", "body", "code", "too_large")), null);
     }
 }
