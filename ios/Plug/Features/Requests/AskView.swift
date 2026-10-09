@@ -564,7 +564,8 @@ struct AskView: View {
                                         @ViewBuilder _ content: () -> Content) -> some View {
         let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: spacing))
             : AnyLayout(HStackLayout(alignment: alignment, spacing: spacing))
-        return layout(content)
+        // Full width either way, as every other card is; stacked content would otherwise hug its text.
+        return layout(content).frame(maxWidth: .infinity, alignment: .leading)
     }
     private func deadline(_ request: ServiceRequest) -> some View {
         Text("Open until \(request.expiresAt.formatted(date: .omitted, time: .shortened))")
