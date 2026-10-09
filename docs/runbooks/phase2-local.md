@@ -88,9 +88,14 @@ and the independent greyscale review still require their actual walkthroughs.
 
 `sh tools/phase2-verify-all.sh` runs every automated check against disposable data: backend
 unit and database tests, contract/fixture/dataset checks, web typecheck and lint, Spectral,
-the live API suite and Bruno against a fresh backend, iOS unit tests (including live sign-in
-against that backend) and, through `tools/run-phase2-ui-evidence.sh`, simulator screenshots
-of every request state at default and largest Dynamic Type in `evidence/P2/simulator/`.
+the live API suite and Bruno (each against its own fresh backend with a ten-second rate
+window), iOS unit tests (including live sign-in) and, through
+`tools/run-phase2-ui-evidence.sh`, simulator screenshots of every request state at default
+and largest Dynamic Type in `evidence/P2/simulator/`. Independent steps run side by side and
+the script prints the elapsed time at each step. `PLUG_VERIFY_SKIP_UI=1` leaves out the
+screenshots for a quick run before pushing. Run it plugged in with the lid open: the script
+holds off idle sleep, but a Mac that sleeps anyway pauses every step and the run fails on
+timeouts.
 UI tests must be simulator-signed: an unsigned build has no keychain entitlement, so guest
 sign-in fails before any request screen. The simulator location is pinned to the demo zone.
 
