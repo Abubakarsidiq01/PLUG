@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "The customer has not chosen your offer.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "match_id",
+        "code": "no_reservation"
+      }
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "phone_masked": "+1 *** *** **18",
+      "supplier_id": "sup_01JA3P6F4H8K2M6P0R4T8V2X6Z",
+      "state": "paused",
+      "source": "sms_keyword",
+      "since": "2026-10-01T14:00:00Z",
+      "paused_until": "2026-10-02T14:00:00Z"
+    },
+    {
+      "phone_masked": "+1 *** *** **91",
+      "supplier_id": "sup_01JA3P9J0L4N8Q2S6U0W4Y8A2C",
+      "state": "revoked",
+      "source": "carrier",
+      "since": "2026-10-01T20:00:03Z"
+    },
+    {
+      "phone_masked": "+1 *** *** **55",
+      "state": "revoked",
+      "source": "sms_keyword",
+      "since": "2026-09-29T11:31:00Z"
+    }
+  ],
+  "next_cursor": null
+}

@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "The request was invalid.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "consent_version",
+        "code": "unsupported_version",
+        "message": "Reload the page to see the current terms."
+      }
+    ]
+  }
+}

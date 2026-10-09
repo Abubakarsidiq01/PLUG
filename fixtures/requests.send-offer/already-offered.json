@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "You already sent an offer for this request.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "request_id",
+        "code": "already_offered"
+      }
+    ]
+  }
+}

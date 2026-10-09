@@ -1,4 +1,4 @@
-# P3 · Person One (MacBook) — Supplier onboarding, SMS outreach, offers and reservation
+# P3 · Person One (MacBook) — Provider inbox, offers, SMS channel and trust score v1
 
 > **Before you start:** read `PROJECT_STATE.json` at the repository root.
 > If `current_phase` is not `P3`, you are in the wrong file.
@@ -7,7 +7,7 @@
 
 | | |
 |---|---|
-| **Phase** | P3 — Supplier onboarding, SMS outreach, offers and reservation |
+| **Phase** | P3 — Provider inbox, offers, SMS channel and trust score v1 |
 | **Gate** | G3 |
 | **Duration** | ~2 weeks |
 | **You own** | backend, iOS, infrastructure, production |
@@ -17,10 +17,16 @@
 | **Other lane** | `docs/phases/P3-TWO.md` |
 
 **Outcome this phase must reach**
-First real demo: an app request reaches an opted-in supplier by SMS, a real reply becomes one validated offer, and a selected offer becomes a reservation that only a supplier event can confirm.
+A matched provider receives the request in their own inbox, sends a real offer with a price and a time, and the asker chooses between real offers that carry a score. On the SMS side: an app request reaches an opted-in supplier by text, a real reply becomes one validated offer, and a selected offer becomes a reservation that only a supplier event can confirm.
+
+> **Updated to manual v4 §27.4 on 2026-10-09.** Phase 3 now carries two channels: SMS for
+> businesses that prefer text, and the in-app inbox for individual providers, who are the
+> point of the product. Both produce the same validated Offer, under one combined fan-out
+> ceiling, and providers get trust score v1. The contract is
+> [0.7.0](../../contracts/CHANGELOG.md), proposed in P3.S1.
 
 **Why it matters**
-This phase touches real people's phones. Every control here — consent, fan-out caps, STOP handling, signature verification, idempotency — exists because getting it wrong means texting a real business that never agreed to hear from you.
+Phase 3 was already the supplier phase. It now carries two channels instead of one. It also touches real people's phones. Every control here — consent, fan-out caps, STOP handling, signature verification, idempotency — exists because getting it wrong means texting a real business that never agreed to hear from you.
 
 You are the final technical authority on this phase. If something here conflicts with a decision Person Two made in the web lane, the contract decides — not seniority.
 
@@ -53,6 +59,19 @@ You are the final technical authority on this phase. If something here conflicts
   carry a signature, not a bearer token. Verify the signature in the handler and
   keep `/v1/webhooks/**` off the session filter's rules.
 
+## Carried in from Phase 2
+
+- **Fan-out is already capped at 6 then a combined 16** (`MatchService`, as built in Phase 2).
+  Phase 3 adds the 4 + 4 expansion steps and makes SMS suppliers and in-app providers share
+  that one ceiling. The manual's two sketches say 14 and 16; 0.7.0 proposes 16.
+- **`request_matches` already records who was notified.** Extend it for channel, wave and
+  outcome rather than adding a second table; `GET /v1/admin/requests/{id}/matches` reads it.
+- **Seed offers stay `estimated` at best.** Real `sms` and `portal` offers are `confirmed`
+  when made and age from `observed_at`.
+- **The iOS `Offer` model already accepts 0.7.0** (optional `place`, `distance_m`, `note`,
+  `not_confirmed`), changed with the contract pull request. The app does not yet poll while
+  `await_supplier_confirmation` or show the reservation; that is P3.S7.
+
 ---
 
 ## 0. Before any code — the contract
@@ -65,6 +84,10 @@ covering:
 - Outbound message templates and the inbound command grammar
 - `POST /v1/webhooks/twilio/inbound` and the status callback
 - Offer schema, expiry, selection and reservation state transitions
+- `POST /v1/requests/{id}/offers` — in-app provider offers
+- Provider notification payload and per-hour cap
+- Offer schema shared by the SMS and in-app paths
+- Trust-score v1 fields on the provider resource
 
 Nothing below this line begins until that pull request has merged with both
 approvals. If you find yourself writing an endpoint that is not in the contract,
@@ -76,10 +99,13 @@ stop and open a contract pull request instead.
 
 ```bash
 docker compose up -d postgres redis
-./gradlew :backend:flywayMigrate
-./gradlew :backend:bootRun          # http://localhost:8080
-open ios/PLUG.xcodeproj             # scheme: PLUG-Staging
+sh tools/run-phase2-local.sh        # loopback port 18080; migrations run at startup
+open ios/Plug.xcodeproj             # scheme: Plug
 ```
+
+Twilio needs a webhook URL that does not change between sessions (ADR-004 says AWS is
+revisited no later than this phase). Until one exists, inbound SMS can only be exercised
+with signed test requests, and no real text is sent.
 
 If any of those commands fails on a clean machine, that is a bug in
 `docs/onboarding/mac.md`, and fixing the
@@ -101,6 +127,13 @@ you go, and open one pull request per step or per small group of related steps.
 - [ ] **P3.S7** — Implement the iOS Offer Detail, pending reservation, confirmed, timeout, expired and alternate-offer recovery states.
 - [ ] **P3.S8** — Protect every endpoint with auth and rate limits; minimise supplier phone numbers and consumer identifiers in logs.
 - [ ] **P3.S9** — Add the outbound worker with bounded concurrency, dead-letter handling and send-time suppression checks.
+- [ ] **P3.S10** — Implement the provider inbox: matched requests delivered in-app with their own notification sound and category, capped per provider per hour.
+- [ ] **P3.S11** — Implement `POST /v1/requests/{id}/offers` for in-app provider offers, alongside the existing SMS path. Both produce the same validated Offer.
+- [ ] **P3.S12** — Implement decline-versus-silence tracking. A decline is a reply and costs the provider nothing; silence is what lowers a response score.
+- [ ] **P3.S13** — Implement the first version of the trust score: completion, reliability, responsiveness and standing. Customer rating lands in Phase 5 with reviews.
+- [ ] **P3.S14** — Add the new_provider state. A provider with fewer than three completed jobs shows New, never a score of zero.
+- [ ] **P3.S15** — Implement per-request fan-out caps for in-app matching that mirror the SMS caps, and a combined ceiling across both channels.
+- [ ] **P3.S16** — Build the SwiftUI provider inbox, offer composer and offer-sent states from Figure A2.
 
 ---
 
@@ -127,14 +160,19 @@ verbal description.
 - [ ] Reservation never reaches Confirmed without a supplier event.
 - [ ] Fan-out cap test: one request never contacts more suppliers than policy allows.
 - [ ] Message and API log inspection: no secrets, no tokens, no unnecessary PII.
+- [ ] The P3.S5 parser passes every case in `contracts/messages/cases.v1.json`.
+- [ ] Notification cap: many simultaneous matches for one provider produce at most the hourly cap of alerts.
+- [ ] Supplier, provider and admin resource ids: another caller's id is 404 (the third BOLA class from §27.2).
 
 Verify with:
 
 ```bash
-./gradlew :backend:test :backend:contractTest
-./gradlew :backend:test --tests '*ArchitectureTest'
-xcodebuild test -scheme PLUG-Staging -destination 'platform=iOS Simulator,name=iPhone 15'
-# Then, on a REAL device, run this phase's primary flow before claiming it works.
+pnpm test:contracts                       # contract, fixtures, SMS copy and grammar
+./backend/dev check contractTest
+./backend/dev databaseTest                # isolated database, see docs/runbooks/phase2-local.md
+xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro'
+# Then, on a REAL device and a real opted-in phone, run this phase's primary flow before claiming it works.
 ```
 
 ---
@@ -147,6 +185,10 @@ xcodebuild test -scheme PLUG-Staging -destination 'platform=iOS Simulator,name=i
 - [ ] Supplier fan-out caps prevent spam and cost explosion.
 - [ ] A reservation never becomes Confirmed without a supplier event.
 - [ ] Message and API logs expose no secrets, tokens or unnecessary PII.
+- [ ] A provider receives a matched request in the inbox with its own notification sound, inside the per-hour cap.
+- [ ] An in-app offer and an SMS offer produce an identical validated Offer.
+- [ ] Declining is recorded as a reply and does not lower the response score; silence does.
+- [ ] A provider with fewer than three completed jobs shows New, never a zero.
 
 ---
 

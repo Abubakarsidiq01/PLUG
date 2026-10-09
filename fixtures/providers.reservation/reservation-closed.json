@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "This booking can no longer be changed.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "match_id",
+        "code": "reservation_closed"
+      }
+    ]
+  }
+}

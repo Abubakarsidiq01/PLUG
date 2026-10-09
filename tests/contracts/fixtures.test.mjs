@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
-  contract, nextActions, readJSON, responseSchema, root, vocabulary,
-  validateOffers, validateResource, validateSchema,
+  assertNoFullNumbers, contract, nextActions, readJSON, responseSchema, root, vocabulary,
+  validateInboxItem, validateOffers, validateResource, validateSchema,
 } from './validate.mjs';
 
 const manifest = readJSON('tests/contracts/fixture-manifest.json');
@@ -13,13 +13,13 @@ const readFixture = (operation, outcome) => readJSON(`fixtures/requests.${operat
 test('every request fixture is registered exactly once and every documented response has coverage', () => {
   assert.equal(manifest.contract_version, contract.info.version);
   const files = readdirSync(new URL('fixtures/', root))
-    .filter(name => /^(requests|asks|providers|admin|staff)\./.test(name))
+    .filter(name => /^(requests|asks|providers|admin|staff|suppliers)\./.test(name))
     .flatMap(folder => readdirSync(new URL(`fixtures/${folder}/`, root))
       .filter(name => name.endsWith('.json')).map(name => `fixtures/${folder}/${name}`));
   assert.equal(new Set(rows.map(row => row.file)).size, rows.length);
   assert.deepEqual(rows.map(row => row.file).sort(), files.sort());
   for (const [path, item] of Object.entries(contract.paths)) {
-    if (!/^\/v1\/(requests|asks|providers|admin|staff)/.test(path)) continue;
+    if (!/^\/v1\/(requests|asks|providers|admin|staff|suppliers)/.test(path)) continue;
     for (const method of ['get', 'post']) {
       if (!item[method]) continue;
       for (const status of Object.keys(item[method].responses)) {
@@ -41,6 +41,10 @@ for (const row of rows) {
     if (row.example) assert.deepEqual(body, readJSON(`contracts/examples/${row.example}`));
     if (schema === 'RequestResource') validateResource(body);
     if (schema === 'OfferList') validateOffers(body, manifest.clock);
+    if (schema === 'Offer') validateOffers({ request_id: 'req_x', offers: [body] }, manifest.clock);
+    if (schema === 'ProviderInbox') body.items.forEach(validateInboxItem);
+    if (schema === 'InboxItem') validateInboxItem(body);
+    if (/^Admin.*Page$|^Supplier$|^AdminMatchHistory$/.test(schema)) assertNoFullNumbers(body);
     if (schema === 'Error') {
       const codes = { 400: 'validation_failed', 401: 'unauthenticated', 403: 'forbidden',
         404: 'not_found', 409: 'conflict', 413: 'validation_failed', 415: 'validation_failed',
@@ -57,9 +61,10 @@ for (const row of rows) {
 test('schema enums, fixture states and no-result outcomes cannot silently drift', () => {
   assert.deepEqual(Object.keys(nextActions).sort(), contract.components.schemas.RequestStatus.enum.filter(s => s !== 'blocked').sort());
   assert.deepEqual([...new Set(Object.values(nextActions))].sort(), [...contract.components.schemas.NextAction.enum].sort());
-  const resources = rows.map(row => readJSON(row.file)).filter(body => body.status);
+  const resources = rows.map(row => readJSON(row.file)).filter(body => body.status && body.next_action);
   assert.deepEqual([...new Set(resources.map(body => body.status))].sort(),
-    ['awaiting_responses', 'canceled', 'draft', 'expired', 'ranked', 'routed', 'submitted']);
+    ['awaiting_responses', 'canceled', 'confirmed', 'draft', 'expired', 'ranked', 'routed', 'submitted',
+      'user_selected']);
   assert.deepEqual([...new Set(resources.map(body => body.no_result_reason).filter(Boolean))].sort(),
     [...contract.components.schemas.NoResultReason.enum].sort());
 });
@@ -116,11 +121,18 @@ for (const [name, operation, mutate, pattern] of [
   ['expired offer', 'offers', b => { b.offers[0].expires_at = manifest.clock; b.offers[0].available_at = '2026-10-01T20:00:00Z'; }, /Expired/],
   ['backwards slot', 'offers', b => { b.offers[0].expires_at = b.offers[0].available_at; }, /before its slot/],
   ['duplicate offer', 'offers', b => { b.offers.push(structuredClone(b.offers[0])); }, /Duplicate/],
+  ['confirmed without a supplier event', 'get/confirmed', b => { delete b.reservation.confirmed_at; }, /confirmed_at/],
+  ['confirmed request, pending reservation', 'get/confirmed', b => { b.reservation.status = 'pending'; delete b.reservation.confirmed_at; }, /Reservation status/],
+  ['selection without a reservation', 'get/reservation-pending', b => { delete b.reservation; }, /reservation presence/],
+  ['an individual provider\'s address', 'offers/sms-and-app', b => { b.offers[1].place = structuredClone(b.offers[0].place); }, /place only/],
+  ['a note on an SMS offer', 'offers/sms-and-app', b => { b.offers[0].note = 'Call me'; }, /note only/],
+  ['a distance that disagrees with the place', 'offers/sms-and-app', b => { b.offers[0].distance_m = 10; }, /distance_m/],
 ]) {
   test(`rejects ${name}`, () => {
-    const body = readFixture(operation, 'success');
+    const [folder, outcome] = operation.includes('/') ? operation.split('/') : [operation, 'success'];
+    const body = readFixture(folder, outcome);
     mutate(body);
-    assert.throws(() => operation === 'offers' ? validateOffers(body, manifest.clock) : validateResource(body), pattern);
+    assert.throws(() => folder === 'offers' ? validateOffers(body, manifest.clock) : validateResource(body), pattern);
   });
 }
 

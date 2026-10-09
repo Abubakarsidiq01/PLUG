@@ -54,7 +54,24 @@ class FixtureContractTest {
             Map.entry("auth.refresh", "Session"),
             Map.entry("me.get", "Me"),
             Map.entry("me.consent", "Consent"),
-            Map.entry("me.sessions", "SessionList"));
+            Map.entry("me.sessions", "SessionList"),
+            // Phase 3, contract 0.7.0 (proposed).
+            Map.entry("requests.select", "RequestResource"),
+            Map.entry("requests.send-offer", "Offer"),
+            Map.entry("providers.inbox", "ProviderInbox"),
+            Map.entry("providers.decline", "InboxItem"),
+            Map.entry("providers.reservation", "InboxItem"),
+            Map.entry("suppliers.opt-in", "SupplierOptInReceipt"),
+            Map.entry("admin.suppliers.list", "AdminSupplierPage"),
+            Map.entry("admin.suppliers.create", "Supplier"),
+            Map.entry("admin.suppliers.get", "Supplier"),
+            Map.entry("admin.suppliers.update", "Supplier"),
+            Map.entry("admin.suppliers.verification", "Supplier"),
+            Map.entry("admin.messages", "AdminMessagePage"),
+            Map.entry("admin.opt-outs", "AdminOptOutPage"),
+            Map.entry("admin.matches", "AdminMatchHistory"),
+            Map.entry("admin.providers.list", "AdminProviderPage"),
+            Map.entry("admin.providers.standing", "AdminProvider"));
 
     @Test
     void everyFixtureMatchesItsSchema() throws Exception {

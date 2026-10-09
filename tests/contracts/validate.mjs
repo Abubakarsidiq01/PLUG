@@ -50,10 +50,10 @@ export function validateResource(body) {
   validateSchema('RequestResource', body);
   assert.notEqual(body.status, 'blocked', 'Blocked requests must not be returned');
   assert.equal(body.next_action, nextActions[body.status], 'status/next_action mismatch');
-  for (const [field, action] of Object.entries({
-    clarification: 'answer_clarification', no_result_reason: 'show_no_result',
-    poll_after_seconds: 'wait_for_offers',
-  })) assert.equal(Object.hasOwn(body, field), body.next_action === action, `${field} presence`);
+  for (const [field, actions] of Object.entries({
+    clarification: ['answer_clarification'], no_result_reason: ['show_no_result'],
+    poll_after_seconds: ['wait_for_offers', 'await_supplier_confirmation'],
+  })) assert.equal(Object.hasOwn(body, field), actions.includes(body.next_action), `${field} presence`);
 
   const { category, currency, location, needed_by: neededBy } = body.constraints;
   assert.equal(currency, 'USD');
@@ -82,6 +82,19 @@ export function validateResource(body) {
   for (const axis of ['latitude', 'longitude']) {
     assert.equal(location[axis], Number(location[axis].toFixed(digits)), 'Unrounded location');
   }
+  // Phase 3 (§19.6): a reservation exists from selection on, and Confirmed needs a
+  // provider's confirmation behind it.
+  const reserved = ['user_selected', 'confirmed', 'completed'].includes(body.status);
+  if (reserved) assert.ok(body.reservation, 'reservation presence');
+  if (body.reservation) {
+    const expected = { user_selected: ['pending'], confirmed: ['confirmed'], completed: ['confirmed'],
+      ranked: ['released', 'timed_out'], expired: ['released', 'timed_out'], canceled: ['canceled'] }[body.status];
+    assert.ok(expected?.includes(body.reservation.status), 'Reservation status does not fit the request status');
+    assert.equal(Object.hasOwn(body.reservation, 'confirmed_at'), body.reservation.status === 'confirmed', 'confirmed_at presence');
+    assert.equal(Object.hasOwn(body.reservation, 'ended_at'), ['released', 'timed_out', 'canceled'].includes(body.reservation.status), 'ended_at presence');
+    assert.ok(utc(body.reservation.created_at) < utc(body.reservation.confirm_by), 'confirm_by before selection');
+  }
+  if (body.no_result_reason === 'not_confirmed') assert.ok(body.reservation, 'not_confirmed needs the reservation that lapsed');
   assert.ok(body.progress.replied <= body.progress.contacted, 'Replies exceed contacts');
   assert.ok(body.progress.offers_ready <= body.progress.replied, 'Offers exceed replies');
   assert.ok(utc(body.created_at) <= utc(body.updated_at), 'Update precedes creation');
@@ -103,8 +116,29 @@ export function validateOffers(body, clock) {
     if (offer.source === 'seed') {
       assert.ok(['estimated', 'unknown'].includes(offer.truth_label), 'Seed data cannot be verified');
     }
+    // 0.7.0: a public place only for a business; a note only from an in-app provider.
+    assert.equal(Object.hasOwn(offer, 'place'), ['seed', 'sms'].includes(offer.source), 'place only on seed and sms offers');
+    assert.ok(!Object.hasOwn(offer, 'note') || offer.source === 'portal', 'note only on portal offers');
+    if (offer.place) assert.equal(offer.distance_m, offer.place.distance_m, 'distance_m must equal place.distance_m');
+    else assert.equal(offer.distance_m % 100, 0, 'distance_m is rounded to 100 m without a place');
     assert.ok(utc(offer.expires_at) > utc(offer.available_at), 'Offer expires before its slot');
     assert.ok(utc(offer.expires_at) > utc(clock), 'Expired offer returned');
     assert.ok(utc(offer.observed_at) <= utc(clock), 'Future observation');
   }
+}
+
+export function validateInboxItem(item) {
+  validateSchema('InboxItem', item);
+  assert.equal(Object.hasOwn(item, 'offer'), ['offered', 'selected', 'confirmed', 'not_chosen'].includes(item.status) || (item.status === 'closed' && Object.hasOwn(item, 'offer')), 'offer presence');
+  assert.equal(Object.hasOwn(item, 'reservation'), ['selected', 'confirmed'].includes(item.status) || (item.status === 'not_chosen' && Object.hasOwn(item, 'reservation')), 'reservation presence');
+  if (item.offer) assert.equal(item.offer.source, 'portal', 'An inbox offer is an in-app offer');
+  if (item.status === 'confirmed') assert.equal(item.reservation.status, 'confirmed');
+  if (item.status === 'selected') assert.equal(item.reservation.status, 'pending');
+  for (const key of ['text', 'location', 'user_id']) assert.ok(!Object.hasOwn(item, key), `Inbox leaks ${key}`);
+}
+
+// Manual §19.9 and the G3 checklist: a supplier's number is only ever shown masked.
+export function assertNoFullNumbers(body) {
+  const text = JSON.stringify(body);
+  assert.doesNotMatch(text, /\+?1?\d{10}(?!\d)/, 'A full phone number in an admin response');
 }

@@ -1,4 +1,4 @@
-# P3 · Person Two (Windows) — Supplier onboarding, SMS outreach, offers and reservation
+# P3 · Person Two (Windows) — Provider inbox, offers, SMS channel and trust score v1
 
 > **Before you start:** read `PROJECT_STATE.json` at the repository root.
 > If `current_phase` is not `P3`, you are in the wrong file.
@@ -7,7 +7,7 @@
 
 | | |
 |---|---|
-| **Phase** | P3 — Supplier onboarding, SMS outreach, offers and reservation |
+| **Phase** | P3 — Provider inbox, offers, SMS channel and trust score v1 |
 | **Gate** | G3 |
 | **Duration** | ~2 weeks |
 | **You own** | public web, admin console, contracts, fixtures, QA, security testing |
@@ -17,10 +17,16 @@
 | **Other lane** | `docs/phases/P3-ONE.md` |
 
 **Outcome this phase must reach**
-First real demo: an app request reaches an opted-in supplier by SMS, a real reply becomes one validated offer, and a selected offer becomes a reservation that only a supplier event can confirm.
+A matched provider receives the request in their own inbox, sends a real offer with a price and a time, and the asker chooses between real offers that carry a score. On the SMS side: an app request reaches an opted-in supplier by text, a real reply becomes one validated offer, and a selected offer becomes a reservation that only a supplier event can confirm.
+
+> **Updated to manual v4 §27.4 on 2026-10-09.** Phase 3 now carries two channels: SMS for
+> businesses that prefer text, and the in-app inbox for individual providers, who are the
+> point of the product. Both produce the same validated Offer, under one combined fan-out
+> ceiling, and providers get trust score v1. The contract is
+> [0.7.0](../../contracts/CHANGELOG.md), proposed in P3.S1.
 
 **Why it matters**
-This phase touches real people's phones. Every control here — consent, fan-out caps, STOP handling, signature verification, idempotency — exists because getting it wrong means texting a real business that never agreed to hear from you.
+Phase 3 was already the supplier phase. It now carries two channels instead of one. It also touches real people's phones. Every control here — consent, fan-out caps, STOP handling, signature verification, idempotency — exists because getting it wrong means texting a real business that never agreed to hear from you.
 
 Everything in this file runs on Windows. If a task here appears to need a Mac, it has been written wrong — raise it rather than working around it.
 
@@ -36,6 +42,10 @@ covering:
 - Outbound message templates and the inbound command grammar
 - `POST /v1/webhooks/twilio/inbound` and the status callback
 - Offer schema, expiry, selection and reservation state transitions
+- `POST /v1/requests/{id}/offers` — in-app provider offers
+- Provider notification payload and per-hour cap
+- Offer schema shared by the SMS and in-app paths
+- Trust-score v1 fields on the provider resource
 
 Nothing below this line begins until that pull request has merged with both
 approvals. If you find yourself writing an endpoint that is not in the contract,
@@ -46,12 +56,20 @@ stop and open a contract pull request instead.
 ## 1. Environment
 
 ```powershell
-docker compose up -d postgres redis
-pnpm install
+pnpm install --frozen-lockfile
+pnpm test:contracts                  # contract, fixtures, SMS copy and grammar
 pnpm --filter @plug/web dev          # http://localhost:3000
-bru run tests/api --env staging
 pnpm --filter @plug/web test:e2e
 ```
+
+For the database, backend and Bruno CLI, follow [Windows onboarding](../onboarding/windows.md).
+There is no standing staging URL; use the current checkpoint tunnel as described in
+`tests/api/environments/README.md`.
+
+**Your P3.S1 starting point:** `contracts/messages/` holds Person One's draft of every SMS
+and the push alert, the reply grammar and 76 regression cases. The wording is yours: rewrite
+it, and `pnpm test:contracts` tells you whether it still fits two segments, stays in GSM-7 and
+asks only for words the grammar reads.
 
 If any of those commands fails on a clean machine, that is a bug in
 `docs/onboarding/windows.md`, and fixing the
@@ -71,6 +89,11 @@ you go, and open one pull request per step or per small group of related steps.
 - [ ] **P3.S5** — Run Playwright on the supplier and admin routes for validation, mobile responsiveness, error states and authorization boundaries.
 - [ ] **P3.S6** — Assist with supplier onboarding operations and record every real consent path. Never edit the database directly.
 - [ ] **P3.S7** — Build the messaging monitor admin view: delivery status, inbound parse results, the opt-out list and duplicate suppression.
+- [ ] **P3.S8** — Own the provider-facing copy end to end: the notification text, the inbox empty state, the offer composer, the decline confirmation and the expiry notice.
+- [ ] **P3.S9** — Build the admin provider-management screens: profiles, skills, radius, verification status, suspension, and the match history for any request.
+- [ ] **P3.S10** — Write Playwright coverage for the provider web surfaces, including the forbidden-role and unauthenticated cases.
+- [ ] **P3.S11** — Write the Bruno cases for offers: valid offer, offer above the asker's budget, offer after expiry, duplicate offer from the same provider, and offer from a provider who was never matched.
+- [ ] **P3.S12** — Test notification caps from outside: trigger many simultaneous matches for one provider and prove the cap holds.
 
 ---
 
@@ -120,6 +143,10 @@ curl.exe -sI https://staging.plug.app | Sort-Object    # security headers
 - [ ] Supplier fan-out caps prevent spam and cost explosion.
 - [ ] A reservation never becomes Confirmed without a supplier event.
 - [ ] Message and API logs expose no secrets, tokens or unnecessary PII.
+- [ ] A provider receives a matched request in the inbox with its own notification sound, inside the per-hour cap.
+- [ ] An in-app offer and an SMS offer produce an identical validated Offer.
+- [ ] Declining is recorded as a reply and does not lower the response score; silence does.
+- [ ] A provider with fewer than three completed jobs shows New, never a zero.
 
 ---
 

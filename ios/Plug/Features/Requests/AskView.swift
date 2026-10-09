@@ -582,7 +582,7 @@ struct AskView: View {
             $0.element.priceCents == $1.element.priceCents ? $0.offset < $1.offset : $0.element.priceCents < $1.element.priceCents
         }.map(\.element)
         case .distance: return model.offers.enumerated().sorted {
-            $0.element.place.distanceM == $1.element.place.distanceM ? $0.offset < $1.offset : $0.element.place.distanceM < $1.element.place.distanceM
+            $0.element.distanceM == $1.element.distanceM ? $0.offset < $1.offset : $0.element.distanceM < $1.element.distanceM
         }.map(\.element)
         }
     }
@@ -627,7 +627,7 @@ struct AskView: View {
                         VStack(alignment: .leading, spacing: 10) { comparisonPrice(offer); TruthBadge(label: offer.truthLabel) }
                     }
                     FlowMetrics(items: [("Earliest", offer.availableAt.formatted(date: .omitted, time: .shortened), "clock"),
-                                        ("Away", distance(offer.place.distanceM), "location")], compact: true)
+                                        ("Away", distance(offer.distanceM), "location")], compact: true)
                     NavigationLink { OfferDetailView(offer: offer, cached: model.isCached) } label: {
                         HStack {
                             Text("View details").plugText(.action)
@@ -943,7 +943,7 @@ private struct OfferDetailView: View {
                     ResultHeadline(value: money(offer.priceCents, offer.currency), label: offer.truthLabel)
                     Text(offer.truthLabel.explanation).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                     FlowMetrics(items: [("Earliest", offer.availableAt.formatted(.dateTime.month(.abbreviated).day().hour().minute()), "calendar"),
-                                        ("Away", distance(offer.place.distanceM), "location")], compact: true)
+                                        ("Away", distance(offer.distanceM), "location")], compact: true)
                 }.marketCard()
 
                 if cached || offer.expiresAt <= Date() {
@@ -959,8 +959,8 @@ private struct OfferDetailView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Label("Where to find them", systemImage: "mappin.and.ellipse")
                         .font(.system(.title3, design: .rounded, weight: .bold))
-                    Text(offer.place.address).plugText(.body)
-                    Text("\(distance(offer.place.distanceM)) away").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                    if let place = offer.place { Text(place.address).plugText(.body) }
+                    Text("\(distance(offer.distanceM)) away").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                 }.marketCard()
                 VStack(alignment: .leading, spacing: 14) {
                     Label("Offer ends \(offer.expiresAt.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock")

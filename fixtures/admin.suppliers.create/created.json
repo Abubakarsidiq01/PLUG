@@ -1,0 +1,15 @@
+{
+  "supplier_id": "sup_01JA3P5E2G6J0L4N8Q2S6U0W4Y",
+  "business_name": "Northside Shoe Repair",
+  "phone_masked": "+1 *** *** **07",
+  "verification": {
+    "status": "pending_verification"
+  },
+  "consent": {
+    "state": "pending_confirmation",
+    "version": "sms-2026-10-09",
+    "changed_at": "2026-10-01T17:20:00Z"
+  },
+  "created_at": "2026-10-01T17:20:00Z",
+  "updated_at": "2026-10-01T17:20:00Z"
+}

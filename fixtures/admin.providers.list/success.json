@@ -1,0 +1,88 @@
+{
+  "items": [
+    {
+      "user_id": "usr_01JA3PD4F8H2K6M0P4R8T2V6Y0",
+      "display_name": "Fresh Line Studio",
+      "skills": [
+        {
+          "tag": "barber",
+          "display": "Barber",
+          "requires_licence": false
+        }
+      ],
+      "travel_radius_m": 5000,
+      "accepting": true,
+      "licence_on_file": false,
+      "standing": "active",
+      "score": {
+        "state": "scored",
+        "value": 87,
+        "completed_jobs": 41
+      },
+      "score_breakdown": {
+        "version": "v1",
+        "completion": {
+          "value": 96,
+          "basis": 41
+        },
+        "reliability": {
+          "value": 88,
+          "basis": 41
+        },
+        "responsiveness": {
+          "value": 72,
+          "basis": 118
+        },
+        "standing": {
+          "value": 100,
+          "basis": 365
+        },
+        "customer_rating": null,
+        "updated_at": "2026-10-01T19:00:00Z"
+      },
+      "created_at": "2026-08-02T09:30:00Z"
+    },
+    {
+      "user_id": "usr_01JA3PA1C5E9G3J7L1N5Q9S3U7",
+      "display_name": "Cuts by Dee",
+      "skills": [
+        {
+          "tag": "barber",
+          "display": "Barber",
+          "requires_licence": false
+        }
+      ],
+      "travel_radius_m": 5000,
+      "accepting": true,
+      "licence_on_file": false,
+      "standing": "active",
+      "score": {
+        "state": "new",
+        "completed_jobs": 1
+      },
+      "score_breakdown": {
+        "version": "v1",
+        "completion": {
+          "value": null,
+          "basis": 1
+        },
+        "reliability": {
+          "value": null,
+          "basis": 1
+        },
+        "responsiveness": {
+          "value": 100,
+          "basis": 3
+        },
+        "standing": {
+          "value": 100,
+          "basis": 12
+        },
+        "customer_rating": null,
+        "updated_at": "2026-10-01T19:00:00Z"
+      },
+      "created_at": "2026-09-28T12:00:00Z"
+    }
+  ],
+  "next_cursor": null
+}

@@ -1,6 +1,7 @@
 package app.plug.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -81,7 +82,12 @@ public final class RequestPayloads {
     }
     public record Offer(String offerId, Place place, String serviceName, int priceCents, String currency,
             Instant availableAt, Instant expiresAt, Instant observedAt, String truthLabel, String source,
-            ProviderScore providerScore, ProviderPayloads.BusinessProfile business) {}
+            ProviderScore providerScore, ProviderPayloads.BusinessProfile business) {
+        // Contract 0.7.0: distance on the offer itself, because an in-app provider's offer
+        // has no public place. Seed offers always have one, so it is the place's distance.
+        @JsonProperty("distance_m")
+        public int distanceM() { return place.distanceM(); }
+    }
     public record Offers(String requestId, List<Offer> offers) {}
 
     // Manual v4 §12A: the single ask entry point.

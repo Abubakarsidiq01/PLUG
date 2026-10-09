@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "The request was invalid.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "price_cents",
+        "code": "over_budget",
+        "message": "The customer's budget is $35."
+      }
+    ]
+  }
+}

@@ -11,6 +11,73 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.7.0 — 2026-10-09 — additive, one client-visible relaxation — P3.S1, proposed
+Proposed by Person One for the Phase 3 contract session (manual §27.4). Not frozen until both
+approve the pull request; nothing in P3.S2 onward starts before then. Covers all eight items
+§27.4 lists.
+
+**Selection and reservation (§19.6):** `POST /v1/requests/{request_id}/select` moves a ranked
+request to `user_selected` and adds `RequestResource.reservation` (`pending`, four-character
+`booking_ref`, `confirm_by` 10 minutes or the slot, whichever is sooner). Only a provider event
+confirms it: SMS `CONFIRM` or `POST /v1/providers/me/inbox/{match_id}/reservation`. New edge
+`user_selected -> ranked` when the provider releases or `confirm_by` passes and other live
+offers remain (alternate-offer recovery, P3.S7); otherwise `expired` with new
+`NoResultReason` `not_confirmed`. `confirmed -> completed` is made by the server 3 hours after
+the slot unless canceled. `poll_after_seconds` is now also present while
+`await_supplier_confirmation`, so the app can see the confirmation arrive.
+**Provider inbox and in-app offers:** `GET /v1/providers/me/inbox`, `POST
+/v1/requests/{request_id}/offers` (a matched provider; the manual's route), decline (free,
+recorded as a reply) and reservation confirm/release. `POST /v1/me/devices` registers an APNs
+token; `ProviderMatchNotification` documents the payload (own sound and category). A match
+over the provider's hourly cap is not made.
+**Offer, shared by both channels:** `Offer.distance_m` (required) and `Offer.note` (in-app
+only, 140 characters, no contact details) are added; `Offer.place` becomes optional and is
+present exactly for `seed` and `sms` offers, because an individual provider's home is never
+shown. This is the one change a strict client decoder sees; this pull request updates the iOS
+`Offer` model (optional `place`, `distance_m`, `note`), `NoResultReason` (`not_confirmed`) and
+the polling rule, and the backend now sends `distance_m` on Phase 2 offers.
+**Trust score v1:** `ProviderProfile.score_breakdown` (completion, reliability,
+responsiveness, standing; customer rating null until Phase 5) and `standing`. The asker still
+sees only `ProviderScore`; New below three completed jobs is unchanged.
+**SMS suppliers:** `POST /v1/suppliers/opt-in` (public, same 202 whatever the number's state;
+consent is granted only by START from that phone), `Supplier` with consent state and trail,
+verification status, service area, hours and a `plc_` place (one place model with Phase 4).
+**Twilio:** `POST /v1/webhooks/twilio/inbound` and `/status` under a `twilioSignature` scheme,
+outside the session filter; signature over the configured public URL, MessageSid claimed for
+7 days, empty TwiML response.
+**Messages:** `contracts/messages/` now holds `templates.v1.json` (17 SMS texts and the push
+alert, each fitting two GSM-7 segments at maximum length), `grammar.md` and `grammar.v1.json`
+(YES/NO/CONFIRM/RELEASE/STOP/START/PAUSE/HELP, deterministic, one open context per supplier)
+and `cases.v1.json` (76 regression cases the P3.S5 parser must pass). Wording is Person
+Two's; this is a draft for her to rewrite. SMS consent version `sms-2026-10-09`.
+**Admin (owner-only writes, every read audited, numbers masked to the last two digits):**
+suppliers list/create/get/update/verification, `GET /v1/admin/messages` (the messaging
+monitor; no bodies), `/v1/admin/opt-outs`, `/v1/admin/requests/{request_id}/matches`,
+`/v1/admin/providers` and provider standing.
+
+Proposed defaults to agree at the session (each is one constant to change):
+fan-out 6 then 4 then 4, combined cap 16 across SMS and in-app (as built in Phase 2; the
+manual's `SupplierMatcher` sketch says 14, `MatchService` says 16); outreach reply window 5
+minutes; reservation confirmation 10 minutes; provider notifications 4 per hour; pause 24
+hours; offers above the asker's budget refused rather than shown; one hint reply per
+conversation; auto-complete 3 hours after the slot; trust score v1 reweights the four
+existing components to 60 points; supplier writes are owner-only (ADR-013 keeps staff
+read-only).
+
+Fixtures: 120 new files under `fixtures/requests.{select,send-offer}`, `providers.{inbox,
+decline,reservation}`, `suppliers.opt-in`, `admin.{suppliers.*,messages,opt-outs,matches,
+providers.*}`, plus `requests.get/{reservation-pending,confirmed,reservation-released,
+not-confirmed}` and `requests.offers/sms-and-app`; existing offer fixtures gain `distance_m`.
+28 examples `contracts/examples/p3-*.json`, indexed by `p3-index.json` and checked by
+`ContractTest`. `tests/contracts/messages.test.mjs` checks copy, grammar and cases together;
+`fixtures.test.mjs` now covers `/v1/suppliers` and checks reservation, place, note,
+inbox and masked-number rules, with mutation tests. Manifest at 0.7.0.
+Migration note: V10 (expand only) when P3.S2 starts: suppliers, consent events, places for
+suppliers, sms messages, suppression, reservations, devices, provider standing and scores.
+Rollback: Phase 3 routes sit behind a `supplier_messaging` flag (SMS) and `provider_inbox`
+(in-app); off, the routes return 404 and no message leaves PLUG. `Offer.place` stays present
+on every offer while no `portal` offer exists.
+
 ### 0.6.1 — 2026-10-07 — clarification — proposed
 Approved by Person One (project owner) on 2026-10-07; Person Two approves the pull request.
 No shape changes. `Category`: a request is created in the asker's own words only when the model

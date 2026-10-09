@@ -1,0 +1,846 @@
+{
+ "version": "cases.v1",
+ "grammar": "grammar.v1",
+ "defaults": {
+  "received_at": "2026-10-09T18:00:20Z",
+  "time_zone": "America/Chicago",
+  "budget_cents": 4500,
+  "needed_by": "2026-10-09T23:30:00Z",
+  "known_sender": true,
+  "message_sid_seen": false,
+  "closed_within_hours": null
+ },
+ "note": "received_at is 1:00:20 PM in Chicago (CDT, UTC-5). needed_by is 6:30 PM there. Offer times are UTC. reply_by says who sends the reply text for a keyword: twilio (Advanced Opt-Out, exact keyword) or plug.",
+ "cases": [
+  {
+   "id": "offer-basic",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 2:15pm",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-09T19:15:00Z"
+   }
+  },
+  {
+   "id": "offer-lower-case",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "yes 30 2:15pm",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-09T19:15:00Z"
+   }
+  },
+  {
+   "id": "offer-y-spaced-pm",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "Y 28 2:30 PM",
+   "expect": {
+    "result": "offer",
+    "price_cents": 2800,
+    "available_at": "2026-10-09T19:30:00Z"
+   }
+  },
+  {
+   "id": "offer-dollar-no-meridiem",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES $30 2:15",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-09T19:15:00Z"
+   }
+  },
+  {
+   "id": "offer-cents-hour-pm",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 32.50 3pm",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3250,
+    "available_at": "2026-10-09T20:00:00Z"
+   }
+  },
+  {
+   "id": "offer-hour-space-pm",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 3 PM",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-09T20:00:00Z"
+   }
+  },
+  {
+   "id": "offer-dot-minutes",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 2.15pm",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-09T19:15:00Z"
+   }
+  },
+  {
+   "id": "offer-now",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 now",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-09T18:01:00Z"
+   }
+  },
+  {
+   "id": "offer-24-hour",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 14:15",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-09T19:15:00Z"
+   }
+  },
+  {
+   "id": "offer-trailing-punctuation",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 2:15pm!",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-09T19:15:00Z"
+   }
+  },
+  {
+   "id": "offer-extra-whitespace",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "  YES   30   2:15pm  ",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-09T19:15:00Z"
+   }
+  },
+  {
+   "id": "offer-at-budget",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 45 2:15pm",
+   "expect": {
+    "result": "offer",
+    "price_cents": 4500,
+    "available_at": "2026-10-09T19:15:00Z"
+   }
+  },
+  {
+   "id": "offer-no-budget",
+   "context": {
+    "kind": "outreach",
+    "budget_cents": null
+   },
+   "body": "YES 120 2:15pm",
+   "expect": {
+    "result": "offer",
+    "price_cents": 12000,
+    "available_at": "2026-10-09T19:15:00Z"
+   }
+  },
+  {
+   "id": "offer-tomorrow-no-deadline",
+   "context": {
+    "kind": "outreach",
+    "needed_by": null
+   },
+   "body": "YES 30 9am",
+   "expect": {
+    "result": "offer",
+    "price_cents": 3000,
+    "available_at": "2026-10-10T14:00:00Z"
+   }
+  },
+  {
+   "id": "incomplete-yes",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES",
+   "expect": {
+    "result": "incomplete"
+   }
+  },
+  {
+   "id": "incomplete-price-only",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30",
+   "expect": {
+    "result": "incomplete"
+   }
+  },
+  {
+   "id": "incomplete-time-only",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 2:15pm",
+   "expect": {
+    "result": "incomplete"
+   }
+  },
+  {
+   "id": "unparseable-bare-hour",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 2",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-price-too-high",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 600 2pm",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-price-too-low",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 3 2pm",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-time-before-price",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 2:15pm 30",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-maybe",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "maybe later?",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-yes-but",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "yes but 45 min",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-emoji",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "👍",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-empty",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-whitespace",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "   ",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-ok",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "Ok",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-the-end",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "the end",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "unparseable-confirm-in-outreach",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "CONFIRM",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "over-budget",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 50 2:15pm",
+   "expect": {
+    "result": "over_budget"
+   }
+  },
+  {
+   "id": "outside-window-after-needed-by",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 7pm",
+   "expect": {
+    "result": "outside_window"
+   }
+  },
+  {
+   "id": "outside-window-past-explicit",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 12:30pm",
+   "expect": {
+    "result": "outside_window"
+   }
+  },
+  {
+   "id": "outside-window-past-ambiguous",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 12:30",
+   "expect": {
+    "result": "outside_window"
+   }
+  },
+  {
+   "id": "decline-no",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "NO",
+   "expect": {
+    "result": "decline"
+   }
+  },
+  {
+   "id": "decline-no-thanks",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "no thanks",
+   "expect": {
+    "result": "decline"
+   }
+  },
+  {
+   "id": "decline-no-comma",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "No, busy today",
+   "expect": {
+    "result": "decline"
+   }
+  },
+  {
+   "id": "decline-n",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "n",
+   "expect": {
+    "result": "decline"
+   }
+  },
+  {
+   "id": "decline-pass",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "pass",
+   "expect": {
+    "result": "decline"
+   }
+  },
+  {
+   "id": "stop-exact-1",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "STOP",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-exact-2",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "stop",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-exact-3",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "Stop.",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-exact-4",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "UNSUBSCRIBE",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-exact-5",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "cancel",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-exact-6",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "END",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-exact-7",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "quit",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-exact-8",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "STOPALL",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-exact-9",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "optout",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-exact-10",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "revoke",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-anywhere-please",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "please stop texting me",
+   "expect": {
+    "result": "stop",
+    "reply_by": "plug"
+   }
+  },
+  {
+   "id": "stop-anywhere-overmatch",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "Can't stop by until 3",
+   "expect": {
+    "result": "stop",
+    "reply_by": "plug"
+   }
+  },
+  {
+   "id": "stop-opt-out-two-words",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "opt out",
+   "expect": {
+    "result": "stop",
+    "reply_by": "plug"
+   }
+  },
+  {
+   "id": "stop-beats-offer",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "YES 30 2pm STOP",
+   "expect": {
+    "result": "stop",
+    "reply_by": "plug"
+   }
+  },
+  {
+   "id": "stop-in-reservation",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "STOP",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "stop-unknown-number",
+   "context": {
+    "kind": "none",
+    "known_sender": false
+   },
+   "body": "STOP",
+   "expect": {
+    "result": "stop",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "start",
+   "context": {
+    "kind": "none"
+   },
+   "body": "START",
+   "expect": {
+    "result": "start",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "start-unstop",
+   "context": {
+    "kind": "none"
+   },
+   "body": "unstop",
+   "expect": {
+    "result": "start",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "help-exact",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "HELP",
+   "expect": {
+    "result": "help",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "help-info",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "info",
+   "expect": {
+    "result": "help",
+    "reply_by": "twilio"
+   }
+  },
+  {
+   "id": "help-first-word",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "help me",
+   "expect": {
+    "result": "help",
+    "reply_by": "plug"
+   }
+  },
+  {
+   "id": "pause",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "PAUSE",
+   "expect": {
+    "result": "pause"
+   }
+  },
+  {
+   "id": "pause-first-word",
+   "context": {
+    "kind": "outreach"
+   },
+   "body": "pause please",
+   "expect": {
+    "result": "pause"
+   }
+  },
+  {
+   "id": "confirm-with-ref",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "CONFIRM K7QM",
+   "expect": {
+    "result": "confirm"
+   }
+  },
+  {
+   "id": "confirm-lower-ref",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "confirm k7qm",
+   "expect": {
+    "result": "confirm"
+   }
+  },
+  {
+   "id": "confirm-bare",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "CONFIRM",
+   "expect": {
+    "result": "confirm"
+   }
+  },
+  {
+   "id": "confirm-yes",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "YES",
+   "expect": {
+    "result": "confirm"
+   }
+  },
+  {
+   "id": "confirm-y-ref",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "Y K7QM",
+   "expect": {
+    "result": "confirm"
+   }
+  },
+  {
+   "id": "confirm-wrong-ref",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "CONFIRM ABCD",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "confirm-offer-shape",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "YES 30 2pm",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "release-with-ref",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "RELEASE K7QM",
+   "expect": {
+    "result": "release"
+   }
+  },
+  {
+   "id": "release-no",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "NO",
+   "expect": {
+    "result": "release"
+   }
+  },
+  {
+   "id": "release-wrong-ref",
+   "context": {
+    "kind": "reservation",
+    "ref": "K7QM"
+   },
+   "body": "RELEASE ABCD",
+   "expect": {
+    "result": "unparseable"
+   }
+  },
+  {
+   "id": "no-context-offer",
+   "context": {
+    "kind": "none"
+   },
+   "body": "YES 30 2:15pm",
+   "expect": {
+    "result": "no_open_context",
+    "late_reply": false
+   }
+  },
+  {
+   "id": "no-context-late-offer",
+   "context": {
+    "kind": "none",
+    "closed_within_hours": 2
+   },
+   "body": "YES 30 2:15pm",
+   "expect": {
+    "result": "no_open_context",
+    "late_reply": true
+   }
+  },
+  {
+   "id": "no-context-unknown-number",
+   "context": {
+    "kind": "none",
+    "known_sender": false
+   },
+   "body": "YES 30 2:15pm",
+   "expect": {
+    "result": "no_open_context",
+    "late_reply": false
+   }
+  },
+  {
+   "id": "duplicate-offer",
+   "context": {
+    "kind": "outreach",
+    "message_sid_seen": true
+   },
+   "body": "YES 30 2:15pm",
+   "expect": {
+    "result": "duplicate"
+   }
+  },
+  {
+   "id": "duplicate-stop",
+   "context": {
+    "kind": "outreach",
+    "message_sid_seen": true
+   },
+   "body": "STOP",
+   "expect": {
+    "result": "duplicate"
+   }
+  }
+ ]
+}

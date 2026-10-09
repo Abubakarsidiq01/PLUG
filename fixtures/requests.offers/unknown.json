@@ -9,6 +9,7 @@
         "address": "100 Example Street",
         "distance_m": 850
       },
+      "distance_m": 850,
       "service_name": "Haircut",
       "price_cents": 3000,
       "currency": "USD",

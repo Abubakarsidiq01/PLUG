@@ -51,11 +51,14 @@ struct ServiceRequest: Decodable, Equatable {
     }
     enum NoResultReason: String, Decodable {
         case noCoverage = "no_coverage", noOffers = "no_offers", clarificationUnanswered = "clarification_unanswered"
+        /// Contract 0.7.0: the chosen provider did not confirm and no other offer was left.
+        case notConfirmed = "not_confirmed"
         var explanation: String {
             switch self {
             case .noCoverage: return "Nobody on PLUG offers this near you yet."
             case .noOffers: return "No current offers meet this request. Your request has expired."
             case .clarificationUnanswered: return "This request expired before the clarifying question was answered."
+            case .notConfirmed: return "The provider didn't confirm, and no other offer was left. Nothing was booked."
             }
         }
     }
@@ -103,7 +106,7 @@ struct ServiceRequest: Decodable, Equatable {
               (0...min(progress.replied, 20)).contains(progress.offersReady),
               (nextAction == .answerClarification) == (clarification != nil),
               (nextAction == .showNoResult) == (noResultReason != nil),
-              (nextAction == .waitForOffers) == (pollAfterSeconds != nil),
+              [.waitForOffers, .awaitSupplierConfirmation].contains(nextAction) == (pollAfterSeconds != nil),
               pollAfterSeconds.map({ (1...30).contains($0) }) ?? true,
               constraints.category != nil || status == .draft || status == .canceled || noResultReason == .clarificationUnanswered
         else { throw APIError.contractViolation(requestID: nil) }
@@ -131,7 +134,11 @@ struct ServiceOfferList: Decodable, Equatable {
 
 struct ServiceOffer: Decodable, Equatable, Identifiable {
     let offerId: String
-    let place: Place
+    /// Contract 0.7.0: present only for seed and SMS offers. An in-app provider's offer has
+    /// no public place, so distance lives on the offer itself.
+    let place: Place?
+    let distanceM: Int
+    var note: String? = nil
     let serviceName: String
     let priceCents: Int
     let currency: String
@@ -142,7 +149,7 @@ struct ServiceOffer: Decodable, Equatable, Identifiable {
     let source: Source
     let providerScore: ProviderScore
     var business: BusinessProfile? = nil
-    var businessName: String { business?.name ?? place.name }
+    var businessName: String { business?.name ?? place?.name ?? "A provider nearby" }
     var id: String { offerId }
     struct Place: Decodable, Equatable {
         let placeId: String
@@ -167,9 +174,11 @@ struct ServiceOffer: Decodable, Equatable, Identifiable {
     }
     enum Source: String, Decodable { case seed, sms, portal }
     var isValid: Bool {
-        !offerId.isEmpty && !place.name.isEmpty && !place.address.isEmpty && !serviceName.isEmpty
+        !offerId.isEmpty && !serviceName.isEmpty
+        && (place == nil) == (source == .portal) && (note == nil || source == .portal)
+        && place.map({ !$0.name.isEmpty && !$0.address.isEmpty && $0.distanceM == distanceM }) ?? true
         && (500...50_000).contains(priceCents) && currency == "USD"
-        && (0...50_000).contains(place.distanceM) && expiresAt > availableAt
+        && (0...80_000).contains(distanceM) && expiresAt > availableAt
         && (source != .seed || [.estimated, .unknown].contains(truthLabel)) && truthLabel != .notVerified
         && providerScore.isValid
     }

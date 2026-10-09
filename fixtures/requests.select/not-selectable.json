@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "This request is not ready for a choice.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "request_id",
+        "code": "not_selectable"
+      }
+    ]
+  }
+}

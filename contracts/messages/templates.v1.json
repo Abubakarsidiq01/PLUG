@@ -1,0 +1,152 @@
+{
+  "version": "templates.v1",
+  "status": "proposed with contract 0.7.0; wording owned by Person Two",
+  "consent_version": "sms-2026-10-09",
+  "limits": {
+    "sms_max_rendered_chars": 306,
+    "sms_charset": "GSM-7 basic set only (no emoji, curly quotes, dashes or extension characters)",
+    "push_title_max": 40,
+    "push_body_max": 120
+  },
+  "placeholders": {
+    "business": {
+      "max": 30,
+      "example": "Fade Factory Barbers",
+      "rule": "business_name, cut at a word and never more than 30"
+    },
+    "service": {
+      "max": 40,
+      "example": "Haircut",
+      "rule": "the request's service_name, cut at a word"
+    },
+    "distance": {
+      "max": 7,
+      "example": "1.2 mi",
+      "rule": "one decimal place, miles"
+    },
+    "window": {
+      "max": 18,
+      "example": "today by 6:30pm",
+      "rule": "from needed_by in the supplier's time zone, or 'as soon as possible'"
+    },
+    "budget": {
+      "max": 11,
+      "example": "under $45",
+      "rule": "'under $N' or 'any price'"
+    },
+    "budget_amount": {
+      "max": 7,
+      "example": "$45",
+      "rule": "the budget alone"
+    },
+    "price": {
+      "max": 7,
+      "example": "$30",
+      "rule": "$N, or $N.CC when there are cents"
+    },
+    "time": {
+      "max": 11,
+      "example": "2:15pm",
+      "rule": "h:mmam/pm; prefixed with a 3-letter day when not today"
+    },
+    "minutes": {
+      "max": 2,
+      "example": "10"
+    },
+    "ref": {
+      "max": 4,
+      "example": "K7QM",
+      "rule": "Reservation.booking_ref"
+    },
+    "until": {
+      "max": 11,
+      "example": "Fri 2:15pm"
+    },
+    "terms_url": {
+      "max": 30,
+      "example": "plug.app/sms",
+      "rule": "the published SMS terms page"
+    },
+    "support": {
+      "max": 30,
+      "example": "support@plug.app"
+    }
+  },
+  "sms": {
+    "optin_confirm": {
+      "when": "after the web form or a staff entry; the only text before consent",
+      "body": "PLUG: {business} asked to get nearby customer requests by text. Reply START to agree. Msg frequency varies. Msg&data rates may apply. HELP for help, STOP to opt out. Terms: {terms_url}"
+    },
+    "optin_confirmed": {
+      "when": "START, from pending_confirmation, paused or revoked",
+      "body": "PLUG: You're in. We'll text you when a nearby customer needs you. Reply PAUSE for a 24h break, STOP to opt out, HELP for help."
+    },
+    "outreach": {
+      "when": "the supplier is matched; opens an outreach context",
+      "body": "PLUG: New request {distance} away. {service}, {window}, {budget}. Reply YES <price> <time> (like YES 30 2:15pm) or NO within {minutes} min. STOP to opt out."
+    },
+    "offer_received": {
+      "when": "result offer",
+      "body": "PLUG: Offer sent: {price} at {time}. We'll text you if the customer picks it."
+    },
+    "offer_incomplete": {
+      "when": "result incomplete, once per context",
+      "body": "PLUG: Add your price and time, like YES 30 2:15pm. Or reply NO."
+    },
+    "offer_over_budget": {
+      "when": "result over_budget, once per context",
+      "body": "PLUG: The customer's budget is {budget_amount}. Reply YES <price> <time> at or under it, or NO."
+    },
+    "offer_outside_window": {
+      "when": "result outside_window, once per context",
+      "body": "PLUG: The customer needs it {window}. Reply YES <price> <time> in that window, or NO."
+    },
+    "unparseable": {
+      "when": "result unparseable inside a context, once per context",
+      "body": "PLUG: Sorry, we didn't understand that. Reply YES <price> <time>, NO, or HELP."
+    },
+    "request_closed": {
+      "when": "result no_open_context within 24h of a context closing, once",
+      "body": "PLUG: That request has closed, so nothing was sent. We'll text you about the next one."
+    },
+    "reservation_request": {
+      "when": "the asker selected this supplier's offer; opens a reservation context",
+      "body": "PLUG: The customer picked your offer: {price} at {time}. Reply CONFIRM {ref} to book, or RELEASE {ref} if you can't, within {minutes} min."
+    },
+    "booked": {
+      "when": "result confirm",
+      "body": "PLUG: Booked, ref {ref}: {service} at {time} for {price}. The customer will show you this ref. HELP for support."
+    },
+    "released": {
+      "when": "result release",
+      "body": "PLUG: Released ref {ref}. The customer has been told."
+    },
+    "reservation_timed_out": {
+      "when": "confirm_by passed with no answer",
+      "body": "PLUG: Ref {ref} wasn't confirmed in time, so the customer was shown other options."
+    },
+    "reservation_canceled": {
+      "when": "the asker canceled after selecting or after confirmation",
+      "body": "PLUG: The customer cancelled ref {ref}. You don't need to do anything."
+    },
+    "help": {
+      "when": "result help; also Twilio's HELP reply",
+      "body": "PLUG sends you nearby customer requests. Reply YES <price> <time> to offer, NO to skip, PAUSE for a 24h break, STOP to opt out. Help: {support}"
+    },
+    "stop_confirm": {
+      "when": "result stop; also Twilio's STOP reply",
+      "body": "PLUG: You're opted out and won't get more texts. Reply START to opt back in."
+    },
+    "pause_confirm": {
+      "when": "result pause",
+      "body": "PLUG: Paused until {until}. Reply START to resume sooner, or STOP to opt out."
+    }
+  },
+  "push": {
+    "provider_match": {
+      "when": "an in-app provider is matched, inside the hourly cap",
+      "title": "New request nearby",
+      "body": "{service}, {distance} away, {window}. Tap to offer or decline."
+    }
+  }
+}

@@ -1,0 +1,97 @@
+{
+  "items": [
+    {
+      "supplier_id": "sup_01JA3P4D0F4H8K2M6P0R4T8V2X",
+      "business_name": "Fade Factory Barbers",
+      "phone_masked": "+1 *** *** **42",
+      "skill_tags": [
+        "barber"
+      ],
+      "place_id": "plc_01JA3P0FADE7Q2W",
+      "address": "310 Example Street",
+      "service_radius_m": 5000,
+      "hours": [
+        {
+          "days": "weekdays",
+          "from": "09:00",
+          "to": "19:00"
+        },
+        {
+          "days": "weekends",
+          "from": "10:00",
+          "to": "16:00"
+        }
+      ],
+      "time_zone": "America/Chicago",
+      "licence_on_file": false,
+      "contact_name": "Owner, by phone",
+      "verification": {
+        "status": "verified",
+        "decided_at": "2026-09-30T16:00:00Z",
+        "reason": "Visited the shop; licence on the wall."
+      },
+      "consent": {
+        "state": "granted",
+        "version": "sms-2026-10-09",
+        "changed_at": "2026-09-30T15:12:40Z"
+      },
+      "created_at": "2026-09-30T15:10:02Z",
+      "updated_at": "2026-09-30T16:00:00Z"
+    },
+    {
+      "supplier_id": "sup_01JA3P6F4H8K2M6P0R4T8V2X6Z",
+      "business_name": "Main Street Cuts",
+      "phone_masked": "+1 *** *** **18",
+      "skill_tags": [
+        "barber"
+      ],
+      "place_id": "plc_01JA3P6MAIN4K8P",
+      "address": "12 Example Avenue",
+      "service_radius_m": 5000,
+      "hours": [
+        {
+          "days": "weekdays",
+          "from": "09:00",
+          "to": "19:00"
+        },
+        {
+          "days": "weekends",
+          "from": "10:00",
+          "to": "16:00"
+        }
+      ],
+      "time_zone": "America/Chicago",
+      "licence_on_file": false,
+      "contact_name": "Owner, by phone",
+      "verification": {
+        "status": "verified",
+        "decided_at": "2026-09-30T16:00:00Z",
+        "reason": "Visited the shop; licence on the wall."
+      },
+      "consent": {
+        "state": "paused",
+        "version": "sms-2026-10-09",
+        "changed_at": "2026-10-01T14:00:00Z",
+        "paused_until": "2026-10-02T14:00:00Z"
+      },
+      "created_at": "2026-09-30T15:10:02Z",
+      "updated_at": "2026-09-30T16:00:00Z"
+    },
+    {
+      "supplier_id": "sup_01JA3P5E2G6J0L4N8Q2S6U0W4Y",
+      "business_name": "Northside Shoe Repair",
+      "phone_masked": "+1 *** *** **07",
+      "verification": {
+        "status": "pending_verification"
+      },
+      "consent": {
+        "state": "pending_confirmation",
+        "version": "sms-2026-10-09",
+        "changed_at": "2026-10-01T17:20:00Z"
+      },
+      "created_at": "2026-10-01T17:20:00Z",
+      "updated_at": "2026-10-01T17:20:00Z"
+    }
+  ],
+  "next_cursor": null
+}

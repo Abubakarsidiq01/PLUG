@@ -1,0 +1,28 @@
+{
+  "business_name": "Fade Factory Barbers",
+  "skill_tags": [
+    "barber"
+  ],
+  "hours": [
+    {
+      "days": "weekdays",
+      "from": "09:00",
+      "to": "19:00"
+    },
+    {
+      "days": "weekends",
+      "from": "10:00",
+      "to": "16:00"
+    }
+  ],
+  "time_zone": "America/Chicago",
+  "place": {
+    "address": "310 Example Street",
+    "location": {
+      "latitude": 32.531,
+      "longitude": -92.709,
+      "precision": "fine"
+    }
+  },
+  "service_radius_m": 5000
+}
