@@ -1,21 +1,22 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-08T06:04:54.962931+00:00",
-  "updated_by": "person_one (G2 exceptions; device captures)",
+  "updated_at": "2026-10-09T05:57:07.346102+00:00",
+  "updated_by": "person_one and person_two (G2 signed)",
   "completed_phases": [
     "P0",
-    "P1"
+    "P1",
+    "P2"
   ],
-  "current_phase": "P2",
-  "current_step": "P2.S22",
-  "current_step_title": "Phase 2 Person One implementation hardened and locally verified against manual v4, including direct skills and approved UI. Physical UI runner provisioning/device evidence and independent contract/design/Windows/G2 checkpoint remain open.",
-  "manual_section": "27.3",
-  "readme": "docs/phases/P2-ONE.md",
+  "current_phase": "P3",
+  "current_step": "P3.S1",
+  "current_step_title": "Freeze the supplier profile, consent, service-area, outbound message and inbound command contracts.",
+  "manual_section": "27.4",
+  "readme": "docs/phases/P3-ONE.md",
   "owner": "both",
   "blocked_on": null,
-  "last_gate_passed": "G1",
-  "next_gate": "G2",
+  "last_gate_passed": "G2",
+  "next_gate": "G3",
   "gate_log": [
     {
       "gate": "G0",
@@ -58,6 +59,23 @@
         "Dedicated staging profile, immutable deployment metadata and external member BOLA pending before external beta",
         "Starter legal drafts only; full deletion, retention, teen controls and final consent pending before public launch",
         "Full device state matrix and live upgrade evidence not implied by owner acceptance"
+      ]
+    },
+    {
+      "gate": "G2",
+      "date": "2026-10-09",
+      "manual_section": "27.3",
+      "signed_by": [
+        "person_one",
+        "person_two"
+      ],
+      "summary": "Live, two-person connected checkpoint against the shared backend through public HTTPS tunnels (ADR-004) at commit 1d13b9ed1c3176bf437e41782f8ff2cf1550d7cf. Request IDs from the iPhone and from Person Two's machine were found in the same backend log: req_2045e385-b43b-444f-9c19-00b4a04b9efe, checkpoint-p2-dd81bb0d-1d1b-4cad-a908-13436819ff7f, checkpoint-p2-46a252a2-4eb8-4be8-a382-8b71405ba819, checkpoint-p2-3dc70318-f66b-4436-802e-533dd00eac56. Contract 0.6.1 merged with both approvals.",
+      "evidence": [
+        "evidence/P2/logs/connected-checkpoint-2026-10-07.md",
+        "evidence/P2/logs/connected-checkpoint-2026-10-07.log",
+        "docs/testing/phase2-g2-exceptions.md",
+        "docs/testing/phase2-person-one-fixes-2026-10-07.md",
+        "docs/testing/phase2-person-two-rerun-2026-10-06.md"
       ]
     }
   ],
