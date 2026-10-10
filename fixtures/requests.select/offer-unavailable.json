@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "That offer is no longer available. Choose another.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "offer_id",
+        "code": "offer_unavailable"
+      }
+    ]
+  }
+}

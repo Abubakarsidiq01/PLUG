@@ -1,0 +1,17 @@
+{
+  "offer_id": "off_01JA3P0APP8N2R6T0V4X8Z2B6D",
+  "distance_m": 900,
+  "service_name": "Haircut",
+  "price_cents": 2800,
+  "currency": "USD",
+  "available_at": "2026-10-01T20:20:00Z",
+  "expires_at": "2026-10-01T20:35:00Z",
+  "observed_at": "2026-10-01T20:00:08Z",
+  "truth_label": "confirmed",
+  "source": "portal",
+  "provider_score": {
+    "state": "new",
+    "completed_jobs": 1
+  },
+  "note": "Fades and line-ups. I can come to you or you can come to me."
+}

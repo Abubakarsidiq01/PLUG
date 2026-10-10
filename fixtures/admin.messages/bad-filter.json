@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "validation_failed",
+    "message": "The request was invalid.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "direction",
+        "code": "invalid",
+        "message": "Use inbound or outbound."
+      }
+    ]
+  }
+}

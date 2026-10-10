@@ -47,6 +47,30 @@ class ContractTest {
         ContractSchemas.validateExample("Error", "account-link-conflict-error.json");
     }
 
+    // Phase 3, contract 0.7.0 (proposed). p3-index.json names the schema of every Phase 3
+    // example, so a new example cannot be added without being checked.
+    @Test
+    void phaseThreeExamplesMatchTheirSchemas() throws Exception {
+        JsonNode index = json.readTree(Path.of("../contracts/examples/p3-index.json").toFile());
+        assertFalse(index.isEmpty(), "no Phase 3 examples");
+        for (var entry : (Iterable<Map.Entry<String, JsonNode>>) index::fields) {
+            ContractSchemas.validateExample(entry.getValue().asText(), entry.getKey());
+        }
+    }
+
+    // A reservation becomes Confirmed only from a supplier event (§19.6), and the contract's
+    // own examples must never show anything else.
+    @Test
+    void confirmedExamplesCarryAConfirmedReservation() throws Exception {
+        JsonNode confirmed = json.readTree(Path.of("../contracts/examples/p3-request-confirmed.json").toFile());
+        assertEquals("confirmed", confirmed.get("status").asText());
+        assertEquals("confirmed", confirmed.get("reservation").get("status").asText());
+        assertTrue(confirmed.get("reservation").has("confirmed_at"));
+        JsonNode pending = json.readTree(Path.of("../contracts/examples/p3-request-reservation-pending.json").toFile());
+        assertEquals("await_supplier_confirmation", pending.get("next_action").asText());
+        assertFalse(pending.get("reservation").has("confirmed_at"));
+    }
+
     // Phase 2. One example per documented outcome (manual.docx §18.1), each checked against
     // the schema the server will answer with.
     @Test

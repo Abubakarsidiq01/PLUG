@@ -1,71 +1,44 @@
-# Supplier SMS templates
+# Supplier messages
 
-**Owned by Person Two.** The copy and the parser are one artefact: they change
-together, in one pull request, with the regression fixtures updated.
+**Wording owned by Person Two** (P3-TWO.S1); the parser that reads replies is Person One's
+(P3.S5). Proposed with contract 0.7.0. Copy and parser are one artefact: they change together,
+in one pull request, with the regression cases updated (manual §27.4).
 
-Every template is under 320 characters, states who is texting, what is wanted,
-and how to stop. Reply handling is a grammar, not a language model — see the
-parser cases at the bottom.
+| File | What it is |
+|---|---|
+| [templates.v1.json](templates.v1.json) | Every SMS PLUG sends a supplier, and the provider push alert, with each placeholder's maximum length |
+| [grammar.md](grammar.md) | How a reply is read, in order, and what each result does |
+| [grammar.v1.json](grammar.v1.json) | The keyword sets and limits the parser loads |
+| [cases.v1.json](cases.v1.json) | The regression cases: reply, context, expected result, price and time |
 
-## outreach.v1
+`pnpm test:contracts` checks them together (`tests/contracts/messages.test.mjs`): every SMS
+rendered with its longest placeholders fits two GSM-7 segments (306 characters) and uses no
+character outside the GSM-7 basic set; every template that asks for a reply names only words
+the grammar reads; every outreach and opt-in text says who is texting and how to stop; every
+case uses a context and a result the contract defines.
 
-```
-PLUG: New request near you.
-Service: {service}
-Budget: under ${budget}
-Time: {window}
-Distance: {distance} mi
+## Rules for the copy
 
-Reply YES <price> <time> to offer, or NO.
-Reply STOP to never receive these.
-```
+- Starts with `PLUG:` so the supplier knows who is texting (HELP text excepted, which starts
+  with PLUG).
+- Says what is wanted and how to answer, in the words the grammar reads.
+- Says how to stop on every outreach and on the opt-in text.
+- Never carries the asker's words, name, phone number or location. A booking is identified
+  by its four-character ref.
+- No emoji, curly quotes or dashes: one of those turns a text into UCS-2 and halves its
+  length.
 
-## confirmation.v1
+## Consent
 
-```
-PLUG: Got it. We sent your offer (${price} at {time}) to the customer.
-You'll get a text if they book.
-```
+`consent_version` in templates.v1.json is the SMS terms version the opt-in form shows and
+`POST /v1/suppliers/opt-in` accepts. Changing the opt-in wording or the terms means a new
+version, and suppliers who agreed to the old one keep that record. Consent is given only by
+the supplier texting START from the number; a form or a member of staff can never give it.
 
-## booked.v1
+## Changing a template or the grammar
 
-```
-PLUG: Booked. {customer_first_name} is coming at {time} for {service} at ${price}.
-Reply HELP for support.
-```
-
-## help.v1
-
-```
-PLUG connects nearby customers to you by text. Reply YES <price> <time> to an
-offer, or NO to skip. Reply PAUSE to stop for 24h, STOP to opt out completely.
-Support: support@plug.app
-```
-
-## stop-confirm.v1
-
-```
-PLUG: You're opted out. You will not receive further requests.
-Reply START to opt back in.
-```
-
-## Parser cases — the regression fixtures
-
-| Reply | Parses as | Price | Time |
-|---|---|---|---|
-| `YES 30 2:15` | accept | 3000 | 14:15 |
-| `yes 30 2:15pm` | accept | 3000 | 14:15 |
-| `Y 28 2:30 PM` | accept | 2800 | 14:30 |
-| `YES` | accept | — | — |
-| `NO` | decline | — | — |
-| `no thanks` | decline | — | — |
-| `STOP` / `stop` / `UNSUBSCRIBE` | stop | — | — |
-| `PAUSE` | pause | — | — |
-| `HELP` | help | — | — |
-| `maybe later?` | **unparseable** | — | — |
-| `yes but 45 min` | **unparseable** | — | — |
-| emoji only | **unparseable** | — | — |
-| empty | **unparseable** | — | — |
-
-An unparseable reply creates **no offer** and applies **no supplier penalty**.
-An ambiguous reply must never become a real offer with a real price.
+1. Change the copy, the grammar and the cases in one pull request.
+2. A new template version (`outreach.v2`) is a contract change with both approvals; fixing a
+   typo inside a version is not, but still needs the tests green.
+3. If a change alters what a supplier must type, add cases for the old and new forms and keep
+   accepting the old form until every queued message using it has expired.

@@ -7,6 +7,26 @@ file per outcome per operation, named `<operation>/<outcome>.json`.
 `ContractTest`; the files here are what the Bruno collection, Playwright and the
 iOS decoding tests build against.
 
+## Phase 3 — proposed contract 0.7.0
+
+One scenario runs through every Phase 3 file: the ranked barber request
+`req_01J9Z6Q3V8M2K4P7R5T1W0XY3B` from `requests.get/success.json` gets an SMS offer from
+Fade Factory Barbers and an in-app offer from a new provider; the asker selects the SMS one
+(`requests.select/success.json`), which is confirmed (`requests.get/confirmed.json`),
+released (`requests.get/reservation-released.json`, alternate-offer recovery) or lapses
+(`requests.get/not-confirmed.json`).
+
+| Folder | Covers |
+|---|---|
+| `requests.select/` | selection, replay, `already_selected`, `offer_unavailable`, `not_selectable` |
+| `requests.send-offer/` | a matched provider's offer; `over_budget`, `outside_window`, `contact_in_note`, `already_offered`, `request_closed`, never matched (404), suspended (403) |
+| `providers.inbox/`, `providers.decline/`, `providers.reservation/` | the inbox, a free decline, confirm and release |
+| `suppliers.opt-in/` | the one public route: the same 202 for every number, consent and version errors |
+| `admin.suppliers.*`, `admin.messages/`, `admin.opt-outs/`, `admin.matches/`, `admin.providers.*` | the admin monitor and management routes; every number masked |
+
+`contracts/messages/cases.v1.json` holds the SMS reply cases; they are the parser's
+regression fixtures and live next to the copy because the two change together.
+
 ## Phase 2 — proposed request contract 0.3.0
 
 `requests.create/`, `requests.get/`, `requests.clarify/`, `requests.offers/` and

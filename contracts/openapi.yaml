@@ -1,9 +1,9 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.6.1
+  version: 0.7.0
   description: >
-    Phase 0, Phase 1 and Phase 2 contract shared by the PLUG iOS app and the modular-monolith backend.
+    Phase 0 to Phase 3 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
     (manual.docx §18.1). Changes require one pull request in /contracts with BOTH
     approvals, updated fixtures and an entry in CHANGELOG.md.
@@ -211,6 +211,49 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    post:
+      operationId: sendProviderOffer
+      summary: A matched provider sends one offer, with a price and a time
+      description: >
+        P3.S11, the in-app path. The caller is a provider matched to this request (the
+        request_id comes from their inbox), not its owner. Produces exactly the same
+        validated Offer as an SMS reply: the same price range, the same time rules and the
+        same expiry. One offer per provider per request, enforced by the database.
+
+
+        Validation (400, details[0].code): `over_budget` when price_cents exceeds the
+        request's budget; `outside_window` when available_at is in the past, more than 7 days
+        ahead, or after the request's needed_by; `contact_in_note` when the note carries a
+        phone number, email address or link. Conflicts (409): `already_offered` (a second,
+        different offer; the same Idempotency-Key and body replay the first), `request_closed`
+        (the request was selected, canceled or expired, or the match was declined). A request
+        the caller was never matched to is 404, exactly like one that does not exist, and so
+        is the asker sending an offer on their own request.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProviderOfferCreate' }
+      responses:
+        '201':
+          description: The validated offer, as the asker will see it.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Offer' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/MatchStateConflict' }
         '413': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
@@ -1021,6 +1064,571 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalError' }
+  # ---------------------------------------------------------------------------------------
+  # Phase 3 (0.7.0, proposed): selection and reservation, the provider inbox and in-app
+  # offers, SMS suppliers, Twilio webhooks, device registration and the admin monitor.
+  # ---------------------------------------------------------------------------------------
+  /v1/requests/{request_id}/select:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/RequestIdPath'
+    post:
+      operationId: selectOffer
+      summary: Choose one live offer on the caller's own request, which asks its provider to confirm
+      description: >
+        P3.S6. Legal only while the request is `ranked`. Under a row lock the request moves to
+        `user_selected`, `next_action` becomes `await_supplier_confirmation` and `reservation`
+        appears with status `pending`. Nothing is booked yet: the request reaches `confirmed`
+        only when the provider confirms (by SMS CONFIRM or from their inbox), never from a
+        timer, an admin or this client (§19.6).
+
+
+        Selection races. Two selections of the same request (double tap, two devices) are
+        serialised by the lock: the same offer again with the same Idempotency-Key replays the
+        first response; any other attempt is 409 with `details[0].code` = `already_selected`.
+        An offer whose `expires_at` has passed, or that is not one of this request's live
+        offers, is 409 `offer_unavailable`; the client reloads the offers. Someone else's
+        request is 404.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OfferSelection' }
+      responses:
+        '200':
+          description: Selected. status is `user_selected` and reservation.status is `pending`.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/RequestResource' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/SelectionConflict' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/providers/me/inbox:
+    get:
+      operationId: getProviderInbox
+      summary: Requests matched to the caller as a provider, newest first
+      description: >
+        P3.S10. Only requests this provider was matched and notified for (inside their own
+        skills, radius, availability and the per-hour notification cap). Each item carries
+        what a provider needs to decide and nothing about the asker: no text, no coordinates,
+        no identity. Open items first, then the last seven days. At most 50 items; there is
+        no paging because notification is capped. A caller with no provider profile is 404.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      responses:
+        '200':
+          description: The inbox, possibly empty.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ProviderInbox' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/providers/me/inbox/{match_id}/decline:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/MatchIdPath'
+    post:
+      operationId: declineMatch
+      summary: Decline a matched request. Free, recorded as a reply, never a penalty
+      description: >
+        P3.S12. A decline counts as a reply for responsiveness; only silence lowers it.
+        Declining an already-declined match returns 200 with the same item. Declining after
+        offering, or after the request closed, is 409 `request_closed`.
+      security:
+        - plugSession: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MatchDecline' }
+      responses:
+        '200':
+          description: Declined.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InboxItem' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/MatchStateConflict' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/providers/me/inbox/{match_id}/reservation:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/MatchIdPath'
+    post:
+      operationId: answerReservation
+      summary: Confirm or release the reservation an asker made on the caller's offer
+      description: >
+        P3.S6, the in-app supplier event. `confirm` moves the request to `confirmed`; this
+        and the SMS CONFIRM reply are the only two ways a request becomes confirmed.
+        `release` frees the asker to choose another live offer. Repeating the same decision
+        returns 200 with the same item; the other decision after one was recorded, or any
+        decision after `confirm_by`, is 409 `reservation_closed`. A match with no pending
+        reservation is 409 `no_reservation`.
+      security:
+        - plugSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ReservationDecision' }
+      responses:
+        '200':
+          description: Recorded.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/InboxItem' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/MatchStateConflict' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/me/devices:
+    post:
+      operationId: registerDevice
+      summary: Register or refresh this device's push token for provider notifications
+      description: >
+        P3.S10. Upserts by token, so a retry or a relaunch is harmless. The token is stored
+        against the caller's session and removed when that session ends. Provider match
+        alerts use the payload in ProviderMatchNotification and are capped per provider per
+        hour. Push needs an Apple Developer Program team; until one is configured this route
+        is 503 dependency_unavailable and the inbox still works by pull.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/DeviceRegistration' }
+      responses:
+        '200':
+          description: Registered.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Device' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/suppliers/opt-in:
+    post:
+      operationId: supplierOptIn
+      summary: A business asks to receive request texts. Public; consent completes only by SMS
+      description: >
+        P3.S2. Called by the public web form (manual §21.4), never by the app. Creates or
+        refreshes a supplier in `pending_verification` with consent `pending_confirmation`
+        and queues one opt-in text (template optin_confirm). Consent is `granted` only when
+        that phone replies START, which proves the number belongs to the person who agreed;
+        nothing else is ever sent before then.
+
+
+        The answer is the same 202 whether the number is new, pending, already opted in or
+        suppressed, so the form cannot be used to learn who is on PLUG. A number that replied
+        STOP is not texted again from a form: it must text START itself. Rate limits: 5 per
+        hour per network address and 3 per day per phone number, both answered 202 once
+        exceeded, without sending. A wrong consent version is 400 `unsupported_version`.
+        While SMS delivery is off the route is 503.
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SupplierOptIn' }
+      responses:
+        '202':
+          description: Received. Says nothing about whether the number was known.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SupplierOptInReceipt' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
+        '429': { $ref: '#/components/responses/RateLimited' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/webhooks/twilio/inbound:
+    post:
+      operationId: twilioInbound
+      summary: Inbound SMS from Twilio. Signature, then replay, then a deterministic parse
+      description: >
+        P3.S3 and P3.S5, manual §19.8. No session: the X-Twilio-Signature header is the
+        authentication, verified over the configured public URL (PLUG_PUBLIC_WEBHOOK_URL,
+        never the Host header, which a tunnel or proxy rewrites) and every form parameter,
+        before any parsing, database access or logging. A missing or wrong signature is 403
+        with no body.
+
+
+        MessageSid is claimed for 7 days; a duplicate delivery returns 200 and changes
+        nothing, so a retry produces exactly one transition and at most one offer. The body
+        is parsed by the grammar in contracts/messages/grammar.md and applied to the sender's
+        open context. Unparseable, incomplete and out-of-policy replies create no offer and
+        apply no penalty. The body is never logged; the parse result is.
+
+
+        The response is always empty TwiML. Replies (HELP, confirmations, hints) are sent by
+        the outbound worker so they pass the same suppression check and appear in the
+        messaging monitor.
+      security:
+        - twilioSignature: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema: { $ref: '#/components/schemas/TwilioInboundForm' }
+      responses:
+        '200':
+          description: Accepted, duplicate or ignored. Empty TwiML.
+          content:
+            text/xml:
+              schema: { type: string, const: '<?xml version="1.0" encoding="UTF-8"?><Response/>' }
+        '403':
+          description: Missing or invalid signature. No body.
+        '413':
+          description: Body over 16 KiB. No body.
+        '500':
+          description: Not processed; Twilio's own retry policy applies. No body.
+  /v1/webhooks/twilio/status:
+    post:
+      operationId: twilioStatusCallback
+      summary: Delivery status for an outbound SMS
+      description: >
+        P3.S3. Same signature rule as inbound. Statuses only move forward
+        (queued, sent, delivered | undelivered | failed); an older or repeated status is
+        accepted with 200 and ignored. Error codes 21610 (recipient replied STOP at the
+        carrier) and 30004/30005/30006 (unreachable) suppress the number at once, exactly as a
+        STOP reply would.
+      security:
+        - twilioSignature: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema: { $ref: '#/components/schemas/TwilioStatusForm' }
+      responses:
+        '204':
+          description: Accepted or ignored.
+        '403':
+          description: Missing or invalid signature. No body.
+        '413':
+          description: Body over 16 KiB. No body.
+        '500':
+          description: Not processed. No body.
+  /v1/admin/suppliers:
+    get:
+      operationId: listSuppliers
+      summary: SMS suppliers with consent and verification state; numbers masked
+      description: >
+        P3-TWO.S2. Admin scope plus a completed second factor; never cached; every read
+        audited. Phone numbers appear only masked to their last two digits.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/AdminCursor'
+        - $ref: '#/components/parameters/AdminLimit'
+        - in: query
+          name: verification
+          required: false
+          schema: { $ref: '#/components/schemas/SupplierVerificationStatus' }
+      responses:
+        '200':
+          description: One page.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminSupplierPage' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    post:
+      operationId: createSupplier
+      summary: Record a supplier onboarded by staff (an owner only); consent still comes by SMS
+      description: >
+        P3-TWO.S6. For a business onboarded in person or by phone. Writes the same pending
+        record the web form does and queues the same opt-in text: staff can never mark
+        consent as given. A phone that is already a supplier is 409 `supplier_exists`.
+        Audited with the staff member and reason.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/IdempotencyKeyHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SupplierCreate' }
+      responses:
+        '201':
+          description: Created, pending verification and consent.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Supplier' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409': { $ref: '#/components/responses/Conflict' }
+        '503': { $ref: '#/components/responses/DependencyUnavailable' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/suppliers/{supplier_id}:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/SupplierIdPath'
+    get:
+      operationId: getSupplier
+      summary: One supplier, with the consent trail
+      security:
+        - plugSession: []
+      responses:
+        '200':
+          description: The supplier.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Supplier' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+    post:
+      operationId: updateSupplierProfile
+      summary: Replace a supplier's services, hours, service area and place (an owner only)
+      description: >
+        Replaces the profile fields in SupplierProfile; consent and verification are not
+        editable here. Changing services or the service area of a verified supplier returns
+        it to `pending_verification`. Audited with before and after.
+      security:
+        - plugSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SupplierProfile' }
+      responses:
+        '200':
+          description: Updated.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Supplier' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/suppliers/{supplier_id}/verification:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/SupplierIdPath'
+    post:
+      operationId: decideSupplierVerification
+      summary: Verify, reject, suspend or reinstate a supplier (an owner only), with a reason
+      description: >
+        Only a `verified` supplier with consent `granted` is ever contacted. Suspension takes
+        effect at send time for already-queued messages. A supplier with no service, no hours
+        or no place cannot be verified (400 `profile_incomplete`). Audited.
+      security:
+        - plugSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SupplierVerificationDecision' }
+      responses:
+        '200':
+          description: Recorded.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Supplier' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/messages:
+    get:
+      operationId: listMessages
+      summary: The messaging monitor. Delivery status, parse results and duplicates; no bodies
+      description: >
+        P3-TWO.S7. Every inbound and outbound SMS event, newest first. Numbers masked; no
+        message body is stored for display, only the template id (outbound) or the parse
+        result (inbound). Filter by supplier, request or direction.
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/AdminCursor'
+        - $ref: '#/components/parameters/AdminLimit'
+        - in: query
+          name: supplier_id
+          required: false
+          schema: { type: string, maxLength: 64, pattern: '^sup_[A-Za-z0-9-]+$' }
+        - in: query
+          name: request_id
+          required: false
+          schema: { type: string, maxLength: 64, pattern: '^req_[A-Za-z0-9-]+$' }
+        - in: query
+          name: direction
+          required: false
+          schema: { type: string, enum: [inbound, outbound] }
+      responses:
+        '200':
+          description: One page.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminMessagePage' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/opt-outs:
+    get:
+      operationId: listOptOuts
+      summary: Every suppressed number (STOP, PAUSE or carrier), masked
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/AdminCursor'
+        - $ref: '#/components/parameters/AdminLimit'
+      responses:
+        '200':
+          description: One page.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminOptOutPage' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/requests/{request_id}/matches:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - $ref: '#/components/parameters/RequestIdPath'
+    get:
+      operationId: listRequestMatches
+      summary: Who a request reached, on which channel, and what came back
+      description: >
+        P3-TWO.S9. The full fan-out for one request in the order it happened: each SMS
+        supplier and in-app provider contacted, skipped by the per-hour cap or suppressed,
+        and their outcome. No request text, no coordinates, no asker identity.
+      security:
+        - plugSession: []
+      responses:
+        '200':
+          description: The match history.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminMatchHistory' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/providers:
+    get:
+      operationId: listProviders
+      summary: In-app providers with skills, radius, standing and trust score
+      security:
+        - plugSession: []
+      parameters:
+        - $ref: '#/components/parameters/RequestIdHeader'
+        - $ref: '#/components/parameters/AdminCursor'
+        - $ref: '#/components/parameters/AdminLimit'
+      responses:
+        '200':
+          description: One page.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminProviderPage' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '500': { $ref: '#/components/responses/InternalError' }
+  /v1/admin/providers/{user_id}/standing:
+    parameters:
+      - $ref: '#/components/parameters/RequestIdHeader'
+      - name: user_id
+        in: path
+        required: true
+        schema: { type: string, pattern: '^usr_[A-Za-z0-9-]{1,60}$' }
+    post:
+      operationId: setProviderStanding
+      summary: Suspend or reinstate a provider (an owner only), with a reason
+      description: >
+        A suspended provider is never matched or notified and cannot send offers (403); their
+        live offers are withdrawn and any pending reservation is released. Audited.
+      security:
+        - plugSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProviderStandingDecision' }
+      responses:
+        '200':
+          description: Recorded.
+          headers:
+            X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AdminProvider' }
+        '400': { $ref: '#/components/responses/ValidationFailed' }
+        '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '500': { $ref: '#/components/responses/InternalError' }
 components:
   securitySchemes:
     stagingJwt:
@@ -1031,6 +1639,14 @@ components:
         Phase 0 only. Staging issuer, audience, expiry and plug.requests.write scope are
         validated; local loopback development is exempt. No Phase 2 operation uses it; the
         backend keeps it on the Phase 0 stub until requests_v2 replaces that stub.
+    twilioSignature:
+      type: apiKey
+      in: header
+      name: X-Twilio-Signature
+      description: >
+        Twilio's HMAC-SHA1 over PLUG_PUBLIC_WEBHOOK_URL plus the sorted form parameters,
+        keyed with the account's auth token (manual §19.8). Only /v1/webhooks/** uses it, and
+        those routes sit outside the session filter.
     plugSession:
       type: http
       scheme: bearer
@@ -1087,6 +1703,17 @@ components:
         Opaque. Logged as the route template, never as the value. A well-formed identifier
         the caller does not own is 404; a malformed one is also 404, so the two cannot be
         told apart.
+    MatchIdPath:
+      in: path
+      name: match_id
+      required: true
+      schema: { type: string, maxLength: 64, pattern: '^mat_[A-Za-z0-9-]+$' }
+      description: Opaque. A match that is not the caller's, or a malformed id, is 404.
+    SupplierIdPath:
+      in: path
+      name: supplier_id
+      required: true
+      schema: { type: string, maxLength: 64, pattern: '^sup_[A-Za-z0-9-]+$' }
   headers:
     RequestIdResponseHeader:
       description: The correlation ID for this request — either the caller's or a server-generated one.
@@ -1118,6 +1745,19 @@ components:
         Idempotency-Key was reused. details[0].code is one of not_awaiting_clarification,
         not_cancelable, idempotency_key_reused, request_in_progress. The client reloads
         GET /v1/requests/{request_id} and follows its next_action.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    SelectionConflict:
+      description: >
+        conflict. details[0].code is one of already_selected (another offer was already
+        chosen), offer_unavailable (expired, withdrawn or not this request's), not_selectable
+        (the request is not ranked), idempotency_key_reused or request_in_progress. The client
+        reloads GET /v1/requests/{request_id} and follows its next_action.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    MatchStateConflict:
+      description: >
+        conflict. details[0].code is one of already_offered, request_closed, no_reservation,
+        reservation_closed, idempotency_key_reused or request_in_progress. The provider app
+        reloads the inbox.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     RestrictedIntent:
       description: >
@@ -1289,14 +1929,23 @@ components:
         no_result_reason:
           $ref: '#/components/schemas/NoResultReason'
           description: Present if and only if next_action is show_no_result.
+        reservation:
+          $ref: '#/components/schemas/Reservation'
+          description: >
+            0.7.0. Present once an offer has been selected, and from then on always the
+            latest reservation: on user_selected it is pending, on confirmed and completed it
+            is confirmed. Back on ranked with status released or timed_out, it is how the
+            client explains that the provider could not confirm and shows the other live
+            offers (alternate-offer recovery); the released offer is no longer listed.
         poll_after_seconds:
           type: integer
           minimum: 1
           maximum: 30
           description: >
-            Present if and only if next_action is wait_for_offers. How long to wait before
-            the next GET. It is a polling interval, not an estimate of when offers arrive,
-            and must never be shown as one.
+            Present if and only if next_action is wait_for_offers or (0.7.0)
+            await_supplier_confirmation. How long to wait before the next GET. It is a
+            polling interval, not an estimate of when offers or a confirmation arrive, and
+            must never be shown as one.
         created_at: { type: string, format: date-time }
         updated_at: { type: string, format: date-time }
         expires_at:
@@ -1385,12 +2034,15 @@ components:
         routed -> awaiting_responses | expired | canceled;
         awaiting_responses -> ranked | expired | canceled;
         ranked -> user_selected | expired | canceled;
-        user_selected -> confirmed | expired | canceled;
+        user_selected -> confirmed | ranked | expired | canceled;
         confirmed -> completed | canceled;
         completed, expired, canceled and blocked are terminal.
         confirmed is reachable only from a supplier event — never a timer, an admin or a
-        client. Phase 2 reaches draft through ranked plus expired, canceled and blocked;
-        user_selected, confirmed and completed are declared now so Phase 3 adds no value.
+        client. user_selected -> ranked (0.7.0) happens only when the provider releases the
+        reservation or confirm_by passes while other live offers remain; with none left the
+        request expires with no_result_reason not_confirmed. confirmed -> completed is made by
+        the server 3 hours after the reserved slot starts unless the request was canceled;
+        Phase 5 adds disputes and ratings on top of it.
         A blocked request is refused with 422 at creation and is never returned to a client.
     NextAction:
       type: string
@@ -1408,12 +2060,14 @@ components:
         canceled -> none.
     NoResultReason:
       type: string
-      enum: [no_coverage, no_offers, clarification_unanswered]
+      enum: [no_coverage, no_offers, clarification_unanswered, not_confirmed]
       description: >
         Why there is nothing to show, so the empty state can say why and offer one action.
         no_coverage — no eligible supplier is within max_distance_m for the category;
         no_offers — suppliers were contacted but no valid offer arrived, or every offer
-        expired; clarification_unanswered — the draft lapsed before the question was answered.
+        expired; clarification_unanswered — the draft lapsed before the question was answered;
+        not_confirmed (0.7.0) — an offer was chosen but its provider released it or did not
+        confirm in time, and no other live offer remained.
     Clarification:
       description: >
         The one question PLUG may ask. Structured options only; there is no free-text answer.
@@ -1469,11 +2123,28 @@ components:
         that cannot carry a real price and a real time does not exist.
       type: object
       additionalProperties: false
-      required: [offer_id, place, service_name, price_cents, currency, available_at,
-                 expires_at, observed_at, truth_label, source, provider_score]
+      required: [offer_id, service_name, price_cents, currency, available_at,
+                 expires_at, observed_at, truth_label, source, provider_score, distance_m]
       properties:
         offer_id: { type: string, maxLength: 64, pattern: '^off_[A-Za-z0-9-]+$' }
-        place: { $ref: '#/components/schemas/Place' }
+        place:
+          $ref: '#/components/schemas/Place'
+          description: >
+            Present if and only if source is seed or sms: a business with a public address.
+            An in-app (portal) offer comes from a person whose home is never shown, so it has
+            no place; business carries whatever they chose to publish.
+        distance_m:
+          type: integer
+          minimum: 0
+          maximum: 80000
+          description: >
+            0.7.0. Straight-line metres from the request location, computed server-side; equal
+            to place.distance_m when place is present, and rounded to 100 m when it is not.
+        note:
+          type: string
+          minLength: 1
+          maxLength: 140
+          description: 0.7.0. The provider's own note on an in-app offer, plain text. Never on SMS offers.
         service_name: { type: string, minLength: 1, maxLength: 80 }
         price_cents: { type: integer, minimum: 500, maximum: 50000 }
         currency: { $ref: '#/components/schemas/Currency' }
@@ -1520,13 +2191,18 @@ components:
       type: string
       enum: [seed, sms, portal]
       description: >
-        seed — synthetic Phase 2 supplier data, labelled estimated at best; sms and portal —
-        Phase 3 supplier replies, declared now so Phase 3 adds no value.
+        seed — synthetic Phase 2 supplier data, labelled estimated at best; sms — a supplier's
+        validated SMS reply; portal — an in-app provider offer (POST
+        /v1/requests/{request_id}/offers). sms and portal offers carry truth_label confirmed
+        when made, observed_at is the moment of the reply, and the server ages the label from
+        there (§11.2). Both are the same Offer; only place and note differ, as documented.
     ProviderScore:
       description: >
         The provider's standing as the asker sees it (manual v4 §12C). Fewer than three
         completed jobs is state new, never a zero; value is present only when state is
         scored. Scores come only from completed work and are never computed by a client.
+        From 0.7.0 value is trust score v1 (ProviderScoreBreakdown); SMS suppliers use the
+        same rules.
       type: object
       additionalProperties: false
       required: [state, completed_jobs]
@@ -1900,6 +2576,12 @@ components:
         business: { $ref: '#/components/schemas/BusinessProfile' }
         licence_on_file: { type: boolean, description: True when a licence reference was supplied. The reference itself is never returned. }
         score: { $ref: '#/components/schemas/ProviderScore' }
+        score_breakdown:
+          $ref: '#/components/schemas/ProviderScoreBreakdown'
+          description: 0.7.0. The provider's own components, in plain numbers. Never shown to askers.
+        standing:
+          $ref: '#/components/schemas/ProviderStanding'
+          description: 0.7.0. suspended means no matches and no offers until staff reinstate.
         created_at: { type: string, format: date-time }
     AppleSignIn:
       type: object
@@ -2085,6 +2767,538 @@ components:
           type: array
           maxItems: 50
           items: { $ref: '#/components/schemas/SessionSummary' }
+    # -------------------------------------------------------------------------------------
+    # Phase 3 (0.7.0, proposed)
+    # -------------------------------------------------------------------------------------
+    OfferSelection:
+      type: object
+      additionalProperties: false
+      required: [offer_id]
+      properties:
+        offer_id: { type: string, maxLength: 64, pattern: '^off_[A-Za-z0-9-]+$' }
+    Reservation:
+      description: >
+        The asker's choice, waiting for the provider (manual §19.6). Present on RequestResource
+        from the moment an offer is selected. Only a provider event confirms it: an SMS
+        CONFIRM reply or the in-app confirm. If the provider releases it, or `confirm_by`
+        passes, it ends and the request returns to `ranked` when other live offers remain,
+        otherwise to `expired` with no_result_reason `not_confirmed`.
+      type: object
+      additionalProperties: false
+      required: [reservation_id, offer_id, status, booking_ref, confirm_by, created_at]
+      properties:
+        reservation_id: { type: string, maxLength: 64, pattern: '^rsv_[A-Za-z0-9-]+$' }
+        offer_id: { type: string, maxLength: 64, pattern: '^off_[A-Za-z0-9-]+$' }
+        status: { $ref: '#/components/schemas/ReservationStatus' }
+        booking_ref:
+          type: string
+          pattern: '^[2-9A-HJ-NP-Z]{4}$'
+          description: >
+            Four characters without 0, O, 1 or I. What the provider and the asker both quote;
+            the SMS CONFIRM and RELEASE replies carry it. Not a secret and not an identifier
+            of the asker.
+        confirm_by:
+          type: string
+          format: date-time
+          description: >
+            10 minutes after selection, or the offer's available_at if that is sooner. After it
+            the reservation is timed_out by the server.
+        confirmed_at: { type: string, format: date-time, description: Present if and only if status is confirmed. }
+        ended_at: { type: string, format: date-time, description: 'Present if and only if status is released, timed_out or canceled.' }
+        created_at: { type: string, format: date-time }
+    ReservationStatus:
+      type: string
+      enum: [pending, confirmed, released, timed_out, canceled]
+      description: >
+        pending -> confirmed (provider event only) | released (provider) | timed_out (server,
+        at confirm_by) | canceled (the asker canceled the request). confirmed -> canceled (the
+        asker canceled). released, timed_out and canceled are terminal.
+    ProviderInbox:
+      type: object
+      additionalProperties: false
+      required: [items, notifications_per_hour]
+      properties:
+        items: { type: array, maxItems: 50, items: { $ref: '#/components/schemas/InboxItem' } }
+        notifications_per_hour:
+          type: integer
+          minimum: 1
+          maximum: 10
+          description: The cap this provider is notified under, so the app can explain it.
+    InboxItem:
+      description: >
+        One matched request as the provider sees it. Never the asker's words, location or
+        identity: the service, the asker's budget, when it is needed and how far it is from the
+        provider's own base, rounded to 100 m.
+      type: object
+      additionalProperties: false
+      required: [match_id, request_id, status, service_name, skill_tags, budget_cents, currency,
+                 needed_by, distance_m, respond_by, notified_at]
+      properties:
+        match_id: { type: string, maxLength: 64, pattern: '^mat_[A-Za-z0-9-]+$' }
+        request_id: { type: string, maxLength: 64, pattern: '^req_[A-Za-z0-9-]+$' }
+        status: { $ref: '#/components/schemas/MatchStatus' }
+        service_name: { type: string, minLength: 1, maxLength: 80 }
+        skill_tags: { type: array, minItems: 1, maxItems: 5, items: { $ref: '#/components/schemas/Category' } }
+        budget_cents:
+          oneOf:
+            - { type: integer, minimum: 500, maximum: 500000 }
+            - { type: 'null' }
+          description: Null when the asker set no budget.
+        currency: { $ref: '#/components/schemas/Currency' }
+        needed_by:
+          oneOf:
+            - { type: string, format: date-time }
+            - { type: 'null' }
+          description: Null means as soon as possible.
+        distance_m: { type: integer, minimum: 0, maximum: 80000, multipleOf: 100 }
+        respond_by:
+          type: string
+          format: date-time
+          description: After this the match is expired and silence is recorded.
+        notified_at: { type: string, format: date-time }
+        offer: { $ref: '#/components/schemas/Offer', description: Present once this provider has offered. }
+        reservation: { $ref: '#/components/schemas/Reservation', description: Present once the asker selected this provider's offer. }
+    MatchStatus:
+      type: string
+      enum: [open, offered, declined, expired, selected, confirmed, not_chosen, closed]
+      description: >
+        open — waiting for this provider; offered — their offer is live; declined — they said
+        no (a reply, never a penalty); expired — respond_by passed with no reply (silence);
+        selected — the asker chose their offer and is waiting for confirmation; confirmed —
+        they confirmed; not_chosen — the asker chose someone else or their offer expired;
+        closed — the request was canceled or expired before they answered (not silence).
+    MatchDecline:
+      type: object
+      additionalProperties: false
+      properties:
+        reason:
+          type: string
+          enum: [busy, too_far, price, not_my_skill, other]
+          description: Optional. Used to tune matching; never shown to the asker, never scored.
+    ReservationDecision:
+      type: object
+      additionalProperties: false
+      required: [decision]
+      properties:
+        decision: { type: string, enum: [confirm, release] }
+    ProviderOfferCreate:
+      description: >
+        An in-app offer. The same rules as an SMS reply: a real price and a real time, or no
+        offer at all. expires_at, truth_label and observed_at are set by the server.
+      type: object
+      additionalProperties: false
+      required: [price_cents, currency, available_at]
+      properties:
+        price_cents: { type: integer, minimum: 500, maximum: 50000 }
+        currency: { $ref: '#/components/schemas/Currency' }
+        available_at:
+          type: string
+          format: date-time
+          description: When the provider can start. Not in the past, not after needed_by, at most 7 days ahead.
+        note:
+          type: string
+          minLength: 1
+          maxLength: 140
+          description: >
+            Optional, shown to the asker as plain text. No phone numbers, email addresses or
+            links (400 contact_in_note): contact happens after confirmation.
+    ProviderMatchNotification:
+      description: >
+        The APNs payload for a provider match (P3.S10), documented here because both lanes
+        own part of it: Person One sends it, Person Two owns the wording (template
+        provider_match in contracts/messages). Never the asker's words, location or
+        identity. Sent only inside the per-provider hourly cap; a match over the cap is not
+        made, so the request goes to the next provider rather than waiting.
+      type: object
+      additionalProperties: false
+      required: [aps, match_id]
+      properties:
+        aps:
+          type: object
+          additionalProperties: false
+          required: [alert, sound, category, thread-id]
+          properties:
+            alert:
+              type: object
+              additionalProperties: false
+              required: [title, body]
+              properties:
+                title: { type: string, maxLength: 40 }
+                body: { type: string, maxLength: 120 }
+            sound: { type: string, const: provider_match.caf, description: 'Its own sound, never the default alert.' }
+            category: { type: string, const: PROVIDER_MATCH }
+            thread-id: { type: string, const: provider-inbox }
+            interruption-level: { type: string, const: active }
+        match_id: { type: string, maxLength: 64, pattern: '^mat_[A-Za-z0-9-]+$' }
+    DeviceRegistration:
+      type: object
+      additionalProperties: false
+      required: [apns_token, environment]
+      properties:
+        apns_token: { type: string, minLength: 64, maxLength: 200, pattern: '^[0-9a-f]+$' }
+        environment: { type: string, enum: [sandbox, production] }
+    Device:
+      type: object
+      additionalProperties: false
+      required: [device_id, environment, registered_at]
+      properties:
+        device_id: { type: string, maxLength: 64, pattern: '^dev_[A-Za-z0-9-]+$' }
+        environment: { type: string, enum: [sandbox, production] }
+        registered_at: { type: string, format: date-time }
+    ProviderScoreBreakdown:
+      description: >
+        Trust score v1 (P3.S13, manual §12C.2), shown only to the provider themselves and to
+        staff. Customer rating (weight 40) arrives with reviews in Phase 5; until then the
+        overall value is the weighted mean of the four components that exist, reweighted to
+        their 60 points (completion 25, reliability 15, responsiveness 10, standing 10). A
+        component with too little evidence is null, never zero. Every score change is logged
+        with its cause.
+      type: object
+      additionalProperties: false
+      required: [version, completion, reliability, responsiveness, standing, customer_rating, updated_at]
+      properties:
+        version: { type: string, const: v1 }
+        completion: { $ref: '#/components/schemas/ScoreComponent' }
+        reliability: { $ref: '#/components/schemas/ScoreComponent' }
+        responsiveness: { $ref: '#/components/schemas/ScoreComponent' }
+        standing: { $ref: '#/components/schemas/ScoreComponent' }
+        customer_rating: { type: 'null', description: Phase 5. }
+        updated_at: { type: string, format: date-time }
+    ScoreComponent:
+      type: object
+      additionalProperties: false
+      required: [value, basis]
+      properties:
+        value:
+          oneOf:
+            - { type: integer, minimum: 0, maximum: 100 }
+            - { type: 'null' }
+        basis:
+          type: integer
+          minimum: 0
+          description: >
+            How many events it rests on: confirmed jobs (completion, reliability), matches
+            answered or left silent (responsiveness), days of standing (standing).
+    ProviderStanding:
+      type: string
+      enum: [active, suspended]
+    ProviderStandingDecision:
+      type: object
+      additionalProperties: false
+      required: [standing, reason]
+      properties:
+        standing: { $ref: '#/components/schemas/ProviderStanding' }
+        reason: { type: string, minLength: 3, maxLength: 300 }
+    AdminProvider:
+      type: object
+      additionalProperties: false
+      required: [user_id, skills, travel_radius_m, accepting, standing, score, score_breakdown, created_at]
+      properties:
+        user_id: { type: string, pattern: '^usr_[A-Za-z0-9-]+$' }
+        display_name: { type: string, maxLength: 80, description: The business name if the provider set one. }
+        skills: { type: array, maxItems: 10, items: { $ref: '#/components/schemas/SkillTag' } }
+        custom_skills: { type: array, maxItems: 5, items: { type: string, minLength: 3, maxLength: 40 } }
+        travel_radius_m: { type: integer, minimum: 500, maximum: 80000 }
+        accepting: { type: boolean }
+        licence_on_file: { type: boolean }
+        standing: { $ref: '#/components/schemas/ProviderStanding' }
+        score: { $ref: '#/components/schemas/ProviderScore' }
+        score_breakdown: { $ref: '#/components/schemas/ProviderScoreBreakdown' }
+        created_at: { type: string, format: date-time }
+    AdminProviderPage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor]
+      properties:
+        items: { type: array, maxItems: 100, items: { $ref: '#/components/schemas/AdminProvider' } }
+        next_cursor: { oneOf: [{ type: string }, { type: 'null' }] }
+    PhoneMasked:
+      type: string
+      pattern: '^\+1 \*\*\* \*\*\* \*\*[0-9]{2}$'
+      example: '+1 *** *** **42'
+      description: The only form a supplier's number ever takes in a response. Never logged in any form.
+    SupplierOptIn:
+      description: >
+        What the public opt-in form sends (manual §21.4). The honeypot stays in the web
+        server action and never reaches the API.
+      type: object
+      additionalProperties: false
+      required: [business_name, phone, consent_version, consent]
+      properties:
+        business_name: { type: string, minLength: 2, maxLength: 120 }
+        phone:
+          type: string
+          pattern: '^\+1[2-9][0-9]{2}[2-9][0-9]{6}$'
+          description: E.164, United States numbers only in V1. Stored as a keyed hash plus an encrypted copy for sending; never logged.
+        consent_version:
+          type: string
+          pattern: '^sms-[0-9]{4}-[0-9]{2}-[0-9]{2}$'
+          description: The SMS terms version the form displayed (contracts/messages/README.md). Anything else is 400 unsupported_version.
+        consent: { type: boolean, const: true, description: The unticked-by-default box. false is 400 consent_required. }
+    SupplierOptInReceipt:
+      type: object
+      additionalProperties: false
+      required: [status]
+      properties:
+        status: { type: string, const: confirmation_sent_if_eligible }
+    SupplierCreate:
+      type: object
+      additionalProperties: false
+      required: [business_name, phone, reason]
+      properties:
+        business_name: { type: string, minLength: 2, maxLength: 120 }
+        phone: { type: string, pattern: '^\+1[2-9][0-9]{2}[2-9][0-9]{6}$' }
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 300
+          description: How this business was onboarded (in person, phone call); recorded in the audit trail.
+    SupplierProfile:
+      description: >
+        What staff record for an SMS supplier. place becomes a `plc_` Place shared with Phase
+        4: there is one place model.
+      type: object
+      additionalProperties: false
+      required: [business_name, skill_tags, place, service_radius_m, hours, time_zone]
+      properties:
+        business_name: { type: string, minLength: 2, maxLength: 120 }
+        skill_tags:
+          type: array
+          minItems: 1
+          maxItems: 10
+          uniqueItems: true
+          items: { $ref: '#/components/schemas/Category' }
+          description: Vocabulary tags only (400 unknown_skill). A requires_licence tag needs licence_ref.
+        place: { $ref: '#/components/schemas/SupplierPlace' }
+        service_radius_m:
+          type: integer
+          minimum: 500
+          maximum: 50000
+          description: How far from the place a request may be. The supplier's own answer, never a global default.
+        hours: { type: array, minItems: 1, maxItems: 6, items: { $ref: '#/components/schemas/AvailabilityWindow' } }
+        time_zone: { type: string, minLength: 1, maxLength: 64, pattern: '^[A-Za-z0-9_+/-]+$' }
+        licence_ref: { type: string, minLength: 3, maxLength: 64, pattern: '^[A-Za-z0-9 ./-]+$' }
+        contact_name: { type: string, minLength: 1, maxLength: 80, description: Who staff spoke to. Never sent in a text. }
+    SupplierPlace:
+      type: object
+      additionalProperties: false
+      required: [address, location]
+      properties:
+        address: { type: string, minLength: 1, maxLength: 200 }
+        location: { $ref: '#/components/schemas/RequestLocation' }
+    Supplier:
+      description: >
+        A business reached by SMS. It has no PLUG account and no session; staff manage it and
+        the supplier acts only by text. Contacted only while verification is `verified` and
+        consent is `granted`.
+      type: object
+      additionalProperties: false
+      required: [supplier_id, business_name, phone_masked, verification, consent, created_at, updated_at]
+      properties:
+        supplier_id: { type: string, maxLength: 64, pattern: '^sup_[A-Za-z0-9-]+$' }
+        business_name: { type: string, minLength: 2, maxLength: 120 }
+        phone_masked: { $ref: '#/components/schemas/PhoneMasked' }
+        skill_tags: { type: array, maxItems: 10, items: { $ref: '#/components/schemas/Category' } }
+        place_id: { type: string, maxLength: 64, pattern: '^plc_[A-Za-z0-9-]+$' }
+        address: { type: string, minLength: 1, maxLength: 200 }
+        service_radius_m: { type: integer, minimum: 500, maximum: 50000 }
+        hours: { type: array, maxItems: 6, items: { $ref: '#/components/schemas/AvailabilityWindow' } }
+        time_zone: { type: string, minLength: 1, maxLength: 64 }
+        licence_on_file: { type: boolean }
+        contact_name: { type: string, minLength: 1, maxLength: 80 }
+        verification:
+          type: object
+          additionalProperties: false
+          required: [status]
+          properties:
+            status: { $ref: '#/components/schemas/SupplierVerificationStatus' }
+            decided_at: { type: string, format: date-time }
+            reason: { type: string, maxLength: 300 }
+        consent: { $ref: '#/components/schemas/SupplierConsent' }
+        consent_trail:
+          type: array
+          maxItems: 50
+          description: Newest first. Present on GET /v1/admin/suppliers/{supplier_id} only.
+          items: { $ref: '#/components/schemas/SupplierConsentEvent' }
+        open_context: { $ref: '#/components/schemas/SmsContext' }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    SupplierVerificationStatus:
+      type: string
+      enum: [pending_verification, verified, rejected, suspended]
+    SupplierVerificationDecision:
+      type: object
+      additionalProperties: false
+      required: [status, reason]
+      properties:
+        status:
+          type: string
+          enum: [verified, rejected, suspended]
+          description: verified also reinstates a suspended supplier.
+        reason: { type: string, minLength: 3, maxLength: 300 }
+    SupplierConsent:
+      type: object
+      additionalProperties: false
+      required: [state, version, changed_at]
+      properties:
+        state: { $ref: '#/components/schemas/SupplierConsentState' }
+        version: { type: string, pattern: '^sms-[0-9]{4}-[0-9]{2}-[0-9]{2}$' }
+        changed_at: { type: string, format: date-time }
+        paused_until: { type: string, format: date-time, description: Present if and only if state is paused. }
+    SupplierConsentState:
+      type: string
+      enum: [pending_confirmation, granted, paused, revoked]
+      description: >
+        pending_confirmation -> granted (START from that phone) | revoked (STOP);
+        granted -> paused (PAUSE, 24 h) | revoked (STOP, or carrier opt-out 21610);
+        paused -> granted (START, or paused_until passes) | revoked (STOP);
+        revoked -> granted (START from that phone; never from a form or from staff).
+    SupplierConsentEvent:
+      type: object
+      additionalProperties: false
+      required: [state, source, version, occurred_at]
+      properties:
+        state: { $ref: '#/components/schemas/SupplierConsentState' }
+        source: { type: string, enum: [web_form, staff_entry, sms_keyword, carrier, pause_elapsed] }
+        version: { type: string, pattern: '^sms-[0-9]{4}-[0-9]{2}-[0-9]{2}$' }
+        occurred_at: { type: string, format: date-time }
+    SmsContext:
+      description: >
+        What a reply from this supplier will be applied to. A supplier has at most one open
+        context at a time, which is what makes a bare YES or CONFIRM unambiguous: the matcher
+        skips a supplier whose context is open.
+      type: object
+      additionalProperties: false
+      required: [kind, request_id, closes_at]
+      properties:
+        kind: { type: string, enum: [outreach, reservation] }
+        request_id: { type: string, maxLength: 64, pattern: '^req_[A-Za-z0-9-]+$' }
+        closes_at: { type: string, format: date-time }
+    AdminSupplierPage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor]
+      properties:
+        items: { type: array, maxItems: 100, items: { $ref: '#/components/schemas/Supplier' } }
+        next_cursor: { oneOf: [{ type: string }, { type: 'null' }] }
+    InboundParseResult:
+      type: string
+      enum: [offer, decline, confirm, release, stop, start, pause, help, incomplete,
+             over_budget, outside_window, unparseable, no_open_context, duplicate]
+      description: >
+        The grammar's verdict on one inbound SMS (contracts/messages/grammar.md). Only offer,
+        decline, confirm and release touch a request, and only offer creates an offer.
+        incomplete, over_budget, outside_window, unparseable and no_open_context create
+        nothing and cost the supplier nothing. duplicate is a replayed MessageSid.
+    DeliveryStatus:
+      type: string
+      enum: [queued, sent, delivered, undelivered, failed, suppressed, dead_lettered]
+      description: >
+        suppressed — not sent, because the number was opted out, paused or the supplier
+        suspended at send time; dead_lettered — retries exhausted, waiting for a person.
+    AdminMessage:
+      type: object
+      additionalProperties: false
+      required: [message_id, direction, phone_masked, occurred_at]
+      properties:
+        message_id: { type: string, maxLength: 64, pattern: '^msg_[A-Za-z0-9-]+$' }
+        direction: { type: string, enum: [inbound, outbound] }
+        supplier_id: { type: string, maxLength: 64, pattern: '^sup_[A-Za-z0-9-]+$' }
+        request_id: { type: string, maxLength: 64, pattern: '^req_[A-Za-z0-9-]+$' }
+        phone_masked: { $ref: '#/components/schemas/PhoneMasked' }
+        template_id: { type: string, pattern: '^[a-z_]+\.v[0-9]+$', description: Outbound only. }
+        delivery_status: { $ref: '#/components/schemas/DeliveryStatus' }
+        error_code: { type: string, maxLength: 10, description: 'Twilio''s numeric error code, outbound only.' }
+        parse_result: { $ref: '#/components/schemas/InboundParseResult' }
+        offer_id: { type: string, maxLength: 64, pattern: '^off_[A-Za-z0-9-]+$' }
+        occurred_at: { type: string, format: date-time }
+    AdminMessagePage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor]
+      properties:
+        items: { type: array, maxItems: 100, items: { $ref: '#/components/schemas/AdminMessage' } }
+        next_cursor: { oneOf: [{ type: string }, { type: 'null' }] }
+    AdminOptOut:
+      type: object
+      additionalProperties: false
+      required: [phone_masked, state, source, since]
+      properties:
+        phone_masked: { $ref: '#/components/schemas/PhoneMasked' }
+        supplier_id: { type: string, maxLength: 64, pattern: '^sup_[A-Za-z0-9-]+$' }
+        state: { type: string, enum: [revoked, paused] }
+        source: { type: string, enum: [sms_keyword, carrier] }
+        since: { type: string, format: date-time }
+        paused_until: { type: string, format: date-time }
+    AdminOptOutPage:
+      type: object
+      additionalProperties: false
+      required: [items, next_cursor]
+      properties:
+        items: { type: array, maxItems: 100, items: { $ref: '#/components/schemas/AdminOptOut' } }
+        next_cursor: { oneOf: [{ type: string }, { type: 'null' }] }
+    AdminMatch:
+      type: object
+      additionalProperties: false
+      required: [channel, recipient_id, wave, outcome, at]
+      properties:
+        channel: { type: string, enum: [sms, app] }
+        recipient_id:
+          type: string
+          maxLength: 64
+          pattern: '^(sup|usr)_[A-Za-z0-9-]+$'
+          description: A supplier for sms, a provider's user id for app.
+        wave:
+          type: integer
+          minimum: 1
+          maximum: 3
+          description: 1 is the first six; 2 and 3 are the expansion steps of four.
+        rank_score: { type: number }
+        distance_m: { type: integer, minimum: 0, maximum: 80000 }
+        outcome:
+          type: string
+          enum: [contacted, capped, suppressed, offered, declined, silent, unparseable,
+                 selected, confirmed, released, timed_out]
+          description: >
+            capped — skipped by the provider's hourly cap and not contacted; suppressed —
+            skipped at send time (opt-out, pause or suspension); silent — no reply by
+            respond_by. The latest outcome per recipient.
+        offer_id: { type: string, maxLength: 64, pattern: '^off_[A-Za-z0-9-]+$' }
+        at: { type: string, format: date-time }
+    AdminMatchHistory:
+      type: object
+      additionalProperties: false
+      required: [request_id, status, contacted, cap, matches]
+      properties:
+        request_id: { type: string, maxLength: 64, pattern: '^req_[A-Za-z0-9-]+$' }
+        status: { $ref: '#/components/schemas/RequestStatus' }
+        contacted: { type: integer, minimum: 0, maximum: 16 }
+        cap: { type: integer, const: 16, description: The combined ceiling across SMS and in-app. }
+        matches: { type: array, maxItems: 64, items: { $ref: '#/components/schemas/AdminMatch' } }
+    TwilioInboundForm:
+      description: >
+        Twilio's inbound message parameters. Only these are read; Twilio may send more, and
+        all of them are covered by the signature, so unknown parameters are accepted and
+        ignored rather than refused.
+      type: object
+      additionalProperties: true
+      required: [MessageSid, AccountSid, From, To, Body]
+      properties:
+        MessageSid: { type: string, pattern: '^(SM|MM)[0-9a-f]{32}$' }
+        AccountSid: { type: string, pattern: '^AC[0-9a-f]{32}$', description: Must equal the configured account; otherwise ignored with 200. }
+        From: { type: string, maxLength: 20 }
+        To: { type: string, maxLength: 20, description: Must be one of PLUG's sending numbers; otherwise ignored with 200. }
+        Body: { type: string, maxLength: 1600 }
+        NumMedia: { type: string, description: Media is never fetched or stored. }
+    TwilioStatusForm:
+      type: object
+      additionalProperties: true
+      required: [MessageSid, AccountSid, MessageStatus]
+      properties:
+        MessageSid: { type: string, pattern: '^(SM|MM)[0-9a-f]{32}$' }
+        AccountSid: { type: string, pattern: '^AC[0-9a-f]{32}$' }
+        MessageStatus: { type: string, enum: [accepted, scheduled, queued, sending, sent, delivered, undelivered, failed, canceled, read, receiving, received] }
+        ErrorCode: { type: string, maxLength: 10 }
     Error:
       description: The error envelope. Every non-2xx response has exactly this shape (manual.docx §18.2).
       type: object

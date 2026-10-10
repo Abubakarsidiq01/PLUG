@@ -1,8 +1,8 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-10-09T05:57:07.346102+00:00",
-  "updated_by": "person_one and person_two (G2 signed)",
+  "updated_at": "2026-10-09T17:55:06.180308+00:00",
+  "updated_by": "person_one (P3.S1 contract 0.7.0 proposed)",
   "completed_phases": [
     "P0",
     "P1",
@@ -97,7 +97,7 @@
     "POST /v1/auth/google": "frozen@0.2.2",
     "GET /v1/requests/{request_id}": "frozen@0.5.0 (merged in PR #35)",
     "POST /v1/requests/{request_id}/clarifications": "frozen@0.5.0 (merged in PR #35)",
-    "GET /v1/requests/{request_id}/offers": "frozen@0.5.0 (merged in PR #35)",
+    "GET /v1/requests/{request_id}/offers": "frozen@0.5.0 (merged in PR #35); 0.7.0 proposed: distance_m and note added, place present only for seed and sms offers",
     "POST /v1/requests/{request_id}/cancel": "frozen@0.5.0 (merged in PR #35)",
     "POST /v1/asks": "frozen@0.5.0 (merged in PR #35); 0.6.0 own-words requests merged in PR #36; 0.6.1 merged in PR #40: own words only from the model's reading",
     "GET /v1/asks/{ask_id}": "frozen@0.5.0 (merged in PR #35)",
@@ -115,7 +115,27 @@
     "POST /v1/staff/invites/accept": "frozen@0.6.0 (merged in PR #36); fixtures added in 0.6.1 (PR #40)",
     "GET /v1/admin/staff": "frozen@0.6.0 (merged in PR #36)",
     "POST /v1/admin/staff/invites": "frozen@0.6.0 (merged in PR #36)",
-    "POST /v1/admin/staff/{user_id}/disable": "frozen@0.6.0 (merged in PR #36)"
+    "POST /v1/admin/staff/{user_id}/disable": "frozen@0.6.0 (merged in PR #36)",
+    "POST /v1/requests/{request_id}/select": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/requests/{request_id}/offers": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "GET /v1/providers/me/inbox": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/providers/me/inbox/{match_id}/decline": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/providers/me/inbox/{match_id}/reservation": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/me/devices": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/suppliers/opt-in": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/webhooks/twilio/inbound": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/webhooks/twilio/status": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "GET /v1/admin/suppliers": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/admin/suppliers": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "GET /v1/admin/suppliers/{supplier_id}": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/admin/suppliers/{supplier_id}": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/admin/suppliers/{supplier_id}/verification": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "GET /v1/admin/messages": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "GET /v1/admin/opt-outs": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "GET /v1/admin/requests/{request_id}/matches": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "GET /v1/admin/providers": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "POST /v1/admin/providers/{user_id}/standing": "proposed@0.7.0 (P3.S1, awaiting both approvals)",
+    "contracts/messages": "proposed@0.7.0 (templates.v1, grammar.v1, cases.v1; wording owned by person_two)"
   },
   "feature_flags": {
     "identity": "staging_only",
@@ -124,9 +144,32 @@
     "intent_provider": "claude when ANTHROPIC_API_KEY is set; built-in rules otherwise",
     "provider_mode": "behind requests_v2",
     "place_questions": "behind requests_v2 (answers are Unknown until Phase 4)",
-    "web_fallback": "off"
+    "web_fallback": "off",
+    "supplier_messaging": "off (Phase 3 SMS routes; no text leaves PLUG while off)",
+    "provider_inbox": "off (Phase 3 in-app inbox, offers and reservations)"
   },
   "next_actions": [
+    {
+      "id": "P3.S1-contract",
+      "owner": "both",
+      "manual_section": "27.4",
+      "task": "Contract 0.7.0 proposed by Person One (contracts/CHANGELOG.md): selection and reservation, provider inbox and in-app offers, notification payload and cap, trust score v1, SMS suppliers and consent, Twilio webhooks, admin monitor, and contracts/messages (templates, grammar, 76 cases). Hold the fifteen-minute contract session: agree the proposed defaults listed in the changelog, Person Two rewrites the SMS wording (P3-TWO.S1), then both approve the one pull request.",
+      "acceptance": "One merged pull request in /contracts with both approvals; pnpm test:contracts and the Java contract tests green."
+    },
+    {
+      "id": "P3-stable-webhook-url",
+      "owner": "person_one",
+      "manual_section": "27.4 / ADR-004",
+      "task": "Twilio needs a webhook URL that survives between sessions; a Quick Tunnel changes every run. Decide the hosting (ADR-004 revisit, AWS or a named tunnel) and move PLUG_IDENTITY_PEPPER into managed secrets at the same time. Also needed: a Twilio number and Messaging Service with Advanced Opt-Out configured from contracts/messages/grammar.md.",
+      "acceptance": "An ADR recording the decision; a signed test request reaches /v1/webhooks/twilio/inbound at the stable URL."
+    },
+    {
+      "id": "P3-apns",
+      "owner": "person_one",
+      "manual_section": "27.4 / ADR-008",
+      "task": "Provider notifications with their own sound need APNs, which needs an Apple Developer Program team (ADR-008 deferred the paid account). Until then POST /v1/me/devices answers 503 and the inbox works by pull.",
+      "acceptance": "Owner decision recorded; if funded, a real push with provider_match.caf on the paired iPhone."
+    },
     {
       "id": "P2-contract-0.6.1",
       "owner": "both",
@@ -192,7 +235,8 @@
     "Phone evidence includes a Google notification naming Aura; verify whether it belongs to this PLUG sign-in and correct the selected OAuth project branding if so. Original personal email notification remains private.",
     "Apple/SMS budget deferral accepted in ADR-008. Starter legal wording cannot immunize the operator from claims and is not evidence of implemented retention, erasure or teen controls.",
     "Manual v4 supersedes ADR-009 Apple Maps listing fallback. Claude extraction has no configured live-key evidence; the restricted-intent rules still need independent red-team review; contract 0.5.0, including retention and needed_by limits, remains proposed.",
-    "Restricted-intent policy matches listed phrases only. On 2026-10-05, 15 of 31 labelled restricted asks in fixtures/intents/asks.jsonl were not refused; one became a photography request. See docs/testing/phase2-person-two-review-2026-10-05.md section 2.1. Blocks G2 until fixed and rerun. 2026-10-06 on contract 0.6.0: worse. Own-words requests turn nine of those 15 into created requests (\"Pay someone to beat up my roommate\" becomes a submitted request named \"Pay beat roommate\"); see docs/testing/phase2-person-two-rerun-2026-10-06.md section 2.1."
+    "Restricted-intent policy matches listed phrases only. On 2026-10-05, 15 of 31 labelled restricted asks in fixtures/intents/asks.jsonl were not refused; one became a photography request. See docs/testing/phase2-person-two-review-2026-10-05.md section 2.1. Blocks G2 until fixed and rerun. 2026-10-06 on contract 0.6.0: worse. Own-words requests turn nine of those 15 into created requests (\"Pay someone to beat up my roommate\" becomes a submitted request named \"Pay beat roommate\"); see docs/testing/phase2-person-two-rerun-2026-10-06.md section 2.1.",
+    "Phase 3 real SMS needs a stable public webhook URL (ADR-004 tunnel URLs change per run), a funded Twilio number and Messaging Service, and APNs needs an Apple Developer Program team (ADR-008). Contract 0.7.0 is written so the inbox works by pull and SMS stays off (supplier_messaging flag) until these exist."
   ],
   "environments": {
     "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",

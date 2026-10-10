@@ -1,0 +1,73 @@
+{
+  "request_id": "req_01J9Z6Q3V8M2K4P7R5T1W0XY3B",
+  "status": "ranked",
+  "contacted": 6,
+  "cap": 16,
+  "matches": [
+    {
+      "channel": "sms",
+      "recipient_id": "sup_01JA3P4D0F4H8K2M6P0R4T8V2X",
+      "wave": 1,
+      "rank_score": 81.4,
+      "distance_m": 1200,
+      "outcome": "offered",
+      "offer_id": "off_01JA3P0SMS4K7QM2V8X1Z5B9C3",
+      "at": "2026-10-01T20:00:06Z"
+    },
+    {
+      "channel": "app",
+      "recipient_id": "usr_01JA3PA1C5E9G3J7L1N5Q9S3U7",
+      "wave": 1,
+      "rank_score": 79.0,
+      "distance_m": 900,
+      "outcome": "offered",
+      "offer_id": "off_01JA3P0APP8N2R6T0V4X8Z2B6D",
+      "at": "2026-10-01T20:00:08Z"
+    },
+    {
+      "channel": "sms",
+      "recipient_id": "sup_01JA3P8H8K2M6P0R4T8V2X6Z0B",
+      "wave": 1,
+      "rank_score": 74.2,
+      "distance_m": 2300,
+      "outcome": "unparseable",
+      "at": "2026-10-01T20:00:05Z"
+    },
+    {
+      "channel": "app",
+      "recipient_id": "usr_01JA3PB2D6F0H4K8M2P6R0T4W8",
+      "wave": 1,
+      "rank_score": 70.8,
+      "distance_m": 1800,
+      "outcome": "declined",
+      "at": "2026-10-01T20:00:04Z"
+    },
+    {
+      "channel": "app",
+      "recipient_id": "usr_01JA3PC3E7G1J5L9N3Q7S1U5X9",
+      "wave": 1,
+      "rank_score": 69.9,
+      "distance_m": 2900,
+      "outcome": "capped",
+      "at": "2026-10-01T20:00:01Z"
+    },
+    {
+      "channel": "sms",
+      "recipient_id": "sup_01JA3P6F4H8K2M6P0R4T8V2X6Z",
+      "wave": 1,
+      "rank_score": 66.0,
+      "distance_m": 3100,
+      "outcome": "suppressed",
+      "at": "2026-10-01T20:00:01Z"
+    },
+    {
+      "channel": "sms",
+      "recipient_id": "sup_01JA3P9J0L4N8Q2S6U0W4Y8A2C",
+      "wave": 1,
+      "rank_score": 64.3,
+      "distance_m": 2600,
+      "outcome": "contacted",
+      "at": "2026-10-01T20:00:01Z"
+    }
+  ]
+}

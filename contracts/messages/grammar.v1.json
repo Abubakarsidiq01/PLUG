@@ -1,0 +1,85 @@
+{
+  "version": "grammar.v1",
+  "status": "proposed with contract 0.7.0",
+  "normalise": [
+    "Unicode NFKC, then upper case (Locale.ROOT)",
+    "every run of whitespace becomes one space; trim",
+    "strip trailing . and ! characters",
+    "words are compared with leading and trailing punctuation removed (NO, -> NO)"
+  ],
+  "keywords": {
+    "opt_out_exact": [
+      "STOP",
+      "STOPALL",
+      "UNSUBSCRIBE",
+      "CANCEL",
+      "END",
+      "QUIT",
+      "OPTOUT",
+      "REVOKE"
+    ],
+    "opt_out_anywhere": [
+      "STOP",
+      "STOPALL",
+      "UNSUBSCRIBE",
+      "OPTOUT"
+    ],
+    "opt_in_exact": [
+      "START",
+      "UNSTOP"
+    ],
+    "help_first": [
+      "HELP",
+      "INFO"
+    ],
+    "pause_first": [
+      "PAUSE"
+    ],
+    "offer_first": [
+      "YES",
+      "Y"
+    ],
+    "decline_first": [
+      "NO",
+      "N",
+      "PASS"
+    ],
+    "confirm_first": [
+      "CONFIRM",
+      "YES",
+      "Y"
+    ],
+    "release_first": [
+      "RELEASE",
+      "NO",
+      "N"
+    ],
+    "now": [
+      "NOW"
+    ]
+  },
+  "offer": {
+    "price_dollars": {
+      "min": 5,
+      "max": 500
+    },
+    "price_cents_allowed": true,
+    "time_forms": [
+      "H:MM",
+      "H.MM",
+      "H:MMAM",
+      "H:MM AM",
+      "HAM",
+      "H AM",
+      "HH:MM (24-hour, hour 13-23 or 0)",
+      "NOW"
+    ],
+    "time_zone": "the supplier's own time_zone",
+    "time_rule": "the next occurrence not before the reply (compared at the minute), so always within 24 hours"
+  },
+  "pause_hours": 24,
+  "outreach_reply_minutes": 5,
+  "reservation_confirm_minutes": 10,
+  "hint_replies_per_context": 1,
+  "late_reply_memory_hours": 24
+}

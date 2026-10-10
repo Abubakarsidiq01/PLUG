@@ -1,0 +1,13 @@
+{
+  "error": {
+    "code": "conflict",
+    "message": "That number is already a supplier.",
+    "request_id": "req_01H8XK4Q7N",
+    "details": [
+      {
+        "field": "phone",
+        "code": "supplier_exists"
+      }
+    ]
+  }
+}

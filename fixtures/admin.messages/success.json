@@ -1,0 +1,64 @@
+{
+  "items": [
+    {
+      "message_id": "msg_01JA3P7G6J0L4N8Q2S6U0W4Y8A",
+      "direction": "inbound",
+      "supplier_id": "sup_01JA3P4D0F4H8K2M6P0R4T8V2X",
+      "request_id": "req_01J9Z6Q3V8M2K4P7R5T1W0XY3B",
+      "phone_masked": "+1 *** *** **42",
+      "parse_result": "duplicate",
+      "occurred_at": "2026-10-01T20:00:07Z"
+    },
+    {
+      "message_id": "msg_01JA3P7F4H8K2M6P0R4T8V2X6Z",
+      "direction": "inbound",
+      "supplier_id": "sup_01JA3P4D0F4H8K2M6P0R4T8V2X",
+      "request_id": "req_01J9Z6Q3V8M2K4P7R5T1W0XY3B",
+      "phone_masked": "+1 *** *** **42",
+      "parse_result": "offer",
+      "offer_id": "off_01JA3P0SMS4K7QM2V8X1Z5B9C3",
+      "occurred_at": "2026-10-01T20:00:06Z"
+    },
+    {
+      "message_id": "msg_01JA3P7E2G6J0L4N8Q2S6U0W4Y",
+      "direction": "inbound",
+      "supplier_id": "sup_01JA3P8H8K2M6P0R4T8V2X6Z0B",
+      "request_id": "req_01J9Z6Q3V8M2K4P7R5T1W0XY3B",
+      "phone_masked": "+1 *** *** **63",
+      "parse_result": "unparseable",
+      "occurred_at": "2026-10-01T20:00:05Z"
+    },
+    {
+      "message_id": "msg_01JA3P7D0F4H8K2M6P0R4T8V2X",
+      "direction": "outbound",
+      "supplier_id": "sup_01JA3P6F4H8K2M6P0R4T8V2X6Z",
+      "request_id": "req_01J9Z6Q3V8M2K4P7R5T1W0XY3B",
+      "phone_masked": "+1 *** *** **18",
+      "template_id": "outreach.v1",
+      "delivery_status": "suppressed",
+      "occurred_at": "2026-10-01T20:00:01Z"
+    },
+    {
+      "message_id": "msg_01JA3P7C8E2G6J0L4N8Q2S6U0W",
+      "direction": "outbound",
+      "supplier_id": "sup_01JA3P4D0F4H8K2M6P0R4T8V2X",
+      "request_id": "req_01J9Z6Q3V8M2K4P7R5T1W0XY3B",
+      "phone_masked": "+1 *** *** **42",
+      "template_id": "outreach.v1",
+      "delivery_status": "delivered",
+      "occurred_at": "2026-10-01T20:00:01Z"
+    },
+    {
+      "message_id": "msg_01JA3P7B6D0F4H8K2M6P0R4T8V",
+      "direction": "outbound",
+      "supplier_id": "sup_01JA3P9J0L4N8Q2S6U0W4Y8A2C",
+      "request_id": "req_01J9Z6Q3V8M2K4P7R5T1W0XY3B",
+      "phone_masked": "+1 *** *** **91",
+      "template_id": "outreach.v1",
+      "delivery_status": "failed",
+      "error_code": "30006",
+      "occurred_at": "2026-10-01T20:00:01Z"
+    }
+  ],
+  "next_cursor": "bXNnXzAxSkEzUDdCNkQwRjRIOEsyTTZQMFI0VDhW"
+}

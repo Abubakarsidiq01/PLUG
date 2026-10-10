@@ -24,7 +24,7 @@ final class RequestTests: XCTestCase {
                 checked += 1
             }
         }
-        XCTAssertEqual(checked, 20)
+        XCTAssertEqual(checked, 25)
     }
 
     func testEveryAskAndProviderFixtureDecodesAndValidates() throws {

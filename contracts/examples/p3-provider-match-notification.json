@@ -1,0 +1,13 @@
+{
+  "aps": {
+    "alert": {
+      "title": "New request nearby",
+      "body": "Haircut, 0.6 mi away, today by 3:30pm. Tap to offer or decline."
+    },
+    "sound": "provider_match.caf",
+    "category": "PROVIDER_MATCH",
+    "thread-id": "provider-inbox",
+    "interruption-level": "active"
+  },
+  "match_id": "mat_01JA3P2B6D0F4H8K2M6P0R4T8V"
+}
