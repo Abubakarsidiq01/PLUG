@@ -118,12 +118,11 @@ struct AskView: View {
                 stacked(spacing: PlugTokens.Space.s4) {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                         Text("Your skill. Someone’s solution.").plugText(.title3).fixedSize(horizontal: false, vertical: true)
-                        Text("Offer a service").plugText(.bodySmall).opacity(0.8)
+                            .foregroundStyle(PlugTokens.Color.ink900)
+                        Text("Offer a service").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                     }
                 }
-                .foregroundStyle(PlugTokens.Color.card)
-                .padding(PlugTokens.Space.s4)
-                .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
+                .plugCard()
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Offer a service")
@@ -202,7 +201,7 @@ struct AskView: View {
             HStack {
                 Text("A service or a question about a place").plugText(.caption)
                     .foregroundStyle(PlugTokens.Color.ink600)
-                Spacer(minLength: 4)
+                Spacer(minLength: PlugTokens.Space.s1)
                 voiceButton
             }
             if let note = voice.message { caption(note) }
@@ -223,7 +222,7 @@ struct AskView: View {
                     Button { fillExample(example) } label: {
                         VStack(spacing: PlugTokens.Space.s2) {
                             Image(systemName: icon).font(.system(size: 25, weight: .regular))
-                                .frame(width: 62, height: 62)
+                                .frame(width: PlugTokens.Space.s16, height: PlugTokens.Space.s16)
                                 .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                             Text(title).plugText(.label).multilineTextAlignment(.center)
                         }
@@ -264,7 +263,7 @@ struct AskView: View {
                 Button { fillExample(Example.places[0]) } label: {
                     stacked(spacing: PlugTokens.Space.s4) {
                         Image("Neighbourhood").renderingMode(.template).resizable().scaledToFit()
-                            .frame(width: 70, height: 70)
+                            .frame(width: PlugTokens.Space.s16, height: PlugTokens.Space.s16)
                             .padding(PlugTokens.Space.s2).background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                             Text("Know before you go").plugText(.title3)
@@ -272,7 +271,7 @@ struct AskView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    .padding(PlugTokens.Space.s4).background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
+                    .plugCard()
                 }
                 .buttonStyle(.plain).accessibilityIdentifier("ask-example-place")
                 .accessibilityHint("Fills a question about a place. Nothing is sent yet.")
@@ -490,7 +489,7 @@ struct AskView: View {
                 Button { Task { await model.answer(option.value) } } label: {
                     HStack {
                         Text(option.label).plugText(.action)
-                        Spacer(minLength: 12)
+                        Spacer(minLength: PlugTokens.Space.s3)
                     }
                     .padding(PlugTokens.Space.s4).background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 }.buttonStyle(.plain).disabled(model.isWorking)
@@ -618,10 +617,7 @@ struct AskView: View {
                     FlowMetrics(items: [("Earliest", offer.availableAt.formatted(date: .omitted, time: .shortened), "clock"),
                                         ("Away", distance(offer.distanceM), "location")], compact: true)
                     NavigationLink { OfferDetailView(offer: offer, cached: model.isCached) } label: {
-                        HStack {
-                            Text("View details").plugText(.action)
-                            Spacer()
-                        }
+                        Text("View details")
                     }.buttonStyle(FlowActionStyle())
                     Text("Offer ends " + offer.expiresAt.formatted(date: .omitted, time: .shortened))
                         .plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
@@ -921,6 +917,7 @@ private struct OfferDetailView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
                 .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
+                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.card).strokeBorder(PlugTokens.Color.rule200))
 
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                     Text(offer.serviceName).plugText(.title3)
@@ -941,7 +938,7 @@ private struct OfferDetailView: View {
                     }.marketCard()
                 }
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                    Label("Where to find them", systemImage: "mappin.and.ellipse")
+                    Text("Where to find them")
                         .plugText(.title2)
                     if let place = offer.place { Text(place.address).plugText(.body) }
                     Text("\(distance(offer.distanceM)) away").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
@@ -1139,8 +1136,7 @@ struct BusinessLinks: View {
                     HStack(alignment: .center, spacing: PlugTokens.Space.s3) {
                         Image(systemName: link.label.lowercased().contains("instagram") ? "camera" : "globe")
                             .font(.system(size: 20, weight: .regular))
-                            .frame(width: 44, height: 44)
-                            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+                            .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                             Text(link.label).plugText(.action)

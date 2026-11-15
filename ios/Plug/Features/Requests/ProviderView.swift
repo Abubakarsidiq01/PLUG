@@ -63,7 +63,6 @@ struct ProviderOnboardingView: View {
                                 }
                                 .multilineTextAlignment(.leading)
                             }
-                            .padding(.vertical, PlugTokens.Space.s2)
                         }.marketCard()
                         radiusStep.marketCard()
                         availabilityStep.marketCard()
@@ -229,7 +228,7 @@ struct ProviderOnboardingView: View {
                 describing = false
                 errorMessage = nil
             }
-            .buttonStyle(FlowActionStyle(primary: true))
+            .buttonStyle(FlowActionStyle())
             .disabled(isWorking || !(3...40).contains(description.trimmingCharacters(in: .whitespacesAndNewlines).count) || ownSkills.count >= 5)
             .accessibilityIdentifier("provider-add-skill")
             caption("Add one skill at a time · 3–40 characters.")
@@ -304,7 +303,6 @@ struct ProviderOnboardingView: View {
             if let current, !radiusChanged { caption("Current radius: \(distance(current.travelRadiusM)). Kept unless you choose a new distance.") }
             caption("You only receive requests from people inside this distance.")
         }
-        .padding(.vertical, PlugTokens.Space.s2)
     }
 
     private var availabilityStep: some View {
@@ -329,7 +327,6 @@ struct ProviderOnboardingView: View {
             caption("Times are in \(current?.timeZone ?? TimeZone.current.identifier).")
             if slots.isEmpty { Text("Choose at least one time.").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.alert600) }
         }
-        .padding(.vertical, PlugTokens.Space.s2)
     }
 
     private var licenceStep: some View {
@@ -370,7 +367,6 @@ struct ProviderOnboardingView: View {
                     .buttonStyle(FlowActionStyle()).disabled(location.isWorking || location.address.isEmpty)
             }
         }
-        .padding(.vertical, PlugTokens.Space.s2)
     }
 
     // MARK: Behaviour
@@ -565,7 +561,7 @@ struct InboxView: View {
                         FlowMetrics(items: [("Travel area", distance(profile.travelRadiusM), "location"),
                                             ("Licence", profile.licenceOnFile ? "On file" : "None given", "doc.text")], compact: true)
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                            Label("Your hours", systemImage: "calendar").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
+                            Text("Your hours").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
                             Text(profile.availability.map(\.summary).joined(separator: "\n")).plugText(.body)
                         }
                         Button("Edit business & services") { editing = true }
@@ -615,10 +611,11 @@ private struct ProviderChoice: View {
     let title: String
     let selected: Bool
     let action: () -> Void
+    @ScaledMetric(relativeTo: .body) private var checkGlyph: CGFloat = 13
     var body: some View {
         Button(action: action) {
             HStack(spacing: PlugTokens.Space.s1) {
-                if selected { Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).accessibilityHidden(true) }
+                if selected { Image(systemName: "checkmark").font(.system(size: checkGlyph, weight: .bold)).accessibilityHidden(true) }
                 Text(title).plugText(.label)
             }
                 .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s3)

@@ -195,21 +195,19 @@ struct ProfileView: View {
                     Text("Profile").plugText(.title)
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                         Text("Your corner of PLUG")
-                            .plugText(.title)
+                            .plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
                         Text(session.account.isGuest ? "Exploring as a guest" : "Your account, your connections")
-                            .plugText(.body).opacity(0.8)
+                            .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading).padding(PlugTokens.Space.s4)
-                    .foregroundStyle(PlugTokens.Color.card)
-                    .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
+                    .plugCard()
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                        Label("Account", systemImage: "person.crop.square").plugText(.title3)
+                        Text("Account").plugText(.title3)
                         detailRow("Signed in with", description(of: session.account.type))
                         detailRow("Terms accepted", session.consent.acceptedVersion ?? "Not yet")
                     }.marketCard()
                     if session.account.isGuest {
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                            Label("Make yourself at home", systemImage: "house")
+                            Text("Make yourself at home")
                                 .plugText(.title2)
                             Text("Create an account to keep your guest requests. Signing in to an existing account switches "
                                  + "accounts; guest activity is not merged into that account.")
@@ -222,7 +220,7 @@ struct ProfileView: View {
                     NavigationLink { HealthView(client: APIClient(environment: environment)) } label: {
                         HStack {
                             Label("Developer tools", systemImage: "wrench.and.screwdriver")
-                            Spacer(minLength: 8)
+                            Spacer(minLength: PlugTokens.Space.s2)
                             Image(systemName: "chevron.right")
                         }.plugText(.body).marketCard()
                     }.buttonStyle(.plain)
@@ -246,7 +244,11 @@ struct ProfileView: View {
     /// "no fixed heights on text containers": let the layout grow instead.
     private func detailRow(_ label: String, _ value: String) -> some View {
         ViewThatFits(in: .horizontal) {
-            LabeledContent(label, value: value)
+            LabeledContent {
+                Text(value).foregroundStyle(PlugTokens.Color.ink900)
+            } label: {
+                Text(label).foregroundStyle(PlugTokens.Color.ink600)
+            }
             VStack(alignment: .leading, spacing: PlugSpacing.small / 2) {
                 Text(label).foregroundStyle(PlugTokens.Color.ink600)
                 Text(value)
@@ -255,6 +257,7 @@ struct ProfileView: View {
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityElement(children: .combine)
         }
+        .plugText(.body)
     }
 
     private func description(of type: Account.AccountType) -> String {
