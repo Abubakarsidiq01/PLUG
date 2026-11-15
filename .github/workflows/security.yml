@@ -47,4 +47,23 @@ jobs:
           build-mode: manual
       - uses: gradle/actions/setup-gradle@v6
       - run: cd backend && ./gradlew classes --no-daemon
+      # Code scanning upload needs paid GitHub Code Security on a private repository
+      # (owner decision 2026-11-15: no). The SARIF is kept as an artifact and any
+      # result fails the job, so the gate still holds.
       - uses: github/codeql-action/analyze@v4
+        with:
+          upload: never
+          output: codeql-results
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: codeql-sarif
+          path: codeql-results/
+      - name: Fail on any CodeQL result
+        run: |
+          count=$(jq -s '[.[].runs[].results[]] | length' codeql-results/*.sarif)
+          echo "CodeQL results: $count"
+          if [ "$count" -ne 0 ]; then
+            jq -r '.runs[].results[] | "\(.ruleId): \(.locations[0].physicalLocation.artifactLocation.uri):\(.locations[0].physicalLocation.region.startLine)"' codeql-results/*.sarif
+            exit 1
+          fi
