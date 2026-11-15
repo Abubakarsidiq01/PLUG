@@ -88,7 +88,6 @@ struct RootView: View {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                         Text("Activity").plugText(.title)
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                            FlowEmblem(symbol: "clock.arrow.circlepath", size: 88)
                             Text("Your asks, in one place")
                                 .plugText(.title2)
                             Text("Your active ask is on the Ask tab. Past requests aren’t shown here yet.")
@@ -195,8 +194,6 @@ struct ProfileView: View {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     Text("Profile").plugText(.title)
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                        Image(systemName: "person.crop.circle")
-                            .font(.system(size: 56, weight: .light)).accessibilityHidden(true)
                         Text("Your corner of PLUG")
                             .plugText(.title)
                         Text(session.account.isGuest ? "Exploring as a guest" : "Your account, your connections")

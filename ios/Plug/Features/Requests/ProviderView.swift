@@ -45,12 +45,6 @@ struct ProviderOnboardingView: View {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                         // The sheet's name is in the navigation bar, so it stays visible however far the
                         // sheet is scrolled; at the largest sizes a header title went under Cancel.
-                        Image(systemName: "person.crop.circle.badge.plus")
-                            .font(.system(size: 28, weight: .regular))
-                            .frame(width: 60, height: 60)
-                            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                            .foregroundStyle(PlugTokens.Color.ink900)
-                            .accessibilityHidden(true)
                         Text("Turn what you do into a local connection.")
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                     }
@@ -539,17 +533,12 @@ struct InboxView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    HStack {
-                        VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                            Text("Inbox").plugText(.title)
-                            Text(profile.accepting ? "Your provider profile is saved." : "Your provider profile is paused.")
-                                .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
-                        }
-                        Spacer(minLength: 0)
-                        FlowEmblem(symbol: "tray", size: 56)
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                        Text("Inbox").plugText(.title)
+                        Text(profile.accepting ? "Your provider profile is saved." : "Your provider profile is paused.")
+                            .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                     }
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                        FlowEmblem(symbol: "bubble.left.and.bubble.right", size: 76)
                         Text("A place for your next connection")
                             .plugText(.title2)
                         Text("Your skills and hours are saved. Receiving and replying to requests here is coming in a future update.")

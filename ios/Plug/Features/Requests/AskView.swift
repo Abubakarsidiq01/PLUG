@@ -112,17 +112,9 @@ struct AskView: View {
             if !stillAsking { discovery }
             Button { offeringService = true } label: {
                 stacked(spacing: PlugTokens.Space.s4) {
-                    Image(systemName: "person.crop.circle.badge.plus")
-                        .font(.system(size: 26, weight: .regular))
-                        .frame(width: 52, height: 56)
-                        .background(PlugTokens.Color.card.opacity(0.12), in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                         Text("Your skill. Someone’s solution.").plugText(.title3).fixedSize(horizontal: false, vertical: true)
                         Text("Offer a service").plugText(.bodySmall).opacity(0.8)
-                    }
-                    if !typeSize.isAccessibilitySize {
-                        Spacer(minLength: 0)
-                        Image(systemName: "arrow.up.right").font(.system(size: 18, weight: .medium))
                     }
                 }
                 .foregroundStyle(PlugTokens.Color.card)
@@ -276,10 +268,6 @@ struct AskView: View {
                             Text("Ask what’s happening nearby.").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
-                        if !typeSize.isAccessibilitySize {
-                            Spacer(minLength: 0)
-                            Image(systemName: "arrow.up.right")
-                        }
                     }
                     .padding(PlugTokens.Space.s4).background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
                 }
@@ -331,7 +319,7 @@ struct AskView: View {
 
     private var resumeAction: some View {
         Button { path = [.answer] } label: {
-            HStack { Text("Open this ask"); Image(systemName: "chevron.right").imageScale(.small).accessibilityHidden(true) }
+            Text("Open this ask")
         }
         .buttonStyle(RequestTextActionStyle())
         .accessibilityIdentifier("ask-resume")
@@ -425,9 +413,6 @@ struct AskView: View {
     private var answerScreen: some View {
         page {
             HStack(alignment: .top, spacing: PlugTokens.Space.s3) {
-                Image(systemName: "text.bubble").font(.system(size: 19, weight: .medium))
-                    .frame(width: 42, height: 42)
-                    .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                     Text("Your request").plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
                     Text(askedText).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
@@ -488,7 +473,6 @@ struct AskView: View {
 
     private func questionCard(_ question: ServiceRequest.Clarification) -> some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-            FlowEmblem(symbol: "bubble.left.and.text.bubble.right", size: 72)
             VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                 Text(question.question).plugText(.title2)
                 Text("One quick detail to find the right help.").plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
@@ -498,7 +482,6 @@ struct AskView: View {
                     HStack {
                         Text(option.label).plugText(.action)
                         Spacer(minLength: 12)
-                        Image(systemName: "arrow.right").font(.system(size: 16))
                     }
                     .padding(PlugTokens.Space.s4).background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 }.buttonStyle(.plain).disabled(model.isWorking)
@@ -523,7 +506,6 @@ struct AskView: View {
             if request.noResultReason == .noCoverage { offerTheGap(request) }
         case .none:
             VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                FlowEmblem(symbol: "checkmark", size: 72)
                 Text("You stopped asking").plugText(.title2)
                 Text("This request is closed. Nobody else will be contacted.")
                     .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
@@ -535,13 +517,10 @@ struct AskView: View {
     private func working(_ request: ServiceRequest) -> some View {
         let p = request.progress
         return VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-            stacked(alignment: .top, spacing: PlugTokens.Space.s4) {
-                FlowEmblem(symbol: "paperplane", size: 64)
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                    workingTitle(request)
-                    Text("Your request is out there. Replies land here.")
-                        .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                }
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                workingTitle(request)
+                Text("Your request is out there. Replies land here.")
+                    .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
             FlowMetrics(items: [("Notified", "\(p.contacted)", "person.2"),
                                 ("Replied", "\(p.replied)", "bubble.left"),
@@ -633,7 +612,6 @@ struct AskView: View {
                         HStack {
                             Text("View details").plugText(.action)
                             Spacer()
-                            Image(systemName: "arrow.up.right").font(.system(size: 17, weight: .medium))
                         }
                     }.buttonStyle(FlowActionStyle())
                     Text("Offer ends " + offer.expiresAt.formatted(date: .omitted, time: .shortened))
@@ -659,7 +637,6 @@ struct AskView: View {
     @ViewBuilder private func placeAnswer(_ place: PlaceQuestion) -> some View {
         if place.status == .asking {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                FlowEmblem(symbol: "mappin.and.ellipse", size: 72)
                 placeTitle(place)
                 Text("Checking with people nearby.").plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                 FlowMetrics(items: [("Notified", "\(place.progress.notified)", "person.2"),
@@ -669,10 +646,7 @@ struct AskView: View {
             }.marketCard().accessibilityIdentifier("place-progress")
         } else if place.status == .answered, let answer = place.answer {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                HStack(spacing: PlugTokens.Space.s3) {
-                    FlowEmblem(symbol: "bubble.left.and.bubble.right", size: 52)
-                    Text(place.placeName ?? "From nearby").plugText(.title3)
-                }
+                Text(place.placeName ?? "From nearby").plugText(.title3)
                 ResultHeadline(value: answer.value, label: answer.truthLabel)
                 Text(answer.summary).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
                 if !answer.sources.isEmpty {
@@ -718,7 +692,6 @@ struct AskView: View {
 
     private func nobody(_ title: String, _ detail: String, _ notified: Int, subject: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-            FlowEmblem(symbol: "bubble.left.and.exclamationmark.bubble.right", size: 80)
             ResultHeadline(value: title, label: .unknown, style: .title2)
             if let subject { Text(subject).plugText(.title3) }
             Text(detail).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
@@ -1161,7 +1134,6 @@ struct BusinessLinks: View {
                                 .multilineTextAlignment(.leading)
                         }
                         Spacer(minLength: 0)
-                        Image(systemName: "arrow.up.right").font(.system(size: 17, weight: .medium)).accessibilityHidden(true)
                     }
                     .foregroundStyle(PlugTokens.Color.ink900)
                     .padding(.vertical, PlugTokens.Space.s2)
@@ -1209,19 +1181,6 @@ extension View {
     func marketCard() -> some View { plugCard() }
 }
 
-/// Visual status markers carry no invented people or progress.
-struct FlowEmblem: View {
-    let symbol: String
-    var size: CGFloat = 64
-    var body: some View {
-        Image(systemName: symbol).font(.system(size: size * 0.38, weight: .light))
-            .foregroundStyle(PlugTokens.Color.ink900)
-            .frame(width: size, height: size)
-            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-            .accessibilityHidden(true)
-    }
-}
-
 struct FlowMetrics: View {
     let items: [(String, String, String)]
     var compact = false
@@ -1241,7 +1200,7 @@ struct FlowMetrics: View {
         layout {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                    Label(item.0, systemImage: item.2).plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
+                    Text(item.0).plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
                         .fixedSize(horizontal: whole, vertical: false)
                     Text(item.1).plugText(compact ? .body : .title2)
                         .monospacedDigit().fixedSize(horizontal: false, vertical: true)
