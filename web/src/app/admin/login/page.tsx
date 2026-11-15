@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { cookies } from "next/headers";
 import { connection } from "next/server";
 import { CHALLENGE_COOKIE, apiOrigin } from "@/lib/staff-console";
@@ -20,13 +21,13 @@ function Closed() {
     <main className="notice-page">
       <div className="container">
         <div className="card notice-card">
-          <p className="overline">Admin</p>
           <h1 className="title1">Admin access is not available yet</h1>
           <p>
             This console is reserved for authorized PLUG staff. Admin sign-in will
             require server verification and multi-factor authentication before access
             is enabled. Guest and member accounts cannot open the console.
           </p>
+          <p className="notice-actions"><Link href="/" className="text-link">Back to home</Link></p>
         </div>
       </div>
     </main>
@@ -47,7 +48,6 @@ export default async function AdminLogin({ searchParams }: PageProps<"/admin/log
     <main className="notice-page">
       <div className="container">
         <div className="card notice-card">
-          <p className="overline">Admin</p>
           <h1 className="title1">{codeStep ? "Enter your code" : "Staff sign in"}</h1>
           {accepted === "1" && !message ? <p role="status">Your staff account is ready. Sign in below.</p> : null}
           {signedOut === "1" && !message ? <p role="status">You are signed out.</p> : null}
