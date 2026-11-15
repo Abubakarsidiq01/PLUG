@@ -18,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # gitleaks-action lists the pull request's commits through the API.
+      pull-requests: read
     steps:
       - uses: actions/checkout@v7
         with:
@@ -30,6 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      # codeql-action reads its own workflow run in a private repository.
+      actions: read
       security-events: write
     steps:
       - uses: actions/checkout@v7
