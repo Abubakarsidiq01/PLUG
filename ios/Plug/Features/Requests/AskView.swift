@@ -230,29 +230,27 @@ struct AskView: View {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                 Text("A little inspiration").plugText(.title3)
                 Button { fillExample(Example.services[1]) } label: {
-                    ZStack(alignment: .bottomLeading) {
-                        GeometryReader { geometry in
-                            Image("ServiceConnection").resizable().scaledToFill()
-                                .frame(width: geometry.size.width, height: geometry.size.height).clipped()
+                    // Photo above, words on the card below: no gradient, and the text keeps full contrast.
+                    VStack(alignment: .leading, spacing: 0) {
+                        Color.clear
+                            .frame(height: typeSize.isAccessibilitySize ? 200 : 168)
+                            .overlay { Image("ServiceConnection").resizable().scaledToFill() }
+                            .clipped()
+                            .accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
+                            Text("Look good. Feel like you.").plugText(.title2)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text("Find your next stylist").plugText(.bodySmall)
+                                .foregroundStyle(PlugTokens.Color.ink600)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
-                        LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
-                        HStack(alignment: .bottom) {
-                            VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
-                                Text("Look good. Feel like you.")
-                                    .plugText(.title2)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                Text("Find your next stylist").plugText(.bodySmall)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            Spacer(minLength: 8)
-                            Image(systemName: "arrow.up.right").font(.system(size: 18, weight: .semibold))
-                                .frame(width: 42, height: 42).background(.white.opacity(0.18), in: Circle())
-                        }
-                        .foregroundStyle(.white).padding(PlugTokens.Space.s4)
+                        .foregroundStyle(PlugTokens.Color.ink900)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(PlugTokens.Space.s4)
                     }
-                    // At least the photo's height, taller when the title needs it, never clipped.
-                    .frame(minHeight: typeSize.isAccessibilitySize ? 330 : 248)
+                    .background(PlugTokens.Color.card)
                     .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
+                    .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.card).strokeBorder(PlugTokens.Color.rule200))
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("ask-example-barber")
