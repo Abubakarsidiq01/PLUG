@@ -178,6 +178,13 @@
       "acceptance": "Drafted from P3-ONE.md section 4, to be confirmed by both: for each landed step, every new route returns 401 without a session and 429 past the limit, another caller's provider or admin resource id returns 404, and message and API log inspection shows no secrets, no tokens and no unnecessary PII."
     },
     {
+      "id": "P3-ui-pass-ios",
+      "owner": "person_one",
+      "manual_section": "16 / 16.8 / 20",
+      "task": "Owner-authorized iOS UI pass (2026-11-14), alongside the top next_action, branch p3.ui-one-ios-polish: one PLUG type ramp, one card style, no pill chips, button states without fading, spacing on the token scale, home photo card without gradient, decorative emblems and arrows removed, alignment and touch-target fixes. How data is shown only; no data, copy, contract or backend change. Token proposals for Person Two: docs/design/proposals/ui-pass-2026-11-14.md.",
+      "acceptance": "Every iOS screen passes the §16.8 design gate except recorded owner exceptions, with before and after simulator screenshots in evidence/ui-pass/2026-11-14 and docs/design/ui-pass-2026-11-14.md; iOS unit tests and the screenshot suite green."
+    },
+    {
       "id": "P3-stable-webhook-url",
       "owner": "person_one",
       "manual_section": "27.4 / ADR-004",
