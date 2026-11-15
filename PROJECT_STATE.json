@@ -181,7 +181,7 @@
       "id": "P3-ui-pass-ios",
       "owner": "person_one",
       "manual_section": "16 / 16.8 / 20",
-      "task": "Owner-authorized iOS UI pass (2026-11-14), alongside the top next_action, branch p3.ui-one-ios-polish: one PLUG type ramp, one card style, no pill chips, button states without fading, spacing on the token scale, home photo card without gradient, decorative emblems and arrows removed, alignment and touch-target fixes. How data is shown only; no data, copy, contract or backend change. Token proposals for Person Two: docs/design/proposals/ui-pass-2026-11-14.md.",
+      "task": "Owner-authorized iOS UI pass (2026-11-14), alongside the top next_action, branch p3.ui-one-ios-polish: one PLUG type ramp, one card style, no pill chips, button states without fading, spacing on the token scale, home photo card without gradient, decorative emblems and arrows removed, alignment and touch-target fixes. How data is shown only; no data, copy, contract or backend change. Token proposals for Person Two: docs/design/proposals/ui-pass-2026-11-14.md. 2026-11-14: done locally (8 commits, not pushed). iOS unit tests 67 passed, 1 skipped; screenshot suite 7/7 including the accessibility audit; plug-design-gate passed on round 3 for in-scope screens. Open: no physical-device check, no greyscale export, offline/permission/expired states not captured, owner review of the before/after doc.",
       "acceptance": "Every iOS screen passes the §16.8 design gate except recorded owner exceptions, with before and after simulator screenshots in evidence/ui-pass/2026-11-14 and docs/design/ui-pass-2026-11-14.md; iOS unit tests and the screenshot suite green."
     },
     {
