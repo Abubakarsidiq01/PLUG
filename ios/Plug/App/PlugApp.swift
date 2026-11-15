@@ -85,9 +85,9 @@ struct RootView: View {
             }
             NavigationStack {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 24) {
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                         Text("Activity").plugText(.title)
-                        VStack(alignment: .leading, spacing: 20) {
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                             FlowEmblem(symbol: "clock.arrow.circlepath", size: 88)
                             Text("Your asks, in one place")
                                 .plugText(.title2)
@@ -98,7 +98,7 @@ struct RootView: View {
                         }.marketCard()
                     }
                     .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
-                    .padding(.horizontal, 16).padding(.vertical, 24)
+                    .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
                 }.background(PlugTokens.Color.paper)
                 .toolbar(.hidden, for: .navigationBar)
             }
@@ -124,7 +124,7 @@ struct RootView: View {
             navigationItem("Activity", symbol: "clock", selectedSymbol: "clock.fill")
             navigationItem("Profile", symbol: "person.crop.circle", selectedSymbol: "person.crop.circle.fill")
         }
-        .padding(.top, 10).padding(.bottom, 4)
+        .padding(.top, PlugTokens.Space.s2).padding(.bottom, PlugTokens.Space.s1)
         // Down to the screen edge, so nothing shows through beside the home indicator.
         .background(PlugTokens.Color.card.ignoresSafeArea(edges: .bottom))
         .overlay(alignment: .top) { PlugTokens.Color.rule200.frame(height: 0.5) }
@@ -132,12 +132,12 @@ struct RootView: View {
 
     private func navigationItem(_ title: String, symbol: String, selectedSymbol: String) -> some View {
         Button { selectedTab = title } label: {
-            VStack(spacing: 5) {
+            VStack(spacing: PlugTokens.Space.s1) {
                 Image(systemName: selectedTab == title ? selectedSymbol : symbol)
                     .font(.system(size: 22, weight: .medium)).frame(height: 26)
                 Text(title).plugText(.caption).fontWeight(selectedTab == title ? .bold : .medium)
             }
-            .frame(maxWidth: .infinity, minHeight: 48)
+            .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
             .foregroundStyle(selectedTab == title ? PlugTokens.Color.ink900 : PlugTokens.Color.ink600)
             .contentShape(Rectangle())
         }
@@ -165,7 +165,7 @@ struct RootView: View {
 /// What the account is, and the way out of it. A guest is told plainly what a guest is and
 /// offered the upgrade, because a limit nobody can see is a limit that feels like a bug.
 enum PlugNavigationBar {
-    /// Bar height (48 pt items, 10 + 4 pt padding) at its largest capped label size, plus a gap.
+    /// Bar height (44 pt items, 8 + 4 pt padding) at its largest capped label size, plus a gap.
     static let reserved: CGFloat = 96
 }
 
@@ -192,9 +192,9 @@ struct ProfileView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     Text("Profile").plugText(.title)
-                    VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                         Image(systemName: "person.crop.circle")
                             .font(.system(size: 56, weight: .light)).accessibilityHidden(true)
                         Text("Your corner of PLUG")
@@ -202,16 +202,16 @@ struct ProfileView: View {
                         Text(session.account.isGuest ? "Exploring as a guest" : "Your account, your connections")
                             .plugText(.body).opacity(0.8)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading).padding(24)
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(PlugTokens.Space.s4)
                     .foregroundStyle(PlugTokens.Color.card)
                     .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
-                    VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                         Label("Account", systemImage: "person.crop.square").plugText(.title3)
                         detailRow("Signed in with", description(of: session.account.type))
                         detailRow("Terms accepted", session.consent.acceptedVersion ?? "Not yet")
                     }.marketCard()
                     if session.account.isGuest {
-                        VStack(alignment: .leading, spacing: 16) {
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                             Label("Make yourself at home", systemImage: "house")
                                 .plugText(.title2)
                             Text("Create an account to keep your guest requests. Signing in to an existing account switches "
@@ -236,7 +236,7 @@ struct ProfileView: View {
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)
                 .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
-                .padding(.horizontal, 16).padding(.vertical, 24)
+                .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
             }
             .background(PlugTokens.Color.paper)
             .toolbar(.hidden, for: .navigationBar)

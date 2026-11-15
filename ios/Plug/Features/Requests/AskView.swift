@@ -95,7 +95,7 @@ struct AskView: View {
                 Label("Around you", systemImage: "location")
                     .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                 Text(stillAsking ? "Let’s find your person." : "Who can help you today?")
                     .plugText(.title)
                     .fixedSize(horizontal: false, vertical: true)
@@ -111,12 +111,12 @@ struct AskView: View {
             failure
             if !stillAsking { discovery }
             Button { offeringService = true } label: {
-                stacked(spacing: 16) {
+                stacked(spacing: PlugTokens.Space.s4) {
                     Image(systemName: "person.crop.circle.badge.plus")
                         .font(.system(size: 26, weight: .regular))
                         .frame(width: 52, height: 56)
                         .background(PlugTokens.Color.card.opacity(0.12), in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                    VStack(alignment: .leading, spacing: 5) {
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                         Text("Your skill. Someone’s solution.").plugText(.title3).fixedSize(horizontal: false, vertical: true)
                         Text("Offer a service").plugText(.bodySmall).opacity(0.8)
                     }
@@ -126,7 +126,7 @@ struct AskView: View {
                     }
                 }
                 .foregroundStyle(PlugTokens.Color.card)
-                .padding(20)
+                .padding(PlugTokens.Space.s4)
                 .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
             }
             .buttonStyle(.plain)
@@ -155,8 +155,8 @@ struct AskView: View {
     }
 
     private var composer: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+            HStack(alignment: .center, spacing: PlugTokens.Space.s3) {
                 Image(systemName: "magnifyingglass").font(.system(size: 20, weight: .medium))
                     .foregroundStyle(PlugTokens.Color.ink600).accessibilityHidden(true)
                 ZStack(alignment: .leading) {
@@ -180,7 +180,7 @@ struct AskView: View {
                     Button { voice.stop(); model.text = ""; textFocused = true } label: {
                         Image(systemName: "xmark.circle.fill").font(.system(size: 18))
                             .foregroundStyle(PlugTokens.Color.ink400)
-                            .frame(width: 44, height: 44)
+                            .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain).accessibilityLabel("Clear")
@@ -188,7 +188,7 @@ struct AskView: View {
                 }
                 Button { ask() } label: {
                     Image(systemName: "arrow.up").font(.system(size: 20, weight: .semibold))
-                        .frame(width: 46, height: 46)
+                        .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
                         .foregroundStyle(PlugTokens.Color.card)
                         .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 }
@@ -196,7 +196,7 @@ struct AskView: View {
                 .accessibilityIdentifier("ask-submit")
                 .disabled(model.isWorking || location.isWorking)
             }
-            .padding(12).padding(.leading, 4)
+            .padding(PlugTokens.Space.s3).padding(.leading, PlugTokens.Space.s1)
             // The whole box focuses the field, not just its single line of text.
             .contentShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
             .onTapGesture { if !model.isWorking { textFocused = true } }
@@ -215,16 +215,16 @@ struct AskView: View {
     }
 
     private var discovery: some View {
-        VStack(alignment: .leading, spacing: 24) {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
             let categories = [("Hair & beauty", "scissors", Example.services[1]),
                               ("Home help", "house", Example.services[2]),
                               ("Tech", "laptopcomputer", "I need help repairing my laptop"),
                               ("Places", "mappin.and.ellipse", Example.places[0])]
-            let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: typeSize.isAccessibilitySize ? 2 : 4)
-            LazyVGrid(columns: columns, spacing: 16) {
+            let columns = Array(repeating: GridItem(.flexible(), spacing: PlugTokens.Space.s3), count: typeSize.isAccessibilitySize ? 2 : 4)
+            LazyVGrid(columns: columns, spacing: PlugTokens.Space.s3) {
                 ForEach(categories, id: \.0) { title, icon, example in
                     Button { fillExample(example) } label: {
-                        VStack(spacing: 10) {
+                        VStack(spacing: PlugTokens.Space.s2) {
                             Image(systemName: icon).font(.system(size: 25, weight: .regular))
                                 .frame(width: 62, height: 62)
                                 .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
@@ -235,7 +235,7 @@ struct AskView: View {
                     .buttonStyle(.plain)
                 }
             }
-            VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                 Text("A little inspiration").plugText(.title3)
                 Button { fillExample(Example.services[1]) } label: {
                     ZStack(alignment: .bottomLeading) {
@@ -245,7 +245,7 @@ struct AskView: View {
                         }
                         LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
                         HStack(alignment: .bottom) {
-                            VStack(alignment: .leading, spacing: 5) {
+                            VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                                 Text("Look good. Feel like you.")
                                     .plugText(.title2)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -256,7 +256,7 @@ struct AskView: View {
                             Image(systemName: "arrow.up.right").font(.system(size: 18, weight: .semibold))
                                 .frame(width: 42, height: 42).background(.white.opacity(0.18), in: Circle())
                         }
-                        .foregroundStyle(.white).padding(20)
+                        .foregroundStyle(.white).padding(PlugTokens.Space.s4)
                     }
                     // At least the photo's height, taller when the title needs it, never clipped.
                     .frame(minHeight: typeSize.isAccessibilitySize ? 330 : 248)
@@ -267,11 +267,11 @@ struct AskView: View {
                 .accessibilityLabel("Find hair and beauty services")
                 .accessibilityHint("Fills an example request. Nothing is sent yet.")
                 Button { fillExample(Example.places[0]) } label: {
-                    stacked(spacing: 16) {
+                    stacked(spacing: PlugTokens.Space.s4) {
                         Image("Neighbourhood").renderingMode(.template).resizable().scaledToFit()
                             .frame(width: 70, height: 70)
-                            .padding(8).background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                        VStack(alignment: .leading, spacing: 6) {
+                            .padding(PlugTokens.Space.s2).background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                             Text("Know before you go").plugText(.title3)
                             Text("Ask what’s happening nearby.").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                                 .fixedSize(horizontal: false, vertical: true)
@@ -281,16 +281,16 @@ struct AskView: View {
                             Image(systemName: "arrow.up.right")
                         }
                     }
-                    .padding(16).background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
+                    .padding(PlugTokens.Space.s4).background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
                 }
                 .buttonStyle(.plain).accessibilityIdentifier("ask-example-place")
                 .accessibilityHint("Fills a question about a place. Nothing is sent yet.")
             }
             DisclosureGroup("More ideas", isExpanded: $moreIdeas) {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                     examples("Find help", Array(Example.services.dropFirst()))
                     examples("Ask nearby", Array(Example.places.dropFirst()))
-                }.padding(.top, 12)
+                }.padding(.top, PlugTokens.Space.s3)
             }
             .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
         }
@@ -424,11 +424,11 @@ struct AskView: View {
 
     private var answerScreen: some View {
         page {
-            HStack(alignment: .top, spacing: 12) {
+            HStack(alignment: .top, spacing: PlugTokens.Space.s3) {
                 Image(systemName: "text.bubble").font(.system(size: 19, weight: .medium))
                     .frame(width: 42, height: 42)
                     .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                     Text("Your request").plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
                     Text(askedText).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
                 }
@@ -487,9 +487,9 @@ struct AskView: View {
     }
 
     private func questionCard(_ question: ServiceRequest.Clarification) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
             FlowEmblem(symbol: "bubble.left.and.text.bubble.right", size: 72)
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                 Text(question.question).plugText(.title2)
                 Text("One quick detail to find the right help.").plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
             }
@@ -500,7 +500,7 @@ struct AskView: View {
                         Spacer(minLength: 12)
                         Image(systemName: "arrow.right").font(.system(size: 16))
                     }
-                    .padding(18).background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+                    .padding(PlugTokens.Space.s4).background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 }.buttonStyle(.plain).disabled(model.isWorking)
             }
         }.foregroundStyle(PlugTokens.Color.ink900).marketCard()
@@ -522,7 +522,7 @@ struct AskView: View {
             nobody("No offers", request.noResultReason?.explanation ?? "No current offers are available.", request.progress.contacted)
             if request.noResultReason == .noCoverage { offerTheGap(request) }
         case .none:
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                 FlowEmblem(symbol: "checkmark", size: 72)
                 Text("You stopped asking").plugText(.title2)
                 Text("This request is closed. Nobody else will be contacted.")
@@ -534,10 +534,10 @@ struct AskView: View {
     /// Reply counts come from the server; the visual never implies elapsed-time progress.
     private func working(_ request: ServiceRequest) -> some View {
         let p = request.progress
-        return VStack(alignment: .leading, spacing: 22) {
-            stacked(alignment: .top, spacing: 16) {
+        return VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+            stacked(alignment: .top, spacing: PlugTokens.Space.s4) {
                 FlowEmblem(symbol: "paperplane", size: 64)
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                     workingTitle(request)
                     Text("Your request is out there. Replies land here.")
                         .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
@@ -589,23 +589,23 @@ struct AskView: View {
 
     @ViewBuilder private func offerList(_ request: ServiceRequest) -> some View {
         if !model.offers.isEmpty {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                 // The headline is the result itself (design gate §16.8), not a sentence about it.
                 Text("\(model.offers.count) \(model.offers.count == 1 ? "offer" : "offers")")
                     .plugText(.title)
                 Text(offersTitle(request)).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
             if model.offers.count > 1 {
-                PlugFlowLayout(spacing: 8) {
+                PlugFlowLayout(spacing: PlugTokens.Space.s3) {
                     ForEach(OfferOrder.allCases, id: \.self) { order in
                         Button { offerOrder = order } label: {
-                            HStack(spacing: 6) {
+                            HStack(spacing: PlugTokens.Space.s1) {
                                 if offerOrder == order {
                                     Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).accessibilityHidden(true)
                                 }
                                 Text(order.rawValue).plugText(.label)
                             }
-                                .padding(.horizontal, 16).frame(minHeight: PlugTokens.minTouchTarget)
+                                .padding(.horizontal, PlugTokens.Space.s4).frame(minHeight: PlugTokens.minTouchTarget)
                                 .foregroundStyle(offerOrder == order ? PlugTokens.Color.ink900 : PlugTokens.Color.ink600)
                                 .background(offerOrder == order ? PlugTokens.Color.card : PlugTokens.Color.sunk,
                                             in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
@@ -617,15 +617,15 @@ struct AskView: View {
                 }
             }
             ForEach(orderedOffers) { offer in
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                     BusinessIdentity(name: offer.businessName, business: offer.business, score: offer.providerScore)
                     ViewThatFits(in: .horizontal) {
-                        HStack(alignment: .top, spacing: 12) {
+                        HStack(alignment: .top, spacing: PlugTokens.Space.s3) {
                             comparisonPrice(offer)
                             Spacer(minLength: 0)
                             TruthBadge(label: offer.truthLabel)
                         }
-                        VStack(alignment: .leading, spacing: 10) { comparisonPrice(offer); TruthBadge(label: offer.truthLabel) }
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s2) { comparisonPrice(offer); TruthBadge(label: offer.truthLabel) }
                     }
                     FlowMetrics(items: [("Earliest", offer.availableAt.formatted(date: .omitted, time: .shortened), "clock"),
                                         ("Away", distance(offer.distanceM), "location")], compact: true)
@@ -643,7 +643,7 @@ struct AskView: View {
         }
     }
     private func comparisonPrice(_ offer: ServiceOffer) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
             Text(offer.serviceName).plugText(.title3)
             Text(money(offer.priceCents, offer.currency))
                 .plugText(.display).monospacedDigit()
@@ -658,7 +658,7 @@ struct AskView: View {
     /// Figure A1 screen 4 for a place question. Unknown is designed, with real counts.
     @ViewBuilder private func placeAnswer(_ place: PlaceQuestion) -> some View {
         if place.status == .asking {
-            VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                 FlowEmblem(symbol: "mappin.and.ellipse", size: 72)
                 placeTitle(place)
                 Text("Checking with people nearby.").plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
@@ -669,7 +669,7 @@ struct AskView: View {
             }.marketCard().accessibilityIdentifier("place-progress")
         } else if place.status == .answered, let answer = place.answer {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                HStack(spacing: 12) {
+                HStack(spacing: PlugTokens.Space.s3) {
                     FlowEmblem(symbol: "bubble.left.and.bubble.right", size: 52)
                     Text(place.placeName ?? "From nearby").plugText(.title3)
                 }
@@ -717,7 +717,7 @@ struct AskView: View {
     }
 
     private func nobody(_ title: String, _ detail: String, _ notified: Int, subject: String? = nil) -> some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
             FlowEmblem(symbol: "bubble.left.and.exclamationmark.bubble.right", size: 80)
             ResultHeadline(value: title, label: .unknown, style: .title2)
             if let subject { Text(subject).plugText(.title3) }
@@ -921,10 +921,10 @@ private struct OfferDetailView: View {
     }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                 VStack(alignment: .leading, spacing: 0) {
                     BusinessImageBanner(photo: offer.business?.photoBase64, height: 220)
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                         if !hasPhoto {
                             BusinessPortrait(name: offer.businessName, photo: nil, size: 76)
                         }
@@ -934,12 +934,12 @@ private struct OfferDetailView: View {
                         if let about = offer.business?.about {
                             Text(about).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                         }
-                    }.padding(22)
+                    }.padding(PlugTokens.Space.s4)
                 }
                 .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
                 .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
 
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                     Text(offer.serviceName).plugText(.title3)
                     ResultHeadline(value: money(offer.priceCents, offer.currency), label: offer.truthLabel)
                     Text(offer.truthLabel.explanation).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
@@ -952,27 +952,27 @@ private struct OfferDetailView: View {
                         .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600).marketCard()
                 }
                 if let links = offer.business?.links, !links.isEmpty {
-                    VStack(alignment: .leading, spacing: 14) {
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                         Text("See their work").plugText(.title2)
                         BusinessLinks(links: links)
                     }.marketCard()
                 }
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                     Label("Where to find them", systemImage: "mappin.and.ellipse")
                         .plugText(.title2)
                     if let place = offer.place { Text(place.address).plugText(.body) }
                     Text("\(distance(offer.distanceM)) away").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                 }.marketCard()
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                     Label("Offer ends \(offer.expiresAt.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock")
                         .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                     DisclosureGroup("Offer information", isExpanded: $showingEvidence) {
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                             valueRow("Evidence recorded", offer.observedAt.formatted(date: .abbreviated, time: .shortened), last: true)
                             if offer.source == .seed {
                                 Text("Demo data for private testing. This is not a real offer and nothing is booked.").plugText(.bodySmall)
                             }
-                        }.padding(.top, 12)
+                        }.padding(.top, PlugTokens.Space.s3)
                     }.plugText(.bodySmall)
                 }.marketCard()
                 Label(offer.source == .seed ? "Demo offer · Booking isn’t available yet." : "Booking opens when providers can confirm offers.", systemImage: "info.circle")
@@ -980,7 +980,7 @@ private struct OfferDetailView: View {
             }
             .foregroundStyle(PlugTokens.Color.ink900)
             .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
-            .padding(.horizontal, 16).padding(.vertical, 20)
+            .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
         }
         .background(PlugTokens.Color.paper)
         .navigationTitle("Offer").navigationBarTitleDisplayMode(.inline)
@@ -1130,8 +1130,8 @@ struct BusinessIdentity: View {
     var prominent = false
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
-            : AnyLayout(HStackLayout(alignment: .center, spacing: 16))
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: PlugTokens.Space.s3))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: PlugTokens.Space.s4))
         layout {
             BusinessPortrait(name: name, photo: business?.photoBase64, size: prominent ? 88 : 64)
             VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
@@ -1229,24 +1229,24 @@ struct FlowMetrics: View {
     var body: some View {
         // One row when every label fits whole; otherwise a column, so "Answered" never breaks.
         if typeSize.isAccessibilitySize {
-            cells(AnyLayout(VStackLayout(alignment: .leading, spacing: 12)), whole: false)
+            cells(AnyLayout(VStackLayout(alignment: .leading, spacing: PlugTokens.Space.s3)), whole: false)
         } else {
             ViewThatFits(in: .horizontal) {
-                cells(AnyLayout(HStackLayout(alignment: .top, spacing: 10)), whole: true)
-                cells(AnyLayout(VStackLayout(alignment: .leading, spacing: 12)), whole: false)
+                cells(AnyLayout(HStackLayout(alignment: .top, spacing: PlugTokens.Space.s3)), whole: true)
+                cells(AnyLayout(VStackLayout(alignment: .leading, spacing: PlugTokens.Space.s3)), whole: false)
             }
         }
     }
     private func cells(_ layout: AnyLayout, whole: Bool) -> some View {
         layout {
             ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                     Label(item.0, systemImage: item.2).plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
                         .fixedSize(horizontal: whole, vertical: false)
                     Text(item.1).plugText(compact ? .body : .title2)
                         .monospacedDigit().fixedSize(horizontal: false, vertical: true)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading).padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading).padding(PlugTokens.Space.s3)
                 .background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 .accessibilityElement(children: .combine)
             }

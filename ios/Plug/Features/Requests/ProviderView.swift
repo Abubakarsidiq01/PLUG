@@ -540,7 +540,7 @@ struct InboxView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     HStack {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                             Text("Inbox").plugText(.title)
                             Text(profile.accepting ? "Your provider profile is saved." : "Your provider profile is paused.")
                                 .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
@@ -548,7 +548,7 @@ struct InboxView: View {
                         Spacer(minLength: 0)
                         FlowEmblem(symbol: "tray", size: 56)
                     }
-                    VStack(alignment: .leading, spacing: 18) {
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                         FlowEmblem(symbol: "bubble.left.and.bubble.right", size: 76)
                         Text("A place for your next connection")
                             .plugText(.title2)
@@ -575,7 +575,7 @@ struct InboxView: View {
                         }
                         FlowMetrics(items: [("Travel area", distance(profile.travelRadiusM), "location"),
                                             ("Licence", profile.licenceOnFile ? "On file" : "None given", "doc.text")], compact: true)
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                             Label("Your hours", systemImage: "calendar").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
                             Text(profile.availability.map(\.summary).joined(separator: "\n")).plugText(.body)
                         }
@@ -628,11 +628,11 @@ private struct ProviderChoice: View {
     let action: () -> Void
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 6) {
+            HStack(spacing: PlugTokens.Space.s1) {
                 if selected { Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).accessibilityHidden(true) }
                 Text(title).plugText(.label)
             }
-                .padding(.horizontal, 16).padding(.vertical, 12)
+                .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s3)
                 .frame(minHeight: PlugTokens.minTouchTarget)
                 // Selected is outlined, not filled: the one ink-filled control stays the primary action.
                 .foregroundStyle(PlugTokens.Color.ink900)

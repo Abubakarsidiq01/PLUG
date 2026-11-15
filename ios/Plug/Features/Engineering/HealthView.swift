@@ -10,7 +10,7 @@ struct HealthView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                     Text("API Status").font(.title2.bold())
 
                     if isLoading {
@@ -32,7 +32,7 @@ struct HealthView: View {
                     }
 
                     Button("Retry", action: load).buttonStyle(.borderedProminent)
-                        .frame(minHeight: 44).disabled(isLoading)
+                        .frame(minHeight: PlugTokens.minTouchTarget).disabled(isLoading)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
