@@ -72,7 +72,7 @@ export function SiteFooter() {
         <nav aria-label="Information" className="footer-nav">
           {footerGroups.map((group) => (
             <div key={group.heading} className="footer-group">
-              <h2 className="overline">{group.heading}</h2>
+              <h2 className="footer-heading">{group.heading}</h2>
               <ul>
                 {group.links.map((link) => (
                   <li key={link.href}>
