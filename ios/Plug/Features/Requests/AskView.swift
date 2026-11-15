@@ -20,6 +20,10 @@ struct AskView: View {
     @State private var offerOrder = OfferOrder.suggested
     private enum OfferOrder: String, CaseIterable { case suggested = "For you", price = "Lowest price", distance = "Closest" }
     @Environment(\.dynamicTypeSize) private var typeSize
+    // Glyphs beside scaled text grow with it; base sizes are the earlier fixed points.
+    @ScaledMetric(relativeTo: .body) private var composerGlyph: CGFloat = 20
+    @ScaledMetric(relativeTo: .body) private var clearGlyph: CGFloat = 18
+    @ScaledMetric(relativeTo: .body) private var checkGlyph: CGFloat = 13
     /// The answer is a pushed page, so the system back button and edge swipe both return home.
     @State private var path: [Page] = []
     private enum Page: Hashable { case answer }
@@ -149,7 +153,7 @@ struct AskView: View {
     private var composer: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
             HStack(alignment: .center, spacing: PlugTokens.Space.s3) {
-                Image(systemName: "magnifyingglass").font(.system(size: 20, weight: .medium))
+                Image(systemName: "magnifyingglass").font(.system(size: composerGlyph, weight: .medium))
                     .foregroundStyle(PlugTokens.Color.ink600).accessibilityHidden(true)
                 ZStack(alignment: .leading) {
                     // The system placeholder truncates at large text sizes and is very light;
@@ -170,17 +174,18 @@ struct AskView: View {
                 // Earlier words stay after "Ask something else"; one tap starts fresh.
                 if !model.text.isEmpty && !model.isWorking {
                     Button { voice.stop(); model.text = ""; textFocused = true } label: {
-                        Image(systemName: "xmark.circle.fill").font(.system(size: 18))
+                        Image(systemName: "xmark.circle.fill").font(.system(size: clearGlyph))
                             .foregroundStyle(PlugTokens.Color.ink400)
-                            .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
+                            .frame(minWidth: PlugTokens.minTouchTarget, minHeight: PlugTokens.minTouchTarget)
                             .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain).accessibilityLabel("Clear")
                     .accessibilityIdentifier("request-clear")
                 }
                 Button { ask() } label: {
-                    Image(systemName: "arrow.up").font(.system(size: 20, weight: .semibold))
-                        .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
+                    Image(systemName: "arrow.up").font(.system(size: composerGlyph, weight: .semibold))
+                        // At least 44pt; grows with the glyph so it never spills out of the square.
+                        .frame(minWidth: PlugTokens.minTouchTarget, minHeight: PlugTokens.minTouchTarget)
                         .foregroundStyle(PlugTokens.Color.card)
                         .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 }
@@ -212,7 +217,7 @@ struct AskView: View {
                               ("Home help", "house", Example.services[2]),
                               ("Tech", "laptopcomputer", "I need help repairing my laptop"),
                               ("Places", "mappin.and.ellipse", Example.places[0])]
-            let columns = Array(repeating: GridItem(.flexible(), spacing: PlugTokens.Space.s3), count: typeSize.isAccessibilitySize ? 2 : 4)
+            let columns = Array(repeating: GridItem(.flexible(), spacing: PlugTokens.Space.s3, alignment: .top), count: typeSize.isAccessibilitySize ? 2 : 4)
             LazyVGrid(columns: columns, spacing: PlugTokens.Space.s3) {
                 ForEach(categories, id: \.0) { title, icon, example in
                     Button { fillExample(example) } label: {
@@ -222,7 +227,7 @@ struct AskView: View {
                                 .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                             Text(title).plugText(.label).multilineTextAlignment(.center)
                         }
-                        .frame(maxWidth: .infinity).contentShape(Rectangle())
+                        .frame(maxWidth: .infinity, alignment: .top).contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
                 }
@@ -272,11 +277,14 @@ struct AskView: View {
                 .buttonStyle(.plain).accessibilityIdentifier("ask-example-place")
                 .accessibilityHint("Fills a question about a place. Nothing is sent yet.")
             }
-            DisclosureGroup("More ideas", isExpanded: $moreIdeas) {
+            DisclosureGroup(isExpanded: $moreIdeas) {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                     examples("Find help", Array(Example.services.dropFirst()))
                     examples("Ask nearby", Array(Example.places.dropFirst()))
                 }.padding(.top, PlugTokens.Space.s3)
+            } label: {
+                Text("More ideas")
+                    .frame(minHeight: PlugTokens.minTouchTarget).contentShape(Rectangle())
             }
             .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
         }
@@ -438,8 +446,11 @@ struct AskView: View {
             .animation(.plug(reduceMotion: reduceMotion), value: answerState)
             actions
             if let reference = model.request?.requestId ?? model.askId {
-                DisclosureGroup("Request reference") {
+                DisclosureGroup {
                     Text(reference).plugText(.caption).textSelection(.enabled)
+                } label: {
+                    Text("Request reference")
+                        .frame(minHeight: PlugTokens.minTouchTarget).contentShape(Rectangle())
                 }.plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
             }
         }
@@ -578,7 +589,7 @@ struct AskView: View {
                         Button { offerOrder = order } label: {
                             HStack(spacing: PlugTokens.Space.s1) {
                                 if offerOrder == order {
-                                    Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).accessibilityHidden(true)
+                                    Image(systemName: "checkmark").font(.system(size: checkGlyph, weight: .bold)).accessibilityHidden(true)
                                 }
                                 Text(order.rawValue).plugText(.label)
                             }
@@ -877,7 +888,7 @@ struct WebAnswerCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(PlugTokens.Space.s4)
         .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.card)
-            .strokeBorder(PlugTokens.Color.rule300, style: StrokeStyle(lineWidth: 1, dash: [6, 4])))
+            .strokeBorder(PlugTokens.Color.ink400, style: StrokeStyle(lineWidth: 1, dash: [6, 4])))
     }
 }
 
@@ -907,6 +918,7 @@ private struct OfferDetailView: View {
                         }
                     }.padding(PlugTokens.Space.s4)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
                 .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
 
@@ -937,13 +949,16 @@ private struct OfferDetailView: View {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                     Label("Offer ends \(offer.expiresAt.formatted(date: .abbreviated, time: .shortened))", systemImage: "clock")
                         .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                    DisclosureGroup("Offer information", isExpanded: $showingEvidence) {
+                    DisclosureGroup(isExpanded: $showingEvidence) {
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                             valueRow("Evidence recorded", offer.observedAt.formatted(date: .abbreviated, time: .shortened), last: true)
                             if offer.source == .seed {
                                 Text("Demo data for private testing. This is not a real offer and nothing is booked.").plugText(.bodySmall)
                             }
                         }.padding(.top, PlugTokens.Space.s3)
+                    } label: {
+                        Text("Offer information")
+                            .frame(minHeight: PlugTokens.minTouchTarget).contentShape(Rectangle())
                     }.plugText(.bodySmall)
                 }.marketCard()
                 Label(offer.source == .seed ? "Demo offer · Booking isn’t available yet." : "Booking opens when providers can confirm offers.", systemImage: "info.circle")
@@ -984,7 +999,8 @@ extension ServiceOffer.TruthLabel {
         case .recent: return PlugTokens.Color.truthBorderRecent
         case .estimated: return PlugTokens.Color.truthBorderEstimated
         case .unknown: return PlugTokens.Color.truthBorderUnknown
-        case .notVerified: return PlugTokens.Color.rule300
+        // The dashed outline carries meaning, so it needs 3:1 on paper; rule300 is about 1.4:1.
+        case .notVerified: return PlugTokens.Color.ink400
         }
     }
 }
