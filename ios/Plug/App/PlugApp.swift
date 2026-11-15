@@ -96,6 +96,7 @@ struct RootView: View {
                                 .buttonStyle(FlowActionStyle(primary: true))
                         }.marketCard()
                     }
+                    .foregroundStyle(PlugTokens.Color.ink900)
                     .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
                     .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
                 }.background(PlugTokens.Color.paper)

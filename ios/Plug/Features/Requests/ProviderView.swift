@@ -89,6 +89,7 @@ struct ProviderOnboardingView: View {
                         caption("Private test. Your settings are saved for matching. Inbox delivery and booking are not available yet.")
                     }
                 }
+                .foregroundStyle(PlugTokens.Color.ink900)
                 .disabled(isWorking)
                 .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
                 .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
@@ -570,6 +571,7 @@ struct InboxView: View {
                     }
                     .marketCard()
                 }
+                .foregroundStyle(PlugTokens.Color.ink900)
                 .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
                 .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
             }

@@ -152,8 +152,11 @@ struct AskView: View {
     private var composer: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
             HStack(alignment: .center, spacing: PlugTokens.Space.s3) {
-                Image(systemName: "magnifyingglass").font(.system(size: composerGlyph, weight: .medium))
-                    .foregroundStyle(PlugTokens.Color.ink600).accessibilityHidden(true)
+                // Decorative; at accessibility sizes the words need the width more than the glyph does.
+                if !typeSize.isAccessibilitySize {
+                    Image(systemName: "magnifyingglass").font(.system(size: composerGlyph, weight: .medium))
+                        .foregroundStyle(PlugTokens.Color.ink600).accessibilityHidden(true)
+                }
                 ZStack(alignment: .leading) {
                     // The system placeholder truncates at large text sizes and is very light;
                     // this one wraps and meets the contrast floor.
@@ -173,7 +176,7 @@ struct AskView: View {
                 // Earlier words stay after "Ask something else"; one tap starts fresh.
                 if !model.text.isEmpty && !model.isWorking {
                     Button { voice.stop(); model.text = ""; textFocused = true } label: {
-                        Image(systemName: "xmark.circle.fill").font(.system(size: clearGlyph))
+                        Image(systemName: "xmark.circle.fill").font(.system(size: min(clearGlyph, 26)))
                             .foregroundStyle(PlugTokens.Color.ink400)
                             .frame(minWidth: PlugTokens.minTouchTarget, minHeight: PlugTokens.minTouchTarget)
                             .contentShape(Rectangle())
@@ -182,7 +185,7 @@ struct AskView: View {
                     .accessibilityIdentifier("request-clear")
                 }
                 Button { ask() } label: {
-                    Image(systemName: "arrow.up").font(.system(size: composerGlyph, weight: .semibold))
+                    Image(systemName: "arrow.up").font(.system(size: min(composerGlyph, 28), weight: .semibold))
                         // At least 44pt; grows with the glyph so it never spills out of the square.
                         .frame(minWidth: PlugTokens.minTouchTarget, minHeight: PlugTokens.minTouchTarget)
                         .foregroundStyle(PlugTokens.Color.card)
@@ -739,6 +742,7 @@ struct AskView: View {
     private func page<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s6) { content() }
+                .foregroundStyle(PlugTokens.Color.ink900)
                 .frame(maxWidth: 640, alignment: .leading)
                 .frame(maxWidth: .infinity)
                 .padding(.horizontal, PlugTokens.Space.s4)
