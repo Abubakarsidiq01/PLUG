@@ -8,7 +8,7 @@ struct ConsentNotice: View {
     var body: some View {
         VStack(spacing: PlugTokens.Space.s1) {
             Text("Private testing · Review the notices before continuing.")
-                .font(.caption).foregroundStyle(PlugTokens.Color.ink600)
+                .plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
                 .multilineTextAlignment(.center)
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: PlugTokens.Space.s6) { documentLinks }
@@ -30,7 +30,7 @@ struct ConsentNotice: View {
 
     private func documentButton(_ title: String, _ value: LegalDocument) -> some View {
         Button { document = value } label: { Text(title).underline() }
-            .buttonStyle(.plain).font(.footnote.weight(.medium))
+            .buttonStyle(.plain).plugText(.label)
             .foregroundStyle(.primary)
             .frame(minHeight: PlugTokens.minTouchTarget)
     }
@@ -90,8 +90,8 @@ private struct LegalDocumentView: View {
                     ForEach(document.sections.indices, id: \.self) { index in
                         let section = document.sections[index]
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                            Text(section.0).font(.headline)
-                            Text(section.1).font(.body).foregroundStyle(PlugTokens.Color.ink600)
+                            Text(section.0).plugText(.title3)
+                            Text(section.1).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                     }

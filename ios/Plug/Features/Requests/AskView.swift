@@ -97,7 +97,7 @@ struct AskView: View {
             }
             VStack(alignment: .leading, spacing: 8) {
                 Text(stillAsking ? "Let’s find your person." : "Who can help you today?")
-                    .font(.system(.title, design: .rounded, weight: .bold))
+                    .plugText(.title)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("ask-home-title")
@@ -236,7 +236,7 @@ struct AskView: View {
                 }
             }
             VStack(alignment: .leading, spacing: 14) {
-                Text("A little inspiration").font(.system(.title3, design: .rounded, weight: .bold))
+                Text("A little inspiration").plugText(.title3)
                 Button { fillExample(Example.services[1]) } label: {
                     ZStack(alignment: .bottomLeading) {
                         GeometryReader { geometry in
@@ -247,7 +247,7 @@ struct AskView: View {
                         HStack(alignment: .bottom) {
                             VStack(alignment: .leading, spacing: 5) {
                                 Text("Look good. Feel like you.")
-                                    .font(.system(.title2, design: .rounded, weight: .bold))
+                                    .plugText(.title2)
                                     .fixedSize(horizontal: false, vertical: true)
                                 Text("Find your next stylist").plugText(.bodySmall)
                                     .fixedSize(horizontal: false, vertical: true)
@@ -490,7 +490,7 @@ struct AskView: View {
         VStack(alignment: .leading, spacing: 20) {
             FlowEmblem(symbol: "bubble.left.and.text.bubble.right", size: 72)
             VStack(alignment: .leading, spacing: 8) {
-                Text(question.question).font(.system(.title2, design: .rounded, weight: .bold))
+                Text(question.question).plugText(.title2)
                 Text("One quick detail to find the right help.").plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
             }
             ForEach(question.options, id: \.value) { option in
@@ -524,7 +524,7 @@ struct AskView: View {
         case .none:
             VStack(alignment: .leading, spacing: 18) {
                 FlowEmblem(symbol: "checkmark", size: 72)
-                Text("You stopped asking").font(.system(.title2, design: .rounded, weight: .bold))
+                Text("You stopped asking").plugText(.title2)
                 Text("This request is closed. Nobody else will be contacted.")
                     .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
             }.marketCard()
@@ -555,7 +555,7 @@ struct AskView: View {
     }
     private func workingTitle(_ request: ServiceRequest) -> some View {
         Text("Asking \(request.constraints.serviceName?.lowercased() ?? "providers") nearby")
-            .font(.system(.title3, design: .rounded, weight: .bold)).foregroundStyle(PlugTokens.Color.ink900)
+            .plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
             .fixedSize(horizontal: false, vertical: true)
     }
     /// Side by side, or one above the other at accessibility text sizes, where a narrow column
@@ -592,7 +592,7 @@ struct AskView: View {
             VStack(alignment: .leading, spacing: 8) {
                 // The headline is the result itself (design gate §16.8), not a sentence about it.
                 Text("\(model.offers.count) \(model.offers.count == 1 ? "offer" : "offers")")
-                    .font(.system(.title, design: .rounded, weight: .bold))
+                    .plugText(.title)
                 Text(offersTitle(request)).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
             if model.offers.count > 1 {
@@ -645,7 +645,7 @@ struct AskView: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(offer.serviceName).plugText(.title3)
             Text(money(offer.priceCents, offer.currency))
-                .font(.system(.largeTitle, design: .rounded, weight: .bold)).monospacedDigit()
+                .plugText(.display).monospacedDigit()
         }.fixedSize(horizontal: false, vertical: true)
     }
     private func offersTitle(_ request: ServiceRequest) -> String {
@@ -670,7 +670,7 @@ struct AskView: View {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                 HStack(spacing: 12) {
                     FlowEmblem(symbol: "bubble.left.and.bubble.right", size: 52)
-                    Text(place.placeName ?? "From nearby").font(.system(.title3, design: .rounded, weight: .bold))
+                    Text(place.placeName ?? "From nearby").plugText(.title3)
                 }
                 ResultHeadline(value: answer.value, label: answer.truthLabel)
                 Text(answer.summary).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
@@ -705,7 +705,7 @@ struct AskView: View {
     }
 
     private func placeTitle(_ place: PlaceQuestion) -> some View {
-        Text("Asking people near \(place.placeName ?? "this place")").font(.system(.title2, design: .rounded, weight: .bold)).foregroundStyle(PlugTokens.Color.ink900)
+        Text("Asking people near \(place.placeName ?? "this place")").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
     }
     private func placeDeadline(_ place: PlaceQuestion) -> some View {
         Text("Open until \(place.expiresAt.formatted(date: .omitted, time: .shortened))")
@@ -730,7 +730,7 @@ struct AskView: View {
     /// invitation to offer it, not a dead end. Nothing is implied about who else might.
     private func offerTheGap(_ request: ServiceRequest) -> some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("Is this something you do?").font(.system(.title3, design: .rounded, weight: .bold))
+            Text("Is this something you do?").plugText(.title2)
                 .foregroundStyle(PlugTokens.Color.ink900)
             Text("Nobody nearby offers \(request.constraints.serviceName?.lowercased() ?? "this") on PLUG yet. Add it as a skill and you will be matched with the next person who asks.")
                 .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
@@ -927,7 +927,7 @@ private struct OfferDetailView: View {
                         if !hasPhoto {
                             BusinessPortrait(name: offer.businessName, photo: nil, size: 76)
                         }
-                        Text(offer.businessName).font(.system(.title, design: .rounded, weight: .bold))
+                        Text(offer.businessName).plugText(.title2)
                         Label(scoreText(offer.providerScore), systemImage: "person.crop.circle")
                             .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                         if let about = offer.business?.about {
@@ -939,7 +939,7 @@ private struct OfferDetailView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 28))
 
                 VStack(alignment: .leading, spacing: 18) {
-                    Text(offer.serviceName).font(.system(.title2, design: .rounded, weight: .bold))
+                    Text(offer.serviceName).plugText(.title3)
                     ResultHeadline(value: money(offer.priceCents, offer.currency), label: offer.truthLabel)
                     Text(offer.truthLabel.explanation).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                     FlowMetrics(items: [("Earliest", offer.availableAt.formatted(.dateTime.month(.abbreviated).day().hour().minute()), "calendar"),
@@ -952,13 +952,13 @@ private struct OfferDetailView: View {
                 }
                 if let links = offer.business?.links, !links.isEmpty {
                     VStack(alignment: .leading, spacing: 14) {
-                        Text("See their work").font(.system(.title3, design: .rounded, weight: .bold))
+                        Text("See their work").plugText(.title2)
                         BusinessLinks(links: links)
                     }.marketCard()
                 }
                 VStack(alignment: .leading, spacing: 16) {
                     Label("Where to find them", systemImage: "mappin.and.ellipse")
-                        .font(.system(.title3, design: .rounded, weight: .bold))
+                        .plugText(.title2)
                     if let place = offer.place { Text(place.address).plugText(.body) }
                     Text("\(distance(offer.distanceM)) away").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                 }.marketCard()
@@ -1110,7 +1110,7 @@ struct BusinessPortrait: View {
                 Image(uiImage: picture).resizable().scaledToFill()
             } else {
                 Text(name.split(separator: " ").prefix(2).compactMap(\.first).map(String.init).joined().uppercased())
-                    .font(.system(size: size * 0.3, weight: .semibold, design: .rounded))
+                    .font(.system(size: size * 0.3, weight: .semibold))
                     .foregroundStyle(PlugTokens.Color.ink600)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(PlugTokens.Color.sunk)
@@ -1134,7 +1134,7 @@ struct BusinessIdentity: View {
         layout {
             BusinessPortrait(name: name, photo: business?.photoBase64, size: prominent ? 88 : 64)
             VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
-                Text(name).font(.system(prominent ? .title2 : .headline, design: .rounded, weight: .bold)).foregroundStyle(PlugTokens.Color.ink900)
+                Text(name).plugText(prominent ? .title2 : .title3).foregroundStyle(PlugTokens.Color.ink900)
                 Text(scoreText(score)).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1244,7 +1244,7 @@ struct FlowMetrics: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Label(item.0, systemImage: item.2).plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
                         .fixedSize(horizontal: whole, vertical: false)
-                    Text(item.1).font(.system(compact ? .subheadline : .title2, design: .rounded, weight: .semibold))
+                    Text(item.1).plugText(compact ? .body : .title2)
                         .monospacedDigit().fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading).padding(14)

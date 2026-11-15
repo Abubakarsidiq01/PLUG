@@ -541,7 +541,7 @@ struct InboxView: View {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     HStack {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Inbox").font(.system(.largeTitle, design: .rounded, weight: .bold))
+                            Text("Inbox").plugText(.title)
                             Text(profile.accepting ? "Your provider profile is saved." : "Your provider profile is paused.")
                                 .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                         }
@@ -551,7 +551,7 @@ struct InboxView: View {
                     VStack(alignment: .leading, spacing: 18) {
                         FlowEmblem(symbol: "bubble.left.and.bubble.right", size: 76)
                         Text("A place for your next connection")
-                            .font(.system(.title2, design: .rounded, weight: .bold))
+                            .plugText(.title2)
                         Text("Your skills and hours are saved. Receiving and replying to requests here is coming in a future update.")
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                     }.marketCard().accessibilityIdentifier("inbox-empty")

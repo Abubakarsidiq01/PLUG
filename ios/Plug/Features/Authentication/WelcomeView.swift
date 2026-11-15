@@ -258,7 +258,7 @@ struct WelcomeView: View {
 
     private var backToMethods: some View {
         Button("Other sign-in methods") { page = creatingAccount ? .signUp : .signIn; model.startOver() }
-            .buttonStyle(.plain).font(.subheadline).foregroundStyle(PlugColor.brand)
+            .buttonStyle(.plain).plugText(.action).foregroundStyle(PlugColor.brand)
             .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
     }
 
@@ -350,12 +350,12 @@ struct WelcomeView: View {
 
     private var phoneEntry: some View {
         VStack(alignment: .leading, spacing: PlugSpacing.small) {
-            Text(creatingAccount ? "Sign up with your phone" : "Sign in with your phone").font(.subheadline.weight(.semibold))
+            Text(creatingAccount ? "Sign up with your phone" : "Sign in with your phone").plugText(.title3)
             PlugTextField(title: "Phone number, including country code", text: $phoneNumber)
                 .textContentType(.telephoneNumber)
                 .keyboardType(.phonePad)
             Text("Include + and your country code, such as +1 312 555 0123 or +234 803 123 4567. We will text you a six-digit code; no password is needed.")
-                .font(.footnote).foregroundStyle(PlugTokens.Color.ink600)
+                .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             PlugPrimaryButton(title: "Send me a code") {
                 Task { await model.sendCode(to: phoneNumber.trimmingCharacters(in: .whitespaces)) }
             }
@@ -441,9 +441,10 @@ struct StateMessage: View {
     var body: some View {
         VStack(alignment: .leading, spacing: PlugSpacing.small) {
             Label(title, systemImage: systemImage)
-                .font(.headline)
+                .plugText(.title3)
                 .labelStyle(.titleAndIcon)
             Text(detail)
+                .plugText(.body)
                 .foregroundStyle(PlugTokens.Color.ink600)
                 .fixedSize(horizontal: false, vertical: true)
         }

@@ -86,11 +86,11 @@ struct RootView: View {
             NavigationStack {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        Text("Activity").font(.system(.largeTitle, design: .rounded, weight: .bold))
+                        Text("Activity").plugText(.title)
                         VStack(alignment: .leading, spacing: 20) {
                             FlowEmblem(symbol: "clock.arrow.circlepath", size: 88)
                             Text("Your asks, in one place")
-                                .font(.system(.title2, design: .rounded, weight: .bold))
+                                .plugText(.title2)
                             Text("Your active ask is on the Ask tab. Past requests aren’t shown here yet.")
                                 .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                             Button("Go to Ask") { selectedTab = "Ask" }
@@ -135,7 +135,7 @@ struct RootView: View {
             VStack(spacing: 5) {
                 Image(systemName: selectedTab == title ? selectedSymbol : symbol)
                     .font(.system(size: 22, weight: .medium)).frame(height: 26)
-                Text(title).font(.system(.caption2, weight: selectedTab == title ? .bold : .medium))
+                Text(title).plugText(.caption).fontWeight(selectedTab == title ? .bold : .medium)
             }
             .frame(maxWidth: .infinity, minHeight: 48)
             .foregroundStyle(selectedTab == title ? PlugTokens.Color.ink900 : PlugTokens.Color.ink600)
@@ -153,7 +153,7 @@ struct RootView: View {
         NavigationStack {
             ScrollView {
                 Text(detail)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(PlugTokens.Color.ink600)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(PlugSpacing.large)
             }
@@ -193,12 +193,12 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    Text("Profile").font(.system(.largeTitle, design: .rounded, weight: .bold))
+                    Text("Profile").plugText(.title)
                     VStack(alignment: .leading, spacing: 18) {
                         Image(systemName: "person.crop.circle")
                             .font(.system(size: 56, weight: .light)).accessibilityHidden(true)
                         Text("Your corner of PLUG")
-                            .font(.system(.title2, design: .rounded, weight: .bold))
+                            .plugText(.title)
                         Text(session.account.isGuest ? "Exploring as a guest" : "Your account, your connections")
                             .plugText(.body).opacity(0.8)
                     }
@@ -206,14 +206,14 @@ struct ProfileView: View {
                     .foregroundStyle(PlugTokens.Color.card)
                     .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: 28))
                     VStack(alignment: .leading, spacing: 18) {
-                        Label("Account", systemImage: "person.crop.square").font(.system(.title3, design: .rounded, weight: .bold))
+                        Label("Account", systemImage: "person.crop.square").plugText(.title3)
                         detailRow("Signed in with", description(of: session.account.type))
                         detailRow("Terms accepted", session.consent.acceptedVersion ?? "Not yet")
                     }.marketCard()
                     if session.account.isGuest {
                         VStack(alignment: .leading, spacing: 16) {
                             Label("Make yourself at home", systemImage: "house")
-                                .font(.system(.title3, design: .rounded, weight: .bold))
+                                .plugText(.title2)
                             Text("Create an account to keep your guest requests. Signing in to an existing account switches "
                                  + "accounts; guest activity is not merged into that account.")
                                 .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
@@ -251,7 +251,7 @@ struct ProfileView: View {
         ViewThatFits(in: .horizontal) {
             LabeledContent(label, value: value)
             VStack(alignment: .leading, spacing: PlugSpacing.small / 2) {
-                Text(label).foregroundStyle(.secondary)
+                Text(label).foregroundStyle(PlugTokens.Color.ink600)
                 Text(value)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
