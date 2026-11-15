@@ -48,7 +48,7 @@ struct ProviderOnboardingView: View {
                         Image(systemName: "person.crop.circle.badge.plus")
                             .font(.system(size: 28, weight: .regular))
                             .frame(width: 60, height: 60)
-                            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 20))
+                            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                             .foregroundStyle(PlugTokens.Color.ink900)
                             .accessibilityHidden(true)
                         Text("Turn what you do into a local connection.")
@@ -633,12 +633,13 @@ private struct ProviderChoice: View {
                 Text(title).plugText(.label)
             }
                 .padding(.horizontal, 16).padding(.vertical, 12)
-                .frame(minHeight: 44)
+                .frame(minHeight: PlugTokens.minTouchTarget)
                 // Selected is outlined, not filled: the one ink-filled control stays the primary action.
                 .foregroundStyle(PlugTokens.Color.ink900)
-                .background(selected ? PlugTokens.Color.card : PlugTokens.Color.paper, in: Capsule())
-                .overlay(Capsule().strokeBorder(selected ? PlugTokens.Color.ink900 : PlugTokens.Color.rule300,
-                                                lineWidth: selected ? 2 : 1))
+                .background(selected ? PlugTokens.Color.card : PlugTokens.Color.sunk,
+                            in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control)
+                    .strokeBorder(selected ? PlugTokens.Color.ink900 : .clear, lineWidth: 2))
         }
         .buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
     }

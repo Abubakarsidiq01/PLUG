@@ -115,7 +115,7 @@ struct AskView: View {
                     Image(systemName: "person.crop.circle.badge.plus")
                         .font(.system(size: 26, weight: .regular))
                         .frame(width: 52, height: 56)
-                        .background(PlugTokens.Color.card.opacity(0.12), in: RoundedRectangle(cornerRadius: 16))
+                        .background(PlugTokens.Color.card.opacity(0.12), in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                     VStack(alignment: .leading, spacing: 5) {
                         Text("Your skill. Someone’s solution.").plugText(.title3).fixedSize(horizontal: false, vertical: true)
                         Text("Offer a service").plugText(.bodySmall).opacity(0.8)
@@ -127,7 +127,7 @@ struct AskView: View {
                 }
                 .foregroundStyle(PlugTokens.Color.card)
                 .padding(20)
-                .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: 24))
+                .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Offer a service")
@@ -190,7 +190,7 @@ struct AskView: View {
                     Image(systemName: "arrow.up").font(.system(size: 20, weight: .semibold))
                         .frame(width: 46, height: 46)
                         .foregroundStyle(PlugTokens.Color.card)
-                        .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: 15))
+                        .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 }
                 .buttonStyle(.plain).accessibilityLabel("Ask")
                 .accessibilityIdentifier("ask-submit")
@@ -198,10 +198,10 @@ struct AskView: View {
             }
             .padding(12).padding(.leading, 4)
             // The whole box focuses the field, not just its single line of text.
-            .contentShape(RoundedRectangle(cornerRadius: 24))
+            .contentShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
             .onTapGesture { if !model.isWorking { textFocused = true } }
-            .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 24))
-            .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(textFocused ? PlugTokens.Color.ink900 : PlugTokens.Color.rule200))
+            .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control).strokeBorder(textFocused ? PlugTokens.Color.ink900 : PlugTokens.Color.rule200))
             HStack {
                 Text("A service or a question about a place").plugText(.caption)
                     .foregroundStyle(PlugTokens.Color.ink600)
@@ -227,7 +227,7 @@ struct AskView: View {
                         VStack(spacing: 10) {
                             Image(systemName: icon).font(.system(size: 25, weight: .regular))
                                 .frame(width: 62, height: 62)
-                                .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 22))
+                                .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                             Text(title).plugText(.label).multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity).contentShape(Rectangle())
@@ -260,7 +260,7 @@ struct AskView: View {
                     }
                     // At least the photo's height, taller when the title needs it, never clipped.
                     .frame(minHeight: typeSize.isAccessibilitySize ? 330 : 248)
-                    .clipShape(RoundedRectangle(cornerRadius: 26))
+                    .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("ask-example-barber")
@@ -270,7 +270,7 @@ struct AskView: View {
                     stacked(spacing: 16) {
                         Image("Neighbourhood").renderingMode(.template).resizable().scaledToFit()
                             .frame(width: 70, height: 70)
-                            .padding(8).background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 20))
+                            .padding(8).background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                         VStack(alignment: .leading, spacing: 6) {
                             Text("Know before you go").plugText(.title3)
                             Text("Ask what’s happening nearby.").plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
@@ -281,7 +281,7 @@ struct AskView: View {
                             Image(systemName: "arrow.up.right")
                         }
                     }
-                    .padding(16).background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 24))
+                    .padding(16).background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
                 }
                 .buttonStyle(.plain).accessibilityIdentifier("ask-example-place")
                 .accessibilityHint("Fills a question about a place. Nothing is sent yet.")
@@ -427,7 +427,7 @@ struct AskView: View {
             HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "text.bubble").font(.system(size: 19, weight: .medium))
                     .frame(width: 42, height: 42)
-                    .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 14))
+                    .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 VStack(alignment: .leading, spacing: 5) {
                     Text("Your request").plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
                     Text(askedText).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
@@ -500,7 +500,7 @@ struct AskView: View {
                         Spacer(minLength: 12)
                         Image(systemName: "arrow.right").font(.system(size: 16))
                     }
-                    .padding(18).background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: 16))
+                    .padding(18).background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 }.buttonStyle(.plain).disabled(model.isWorking)
             }
         }.foregroundStyle(PlugTokens.Color.ink900).marketCard()
@@ -605,10 +605,11 @@ struct AskView: View {
                                 }
                                 Text(order.rawValue).plugText(.label)
                             }
-                                .padding(.horizontal, 16).frame(minHeight: 44)
+                                .padding(.horizontal, 16).frame(minHeight: PlugTokens.minTouchTarget)
                                 .foregroundStyle(offerOrder == order ? PlugTokens.Color.ink900 : PlugTokens.Color.ink600)
-                                .background(offerOrder == order ? PlugTokens.Color.card : PlugTokens.Color.sunk, in: Capsule())
-                                .overlay(Capsule().strokeBorder(offerOrder == order ? PlugTokens.Color.ink900 : .clear, lineWidth: 2))
+                                .background(offerOrder == order ? PlugTokens.Color.card : PlugTokens.Color.sunk,
+                                            in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+                                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control).strokeBorder(offerOrder == order ? PlugTokens.Color.ink900 : .clear, lineWidth: 2))
                         }
                         .buttonStyle(.plain).accessibilityAddTraits(offerOrder == order ? .isSelected : [])
                         .accessibilityIdentifier("offers-sort-" + String(describing: order))
@@ -904,7 +905,7 @@ struct WebAnswerCard: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(PlugTokens.Space.s4)
-        .overlay(RoundedRectangle(cornerRadius: 24)
+        .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.card)
             .strokeBorder(PlugTokens.Color.rule300, style: StrokeStyle(lineWidth: 1, dash: [6, 4])))
     }
 }
@@ -935,8 +936,8 @@ private struct OfferDetailView: View {
                         }
                     }.padding(22)
                 }
-                .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 28))
-                .clipShape(RoundedRectangle(cornerRadius: 28))
+                .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
+                .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
 
                 VStack(alignment: .leading, spacing: 18) {
                     Text(offer.serviceName).plugText(.title3)
@@ -1152,7 +1153,7 @@ struct BusinessLinks: View {
                         Image(systemName: link.label.lowercased().contains("instagram") ? "camera" : "globe")
                             .font(.system(size: 20, weight: .regular))
                             .frame(width: 44, height: 44)
-                            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: 14))
+                            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                             Text(link.label).plugText(.action)
@@ -1180,10 +1181,11 @@ struct RequestTextActionStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .plugText(.action)
-            .foregroundStyle(destructive ? PlugTokens.Color.alert600 : PlugTokens.Color.ink900)
+            // Manual §11.1: a live control never fades; pressed and disabled change colour only.
+            .foregroundStyle(!enabled ? PlugTokens.Color.ink600 : destructive ? PlugTokens.Color.alert600
+                             : configuration.isPressed ? PlugTokens.Color.ink600 : PlugTokens.Color.ink900)
             .frame(minHeight: PlugTokens.minTouchTarget, alignment: .leading)
             .contentShape(Rectangle())
-            .opacity(!enabled ? 0.45 : configuration.isPressed ? 0.6 : 1)
     }
 }
 
@@ -1203,11 +1205,8 @@ private struct BusinessImageBanner: View {
 }
 
 extension View {
-    func marketCard() -> some View {
-        self.frame(maxWidth: .infinity, alignment: .leading)
-            .padding(20)
-            .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: 24))
-    }
+    /// One card style (manual §10, §16.8): same as plugCard; the name stays for its call sites.
+    func marketCard() -> some View { plugCard() }
 }
 
 /// Visual status markers carry no invented people or progress.
@@ -1218,7 +1217,7 @@ struct FlowEmblem: View {
         Image(systemName: symbol).font(.system(size: size * 0.38, weight: .light))
             .foregroundStyle(PlugTokens.Color.ink900)
             .frame(width: size, height: size)
-            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: size * 0.32))
+            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
             .accessibilityHidden(true)
     }
 }
@@ -1248,7 +1247,7 @@ struct FlowMetrics: View {
                         .monospacedDigit().fixedSize(horizontal: false, vertical: true)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading).padding(14)
-                .background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: 16))
+                .background(PlugTokens.Color.paper, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 .accessibilityElement(children: .combine)
             }
         }
@@ -1261,15 +1260,18 @@ struct FlowActionStyle: ButtonStyle {
     @Environment(\.isEnabled) private var enabled
     func makeBody(configuration: Configuration) -> some View {
         configuration.label.plugText(.action)
-            .frame(maxWidth: .infinity, minHeight: 24)
-            .padding(16)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s3)
+            .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
             // Disabled reads as text on a quiet fill, not a faded primary: white on mid-grey failed contrast.
             .foregroundStyle(!enabled ? PlugTokens.Color.ink600 : destructive ? PlugTokens.Color.alert600
                              : primary ? PlugTokens.Color.card : PlugTokens.Color.ink900)
-            .background(!enabled ? PlugTokens.Color.sunk : primary ? PlugTokens.Color.ink900 : PlugTokens.Color.card,
-                        in: RoundedRectangle(cornerRadius: 16))
-            .overlay(RoundedRectangle(cornerRadius: 16)
+            // Pressed changes the fill, never the opacity (manual §11.1).
+            .background(!enabled ? PlugTokens.Color.sunk
+                        : primary ? (configuration.isPressed ? PlugTokens.Color.ink600 : PlugTokens.Color.ink900)
+                        : (configuration.isPressed ? PlugTokens.Color.sunk : PlugTokens.Color.card),
+                        in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control)
                 .strokeBorder(primary && enabled ? Color.clear : PlugTokens.Color.rule300))
-            .opacity(configuration.isPressed ? 0.7 : 1)
     }
 }

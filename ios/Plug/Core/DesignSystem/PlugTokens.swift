@@ -58,12 +58,12 @@ struct AuthActionStyle: ButtonStyle {
             .padding(.horizontal, PlugTokens.Space.s4)
             .padding(.vertical, PlugTokens.Space.s3)
             .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
-            .foregroundStyle(primary ? PlugTokens.Color.surface0 : PlugTokens.Color.ink900)
-            .background(background(pressed: configuration.isPressed),
-                        in: RoundedRectangle(cornerRadius: PlugTokens.Radius.md))
-            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.md)
-                .strokeBorder(primary ? Color.clear : PlugTokens.Color.line300))
-            .opacity(enabled ? 1 : 0.5)
+            // Disabled reads as ink600 text on a sunk fill, never a faded control (manual §11.1).
+            .foregroundStyle(!enabled ? PlugTokens.Color.ink600 : primary ? PlugTokens.Color.surface0 : PlugTokens.Color.ink900)
+            .background(!enabled ? PlugTokens.Color.sunk : background(pressed: configuration.isPressed),
+                        in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control)
+                .strokeBorder(primary && enabled ? Color.clear : PlugTokens.Color.line300))
             .animation(reduceMotion ? nil : .easeOut(duration: PlugTokens.Motion.fast),
                        value: configuration.isPressed)
     }

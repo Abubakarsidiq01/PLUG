@@ -204,7 +204,7 @@ struct ProfileView: View {
                     }
                     .frame(maxWidth: .infinity, alignment: .leading).padding(24)
                     .foregroundStyle(PlugTokens.Color.card)
-                    .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: 28))
+                    .background(PlugTokens.Color.ink900, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.card))
                     VStack(alignment: .leading, spacing: 18) {
                         Label("Account", systemImage: "person.crop.square").plugText(.title3)
                         detailRow("Signed in with", description(of: session.account.type))
