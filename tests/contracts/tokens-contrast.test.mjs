@@ -19,7 +19,7 @@ const ratio = (a, b) => {
 
 const TEXT = [
   ["ink.900", "paper"], ["ink.900", "card"], ["ink.900", "sunk"], ["ink.600", "paper"], ["ink.600", "card"],
-  ["ink.600", "sunk"], ["ink.400", "paper"], ["ink.400", "card"], ["card", "ink.900"],
+  ["ink.600", "sunk"], ["ink.400", "paper"], ["ink.400", "card"], ["card", "ink.900"], ["card", "ink.950"],
   ["alert.600", "alert.50"], ["alert.600", "card"],
   ...["confirmed", "recent", "estimated", "unknown"].flatMap((t) => [
     [`truth.${t}`, `truthSurface.${t}`], [`truth.${t}`, "card"], [`truth.${t}`, "paper"],

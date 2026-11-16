@@ -9,6 +9,7 @@ enum PlugTokens {
         static let ink400 = SwiftUI.Color(hex: "6C695E")
         static let ink600 = SwiftUI.Color(hex: "535044")
         static let ink900 = SwiftUI.Color(hex: "19160D")
+        static let ink950 = SwiftUI.Color(hex: "0B0905")
         static let rule200 = SwiftUI.Color(hex: "DDDAD0")
         static let rule300 = SwiftUI.Color(hex: "CAC7BC")
         static let ruleControl = SwiftUI.Color(hex: "89867C")
@@ -67,6 +68,8 @@ enum PlugTokens {
         static let measure: CGFloat = 640
         static let narrow: CGFloat = 480
         static let mark: CGFloat = 28
+        static let index: CGFloat = 240
+        static let read: CGFloat = 600
     }
     enum TypeSize {
         static let hero: CGFloat = 56
@@ -84,6 +87,13 @@ enum PlugTokens {
         static let base: Double = 240 / 1000
         static let slow: Double = 350 / 1000
         static let reveal: Double = 1100 / 1000
+        enum Mark {
+            static let dot: Double = 240 / 1000
+            static let ringDelay: Double = 200 / 1000
+            static let ring: Double = 400 / 1000
+            static let bodyDelay: Double = 450 / 1000
+            static let body: Double = 650 / 1000
+        }
         static let springResponse: Double = 0.35
         static let springDamping: Double = 0.82
     }

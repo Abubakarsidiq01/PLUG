@@ -6,6 +6,7 @@
   --color-ink-400: #6C695E;
   --color-ink-600: #535044;
   --color-ink-900: #19160D;
+  --color-ink-950: #0B0905;
   --color-rule-200: #DDDAD0;
   --color-rule-300: #CAC7BC;
   --color-rule-control: #89867C;
@@ -40,6 +41,8 @@
   --layout-measure: 640px;
   --layout-narrow: 480px;
   --layout-mark: 28px;
+  --layout-index: 240px;
+  --layout-read: 600px;
   --font-sans: "Public Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --type-hero-size: 56px;
@@ -82,6 +85,11 @@
   --motion-base: 240ms;
   --motion-slow: 350ms;
   --motion-reveal: 1100ms;
+  --motion-mark-dot: 240ms;
+  --motion-mark-ring-delay: 200ms;
+  --motion-mark-ring: 400ms;
+  --motion-mark-body-delay: 450ms;
+  --motion-mark-body: 650ms;
   --motion-easing: cubic-bezier(0.2, 0, 0, 1);
   --elevation-flat: 1px solid var(--color-rule-200);
   --elevation-raised: a brighter surface, never a shadow;

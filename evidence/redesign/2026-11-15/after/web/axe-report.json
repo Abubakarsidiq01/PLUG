@@ -1,0 +1,182 @@
+[
+  {
+    "url": "/",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/privacy",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/privacy",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/privacy",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/privacy",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/privacy",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/terms",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/terms",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/terms",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/terms",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/terms",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/support",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/support",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/support",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/support",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/support",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/404",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/404",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/404",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/404",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/404",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  }
+]

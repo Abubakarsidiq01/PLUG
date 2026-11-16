@@ -185,7 +185,7 @@ ol {
 
 .button-primary:hover,
 .button-primary:active {
-  background: var(--color-ink-600);
+  background: var(--color-ink-950);
 }
 
 .button-secondary {
@@ -345,9 +345,9 @@ ol {
 
 .hero-mark {
   display: block;
-  width: calc(var(--space-12) * 2);
-  height: calc(var(--space-12) * 2);
-  margin-bottom: var(--space-8);
+  width: var(--space-12);
+  height: var(--space-12);
+  margin-bottom: var(--space-6);
   color: var(--color-ink-900);
 }
 
@@ -357,9 +357,9 @@ ol {
 
 .lede {
   margin-top: var(--space-4);
-  max-width: var(--layout-measure);
+  max-width: var(--layout-read);
   font-size: var(--type-title3-size);
-  line-height: var(--type-title2-line);
+  line-height: var(--type-title3-line);
   color: var(--color-ink-600);
 }
 
@@ -378,8 +378,13 @@ ol {
 }
 
 .example-card {
-  max-width: var(--layout-narrow);
   padding: var(--space-6);
+}
+
+@media (max-width: 767px) {
+  .example-card {
+    max-width: var(--layout-narrow);
+  }
 }
 
 .example-label {
@@ -443,13 +448,10 @@ ol {
   }
 
   .hero-mark {
-    width: calc(var(--space-16) * 2);
-    height: calc(var(--space-16) * 2);
+    width: var(--space-16);
+    height: var(--space-16);
   }
 
-  .example-card {
-    max-width: none;
-  }
 }
 
 /* Brand moment: the only thing that animates on load. The default style is the
@@ -457,20 +459,20 @@ ol {
 .mark-anim .mark-dot {
   transform-box: fill-box;
   transform-origin: center;
-  animation: mark-dot var(--motion-base) var(--motion-easing) both;
+  animation: mark-dot var(--motion-mark-dot) var(--motion-easing) both;
 }
 
 .mark-anim .mark-ring {
   opacity: 0;
   transform-box: fill-box;
   transform-origin: center;
-  animation: mark-ring 400ms var(--motion-easing) 200ms both;
+  animation: mark-ring var(--motion-mark-ring) var(--motion-easing) var(--motion-mark-ring-delay) both;
 }
 
 .mark-anim .mark-body {
   transform-box: view-box;
   transform-origin: 134px 104px;
-  animation: mark-body 650ms var(--motion-easing) 450ms both;
+  animation: mark-body var(--motion-mark-body) var(--motion-easing) var(--motion-mark-body-delay) both;
 }
 
 @keyframes mark-dot {
@@ -478,6 +480,8 @@ ol {
   to { transform: scale(1); }
 }
 
+/* The ring grows, then fades out and ends invisible: that fade-out is part of the
+   reveal. Nothing fades in; the P body only scales. */
 @keyframes mark-ring {
   from { transform: scale(0.48); opacity: 0; }
   20% { opacity: 1; }
@@ -485,8 +489,8 @@ ol {
 }
 
 @keyframes mark-body {
-  from { transform: scale(0.86); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  from { transform: scale(0.86); }
+  to { transform: scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -528,7 +532,7 @@ ol {
 }
 
 .steps p {
-  max-width: var(--layout-measure);
+  max-width: var(--layout-read);
   color: var(--color-ink-600);
 }
 
@@ -543,7 +547,7 @@ ol {
 
 @media (min-width: 768px) {
   .steps li {
-    grid-template-columns: var(--space-12) minmax(0, 1fr) minmax(0, 2fr);
+    grid-template-columns: var(--space-12) minmax(0, 3fr) minmax(0, 5fr);
     column-gap: var(--space-6);
   }
 
@@ -709,7 +713,7 @@ ol {
 }
 
 .legal-copy {
-  max-width: var(--layout-measure);
+  max-width: var(--layout-read);
   min-width: 0;
 }
 
@@ -770,7 +774,7 @@ ol {
   }
 
   .legal-grid {
-    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-columns: var(--layout-index) minmax(0, 1fr);
     gap: var(--space-16);
     padding-top: var(--space-12);
   }
@@ -873,7 +877,7 @@ ol {
 .footer-about .text-link {
   display: inline-flex;
   align-items: center;
-  min-height: var(--space-6);
+  min-height: var(--target-min-touch);
 }
 
 .footer-fine {
