@@ -1,0 +1,79 @@
+{
+  "source": "https://transitapp.com",
+  "captured": "2026-11-15, 1440x900, single page (9996px tall, so viewport + mid + footer shots), no consent banner shown; Framer site, some below-fold blocks were hidden until scrolled so DOM counts are partial",
+  "tokens": {
+    "spacing": {
+      "scale": [4, 8, 12, 16, 24, 32, 40, 48, 64, 80, 128],
+      "base_unit": 8,
+      "section_gap": "128px (6 of 6 measured gaps)"
+    },
+    "typography": {
+      "families": ["one custom rounded sans in ExtraBold 800, Bold 700, SemiBold 600, Regular 400 (sans-serif count is Framer wrapper noise)"],
+      "scale": [
+        { "role": "h1", "size": "72px/72px", "weight": "800" },
+        { "role": "h2", "size": "60px/60px", "weight": "800" },
+        { "role": "h3", "size": "40px/48px", "weight": "800" },
+        { "role": "feature title / ETA figure", "size": "24px/28px", "weight": "800" },
+        { "role": "lead", "size": "24px/32px", "weight": "400" },
+        { "role": "small title", "size": "20px/24px", "weight": "800" },
+        { "role": "body", "size": "17-18px", "weight": "400" },
+        { "role": "data label (minutes, arrive at)", "size": "13px", "weight": "400-700" },
+        { "role": "micro", "size": "10-11px", "weight": "800" }
+      ]
+    },
+    "colors": [
+      { "role": "page background, warm tint (68%)", "value": "#FDF5F2" },
+      { "role": "card surface, warmer tint (15%)", "value": "#FFEEE6" },
+      { "role": "white panels (7%)", "value": "#FFFFFF" },
+      { "role": "text primary, deep green not black", "value": "#12452B" },
+      { "role": "text on warm cards", "value": "#993300" },
+      { "role": "primary action", "value": "#27A559" },
+      { "role": "data colours: route lines, stop signs, countdown tile", "value": "#024A99 / #A800B0 / orange" },
+      { "role": "muted data text", "value": "#6887AB" }
+    ],
+    "radius": ["32px (cards, 54 uses)", "8px (inner controls, 36 uses)", "16px", "49px (pills)", "80px"],
+    "shadows": ["0 4px 16px rgba(0,51,105,0.08) (only on floating hero trip cards, navy-tinted)"],
+    "image_ratios": [
+      { "usage": "hero collage of cut-out photos (vehicles, buildings, people)", "ratio": "~2.33:1 strip" },
+      { "usage": "phone screenshot", "ratio": "0.58:1" },
+      { "usage": "square-ish stickers", "ratio": "~1:1" }
+    ],
+    "grid": { "max_width": "1282px content in 1440px", "columns": "centred single column; 2-column feature rows", "gutter": "32-40px" },
+    "motion": [
+      "hero objects: 1800ms and 2500ms cubic-bezier(0.44,0,0.56,1), single run",
+      "reviews ticker: 82.4s linear infinite",
+      "no prefers-reduced-motion query; :focus-visible present",
+      "Framer appear-on-scroll is used (banned for PLUG)"
+    ]
+  },
+  "taste": [
+    {
+      "name": "The number is the headline",
+      "trigger": "When showing live trip data inside marketing art",
+      "decision": "Chose a huge numeral with a tiny unit and an explicit clock time (3 / minutes; 36 minutes / Arrive at 17:20) over a sentence or a progress bar alone",
+      "reason": "Because a rider glances for one figure; the clock time lets them check it against reality, which is what makes it trustworthy",
+      "evidence": ["countdown tile: ~40px numeral over 13px unit, ratio ~3:1", "ETA card: 24px/800 figure over 13px/400 arrive time", "route drawn as coloured dotted segments, not decoration"]
+    },
+    {
+      "name": "Warm tint instead of white and black",
+      "trigger": "When choosing neutrals for a long friendly page",
+      "decision": "Chose warm-tinted surfaces (#FDF5F2, #FFEEE6) and deep green text (#12452B) over pure white and #000",
+      "reason": "Because tinted neutrals feel human and lower glare, while dark green still reads as near-black at ~10:1 contrast on #FDF5F2",
+      "evidence": ["#FDF5F2 covers 67.6% of painted area", "#12452B on 83 text nodes", "no pure black text measured"]
+    },
+    {
+      "name": "Tight stacked display, loose body",
+      "trigger": "When setting multi-line headlines in one family",
+      "decision": "Chose line-height 1.0 on 60-72px ExtraBold over the usual 1.2",
+      "reason": "Because tightly stacked heavy lines read as one block, leaving the airy 17-18px body to do the explaining",
+      "evidence": ["h1 72/72", "h2 60/60", "h3 40/48 (1.2) only from 40px down", "weights 800 (69) and 400 (111) dominate"]
+    },
+    {
+      "name": "Big rhythm, no rules",
+      "trigger": "When separating ~9 sections on a 10,000px page",
+      "decision": "Chose one fixed 128px gap between every section over dividers or alternating backgrounds",
+      "reason": "Because a constant pause teaches the reader where a topic ends without extra marks",
+      "evidence": ["6 of 6 measured section gaps = 128px", "single hairline only above footer", "cards inside sections at 32px radius, controls at 8px"]
+    }
+  ]
+}

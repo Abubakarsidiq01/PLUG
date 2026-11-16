@@ -1,0 +1,81 @@
+{
+  "source": "https://www.toogoodtogo.com/en-us",
+  "captured": "2026-11-15, 1440x900, single page, cookie banner declined before capture",
+  "tokens": {
+    "spacing": {
+      "scale": [4, 8, 12, 16, 24, 32, 40, 56, 120],
+      "base_unit": 8,
+      "section_padding_y": "120px"
+    },
+    "typography": {
+      "families": ["Korolev (display, condensed, uppercase)", "Tenon (body and UI)"],
+      "scale": [
+        { "role": "footer wordmark", "size": "~200px", "weight": "900", "family": "Korolev" },
+        { "role": "h1 hero", "size": "72px/72px", "weight": "900", "family": "Korolev", "transform": "uppercase", "tracking": "normal" },
+        { "role": "section statement", "size": "44px", "weight": "900", "family": "Korolev" },
+        { "role": "h2", "size": "32px/48px", "weight": "400", "family": "Tenon" },
+        { "role": "h3", "size": "24px/31.2px", "weight": "900", "family": "Korolev", "transform": "uppercase" },
+        { "role": "body", "size": "16px/24px", "weight": "400", "family": "Tenon" },
+        { "role": "button", "size": "16px", "weight": "500", "family": "Tenon" },
+        { "role": "nav and small", "size": "14px", "weight": "400-500", "family": "Tenon" },
+        { "role": "legal", "size": "12px", "weight": "400", "family": "Tenon" }
+      ]
+    },
+    "colors": [
+      { "role": "surface-warm (71% of painted area)", "value": "#F9F3F0" },
+      { "role": "brand surface (18%)", "value": "#00615F" },
+      { "role": "brand surface deep, footer (9%)", "value": "#005250" },
+      { "role": "text on light", "value": "#012625" },
+      { "role": "dark CTA on cream nav", "value": "#252D2D" },
+      { "role": "secondary text", "value": "#5F6D6D" },
+      { "role": "hairline / muted on dark", "value": "#DEE3E3" },
+      { "role": "spot accent, under 1% area", "value": "#67D695" },
+      { "role": "spot highlight text", "value": "#FFFB9B" }
+    ],
+    "radius": ["0px (all photography)", "120px (every button, pill)", "100% (avatars, icons)"],
+    "shadows": [],
+    "image_ratios": [
+      { "usage": "hero, full bleed", "ratio": "1440x840 (~1.71:1)" },
+      { "usage": "product tiles", "ratio": "1:1 at 442px / 282px / 286px" },
+      { "usage": "bag feature cut-out", "ratio": "1.39:1" }
+    ],
+    "grid": { "max_width": "full bleed 1440px", "columns": 3, "template": "321.5px 637px 321.5px (1:2:1)", "gutter": "56px row / 16px column" },
+    "buttons": { "large": "51px tall, 16px/24px padding", "small": "41px tall, 12px/16px padding" },
+    "motion": [
+      "nav background-color + backdrop-filter 240ms cubic-bezier(0,0,0.4,1)",
+      "button background-color + color 300ms cubic-bezier(0.42,0,0.58,1)",
+      "opacity 500ms ease-in-out",
+      "prefers-reduced-motion respected; :focus-visible present"
+    ]
+  },
+  "taste": [
+    {
+      "name": "Two surfaces, no containers",
+      "trigger": "When grouping many content blocks on a long marketing page",
+      "decision": "Chose full-bleed swaps between two surfaces (#F9F3F0 cream, #00615F teal) over cards, borders or shadows",
+      "reason": "Because a whole-width colour change reads as a new chapter at a glance, without the visual noise of boxed tiles",
+      "evidence": ["0 card candidates detected", "0 box-shadows", "cream 71.3% + teal 27.3% of painted area", "sections pad 120px top and bottom"]
+    },
+    {
+      "name": "A shouting voice used sparingly",
+      "trigger": "When the brand needed energy without making long text tiring",
+      "decision": "Chose a condensed 900-weight uppercase display face for 3 roles only (h1, h3, footer wordmark) over one face doing everything",
+      "reason": "Because a loud short line gets noticed, and the plain body face keeps the 16px/24px reading text easy",
+      "evidence": ["Korolev 101 text nodes vs Tenon 363", "h1 72/72 900 uppercase", "h2 drops to Tenon 32/48 weight 400", "letter-spacing normal everywhere"]
+    },
+    {
+      "name": "Real food, real people, square corners",
+      "trigger": "When proving that the product is about actual local shops",
+      "decision": "Chose unrounded photographs of people and food in 1:1 tiles over illustrations or rounded thumbnails",
+      "reason": "Because a raw rectangular photo reads as a document of a real place, a rounded one reads as an app asset",
+      "evidence": ["every img radius 0px", "1:1 tiles at 442/282px", "1440x840 hero photo of a person", "collage mid-page with overlapping rectangles"]
+    },
+    {
+      "name": "Colour change is the only motion",
+      "trigger": "When adding feedback to nav and buttons",
+      "decision": "Chose 240-300ms colour and opacity fades over transform, bounce or scale effects",
+      "reason": "Because the page is selling calm everyday habits; nothing should jump",
+      "evidence": ["transitions animate background-color, color, opacity, filter only", "cubic-bezier(0,0,0.4,1) 240ms on nav", "reduced-motion query present"]
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "source": "https://www.are.na",
+  "captured": "2026-11-15, 1440x900, homepage only, logged out",
+  "tokens": {
+    "spacing": {
+      "scale": [2.5, 5, 7.5, 10, 15, 20, 25, 35, 45, 65, 80, 130],
+      "base_unit": 2.5,
+      "notes": "Most frequent: 2.5px (42), 5px (41), 10px (39), 15px (32). Section gaps 130px between feature blocks, 455-536px around the hero and product demo."
+    },
+    "typography": {
+      "families": ["areal (custom, single family)"],
+      "scale": [
+        { "role": "h1 / hero statement", "size": "19.2px", "weight": "400", "line_height": "27.84px", "family": "areal" },
+        { "role": "h2 section title", "size": "19.2px", "weight": "700", "line_height": "27.84px", "family": "areal" },
+        { "role": "nav / UI emphasis", "size": "16px", "weight": "400", "family": "areal" },
+        { "role": "button label", "size": "14.4px", "weight": "700", "family": "areal" },
+        { "role": "body small / captions", "size": "12.5px", "weight": "400", "line_height": "16.875px", "family": "areal" },
+        { "role": "micro label", "size": "10px", "weight": "400", "family": "areal" }
+      ],
+      "weights": ["400 (152 uses)", "700 (25)", "600 (12)"],
+      "letter_spacing": "normal everywhere, including buttons"
+    },
+    "colors": [
+      { "role": "page background", "value": "#FFFFFF" },
+      { "role": "surface / product frame fill (57.7% of painted area)", "value": "#F7F7F7" },
+      { "role": "secondary button fill, hover surface", "value": "#EDEDED" },
+      { "role": "hairline rules", "value": "#DEDEDE" },
+      { "role": "text primary", "value": "#333333" },
+      { "role": "text strong", "value": "#000000" },
+      { "role": "text secondary", "value": "#696969" },
+      { "role": "text tertiary", "value": "#999999" },
+      { "role": "single accent: primary button + footer slab only", "value": "#00075F" }
+    ],
+    "radius": ["3px (31 uses: buttons, chips)", "50% (avatars)", "10px / 18px (product screenshot frame, one-off)"],
+    "shadows": ["0 0 34px rgba(0,0,0,0.05) (product screenshot frame only, 4 uses)"],
+    "motion": {
+      "durations_ms": [50, 120, 150, 180, 240, 350],
+      "easings": ["cubic-bezier(0.16, 1, 0.3, 1)", "cubic-bezier(0.22, 1, 0.36, 1)", "ease"],
+      "properties": ["opacity", "transform", "color"],
+      "reduced_motion": true,
+      "focus_visible": true
+    },
+    "image_ratios": [
+      { "usage": "product demo frame", "ratio": "1.46:1" },
+      { "usage": "editorial thumbnails", "ratio": "1:1 (120px squares beside text)" },
+      { "usage": "community block thumbnails", "ratio": "0.75:1 to 1.69:1, natural ratio kept" }
+    ],
+    "grid": { "max_width": "640px text column (x=393 to x=1032 at 1440)", "columns": 3, "gutter": "15px horizontal, 45px vertical", "column_width": "334.5px" },
+    "buttons": { "height": "~34px", "padding_x": "15px", "font": "14.4px / 700", "radius": "3px", "primary": "#00075F fill, white text", "secondary": "#F7F7F7 fill, #333333 text, no border" }
+  },
+  "taste": [
+    {
+      "name": "Headline at reading size",
+      "trigger": "When introducing the product above the fold",
+      "decision": "Chose a 19.2px regular-weight h1 that is the same size as the section titles over a 48-72px display headline",
+      "reason": "Because a visitor who is addressed at reading volume reads a sentence instead of scanning a slogan; nothing is shouted, so nothing feels sold",
+      "evidence": ["h1 19.2px/400 and h2 19.2px/700: hierarchy by weight only", "five sizes total: 10, 12.5, 14.4, 16, 19.2px", "letter-spacing normal on every element"]
+    },
+    {
+      "name": "One accent, spent twice",
+      "trigger": "When choosing where colour may appear on a grey-and-white page",
+      "decision": "Chose a single dark navy (#00075F) for the primary button and the footer slab only, over tinting links, icons or section backgrounds",
+      "reason": "Because when colour appears in exactly one interactive place, the eye finds the next step without being told",
+      "evidence": ["#00075F: 3 elements, 11% of painted area, all of it footer", "every other surface is pure grey #F7F7F7/#EDEDED/#DEDEDE", "secondary button is #F7F7F7 fill with no border"]
+    },
+    {
+      "name": "Proof that is computed, not claimed",
+      "trigger": "When showing longevity and community size",
+      "decision": "Chose an inline bold running counter ('N years and N days') and an exact member count inside prose over stat tiles, logo walls or testimonials",
+      "reason": "Because an exact, odd number set in a sentence reads as a fact somebody measured; a rounded '10k+' tile reads as marketing",
+      "evidence": ["hero sentence with bold duration, weight 700 inside 19.2px body", "exact supporter count inside the mission-section prose", "no logo wall, no star ratings on the page"]
+    },
+    {
+      "name": "Short, decelerating motion",
+      "trigger": "When adding hover and state transitions",
+      "decision": "Chose 150-240ms opacity/transform transitions on an expo-out curve over long springy or scroll-triggered entrances",
+      "reason": "Because motion that finishes before the finger leaves the trackpad feels like response, not performance",
+      "evidence": ["22 elements: color 150ms, opacity/transform 180ms cubic-bezier(0.16,1,0.3,1)", "11 elements: transform 240ms cubic-bezier(0.22,1,0.36,1)", "prefers-reduced-motion and :focus-visible both present"]
+    }
+  ]
+}
