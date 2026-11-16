@@ -11,7 +11,6 @@ export default function Privacy() {
   return (
     <LegalPage
       title="Privacy Policy"
-      lede="A starter draft, written for private-test review."
       updated="Dated September 30, 2026."
       sections={legal.privacy.sections}
     />

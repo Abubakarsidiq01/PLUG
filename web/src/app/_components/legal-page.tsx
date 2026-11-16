@@ -6,14 +6,12 @@ import { LegalCopy, sectionId, type LegalSection } from "./legal-copy";
 // an on-this-page index on wide screens, and the text at a readable measure.
 export function LegalPage({
   title,
-  lede,
   updated,
   sections,
   action,
   children,
 }: {
   title: string;
-  lede: string;
   updated: string;
   sections: LegalSection[];
   action?: ReactNode;
@@ -24,7 +22,6 @@ export function LegalPage({
       <header className="page-head">
         <div className="container">
           <h1 className="title1">{title}</h1>
-          <p className="page-lede">{lede}</p>
           <p className="page-date">{updated}</p>
           {action ? <div className="page-action">{action}</div> : null}
         </div>

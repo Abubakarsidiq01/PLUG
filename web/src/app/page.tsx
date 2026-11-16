@@ -151,7 +151,7 @@ export default function Home() {
               <li>Nobody is contacted and nothing is booked yet.</li>
             </ul>
             <div id="offer" className="offer-section">
-              <h3 className="title2">Put your skills on PLUG</h3>
+              <h3 className="title3">Put your skills on PLUG</h3>
               <p>Invited testers can offer a service from the same account. Describe what
                 you do, confirm your skills and choose your travel area and hours.
                 Inbox delivery and booking come later.</p>
