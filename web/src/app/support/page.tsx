@@ -14,16 +14,15 @@ export default function Support() {
   return (
     <LegalPage
       title="Support"
-      lede="Starter draft for private-test review · September 30, 2026"
+      updated="Dated September 30, 2026."
       sections={legal.support.sections}
       action={<a href={`mailto:${CONTACT_EMAIL}`} className="button button-primary">Contact support</a>}
     >
       <section id="join" className="join-note" aria-labelledby="join-h">
-        <h2 id="join-h" className="title3">Joining the private test</h2>
+        <h2 id="join-h" className="title2">Joining the private test</h2>
         <p>
           PLUG is in an invite-only test on iPhone. There is no sign-up form or waiting list.
-          To ask about taking part, as a person or as a local business, email{" "}
-          <a href={`mailto:${CONTACT_EMAIL}?subject=PLUG%20private%20test`} className="text-link">{CONTACT_EMAIL}</a>.
+          To ask about taking part, as a person or as a local business, use the Contact support button above.
           Asking does not guarantee an invitation.
         </p>
       </section>

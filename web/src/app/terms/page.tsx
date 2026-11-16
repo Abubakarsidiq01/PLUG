@@ -11,7 +11,7 @@ export default function Terms() {
   return (
     <LegalPage
       title="Terms of Service"
-      lede="Starter draft for private-test review · September 30, 2026"
+      updated="Dated September 30, 2026."
       sections={legal.terms.sections}
     />
   );

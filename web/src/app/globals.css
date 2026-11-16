@@ -1,11 +1,8 @@
-/* Generated design tokens are the only source of colour, space, radius, type and
-   duration values (design/tokens.json._rules). No dark mode in V1, by decision.
-   Layout constants that are not tokens come from manual.docx Figure 7 "Layout
-   grid": 1200px web container, 24px gutters (16px on phones), 72ch measure. */
+/* Generated design tokens are the only source of colour, space, radius, type, layout
+   and duration values (design/tokens.json._rules). No dark mode in V1, by decision. */
 @import "../../../design/generated/tokens.css";
 
 /* ---- Base --------------------------------------------------------------------- */
-
 *,
 *::before,
 *::after {
@@ -45,12 +42,11 @@ ol {
   list-style: none;
 }
 
-/* design/tokens.json target.focusRing: "2px solid {color.brand.600}, 2px offset".
-   Never removed without this replacement. */
+/* Ink ring, 2px offset, never removed without this replacement. */
 :focus-visible {
-  outline: 2px solid var(--color-brand-600);
+  outline: 2px solid var(--color-ink-900);
   outline-offset: 2px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-badge);
 }
 
 .site-main {
@@ -76,7 +72,7 @@ ol {
 
 .container {
   width: 100%;
-  max-width: 1200px;
+  max-width: var(--layout-page);
   margin: 0 auto;
   padding: 0 var(--space-4);
 }
@@ -103,9 +99,9 @@ ol {
   left: var(--space-2);
   z-index: 10;
   padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: var(--color-ink-900);
-  color: var(--color-surface-0);
+  color: var(--color-card);
   font-weight: var(--type-label-weight);
   transform: translateY(-200%);
 }
@@ -114,8 +110,7 @@ ol {
   transform: none;
 }
 
-/* ---- Type scale (Figure 7) ----------------------------------------------------- */
-
+/* ---- Type scale ---------------------------------------------------------------- */
 .display {
   font-size: var(--type-display-size);
   line-height: var(--type-display-line);
@@ -144,18 +139,16 @@ ol {
   letter-spacing: var(--type-title3-tracking);
 }
 
-/* Sentence-case labels from the v4 type scale. */
+/* Sentence-case small text. Kept for the admin pages that still use it. */
 .overline {
   font-size: var(--type-label-size);
   line-height: var(--type-label-line);
   font-weight: var(--type-label-weight);
-  letter-spacing: 0;
-  text-transform: none;
   color: var(--color-ink-600);
 }
 
 .text-link {
-  color: var(--color-brand-600);
+  color: var(--color-ink-900);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: var(--space-1);
@@ -164,11 +157,10 @@ ol {
 }
 
 .text-link:hover {
-  color: var(--color-brand-700);
+  color: var(--color-ink-600);
 }
 
-/* ---- Buttons (§11.1): 40px web height, 8px radius, darken on hover ------------ */
-
+/* ---- Buttons: ink primary, darken or fill on hover and press -------------------- */
 .button {
   display: inline-flex;
   align-items: center;
@@ -176,7 +168,7 @@ ol {
   min-height: var(--target-min-touch);
   padding: 0 var(--space-4);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   font-size: var(--type-bodyLg-size);
   line-height: var(--type-bodyLg-line);
   font-weight: var(--type-label-weight);
@@ -187,78 +179,81 @@ ol {
 }
 
 .button-primary {
-  background: var(--color-brand-600);
-  color: var(--color-surface-0);
+  background: var(--color-ink-900);
+  color: var(--color-card);
 }
 
-.button-primary:hover {
-  background: var(--color-brand-700);
+.button-primary:hover,
+.button-primary:active {
+  background: var(--color-ink-950);
 }
 
 .button-secondary {
-  border-color: var(--color-line-300);
-  background: var(--color-surface-0);
+  border-color: var(--color-rule-control);
+  background: var(--color-card);
   color: var(--color-ink-900);
 }
 
-.button-secondary:hover {
-  background: var(--color-surface-50);
-  border-color: var(--color-ink-400);
+.button-secondary:hover,
+.button-secondary:active {
+  background: var(--color-sunk);
 }
 
-/* ---- Cards (§11.4): flat, 1px line.200, 10px radius, no shadow ------------------ */
-
+/* ---- Cards: flat, 1px rule, brighter surface instead of a shadow --------------- */
 .card {
   border: var(--elevation-flat);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-0);
+  border-radius: var(--radius-card);
+  background: var(--color-card);
 }
 
-/* ---- Truth badges (§11.2): the only place truth colours appear ------------------ */
-
+/* ---- Truth badges: the only place saturated colour appears --------------------- */
 .truth-badge {
   display: inline-flex;
   align-items: center;
   padding: var(--space-1) var(--space-2);
   border: 1px solid;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-badge);
   font-size: var(--type-label-size);
   line-height: var(--type-label-line);
   font-weight: var(--type-label-weight);
-  letter-spacing: 0;
-  text-transform: none;
   white-space: nowrap;
 }
 
 .truth-confirmed {
   color: var(--color-truth-confirmed);
   background: var(--color-truthSurface-confirmed);
-  border-color: color-mix(in srgb, var(--color-truth-confirmed) 30%, var(--color-truthSurface-confirmed));
+  border-color: var(--color-truthBorder-confirmed);
 }
 
 .truth-recent {
   color: var(--color-truth-recent);
   background: var(--color-truthSurface-recent);
-  border-color: color-mix(in srgb, var(--color-truth-recent) 30%, var(--color-truthSurface-recent));
+  border-color: var(--color-truthBorder-recent);
 }
 
 .truth-estimated {
   color: var(--color-truth-estimated);
   background: var(--color-truthSurface-estimated);
-  border-color: color-mix(in srgb, var(--color-truth-estimated) 30%, var(--color-truthSurface-estimated));
+  border-color: var(--color-truthBorder-estimated);
 }
 
 .truth-unknown {
   color: var(--color-truth-unknown);
   background: var(--color-truthSurface-unknown);
-  border-color: color-mix(in srgb, var(--color-truth-unknown) 30%, var(--color-truthSurface-unknown));
+  border-color: var(--color-truthBorder-unknown);
 }
 
-/* ---- Header ------------------------------------------------------------------- */
+/* Web sources can never take the filled human badge. */
+.truth-not_verified {
+  color: var(--color-truth-unknown);
+  background: transparent;
+  border: 1px dashed var(--color-truthBorder-unknown);
+}
 
+/* ---- Header: on card, one rule under it ---------------------------------------- */
 .site-header {
-  border-bottom: var(--elevation-flat);
-  background: var(--color-surface-0);
+  border-bottom: 1px solid var(--color-rule-200);
+  background: var(--color-card);
 }
 
 .site-header-inner {
@@ -272,28 +267,14 @@ ol {
 .logo {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-3);
   min-height: var(--target-min-touch);
   color: var(--color-ink-900);
 }
 
-/* The mark is the letter P: its bowl (48 of 80 units) matches the capital height
-   (0.7em in Public Sans) and its tail drops below the baseline like a descender. */
-.logo-mark {
-  display: inline-block;
-  height: 1.17em;
+.logo-type {
+  display: block;
+  height: var(--space-8);
   width: auto;
-  margin-right: 0.03em;
-  vertical-align: -0.41em;
-}
-
-/* Same weight as the app's logotype; sized to the old tile's 32 px presence. */
-.logo-word {
-  font-size: 1.5rem;
-  line-height: 1;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
 }
 
 .site-nav ul {
@@ -326,24 +307,17 @@ ol {
   }
 }
 
-/* ---- Bands -------------------------------------------------------------------- */
-
+/* ---- Bands: full-bleed surface steps, no boxes or hairlines --------------------- */
 .band {
   padding: var(--space-12) 0;
 }
 
+.band-card {
+  background: var(--color-card);
+}
+
 .band-muted {
-  background: var(--color-surface-50);
-  border-top: var(--elevation-flat);
-  border-bottom: var(--elevation-flat);
-}
-
-.band-ruled {
-  border-top: var(--elevation-flat);
-}
-
-.band .overline + .title2 {
-  margin-top: var(--space-2);
+  background: var(--color-sunk);
 }
 
 @media (min-width: 1024px) {
@@ -352,8 +326,7 @@ ol {
   }
 }
 
-/* ---- Home: hero --------------------------------------------------------------- */
-
+/* ---- Home: hero ---------------------------------------------------------------- */
 .hero {
   padding: var(--space-12) 0;
 }
@@ -364,15 +337,25 @@ ol {
   align-items: center;
 }
 
-.hero h1 {
-  max-width: 16em;
+.hero-copy,
+.hero-grid > *,
+.split > * {
+  min-width: 0;
+}
+
+.hero-mark {
+  display: block;
+  width: var(--space-12);
+  height: var(--space-12);
+  margin-bottom: var(--space-6);
+  color: var(--color-ink-900);
 }
 
 .lede {
   margin-top: var(--space-4);
-  max-width: 34em;
+  max-width: var(--layout-read);
   font-size: var(--type-title3-size);
-  line-height: var(--type-title2-line); /* title3 size, title2 line: the hero's one long paragraph */
+  line-height: var(--type-title3-line);
   color: var(--color-ink-600);
 }
 
@@ -391,8 +374,14 @@ ol {
 }
 
 .example-card {
-  max-width: 480px;
+  max-width: var(--layout-narrow);
   padding: var(--space-6);
+}
+
+.example-label {
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
+  color: var(--color-ink-600);
 }
 
 .example-quote {
@@ -402,6 +391,11 @@ ol {
   font-size: var(--type-title2-size);
   line-height: var(--type-title2-line);
   font-weight: var(--type-title2-weight);
+}
+
+.example-caption {
+  margin-top: var(--space-4);
+  color: var(--color-ink-600);
 }
 
 .kv-row {
@@ -437,53 +431,139 @@ ol {
     gap: var(--space-16);
   }
 
-  .example-card {
-    max-width: none;
+  .hero h1 {
+    font-size: var(--type-hero-size);
+    line-height: var(--type-hero-line);
+    font-weight: var(--type-hero-weight);
+    letter-spacing: var(--type-hero-tracking);
+  }
+
+  .hero-mark {
+    width: var(--space-16);
+    height: var(--space-16);
+  }
+
+}
+
+/* Brand moment: the only thing that animates on load. The default style is the
+   final frame; reduced motion keeps it. Timeline inside --motion-reveal (1100ms). */
+.mark-anim .mark-dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mark-dot var(--motion-mark-dot) var(--motion-easing) both;
+}
+
+.mark-anim .mark-ring {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mark-ring var(--motion-mark-ring) var(--motion-easing) var(--motion-mark-ring-delay) both;
+}
+
+.mark-anim .mark-body {
+  transform-box: view-box;
+  transform-origin: 134px 104px;
+  animation: mark-body var(--motion-mark-body) var(--motion-easing) var(--motion-mark-body-delay) both;
+}
+
+@keyframes mark-dot {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
+
+/* The ring grows, then fades out and ends invisible: that fade-out is part of the
+   reveal. Nothing fades in; the P body only scales. */
+@keyframes mark-ring {
+  from { transform: scale(0.48); opacity: 0; }
+  20% { opacity: 1; }
+  to { transform: scale(1); opacity: 0; }
+}
+
+@keyframes mark-body {
+  from { transform: scale(0.86); }
+  to { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark-anim .mark-dot,
+  .mark-anim .mark-ring,
+  .mark-anim .mark-body {
+    animation: none;
   }
 }
 
-/* ---- Home: how it works ------------------------------------------------------- */
-
+/* ---- Home: one worked sequence -------------------------------------------------- */
 .steps {
   display: grid;
   gap: var(--space-8);
   margin-top: var(--space-8);
+  counter-reset: step;
 }
 
-.steps h3 {
-  margin-bottom: var(--space-2);
+.steps li {
+  display: grid;
+  grid-template-columns: var(--space-8) minmax(0, 1fr);
+  column-gap: var(--space-4);
+  row-gap: var(--space-2);
+  counter-increment: step;
+}
+
+.steps li::before {
+  content: counter(step);
+  grid-row: 1 / span 2;
+  font-size: var(--type-title1-size);
+  line-height: var(--type-title1-line);
+  font-weight: var(--type-title1-weight);
+  letter-spacing: var(--type-title1-tracking);
+}
+
+.steps h3,
+.steps li > div {
+  grid-column: 2;
 }
 
 .steps p {
-  max-width: 72ch;
+  max-width: var(--layout-read);
   color: var(--color-ink-600);
 }
 
+.steps .step-result {
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+  background: var(--color-paper);
+  color: var(--color-ink-900);
+  font-weight: var(--type-label-weight);
+}
+
 @media (min-width: 768px) {
-  .steps {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-6);
+  .steps li {
+    grid-template-columns: var(--space-12) minmax(0, 2fr) minmax(0, 5fr);
+    column-gap: var(--space-6);
+    align-items: start;
+  }
+
+  .steps li::before {
+    grid-row: 1;
+  }
+
+  .steps h3,
+  .steps li > div {
+    grid-column: auto;
   }
 }
 
-@media (min-width: 1024px) {
-  .steps {
-    gap: var(--space-12);
-  }
-}
-
-/* ---- Home: two-column sections ------------------------------------------------ */
-
+/* ---- Home: two-column sections ------------------------------------------------- */
 .split {
   display: grid;
   gap: var(--space-8);
   align-items: start;
 }
 
-.split-intro > p:not(.overline),
+.split-intro > p,
 .split-intro > ul {
   margin-top: var(--space-4);
-  max-width: 72ch;
+  max-width: var(--layout-read);
   color: var(--color-ink-600);
 }
 
@@ -505,13 +585,11 @@ ol {
 
 .truth-table thead th {
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid var(--color-line-300);
-  background: var(--color-surface-50);
+  border-bottom: 1px solid var(--color-rule-300);
+  background: var(--color-paper);
   font-size: var(--type-label-size);
   line-height: var(--type-label-line);
   font-weight: var(--type-label-weight);
-  letter-spacing: 0;
-  text-transform: none;
   text-align: left;
   color: var(--color-ink-600);
 }
@@ -532,10 +610,6 @@ ol {
 .truth-table tbody tr:last-child th,
 .truth-table tbody tr:last-child td {
   border-bottom: 0;
-}
-
-.truth-table td {
-  color: var(--color-ink-900);
 }
 
 .plain-list {
@@ -563,10 +637,13 @@ ol {
   left: var(--space-2);
 }
 
-.aside-note {
-  margin-top: var(--space-6);
-  padding-top: var(--space-6);
-  border-top: var(--elevation-flat);
+.offer-section {
+  margin-top: var(--space-8);
+}
+
+.offer-section p {
+  max-width: var(--layout-read);
+  margin-top: var(--space-3);
 }
 
 .rules-card {
@@ -584,20 +661,25 @@ ol {
   padding-left: var(--space-4);
 }
 
-/* ---- Legal, support ----------------------------------------------------------- */
+/* ---- Legal, support ------------------------------------------------------------ */
+.legal {
+  background: var(--color-card);
+}
 
 .page-head {
   padding: var(--space-12) 0 var(--space-8);
-  border-bottom: var(--elevation-flat);
-  background: var(--color-surface-50);
-}
-
-.page-head .title1 {
-  margin-top: var(--space-2);
+  background: var(--color-paper);
 }
 
 .page-lede {
   margin-top: var(--space-2);
+  color: var(--color-ink-600);
+}
+
+.page-date {
+  margin-top: var(--space-1);
+  font-size: var(--type-body-size);
+  line-height: var(--type-body-line);
   color: var(--color-ink-600);
 }
 
@@ -616,8 +698,15 @@ ol {
   display: none;
 }
 
+.legal-index-title {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  color: var(--color-ink-600);
+}
+
 .legal-copy {
-  max-width: 72ch;
+  max-width: var(--layout-read);
   min-width: 0;
 }
 
@@ -640,9 +729,8 @@ ol {
 
 .legal-draft {
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-brand-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-brand-50);
+  border-radius: var(--radius-card);
+  background: var(--color-sunk);
 }
 
 .legal-copy p.legal-draft {
@@ -651,9 +739,6 @@ ol {
 
 .join-note {
   margin-bottom: var(--space-8);
-  padding: var(--space-6);
-  border: var(--elevation-flat);
-  border-radius: var(--radius-lg);
 }
 
 .legal-copy .join-note {
@@ -673,9 +758,7 @@ ol {
 }
 
 .legal-back {
-  margin-top: var(--space-8);
-  padding-top: var(--space-8);
-  border-top: var(--elevation-flat);
+  margin-top: var(--space-4);
 }
 
 @media (min-width: 1024px) {
@@ -684,7 +767,7 @@ ol {
   }
 
   .legal-grid {
-    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-columns: var(--layout-index) minmax(0, 1fr);
     gap: var(--space-16);
     padding-top: var(--space-12);
   }
@@ -714,30 +797,30 @@ ol {
   }
 
   .legal-index a:hover {
-    color: var(--color-brand-700);
+    color: var(--color-ink-900);
     text-decoration: underline;
     text-underline-offset: var(--space-1);
   }
 }
 
-/* ---- Admin and 404 notice ----------------------------------------------------- */
-
+/* ---- 404 and closed admin: the notice sits in the middle of the free space ------ */
 .notice-page {
-  padding: var(--space-12) 0 var(--space-16);
-  background: var(--color-surface-50);
+  display: flex;
+  align-items: center;
+  padding: var(--space-12) 0;
 }
 
 .notice-card {
-  max-width: 640px;
+  max-width: var(--layout-measure);
   margin: 0 auto;
   padding: var(--space-8) var(--space-6);
 }
 
 .notice-card .title1 {
-  margin: var(--space-2) 0 var(--space-3);
+  margin: 0 0 var(--space-3);
 }
 
-.notice-card p:not(.overline) {
+.notice-card p {
   color: var(--color-ink-600);
 }
 
@@ -749,11 +832,16 @@ ol {
   margin-top: var(--space-6);
 }
 
-/* ---- Footer (Figure 14) ------------------------------------------------------- */
+.notice-actions a:not(.button) {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target-min-touch);
+}
 
+/* ---- Footer: on paper ------------------------------------------------------------ */
 .site-footer {
-  border-top: var(--elevation-flat);
-  background: var(--color-surface-50);
+  border-top: 1px solid var(--color-rule-200);
+  background: var(--color-paper);
 }
 
 .site-footer-inner {
@@ -775,14 +863,14 @@ ol {
 .footer-name {
   font-size: var(--type-title3-size);
   line-height: var(--type-title3-line);
-  font-weight: var(--type-display-weight);
+  font-weight: var(--type-title3-weight);
   color: var(--color-ink-900);
 }
 
 .footer-about .text-link {
   display: inline-flex;
   align-items: center;
-  min-height: var(--space-6);
+  min-height: var(--target-min-touch);
 }
 
 .footer-fine {
@@ -797,11 +885,18 @@ ol {
   gap: var(--space-6);
 }
 
+.footer-heading {
+  font-size: var(--type-label-size);
+  line-height: var(--type-label-line);
+  font-weight: var(--type-label-weight);
+  color: var(--color-ink-600);
+}
+
 .footer-group ul {
   margin-top: var(--space-2);
 }
 
-/* 44px rows keep every footer link a full touch target (tokens.json target.minTouch). */
+/* 44px rows keep every footer link a full touch target. */
 .footer-group a {
   display: inline-flex;
   align-items: center;
@@ -814,7 +909,7 @@ ol {
 }
 
 .footer-group a:hover {
-  color: var(--color-brand-700);
+  color: var(--color-ink-600);
   text-decoration: underline;
   text-underline-offset: var(--space-1);
 }
@@ -830,35 +925,31 @@ ol {
   }
 }
 
-/* design/tokens.json motion.reducedMotion: all durations resolve to 0ms. */
+@media (max-width: 359px) {
+  .truth-table tbody th,
+  .truth-table tbody td {
+    padding: var(--space-3) var(--space-2);
+  }
+
+  .footer-nav {
+    gap: var(--space-3);
+  }
+
+  .button {
+    white-space: normal;
+    padding-block: var(--space-2);
+    text-align: center;
+  }
+}
+
+/* All durations resolve to 0ms when the user asks for reduced motion. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     transition-duration: 0ms !important;
-    animation-duration: 0ms !important;
     scroll-behavior: auto !important;
   }
-}
-
-/* v4 evidence: web sources can never take the filled human badge. */
-.truth-not_verified {
-  color: var(--color-truth-unknown);
-  background: transparent;
-  border: 1px dashed var(--color-truthBorder-unknown);
-}
-
-.hero-copy, .hero-grid > *, .split > * { min-width: 0; }
-.hero h1 { max-width: 15ch; }
-.example-card { background: var(--color-card); }
-.example-caption { margin-top: var(--space-4); color: var(--color-ink-600); }
-.offer-section { padding: var(--space-6); background: var(--color-sunk); border-radius: var(--radius-card); }
-.offer-section p { margin-top: var(--space-3); }
-.steps li { padding-top: var(--space-4); border-top: 1px solid var(--color-rule-300); }
-@media (max-width: 359px) {
-  .truth-table tbody th, .truth-table tbody td { padding: var(--space-3) var(--space-2); }
-  .footer-nav { gap: var(--space-3); }
-  .button { white-space: normal; padding-block: var(--space-2); text-align: center; }
 }
 
 /* ---- Admin inspector (manual v4 P2-TWO.S12) ------------------------------------- */
@@ -992,7 +1083,7 @@ ol {
   width: 100%;
   min-height: var(--target-min-touch);
   padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--color-ink-400);
+  border: 1px solid var(--color-rule-control);
   border-radius: var(--radius-md);
   background: var(--color-surface-0);
   color: var(--color-ink-900);

@@ -1,0 +1,76 @@
+{
+  "source": "https://teenage.engineering",
+  "captured": "2026-11-15, 1440x900, homepage only (currently a single-product campaign page)",
+  "tokens": {
+    "spacing": {
+      "unit": "u = viewport width / 196 = 7.347px at 1440",
+      "scale": [7.347, 14.694, 22.041, 33.061, 66.122],
+      "scale_in_units": [1, 2, 3, 4.5, 9],
+      "base_unit": 7.347,
+      "notes": "Every measured length is a multiple of u: grid row gap 2u, list gap 3u, footer padding 4.5u x 9u, radius 1u. The whole page scales with width instead of snapping at breakpoints."
+    },
+    "typography": {
+      "families": ["te-20 (custom, ~241 uses)", "TechnoType (campaign display, 6 uses)"],
+      "scale": [
+        { "role": "campaign display (uppercase)", "size": "39.67px (5.4u)", "weight": "400", "family": "TechnoType" },
+        { "role": "nav section word", "size": "~28px ~approx", "weight": "100", "family": "te-20" },
+        { "role": "body / footer links", "size": "19.1px (2.6u)", "weight": "100", "line_height": "22.04px (3u)", "family": "te-20" },
+        { "role": "nav sub-links", "size": "16px", "weight": "100", "family": "te-20" },
+        { "role": "micro (Japanese mission block)", "size": "9px", "weight": "100-300", "family": "te-20" }
+      ],
+      "weights": ["100 (51 uses)", "300 (3)", "400 (2)", "700 (2)"],
+      "case": "all navigation and footer text set lowercase"
+    },
+    "colors": [
+      { "role": "page background (100% of painted area)", "value": "#000000" },
+      { "role": "text primary", "value": "#F1F2F2" },
+      { "role": "text secondary", "value": "#E5E5E5" },
+      { "role": "colour only inside product photography (orange controls)", "value": "photographic, no CSS accent" }
+    ],
+    "radius": ["7.347px (1u, 2 uses)", "0px everywhere else"],
+    "shadows": [],
+    "motion": {
+      "durations_ms": [150, 200, 500],
+      "easings": ["ease", "ease-in", "ease-out"],
+      "properties": ["background-color", "color", "opacity", "transform"],
+      "notes": "Hover = 150-200ms colour swap; image sequence crossfades 500ms ease-out. No keyframe animations, no WAAPI animations running.",
+      "reduced_motion": true,
+      "focus_visible": true
+    },
+    "image_ratios": [
+      { "usage": "hero product renders (scroll image sequence)", "ratio": "1:1, rendered full-bleed 1440px" }
+    ],
+    "grid": { "max_width": "full bleed", "columns": 12, "gutter": "14.694px (2u) row gap", "column_width": "107.7px" },
+    "nav": { "structure": "5 inline columns: line pictogram (~42x84px, ~1px stroke) + lowercase word + 2-3 lowercase sub-links visible at rest", "dropdowns": "none" }
+  },
+  "taste": [
+    {
+      "name": "One unit owns every length",
+      "trigger": "When setting spacing, radius and type across a page that must work from phone to wall display",
+      "decision": "Chose a single width-derived unit (1/196 of viewport) with multiples 1, 2, 3, 4.5, 9 over a fixed 4/8px scale with breakpoint overrides",
+      "reason": "Because when the gaps, corners and type all move together, the layout keeps the same proportions on any screen and reads as one object, like a product drawing",
+      "evidence": ["radius 7.347px = 1u", "row gap 14.694px = 2u, list gap 22.04px = 3u", "footer padding 33.06 x 66.12px = 4.5u x 9u", "body 19.1px = 2.6u, line-height 22.04px = 3u"]
+    },
+    {
+      "name": "Brand carried by line pictograms, not colour",
+      "trigger": "When building navigation that must also carry identity",
+      "decision": "Chose a hand-drawn single-stroke pictogram beside each lowercase section word over a coloured logo bar, icon font or dropdown menu",
+      "reason": "Because a set of drawings with one stroke weight is recognisable at a glance and impossible to mistake for a template, while costing zero colour",
+      "evidence": ["5 nav columns each = pictogram + word + 2-3 sub-links", "sub-links always visible, no dropdowns", "palette is #000000 / #F1F2F2 / #E5E5E5 only"]
+    },
+    {
+      "name": "No chrome around the product",
+      "trigger": "When presenting hardware on the homepage",
+      "decision": "Chose full-bleed 1:1 renders on pure black with no cards, shadows or borders over a framed product card grid",
+      "reason": "Because the object is the proof: anything drawn around it competes with the thing people came to look at",
+      "evidence": ["0 box-shadows on the page", "1 radius value in use (2 elements)", "background #000000 = 100% of painted area", "4 hero images at 1:1, 1440px wide"]
+    },
+    {
+      "name": "Thin, lowercase voice",
+      "trigger": "When setting the typographic tone for a hardware company",
+      "decision": "Chose weight 100 lowercase text in one custom face over bold uppercase technical labelling",
+      "reason": "Because a quiet, lowercase voice makes precise engineering feel approachable rather than intimidating",
+      "evidence": ["weight 100 on 51 of 58 text nodes", "all nav and footer labels lowercase", "letter-spacing normal; uppercase only in the one-off campaign face"]
+    }
+  ]
+}
