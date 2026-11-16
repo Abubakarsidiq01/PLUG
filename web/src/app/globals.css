@@ -351,10 +351,6 @@ ol {
   color: var(--color-ink-900);
 }
 
-.hero h1 {
-  max-width: 15ch;
-}
-
 .lede {
   margin-top: var(--space-4);
   max-width: var(--layout-read);
@@ -378,13 +374,8 @@ ol {
 }
 
 .example-card {
+  max-width: var(--layout-narrow);
   padding: var(--space-6);
-}
-
-@media (max-width: 767px) {
-  .example-card {
-    max-width: var(--layout-narrow);
-  }
 }
 
 .example-label {
@@ -547,8 +538,9 @@ ol {
 
 @media (min-width: 768px) {
   .steps li {
-    grid-template-columns: var(--space-12) minmax(0, 3fr) minmax(0, 5fr);
+    grid-template-columns: var(--space-12) minmax(0, 2fr) minmax(0, 5fr);
     column-gap: var(--space-6);
+    align-items: start;
   }
 
   .steps li::before {
@@ -571,7 +563,7 @@ ol {
 .split-intro > p,
 .split-intro > ul {
   margin-top: var(--space-4);
-  max-width: var(--layout-measure);
+  max-width: var(--layout-read);
   color: var(--color-ink-600);
 }
 
@@ -650,6 +642,7 @@ ol {
 }
 
 .offer-section p {
+  max-width: var(--layout-read);
   margin-top: var(--space-3);
 }
 
