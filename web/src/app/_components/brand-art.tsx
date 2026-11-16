@@ -19,7 +19,9 @@ export function PlugMark({ className }: { className?: string }) {
 // in ink (owner decision, 2026-10-08). The logo always links to / (§15.3 launch checklist).
 export function Logo() {
   return (
-    <Link href="/" className="logo" aria-label="PLUG home">
+    // No aria-label: axe 4.14 requires a label to contain the visible text ("LUG").
+    <Link href="/" className="logo">
+      <span className="visually-hidden">PLUG home</span>
       <span className="logo-word" aria-hidden="true">
         <PlugMark className="logo-mark" />LUG
       </span>
