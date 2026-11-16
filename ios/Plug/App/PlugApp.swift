@@ -18,6 +18,7 @@ struct PlugApp: App {
     var body: some Scene {
         WindowGroup {
             RootView(model: authentication, environment: environment)
+                .overlay { LaunchSplash() }
                 .onOpenURL { GIDSignIn.sharedInstance.handle($0) }
         }
     }
@@ -33,6 +34,37 @@ struct PlugApp: App {
     }
 }
 
+/// The cold-start brand moment. It begins where the static launch screen ends (paper, the mark
+/// centred at the SVG's own 256pt size), plays the mark's reveal, then fades away. It never
+/// takes a touch or VoiceOver focus, and it does not run for UI tests or under Reduce Motion.
+private struct LaunchSplash: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var showing = !ProcessInfo.processInfo.arguments.contains("-plug-ui-test-reset")
+    /// The launch image's point size: plug-mark.svg has a 256-unit viewBox and no width.
+    private static let markSize = PlugTokens.Layout.launchMark
+
+    var body: some View {
+        ZStack {
+            if showing && !reduceMotion {
+                ZStack {
+                    PlugTokens.Color.paper
+                    PlugMarkAnimated().frame(width: Self.markSize, height: Self.markSize)
+                }
+                .ignoresSafeArea()
+                .transition(.opacity)
+            }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .task {
+            guard showing, !reduceMotion else { return }
+            // The fade overlaps the reveal's last moment, so reveal plus fade stays within 1.2 s.
+            try? await Task.sleep(for: .seconds(PlugTokens.Motion.reveal - PlugTokens.Motion.fast))
+            withAnimation(.easeOut(duration: PlugTokens.Motion.base)) { showing = false }
+        }
+    }
+}
+
 /// Nothing in the app is reachable before the session question is answered. A signed-out
 /// person sees the welcome screen; a signed-in one sees the product. Keeping that decision
 /// in one place is what stops a screen from being reachable without a session later.
@@ -40,6 +72,8 @@ struct RootView: View {
     @State private var hasRestored = false
     @State private var provider: ProviderProfile?
     @State private var selectedTab = "Ask"
+    // Fixed like a system tab bar; its labels are capped and use the large-content viewer.
+    private var tabGlyph: CGFloat { PlugTokens.Layout.tabIcon }
     @ObservedObject var model: AuthenticationModel
     let environment: AppEnvironment
 
@@ -97,7 +131,7 @@ struct RootView: View {
                         }.marketCard()
                     }
                     .foregroundStyle(PlugTokens.Color.ink900)
-                    .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
+                    .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
                     .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
                 }.background(PlugTokens.Color.paper)
                 .toolbar(.hidden, for: .navigationBar)
@@ -127,15 +161,15 @@ struct RootView: View {
         .padding(.top, PlugTokens.Space.s2).padding(.bottom, PlugTokens.Space.s1)
         // Down to the screen edge, so nothing shows through beside the home indicator.
         .background(PlugTokens.Color.card.ignoresSafeArea(edges: .bottom))
-        .overlay(alignment: .top) { PlugTokens.Color.rule200.frame(height: 0.5) }
+        .overlay(alignment: .top) { PlugDivider() }
     }
 
     private func navigationItem(_ title: String, symbol: String, selectedSymbol: String) -> some View {
         Button { selectedTab = title } label: {
             VStack(spacing: PlugTokens.Space.s1) {
                 Image(systemName: selectedTab == title ? selectedSymbol : symbol)
-                    .font(.system(size: 22, weight: .medium)).frame(height: 26)
-                Text(title).plugText(.caption).fontWeight(selectedTab == title ? .bold : .medium)
+                    .font(.system(size: tabGlyph, weight: .regular)).frame(height: tabGlyph + PlugTokens.Space.s1)
+                Text(title).plugText(.caption).fontWeight(selectedTab == title ? .semibold : .regular)
             }
             .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
             .foregroundStyle(selectedTab == title ? PlugTokens.Color.ink900 : PlugTokens.Color.ink600)
@@ -166,7 +200,7 @@ struct RootView: View {
 /// offered the upgrade, because a limit nobody can see is a limit that feels like a bug.
 enum PlugNavigationBar {
     /// Bar height (44 pt items, 8 + 4 pt padding) at its largest capped label size, plus a gap.
-    static let reserved: CGFloat = 96
+    static let reserved: CGFloat = PlugTokens.Layout.tabReserve
 }
 
 private extension View {
@@ -231,7 +265,7 @@ struct ProfileView: View {
                         .accessibilityHint("Ends this session on PLUG's servers as well as on this device")
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)
-                .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
+                .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
                 .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
             }
             .background(PlugTokens.Color.paper)

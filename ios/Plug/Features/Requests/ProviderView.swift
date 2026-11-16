@@ -37,6 +37,7 @@ struct ProviderOnboardingView: View {
     @State private var isWorking = false
     @State private var errorMessage: String?
     @FocusState private var describing: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         NavigationStack {
@@ -55,11 +56,11 @@ struct ProviderOnboardingView: View {
                             businessStep.padding(.top, PlugTokens.Space.s4)
                         } label: {
                             HStack(spacing: PlugTokens.Space.s3) {
-                                BusinessPortrait(name: optional(businessName) ?? "Your business", photo: photo, size: 48)
+                                BusinessPortrait(name: optional(businessName) ?? "Your business", photo: photo, size: PlugTokens.Layout.portraitMedium)
                                 VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                                     Text("Business profile").plugText(.title3)
                                         .accessibilityIdentifier("provider-business-section")
-                                    Text("Photo, about & links · Optional").plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
+                                    Text("Photo, about and links. Optional.").plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
                                 }
                                 .multilineTextAlignment(.leading)
                             }
@@ -75,11 +76,7 @@ struct ProviderOnboardingView: View {
                         }
                     }
                     if let errorMessage {
-                        Text(errorMessage).plugText(.body).foregroundStyle(PlugTokens.Color.alert600)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(PlugTokens.Space.s4)
-                            .background(PlugTokens.Color.alert50, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                            .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control).strokeBorder(PlugTokens.Color.alertBorder))
+                        PlugNotice(message: errorMessage, tone: .alert)
                     }
                     if hasSkills {
                         Button(isWorking ? "Saving…" : saveTitle) { Task { await save() } }
@@ -91,7 +88,7 @@ struct ProviderOnboardingView: View {
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)
                 .disabled(isWorking)
-                .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
+                .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
                 .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
             }
             .scrollDismissesKeyboard(.interactively)
@@ -132,16 +129,16 @@ struct ProviderOnboardingView: View {
                     .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
             HStack(alignment: .center, spacing: PlugTokens.Space.s4) {
-                BusinessPortrait(name: optional(businessName) ?? "Your business", photo: photo, size: 88)
+                BusinessPortrait(name: optional(businessName) ?? "Your business", photo: photo, size: PlugTokens.Layout.portraitLarge)
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                     PhotosPicker(selection: $selectedPhoto, matching: .images) {
                         Text(photoLoading ? "Preparing photo…" : photo == nil ? "Add business photo" : "Change photo")
-                            .plugText(.action).underline().frame(minHeight: PlugTokens.minTouchTarget)
                     }
+                    .buttonStyle(PlugButtonStyle(kind: .secondary, fullWidth: false))
                     .disabled(photoLoading)
                     if photo != nil {
                         Button("Remove photo") { photo = nil; selectedPhoto = nil }
-                            .plugText(.bodySmall).frame(minHeight: PlugTokens.minTouchTarget)
+                            .buttonStyle(PlugButtonStyle(kind: .tertiary, fullWidth: false))
                     }
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)
@@ -162,15 +159,13 @@ struct ProviderOnboardingView: View {
                         .keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled()
                     if !link.url.isEmpty {
                         Button("Remove \(link.label.isEmpty ? "link" : link.label)") { link.url = "" }
-                            .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                            .frame(minHeight: PlugTokens.minTouchTarget)
+                            .buttonStyle(PlugButtonStyle(kind: .tertiary, fullWidth: false))
                     }
                 }
             }
             if links.count < 5 {
                 Button("Add another link") { links.append(BusinessLinkDraft(label: "")) }
-                    .plugText(.action).foregroundStyle(PlugTokens.Color.ink900)
-                    .frame(minHeight: PlugTokens.minTouchTarget)
+                    .buttonStyle(PlugButtonStyle(kind: .tertiary, fullWidth: false))
             }
             caption("Use a full https:// link. Clear any field to stop sharing it.")
         }
@@ -216,7 +211,8 @@ struct ProviderOnboardingView: View {
                 .frame(minHeight: PlugTokens.minTouchTarget)
                 .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
                 .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control)
-                    .strokeBorder(describing ? PlugTokens.Color.ink900 : PlugTokens.Color.rule300, lineWidth: describing ? 2 : 1))
+                    .strokeBorder(describing ? PlugTokens.Color.ink900 : PlugTokens.Color.ruleControl, lineWidth: describing ? 2 : 1))
+                .animation(.plug(reduceMotion: reduceMotion), value: describing)
                 .accessibilityLabel("What do you do?")
                 .accessibilityIdentifier("provider-description")
             Button("Add skill") {
@@ -232,7 +228,7 @@ struct ProviderOnboardingView: View {
             .buttonStyle(FlowActionStyle())
             .disabled(isWorking || !(3...40).contains(description.trimmingCharacters(in: .whitespacesAndNewlines).count) || ownSkills.count >= 5)
             .accessibilityIdentifier("provider-add-skill")
-            caption("Add one skill at a time · 3–40 characters.")
+            caption("Add one skill at a time, 3 to 40 characters.")
             Button(isWorking && proposed.isEmpty ? "Reading…" : "Find my skills") { Task { await propose() } }
                 .buttonStyle(RequestTextActionStyle())
                 .disabled(isWorking || description.trimmingCharacters(in: .whitespacesAndNewlines).count < 3)
@@ -263,7 +259,7 @@ struct ProviderOnboardingView: View {
     private var ownSkillsSection: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
             if !proposed.isEmpty && !ownSkillCandidates.isEmpty {
-                Rectangle().fill(PlugTokens.Color.rule200).frame(height: 1)
+                PlugDivider()
                 Text("Added by you").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
             }
             if !ownSkillCandidates.isEmpty {
@@ -335,12 +331,10 @@ struct ProviderOnboardingView: View {
             Text("Licence").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
             Text("\(licensedNames.isEmpty ? "This work" : licensedNames) needs a licence. Licensed requests are matched only to providers who give one.")
                 .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-            PlugTextField(title: "Licence number", text: $licence)
+            PlugTextField(title: "Licence number", text: $licence,
+                          error: !licence.isEmpty && !licenceValid
+                              ? "Use 3 to 64 letters, numbers, spaces, dots, slashes or dashes." : nil)
                 .textInputAutocapitalization(.characters).autocorrectionDisabled()
-            if !licence.isEmpty, !licenceValid {
-                Text("Use 3 to 64 letters, numbers, spaces, dots, slashes or dashes.")
-                    .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.alert600)
-            }
         }
         .marketCard()
     }
@@ -352,8 +346,7 @@ struct ProviderOnboardingView: View {
                 valueRow("Base", label, last: true)
                 // Set already: the way to change it steps back so the save action leads.
                 Button(location.isWorking ? "Finding location…" : "Update location") { location.useDeviceLocation() }
-                    .plugText(.action).foregroundStyle(PlugTokens.Color.ink900).underline()
-                    .frame(minHeight: PlugTokens.minTouchTarget)
+                    .buttonStyle(PlugButtonStyle(kind: .tertiary, fullWidth: false))
                     .disabled(location.isWorking)
             } else {
                 caption("Approximate only. People who ask never see your address.")
@@ -572,7 +565,7 @@ struct InboxView: View {
                     .marketCard()
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)
-                .frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
+                .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
                 .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
             }
             .background(PlugTokens.Color.paper)
@@ -609,26 +602,10 @@ private struct BusinessLinkDraft: Identifiable {
     var url = ""
 }
 
+/// The shared chip; the name stays for its call sites.
 private struct ProviderChoice: View {
     let title: String
     let selected: Bool
     let action: () -> Void
-    @ScaledMetric(relativeTo: .body) private var checkGlyph: CGFloat = 13
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: PlugTokens.Space.s1) {
-                if selected { Image(systemName: "checkmark").font(.system(size: checkGlyph, weight: .bold)).accessibilityHidden(true) }
-                Text(title).plugText(.label)
-            }
-                .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s3)
-                .frame(minHeight: PlugTokens.minTouchTarget)
-                // Selected is outlined, not filled: the one ink-filled control stays the primary action.
-                .foregroundStyle(PlugTokens.Color.ink900)
-                .background(selected ? PlugTokens.Color.card : PlugTokens.Color.sunk,
-                            in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control)
-                    .strokeBorder(selected ? PlugTokens.Color.ink900 : .clear, lineWidth: 2))
-        }
-        .buttonStyle(.plain).accessibilityAddTraits(selected ? .isSelected : [])
-    }
+    var body: some View { PlugChip(title: title, selected: selected, action: action) }
 }

@@ -7,7 +7,7 @@ struct ConsentNotice: View {
 
     var body: some View {
         VStack(spacing: PlugTokens.Space.s1) {
-            Text("Private testing · Review the notices before continuing.")
+            Text("Private testing. Review the notices before continuing.")
                 .plugText(.caption).foregroundStyle(PlugTokens.Color.ink600)
                 .multilineTextAlignment(.center)
             ViewThatFits(in: .horizontal) {
@@ -96,7 +96,7 @@ private struct LegalDocumentView: View {
                         }
                     }
                 }
-                .padding(PlugTokens.Space.s6).frame(maxWidth: 640, alignment: .leading).frame(maxWidth: .infinity)
+                .padding(PlugTokens.Space.s6).frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
             }
             .navigationTitle(document.title).navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }

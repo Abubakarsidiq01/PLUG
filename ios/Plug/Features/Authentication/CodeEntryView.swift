@@ -32,7 +32,7 @@ struct CodeEntryView: View {
 
             if let problem {
                 StateMessage(title: title(for: problem), detail: detail(for: problem),
-                             systemImage: "exclamationmark.circle")
+                             systemImage: "exclamationmark.triangle")
             } else if let attemptsRemaining {
                 Text("You have \(attemptsRemaining) attempts.")
                     .plugText(.bodySmall)

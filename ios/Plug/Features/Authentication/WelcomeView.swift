@@ -28,7 +28,7 @@ struct WelcomeView: View {
                     }
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s6) { content }
                         .disabled(googlePending)
-                        .frame(maxWidth: isMethodSelection ? PlugTokens.Space.s16 * 5 : .infinity, alignment: .leading)
+                        .frame(maxWidth: isMethodSelection ? PlugTokens.Layout.authColumn : .infinity, alignment: .leading)
                         .frame(maxWidth: .infinity, alignment: .center)
                     Spacer(minLength: PlugTokens.Space.s6)
                     ConsentNotice(environment: environment)
@@ -42,11 +42,11 @@ struct WelcomeView: View {
             .scrollDismissesKeyboard(.interactively)
             .id(page)
         }
-        .background(PlugTokens.Color.surface0.ignoresSafeArea())
+        .background(PlugTokens.Color.paper.ignoresSafeArea())
         .foregroundStyle(PlugTokens.Color.ink900)
         .buttonStyle(AuthActionStyle())
         .preferredColorScheme(.light)
-        .animation(reduceMotion ? nil : .easeOut(duration: PlugTokens.Motion.base), value: page)
+        .animation(.plug(reduceMotion: reduceMotion), value: page)
     }
 
     private var isMethodSelection: Bool { page == .signIn || page == .signUp }
@@ -84,12 +84,18 @@ struct WelcomeView: View {
 
     private var header: some View {
         VStack(spacing: PlugTokens.Space.s6) {
-            PlugLogotype(size: 46).accessibilityAddTraits(.isHeader)
-            Text("Real-time truth.\nBetter local decisions.")
-                .plugText(.body)
-                .multilineTextAlignment(.center)
-                .foregroundStyle(PlugTokens.Color.ink600)
-                .fixedSize(horizontal: false, vertical: true)
+            PlugLogotype(size: PlugTokens.Layout.logoLarge).accessibilityAddTraits(.isHeader)
+            // What the app does leads; the tested tagline follows as its own text, words unchanged.
+            VStack(spacing: PlugTokens.Space.s2) {
+                Text("Ask for a service, or about a place nearby.")
+                    .plugText(.body)
+                    .foregroundStyle(PlugTokens.Color.ink900)
+                Text("Real-time truth.\nBetter local decisions.")
+                    .plugText(.body)
+                    .foregroundStyle(PlugTokens.Color.ink600)
+            }
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
             if !dynamicTypeSize.isAccessibilitySize {
                 Image("Neighbourhood").resizable().scaledToFit()
                     .frame(maxWidth: .infinity)
@@ -106,7 +112,7 @@ struct WelcomeView: View {
             selectedPage
         case .working(let step):
             ProgressView(title(for: step))
-                .frame(maxWidth: .infinity, minHeight: PlugTokens.Space.s16 + PlugTokens.Space.s8)
+                .frame(maxWidth: .infinity, minHeight: PlugTokens.Layout.stateMinHeight)
                 .accessibilityLabel(title(for: step))
         case .awaitingCode(let challengeID, let expiresAt, let attemptsRemaining):
             codeEntry(challengeID: challengeID, expiresAt: expiresAt,
@@ -117,7 +123,7 @@ struct WelcomeView: View {
             consentUpdate
         case .signedIn:
             StateMessage(title: "You are signed in.", detail: "Your requests will stay with this account.",
-                         systemImage: "checkmark.circle")
+                         systemImage: "checkmark")
         case .failed(let message, let canRetry):
             StateMessage(title: "That did not work", detail: message, systemImage: "exclamationmark.triangle")
             if canRetry { retryButton }
@@ -138,7 +144,7 @@ struct WelcomeView: View {
             // The message names the paths that still work, so this is not a dead end.
             StateMessage(title: "Sign-in is unavailable",
                          detail: page == .phone ? "Text-message sign-in is unavailable. Choose another method." : message,
-                         systemImage: "message.badge.circle")
+                         systemImage: "message")
             selectedPage
         case .accountExists:
             StateMessage(title: "You already have an account",
@@ -173,13 +179,9 @@ struct WelcomeView: View {
                 Button("Get started") { creatingAccount = true; page = .signUp }
                     .buttonStyle(AuthActionStyle(primary: true))
                 Button("I have an account") { creatingAccount = false; page = .signIn }
-                    .buttonStyle(.plain).plugText(.action)
-                    .foregroundStyle(PlugTokens.Color.brand600)
-                    .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
+                    .buttonStyle(PlugButtonStyle(kind: .secondary))
                 Button("Continue as guest") { Task { await model.continueAsGuest() } }
-                    .buttonStyle(.plain).foregroundStyle(PlugTokens.Color.ink600)
-                    .plugText(.body)
-                    .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
+                    .buttonStyle(PlugButtonStyle(kind: .tertiary))
             }
         case .signIn, .signUp:
             VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
@@ -192,10 +194,9 @@ struct WelcomeView: View {
             providerChoices
             if !creatingAccount {
                 Button("Trouble signing in?") { page = .recovery }
-                    .buttonStyle(.plain).plugText(.body).foregroundStyle(PlugColor.brand)
-                    .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
+                    .buttonStyle(PlugButtonStyle(kind: .tertiary))
             }
-            Rectangle().fill(PlugTokens.Color.line200).frame(height: 1)
+            PlugDivider()
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: PlugTokens.Space.s2) { accountSwitch }
                 VStack(spacing: PlugTokens.Space.s1) { accountSwitch }
@@ -250,16 +251,14 @@ struct WelcomeView: View {
                 creatingAccount.toggle()
                 page = creatingAccount ? .signUp : .signIn
             }
-            .buttonStyle(.plain).plugText(.action).foregroundStyle(PlugColor.brand)
-            .frame(minHeight: PlugTokens.minTouchTarget)
+            .buttonStyle(PlugButtonStyle(kind: .tertiary, fullWidth: false))
         }
         .fixedSize()
     }
 
     private var backToMethods: some View {
         Button("Other sign-in methods") { page = creatingAccount ? .signUp : .signIn; model.startOver() }
-            .buttonStyle(.plain).plugText(.action).foregroundStyle(PlugColor.brand)
-            .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
+            .buttonStyle(PlugButtonStyle(kind: .tertiary))
     }
 
     private var providerChoices: some View {
@@ -284,7 +283,7 @@ struct WelcomeView: View {
                 } onCompletion: { result in handleApple(result) }
                 .signInWithAppleButtonStyle(.black)
                 .frame(maxWidth: .infinity).frame(height: PlugTokens.Space.s12)
-                .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.md))
+                .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
             }
             Button { page = .phone } label: {
                 HStack(spacing: PlugTokens.Space.s3) {
@@ -439,16 +438,22 @@ struct StateMessage: View {
     let systemImage: String
 
     var body: some View {
+        // The title is its own static text, read first as a heading, so the state can be found
+        // by its exact words; the symbol is decorative.
         VStack(alignment: .leading, spacing: PlugSpacing.small) {
-            Label(title, systemImage: systemImage)
-                .plugText(.title3)
-                .labelStyle(.titleAndIcon)
+            HStack(alignment: .firstTextBaseline, spacing: PlugTokens.Space.s2) {
+                Image(systemName: systemImage).accessibilityHidden(true)
+                Text(title)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            .plugText(.title3)
             Text(detail)
                 .plugText(.body)
                 .foregroundStyle(PlugTokens.Color.ink600)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .contain)
     }
 }
