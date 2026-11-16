@@ -1,6 +1,8 @@
-"""Builds the PLUG brand SVG masters. Usage: python3 design/brand/build-masters.py design/brand "#19160D" "#F4F1E8" (ink.900, paper)
-import math, sys, pathlib
+"""Builds the PLUG brand SVG masters. Usage: python3 design/brand/build-masters.py design/brand "#19160D" "#F4F1E8" (ink.900, paper)"""
+import math, re, sys, pathlib
 
+if len(sys.argv) != 4 or not all(re.fullmatch(r"#[0-9A-Fa-f]{6}", c) for c in sys.argv[2:4]):
+    sys.exit('usage: build-masters.py <out-dir> <ink #RRGGBB> <paper #RRGGBB>, e.g. design/brand "#19160D" "#F4F1E8"')
 out = pathlib.Path(sys.argv[1]); INK, PAPER = sys.argv[2], sys.argv[3]
 
 # The mark: a P (stem + bowl, cap height 144 on a 256 grid, stem descends 48 below the bowl)

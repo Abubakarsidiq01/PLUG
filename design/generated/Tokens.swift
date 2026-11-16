@@ -70,6 +70,22 @@ enum PlugTokens {
         static let mark: CGFloat = 28
         static let index: CGFloat = 240
         static let read: CGFloat = 496
+        static let iconSmall: CGFloat = 18
+        static let icon: CGFloat = 20
+        static let tabIcon: CGFloat = 22
+        static let iconLarge: CGFloat = 25
+        static let iconMax: CGFloat = 28
+        static let logo: CGFloat = 22
+        static let logoLarge: CGFloat = 48
+        static let dot: CGFloat = 10
+        static let portraitSmall: CGFloat = 44
+        static let portraitMedium: CGFloat = 48
+        static let portrait: CGFloat = 64
+        static let portraitLarge: CGFloat = 88
+        static let tabReserve: CGFloat = 96
+        static let stateMinHeight: CGFloat = 96
+        static let authColumn: CGFloat = 320
+        static let launchMark: CGFloat = 256
     }
     enum TypeSize {
         static let hero: CGFloat = 56
