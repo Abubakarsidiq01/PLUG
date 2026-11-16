@@ -178,13 +178,6 @@
       "acceptance": "Drafted from P3-ONE.md section 4, to be confirmed by both: for each landed step, every new route returns 401 without a session and 429 past the limit, another caller's provider or admin resource id returns 404, and message and API log inspection shows no secrets, no tokens and no unnecessary PII."
     },
     {
-      "id": "P3-ui-pass-ios",
-      "owner": "person_one",
-      "manual_section": "16 / 16.8 / 20",
-      "task": "Owner-authorized iOS UI pass (2026-11-14), alongside the top next_action, branch p3.ui-one-ios-polish: one PLUG type ramp, one card style, no pill chips, button states without fading, spacing on the token scale, home photo card without gradient, decorative emblems and arrows removed, alignment and touch-target fixes. How data is shown only; no data, copy, contract or backend change. Token proposals for Person Two: docs/design/proposals/ui-pass-2026-11-14.md. 2026-11-14: done locally (8 commits, not pushed). iOS unit tests 67 passed, 1 skipped; screenshot suite 7/7 including the accessibility audit; plug-design-gate passed on round 3 for in-scope screens. Open: no physical-device check, no greyscale export, offline/permission/expired states not captured, owner review of the before/after doc.",
-      "acceptance": "Every iOS screen passes the §16.8 design gate except recorded owner exceptions, with before and after simulator screenshots in evidence/ui-pass/2026-11-14 and docs/design/ui-pass-2026-11-14.md; iOS unit tests and the screenshot suite green."
-    },
-    {
       "id": "P3-stable-webhook-url",
       "owner": "person_one",
       "manual_section": "27.4 / ADR-004",
@@ -280,6 +273,7 @@
     "Restricted-intent policy matches listed phrases only. On 2026-10-05, 15 of 31 labelled restricted asks in fixtures/intents/asks.jsonl were not refused; one became a photography request. See docs/testing/phase2-person-two-review-2026-10-05.md section 2.1. Blocks G2 until fixed and rerun. 2026-10-06 on contract 0.6.0: worse. Own-words requests turn nine of those 15 into created requests (\"Pay someone to beat up my roommate\" becomes a submitted request named \"Pay beat roommate\"); see docs/testing/phase2-person-two-rerun-2026-10-06.md section 2.1.",
     "Phase 3 real SMS needs a stable public webhook URL (ADR-004 tunnel URLs change per run), a funded Twilio number and Messaging Service, and APNs needs an Apple Developer Program team (ADR-008). Contract 0.7.0 is written so the inbox works by pull and SMS stays off (supplier_messaging flag) until these exist. 2026-11-14: Twilio is unfunded, so the SMS steps are deferred and the in-app path goes first (P3-order-and-sms-deferral).",
     "Contract 0.7.0 has internal inconsistencies found on 2026-11-14 (fan-out cap 16 unreachable with three waves, reply window past the t+300s stop, no lifetime for in-app offers or inbox respond_by). Tracked in P3-contract-0.7.1; P3.S11 and P3.S15 must not pick their own values.",
+    "CI repair 2026-11-15 (branch p3.s6-one-ci-repair): Secret scan and CodeQL failed with 'Resource not accessible by integration' (token lacked pull-requests: read and actions: read); Windows onboarding failed npm audit on high advisories in tools/bruno (undici, follow-redirects, @azure/msal-node), fixed by npm audit fix within locked ranges, 6 moderate remain; axe 4.14 (dependabot PR #49) flags label-content-name-mismatch on the web logo link, fixed with owner approval in web/src/app/_components/brand-art.tsx. Person Two to review the web change. Code scanning upload is not available on this private repository without paid GitHub Code Security (owner decision 2026-11-15: no), so CodeQL keeps its SARIF as a run artifact and fails on any result; findings do not reach the Security tab.",
     "Visual redesign (direction C Nearby) 2026-11-15 on p3.ui-one-redesign (iOS) and p3.design-two-redesign (brand, tokens, web; Person Two to review). Reviewer verdicts only; SignInScreenshotTests line 186 fails without a sign-in backend before and after; swiftlint not run locally; mark needs a trademark search."
   ],
   "environments": {
