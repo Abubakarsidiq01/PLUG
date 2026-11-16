@@ -23,7 +23,12 @@ A matched provider receives the request in their own inbox, sends a real offer w
 > businesses that prefer text, and the in-app inbox for individual providers, who are the
 > point of the product. Both produce the same validated Offer, under one combined fan-out
 > ceiling, and providers get trust score v1. The contract is
-> [0.7.0](../../contracts/CHANGELOG.md), proposed in P3.S1.
+> [0.7.0](../../contracts/CHANGELOG.md), frozen in P3.S1 (PR #46, both approvals).
+>
+> **Order changed on 2026-11-14 (owner decision, no Twilio budget).** The in-app path goes
+> first: P3.S6, S10, S11, S12, S13, S14, S15, S16, then S7; P3.S8 covers routes as they land.
+> The SMS steps (S2, S3, S4's SMS fan-out, S5, S9) wait for funding with `supplier_messaging`
+> off. See `P3-order-and-sms-deferral` in `PROJECT_STATE.json`.
 
 **Why it matters**
 Phase 3 was already the supplier phase. It now carries two channels instead of one. It also touches real people's phones. Every control here — consent, fan-out caps, STOP handling, signature verification, idempotency — exists because getting it wrong means texting a real business that never agreed to hear from you.
@@ -63,7 +68,7 @@ You are the final technical authority on this phase. If something here conflicts
 
 - **Fan-out is already capped at 6 then a combined 16** (`MatchService`, as built in Phase 2).
   Phase 3 adds the 4 + 4 expansion steps and makes SMS suppliers and in-app providers share
-  that one ceiling. The manual's two sketches say 14 and 16; 0.7.0 proposes 16.
+  that one ceiling. The manual's two sketches say 14 and 16; 0.7.0 sets 16 (both agreed; see P3-contract-0.7.1 for the wave arithmetic).
 - **`request_matches` already records who was notified.** Extend it for channel, wave and
   outcome rather than adding a second table; `GET /v1/admin/requests/{id}/matches` reads it.
 - **Seed offers stay `estimated` at best.** Real `sms` and `portal` offers are `confirmed`

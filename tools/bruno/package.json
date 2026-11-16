@@ -4,7 +4,7 @@
   "private": true,
   "description": "Locked Bruno CLI for reproducible API checks",
   "devDependencies": {
-    "@usebruno/cli": "4.2.0"
+    "@usebruno/cli": "4.3.0"
   },
   "overrides": {
     "axios": "1.20.0",
