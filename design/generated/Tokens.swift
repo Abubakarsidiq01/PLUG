@@ -69,7 +69,7 @@ enum PlugTokens {
         static let narrow: CGFloat = 480
         static let mark: CGFloat = 28
         static let index: CGFloat = 240
-        static let read: CGFloat = 600
+        static let read: CGFloat = 496
     }
     enum TypeSize {
         static let hero: CGFloat = 56

@@ -178,5 +178,185 @@
     "width": 1280,
     "violations": [],
     "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (closed)",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (closed)",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (closed)",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (closed)",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (closed)",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (sign-in)",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (sign-in)",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (sign-in)",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (sign-in)",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (sign-in)",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (code)",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (code)",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (code)",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (code)",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (code)",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (error)",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (error)",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (error)",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (error)",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (error)",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (signed-out)",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (signed-out)",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (signed-out)",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (signed-out)",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (signed-out)",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (accepted)",
+    "width": 320,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (accepted)",
+    "width": 360,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (accepted)",
+    "width": 768,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (accepted)",
+    "width": 1024,
+    "violations": [],
+    "horizontalOverflow": false
+  },
+  {
+    "url": "/admin/login (accepted)",
+    "width": 1280,
+    "violations": [],
+    "horizontalOverflow": false
   }
 ]
