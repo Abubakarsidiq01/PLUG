@@ -3,31 +3,33 @@ import SwiftUI
 
 enum PlugTokens {
     enum Color {
-        static let paper = SwiftUI.Color(hex: "F4F1E8")
+        static let paper = SwiftUI.Color(hex: "FFF4EC")
         static let card = SwiftUI.Color(hex: "FFFFFF")
-        static let sunk = SwiftUI.Color(hex: "E9E5DB")
-        static let ink400 = SwiftUI.Color(hex: "6C695E")
-        static let ink600 = SwiftUI.Color(hex: "535044")
-        static let ink900 = SwiftUI.Color(hex: "19160D")
-        static let ink950 = SwiftUI.Color(hex: "0B0905")
-        static let rule200 = SwiftUI.Color(hex: "DDDAD0")
-        static let rule300 = SwiftUI.Color(hex: "CAC7BC")
-        static let ruleControl = SwiftUI.Color(hex: "89867C")
-        static let truthConfirmed = SwiftUI.Color(hex: "1B6738")
-        static let truthRecent = SwiftUI.Color(hex: "00636F")
-        static let truthEstimated = SwiftUI.Color(hex: "7C4900")
-        static let truthUnknown = SwiftUI.Color(hex: "535855")
-        static let truthSurfaceConfirmed = SwiftUI.Color(hex: "DDF4E2")
-        static let truthSurfaceRecent = SwiftUI.Color(hex: "D9F2F6")
-        static let truthSurfaceEstimated = SwiftUI.Color(hex: "FDE9D6")
-        static let truthSurfaceUnknown = SwiftUI.Color(hex: "EAEEEB")
-        static let truthBorderConfirmed = SwiftUI.Color(hex: "ADD7B7")
-        static let truthBorderRecent = SwiftUI.Color(hex: "A4D4DC")
-        static let truthBorderEstimated = SwiftUI.Color(hex: "E7C49F")
-        static let truthBorderUnknown = SwiftUI.Color(hex: "C4CDC8")
-        static let alert50 = SwiftUI.Color(hex: "FFE9E4")
-        static let alert600 = SwiftUI.Color(hex: "AF2D18")
-        static let alertBorder = SwiftUI.Color(hex: "EFBDB2")
+        static let sunk = SwiftUI.Color(hex: "F6E7DC")
+        static let ink400 = SwiftUI.Color(hex: "6E655E")
+        static let ink600 = SwiftUI.Color(hex: "5A524C")
+        static let ink900 = SwiftUI.Color(hex: "15110F")
+        static let ink950 = SwiftUI.Color(hex: "0A0807")
+        static let rule200 = SwiftUI.Color(hex: "EFDFD3")
+        static let rule300 = SwiftUI.Color(hex: "DFCCBE")
+        static let ruleControl = SwiftUI.Color(hex: "8E8278")
+        static let signal500 = SwiftUI.Color(hex: "FF2E8B")
+        static let signalDeep = SwiftUI.Color(hex: "B5064C")
+        static let truthConfirmed = SwiftUI.Color(hex: "0E7A43")
+        static let truthRecent = SwiftUI.Color(hex: "0B6E7A")
+        static let truthEstimated = SwiftUI.Color(hex: "7A4E00")
+        static let truthUnknown = SwiftUI.Color(hex: "4F4A45")
+        static let truthSurfaceConfirmed = SwiftUI.Color(hex: "DDF3E6")
+        static let truthSurfaceRecent = SwiftUI.Color(hex: "D5EEF1")
+        static let truthSurfaceEstimated = SwiftUI.Color(hex: "FBE9BE")
+        static let truthSurfaceUnknown = SwiftUI.Color(hex: "ECE8E4")
+        static let truthBorderConfirmed = SwiftUI.Color(hex: "0E7A43")
+        static let truthBorderRecent = SwiftUI.Color(hex: "0B6E7A")
+        static let truthBorderEstimated = SwiftUI.Color(hex: "7A4E00")
+        static let truthBorderUnknown = SwiftUI.Color(hex: "4F4A45")
+        static let alert50 = SwiftUI.Color(hex: "FCE4E0")
+        static let alert600 = SwiftUI.Color(hex: "B3261E")
+        static let alertBorder = SwiftUI.Color(hex: "E9B3AC")
         // Transitional v3 names for frozen Phase 0/1 code (design/token-aliases.json).
         static let brand600 = ink900
         static let brand700 = ink600
@@ -87,6 +89,9 @@ enum PlugTokens {
         static let authColumn: CGFloat = 320
         static let launchMark: CGFloat = 256
     }
+    enum TypeFamily {
+        static let display = "Bricolage Grotesque"
+    }
     enum TypeSize {
         static let hero: CGFloat = 56
         static let display: CGFloat = 34
@@ -112,6 +117,20 @@ enum PlugTokens {
         }
         static let springResponse: Double = 0.35
         static let springDamping: Double = 0.82
+        static let springKeyResponse: Double = 0.28
+        static let springKeyDamping: Double = 0.7
+        static let springSheetResponse: Double = 0.4
+        static let springSheetDamping: Double = 0.86
+        static let press: Double = 80 / 1000
+        enum Rings {
+            static let node: Double = 1800 / 1000
+            static let home: Double = 4000 / 1000
+        }
+    }
+    enum Elevation {
+        static let keyEdge: CGFloat = 4
+        static let keyEdgePressed: CGFloat = 1
+        static let cardEdge: CGFloat = 2
     }
     static let minTouchTarget: CGFloat = 44
 }

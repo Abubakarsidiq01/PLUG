@@ -1,6 +1,6 @@
 # PLUG brand
 
-The PLUG mark is a P whose counter holds a dot: you, held by the P, with the people near you in the ring around you. It is ink on paper, like everything else in PLUG. PLUG has no brand colour (manual §10, ADR-010).
+The PLUG mark is a P whose counter holds a dot: you, held by the P, with the people near you in the ring around you. It is ink on cream. Since the Signal visual system (ADR-015, proposed) PLUG has one brand colour, Signal pink, used behind the mark on the app icon and on brand surfaces, never inside the mark.
 
 These SVG files are the masters. Do not redraw the mark, add effects to it, or put a raster copy in front of a vector one.
 
@@ -13,10 +13,10 @@ These SVG files are the masters. Do not redraw the mark, add effects to it, or p
 | `plug-mark-mono.svg`, `plug-mark-reversed.svg` | One colour (black), and paper on ink |
 | `plug-logotype.svg` | The logotype: the mark stands in for the letter P, followed by LUG drawn to match it. This is the primary logo |
 | `plug-logotype-mono.svg`, `plug-logotype-reversed.svg` | One colour, and paper on ink |
-| `app-icon.svg`, `app-icon-dark.svg`, `app-icon-tinted.svg` | App icon masters for the iOS light, dark and tinted appearances |
+| `app-icon.svg`, `app-icon-dark.svg`, `app-icon-tinted.svg` | App icon masters for the iOS light (ink mark on Signal pink), dark (Signal-pink mark on ink) and tinted (white on black, the system tints it) appearances |
 | `app-icon/AppIcon-*.png` | Every iOS icon size (20 to 1024), exported |
 | `neighbourhood.svg` | Line illustration on the welcome screen, in `rule.300` |
-| `build-masters.py` | Rebuilds the SVG masters: `python3 design/brand/build-masters.py design/brand "#19160D" "#F4F1E8"` (ink.900, paper) |
+| `build-masters.py` | Rebuilds the SVG masters: `python3 design/brand/build-masters.py design/brand "#15110F" "#FFF4EC" "#FF2E8B"` (ink.900, paper, signal.500) |
 
 Export to the apps with `node design/generate-brand.mjs` (both targets), `--web` (favicon.ico, icon.svg, apple-icon, PWA icons, the icon size set) or `--ios` (asset catalog). The script refuses any colour that is not a token.
 
@@ -43,9 +43,11 @@ Keep clear space on every side equal to the dot's diameter (42 units, 16% of the
 
 ## Colour
 
-- Ink `#19160D` (`ink.900`) on paper `#F4F1E8` or card `#FFFFFF`.
-- Reversed: paper on ink.
+- The mark and logotype: ink `#15110F` (`ink.900`) on cream `#FFF4EC` (`paper`) or card `#FFFFFF`. The logotype is always ink (or reversed, or one colour), never pink.
+- On Signal pink `#FF2E8B` (`signal.500`): the mark in ink only (5.38:1). This is the light app icon.
+- Reversed: cream on ink. The dark app icon is the Signal-pink mark on ink.
 - One colour: black or white.
+- Never white or cream text, or a white mark, on Signal pink (3.5:1, below AA).
 
 Never use a truth colour, a gradient, a shadow, an outline or glass on the mark.
 

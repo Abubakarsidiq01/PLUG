@@ -14,6 +14,10 @@ const aliases = JSON.parse(readFileSync(join(here, "token-aliases.json"), "utf8"
 const colorEntries = () => Object.entries(tokens.color).flatMap(([group, scale]) =>
   typeof scale === "string" ? [[[group], scale]] : Object.entries(scale).map(([step, value]) => [[group, step], value]));
 const typeEntries = () => Object.entries(tokens.type).filter(([name]) => name !== "family");
+// Numeric spring entries ("response", "damping") and named springs ("key": {...}) share motion.spring.
+const namedSprings = () => Object.entries(tokens.motion.spring).filter(([, value]) => typeof value === "object");
+const edges = () => Object.entries(tokens.elevation).filter(([, value]) => typeof value === "number");
+const kebabCase = (name) => name.replace(/([A-Z])/g, "-$1").toLowerCase();
 const camel = (parts) => kebab(...parts).replace(/-([a-zA-Z0-9])/g, (_, c) => c.toUpperCase());
 const outDir = join(here, "generated");
 mkdirSync(outDir, { recursive: true });
@@ -45,6 +49,7 @@ for (const [step, value] of Object.entries(tokens.radius)) {
 for (const [name, value] of Object.entries(tokens.layout)) {
   cssLines.push(`  --layout-${name}: ${value}px;`);
 }
+cssLines.push(`  --font-display: ${tokens.type.family.display};`);
 cssLines.push(`  --font-sans: ${tokens.type.family.web};`);
 cssLines.push(`  --font-mono: ${tokens.type.family.mono};`);
 for (const [name, scale] of typeEntries()) {
@@ -60,9 +65,20 @@ cssLines.push(`  --motion-reveal: ${tokens.motion.reveal}ms;`);
 for (const [name, value] of Object.entries(tokens.motion.mark)) {
   cssLines.push(`  --motion-mark-${name.replace(/([A-Z])/g, "-$1").toLowerCase()}: ${value}ms;`);
 }
+cssLines.push(`  --motion-press: ${tokens.motion.press}ms;`);
+for (const [name, value] of Object.entries(tokens.motion.rings)) {
+  cssLines.push(`  --motion-rings-${kebabCase(name)}: ${value}ms;`);
+}
+// Spring response (s) and damping fraction, for JS animation code; CSS has no spring timing.
+for (const [name, spring] of namedSprings()) {
+  cssLines.push(`  --motion-spring-${kebabCase(name)}-response: ${spring.response};`);
+  cssLines.push(`  --motion-spring-${kebabCase(name)}-damping: ${spring.damping};`);
+}
 cssLines.push(`  --motion-easing: ${tokens.motion.easing};`);
 cssLines.push(`  --elevation-flat: ${resolveRef(tokens.elevation.flat)};`);
-cssLines.push(`  --elevation-raised: ${tokens.elevation.raised};`);
+for (const [name, value] of edges()) {
+  cssLines.push(`  --elevation-${kebabCase(name)}: ${value}px;`);
+}
 cssLines.push(`  --target-min-touch: ${tokens.target.minTouch}px;`);
 cssLines.push("  /* Transitional v3 aliases for frozen phases (design/token-aliases.json). */");
 for (const [name, ref] of Object.entries(aliases.color)) {
@@ -117,6 +133,10 @@ for (const [name, value] of Object.entries(tokens.layout)) {
   swiftLines.push(`        static let ${name}: CGFloat = ${value}`);
 }
 swiftLines.push("    }");
+swiftLines.push("    enum TypeFamily {");
+// The first family in the stack is the registered font name (Info.plist UIAppFonts).
+swiftLines.push(`        static let display = "${tokens.type.family.display.split(",")[0].replace(/"/g, "")}"`);
+swiftLines.push("    }");
 swiftLines.push("    enum TypeSize {");
 for (const [name, value] of typeEntries()) {
   swiftLines.push(`        static let ${name}: CGFloat = ${value.size}`);
@@ -134,6 +154,21 @@ for (const [name, value] of Object.entries(tokens.motion.mark)) {
 swiftLines.push("        }");
 swiftLines.push(`        static let springResponse: Double = ${tokens.motion.spring.response}`);
 swiftLines.push(`        static let springDamping: Double = ${tokens.motion.spring.damping}`);
+for (const [name, spring] of namedSprings()) {
+  swiftLines.push(`        static let ${camel(["spring", name, "response"])}: Double = ${spring.response}`);
+  swiftLines.push(`        static let ${camel(["spring", name, "damping"])}: Double = ${spring.damping}`);
+}
+swiftLines.push(`        static let press: Double = ${tokens.motion.press} / 1000`);
+swiftLines.push("        enum Rings {");
+for (const [name, value] of Object.entries(tokens.motion.rings)) {
+  swiftLines.push(`            static let ${name}: Double = ${value} / 1000`);
+}
+swiftLines.push("        }");
+swiftLines.push("    }");
+swiftLines.push("    enum Elevation {");
+for (const [name, value] of edges()) {
+  swiftLines.push(`        static let ${name}: CGFloat = ${value}`);
+}
 swiftLines.push("    }");
 swiftLines.push("    static let minTouchTarget: CGFloat = " + tokens.target.minTouch);
 swiftLines.push("}");
