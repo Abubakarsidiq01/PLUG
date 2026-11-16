@@ -75,7 +75,8 @@ if (want("ios")) {
     writeFileSync(new URL("Contents.json", dir), JSON.stringify({
       images: [{ filename: file, idiom: "universal" }],
       info: { author: "xcode", version: 1 },
-      properties: { "preserves-vector-representation": true, "template-rendering-intent": "template" },
+      // Not template-rendered: PlugMark is also the launch-screen image, which the system would tint.
+      properties: { "preserves-vector-representation": true },
     }, null, 2) + "\n");
   }
   const icons = new URL("AppIcon.appiconset/", catalog);

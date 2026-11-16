@@ -1,0 +1,76 @@
+{
+  "source": "https://citymapper.com",
+  "captured": "2026-11-15, 1440x900, single page; cookie banner had no reject option and was left unanswered, it overlaps part of the full-page capture",
+  "tokens": {
+    "spacing": {
+      "scale": [4, 8, 12, 16, 20, 30, 40, 64],
+      "base_unit": 4,
+      "tile_stack_gap": "~30px"
+    },
+    "typography": {
+      "families": ["proxima-soft (all text, 772 nodes)", "system-ui (12 nodes, incidental)"],
+      "scale": [
+        { "role": "h1", "size": "44px/48.4px", "weight": "700", "family": "proxima-soft" },
+        { "role": "h2 / h3 tile titles", "size": "40px/44px", "weight": "700", "family": "proxima-soft" },
+        { "role": "GO button", "size": "24px", "weight": "700", "family": "proxima-soft", "transform": "uppercase", "tracking": "normal" },
+        { "role": "lead body", "size": "20px/28px", "weight": "400", "family": "proxima-soft", "max_width": "400px" },
+        { "role": "card body", "size": "18.72px", "weight": "400", "family": "proxima-soft" },
+        { "role": "UI / buttons", "size": "16px", "weight": "700", "family": "proxima-soft" },
+        { "role": "small", "size": "13-14px", "weight": "400", "family": "proxima-soft" }
+      ]
+    },
+    "colors": [
+      { "role": "page background (63%)", "value": "#FFFFFF" },
+      { "role": "neutral tile (19%)", "value": "#F6F6F6" },
+      { "role": "brand green, one feature tile + primary actions (8%)", "value": "#37AB2F" },
+      { "role": "journey planner panel (3%)", "value": "#417193" },
+      { "role": "text primary", "value": "#383838" },
+      { "role": "text secondary", "value": "#4A4A4A" },
+      { "role": "hairline ring, navy-tinted", "value": "rgba(0,17,34,0.06)" }
+    ],
+    "radius": ["20px (tiles)", "8px (inputs, small buttons)", "6px (nav chips)", "45-96px (pill CTAs)", "50% (icon circles)"],
+    "shadows": ["0 -0.5px 0 0.5px rgba(0,17,34,0.06) (hairline ring used as a border)", "0 -4px 0 0 rgba(0,17,34,0.133) (one lip under a pressed control)"],
+    "image_ratios": [
+      { "usage": "mascot illustrations", "ratio": "1:1 and 1.15:1" },
+      { "usage": "news thumbnails", "ratio": "1.9:1 at 300px" }
+    ],
+    "grid": { "max_width": "940px content column", "columns": 3, "template": "300px 300px 300px (news)", "gutter": "20px" },
+    "motion": [
+      "color + background-color + outline-color 100ms",
+      "transform 200ms cubic-bezier(0.2,0.8,0.1,1) + box-shadow 200ms ease-out",
+      "transform + box-shadow 150ms",
+      "top 200ms",
+      "no prefers-reduced-motion query found; :focus-visible present"
+    ]
+  },
+  "taste": [
+    {
+      "name": "The tool is the hero",
+      "trigger": "When choosing what fills the first viewport of a transport brand",
+      "decision": "Chose a working journey form (Start, End, Now/Arrive/Leave, GO) at y=318px over a hero photo or tagline-only banner",
+      "reason": "Because a person who came to get somewhere wants to type, not read about the app first",
+      "evidence": ["planner panel 940px wide, #417193, radius 20px, inside the first 900px", "two 50px inputs radius 8px with a swap control", "time-mode toggle shown as three bare words, not a dropdown"]
+    },
+    {
+      "name": "Bold carries the hierarchy, one family carries everything",
+      "trigger": "When building a loud voice without a second display font",
+      "decision": "Chose one rounded sans in two weights (700/400) over a display/body pairing",
+      "reason": "Because heavy weight at large size is enough to shout, and one family keeps a dense app UI coherent",
+      "evidence": ["proxima-soft 772 nodes vs 12 system-ui", "weights 700 (41) and 400 (34) only", "44px and 40px heads vs 16-20px body, ratio ~2.2", "tracking normal on every size"]
+    },
+    {
+      "name": "Flat tiles with a hairline, no drop shadow",
+      "trigger": "When stacking six content blocks of different kinds",
+      "decision": "Chose flat filled tiles (#F6F6F6, green, slate) at 20px radius with a 0.5px navy-tinted ring over floating shadowed cards",
+      "reason": "Because a fill change plus a hairline separates blocks without suggesting they can be lifted or dragged",
+      "evidence": ["0 drop shadows; ring is 0 -0.5px 0 0.5px rgba(0,17,34,0.06)", "radius 20px used 17 times", "tiles 940px wide, stacked ~30px apart", "inputs inside tiles 8px radius (nested smaller)"]
+    },
+    {
+      "name": "Utility-speed feedback",
+      "trigger": "When adding hover and press states",
+      "decision": "Chose 100ms colour changes and 150-200ms transforms with a fast-out curve over 300ms+ fades",
+      "reason": "Because a transit user taps in a hurry; feedback must land before the finger lifts",
+      "evidence": ["color/background 100ms", "transform 200ms cubic-bezier(0.2,0.8,0.1,1)", "transform 150ms on chips", "no reduced-motion query (a gap, not a choice to copy)"]
+    }
+  ]
+}

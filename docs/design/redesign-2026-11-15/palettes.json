@@ -1,0 +1,452 @@
+{
+ "A-signal": {
+  "oklch": {
+   "paper": [
+    0.962,
+    0.007,
+    165
+   ],
+   "card": [
+    1.0,
+    0,
+    165
+   ],
+   "sunk": [
+    0.927,
+    0.0084,
+    165
+   ],
+   "ink.900": [
+    0.19,
+    0.0098,
+    165
+   ],
+   "ink.600": [
+    0.43,
+    0.0112,
+    165
+   ],
+   "ink.400": [
+    0.52,
+    0.0098,
+    165
+   ],
+   "rule.200": [
+    0.892,
+    0.0084,
+    165
+   ],
+   "rule.300": [
+    0.832,
+    0.0091,
+    165
+   ],
+   "rule.control": [
+    0.64,
+    0.0088,
+    165
+   ],
+   "truth.confirmed": [
+    0.45,
+    0.105,
+    152
+   ],
+   "truthSurface.confirmed": [
+    0.945,
+    0.0336,
+    152
+   ],
+   "truthBorder.confirmed": [
+    0.84,
+    0.063,
+    152
+   ],
+   "truth.recent": [
+    0.45,
+    0.085,
+    208
+   ],
+   "truthSurface.recent": [
+    0.945,
+    0.0272,
+    208
+   ],
+   "truthBorder.recent": [
+    0.84,
+    0.051,
+    208
+   ],
+   "truth.estimated": [
+    0.45,
+    0.105,
+    68
+   ],
+   "truthSurface.estimated": [
+    0.945,
+    0.0336,
+    68
+   ],
+   "truthBorder.estimated": [
+    0.84,
+    0.063,
+    68
+   ],
+   "truth.unknown": [
+    0.45,
+    0.008,
+    160
+   ],
+   "truthSurface.unknown": [
+    0.945,
+    0.006,
+    160
+   ],
+   "truthBorder.unknown": [
+    0.84,
+    0.012,
+    160
+   ],
+   "alert.600": [
+    0.5,
+    0.17,
+    32
+   ],
+   "alert.50": [
+    0.95,
+    0.025,
+    32
+   ],
+   "alert.border": [
+    0.84,
+    0.06,
+    32
+   ]
+  },
+  "hex": {
+   "paper": "#EEF4F1",
+   "card": "#FFFFFF",
+   "sunk": "#E2E9E5",
+   "ink.900": "#101513",
+   "ink.600": "#4A524E",
+   "ink.400": "#646B67",
+   "rule.200": "#D7DDDA",
+   "rule.300": "#C3CAC6",
+   "rule.control": "#878E8B",
+   "truth.confirmed": "#196537",
+   "truthSurface.confirmed": "#DDF4E2",
+   "truthBorder.confirmed": "#ADD7B7",
+   "truth.recent": "#00626E",
+   "truthSurface.recent": "#D9F2F6",
+   "truthBorder.recent": "#A4D4DC",
+   "truth.estimated": "#7A4800",
+   "truthSurface.estimated": "#FDE9D6",
+   "truthBorder.estimated": "#E7C49F",
+   "truth.unknown": "#525754",
+   "truthSurface.unknown": "#EAEEEB",
+   "truthBorder.unknown": "#C4CDC8",
+   "alert.600": "#AF2D18",
+   "alert.50": "#FFE9E4",
+   "alert.border": "#EFBDB2"
+  }
+ },
+ "B-ledger": {
+  "oklch": {
+   "paper": [
+    0.968,
+    0.008,
+    80
+   ],
+   "card": [
+    1.0,
+    0,
+    80
+   ],
+   "sunk": [
+    0.933,
+    0.0096,
+    80
+   ],
+   "ink.900": [
+    0.22,
+    0.0112,
+    80
+   ],
+   "ink.600": [
+    0.43,
+    0.0128,
+    80
+   ],
+   "ink.400": [
+    0.52,
+    0.0112,
+    80
+   ],
+   "rule.200": [
+    0.898,
+    0.0096,
+    80
+   ],
+   "rule.300": [
+    0.838,
+    0.0104,
+    80
+   ],
+   "rule.control": [
+    0.64,
+    0.01,
+    80
+   ],
+   "truth.confirmed": [
+    0.46,
+    0.105,
+    152
+   ],
+   "truthSurface.confirmed": [
+    0.945,
+    0.0336,
+    152
+   ],
+   "truthBorder.confirmed": [
+    0.84,
+    0.063,
+    152
+   ],
+   "truth.recent": [
+    0.46,
+    0.085,
+    208
+   ],
+   "truthSurface.recent": [
+    0.945,
+    0.0272,
+    208
+   ],
+   "truthBorder.recent": [
+    0.84,
+    0.051,
+    208
+   ],
+   "truth.estimated": [
+    0.46,
+    0.105,
+    68
+   ],
+   "truthSurface.estimated": [
+    0.945,
+    0.0336,
+    68
+   ],
+   "truthBorder.estimated": [
+    0.84,
+    0.063,
+    68
+   ],
+   "truth.unknown": [
+    0.46,
+    0.008,
+    160
+   ],
+   "truthSurface.unknown": [
+    0.945,
+    0.006,
+    160
+   ],
+   "truthBorder.unknown": [
+    0.84,
+    0.012,
+    160
+   ],
+   "alert.600": [
+    0.5,
+    0.17,
+    32
+   ],
+   "alert.50": [
+    0.95,
+    0.025,
+    32
+   ],
+   "alert.border": [
+    0.84,
+    0.06,
+    32
+   ]
+  },
+  "hex": {
+   "paper": "#F7F4EF",
+   "card": "#FFFFFF",
+   "sunk": "#ECE8E2",
+   "ink.900": "#1D1A15",
+   "ink.600": "#544F48",
+   "ink.400": "#6C6862",
+   "rule.200": "#E1DDD6",
+   "rule.300": "#CDC9C2",
+   "rule.control": "#8F8C85",
+   "truth.confirmed": "#1D6839",
+   "truthSurface.confirmed": "#DDF4E2",
+   "truthBorder.confirmed": "#ADD7B7",
+   "truth.recent": "#006571",
+   "truthSurface.recent": "#D9F2F6",
+   "truthBorder.recent": "#A4D4DC",
+   "truth.estimated": "#7E4B00",
+   "truthSurface.estimated": "#FDE9D6",
+   "truthBorder.estimated": "#E7C49F",
+   "truth.unknown": "#545956",
+   "truthSurface.unknown": "#EAEEEB",
+   "truthBorder.unknown": "#C4CDC8",
+   "alert.600": "#AF2D18",
+   "alert.50": "#FFE9E4",
+   "alert.border": "#EFBDB2"
+  }
+ },
+ "C-nearby": {
+  "oklch": {
+   "paper": [
+    0.958,
+    0.012,
+    92
+   ],
+   "card": [
+    1.0,
+    0,
+    92
+   ],
+   "sunk": [
+    0.923,
+    0.0144,
+    92
+   ],
+   "ink.900": [
+    0.2,
+    0.0168,
+    92
+   ],
+   "ink.600": [
+    0.43,
+    0.0192,
+    92
+   ],
+   "ink.400": [
+    0.52,
+    0.0168,
+    92
+   ],
+   "rule.200": [
+    0.888,
+    0.0144,
+    92
+   ],
+   "rule.300": [
+    0.828,
+    0.0156,
+    92
+   ],
+   "rule.control": [
+    0.62,
+    0.015,
+    92
+   ],
+   "truth.confirmed": [
+    0.455,
+    0.105,
+    152
+   ],
+   "truthSurface.confirmed": [
+    0.945,
+    0.0336,
+    152
+   ],
+   "truthBorder.confirmed": [
+    0.84,
+    0.063,
+    152
+   ],
+   "truth.recent": [
+    0.455,
+    0.085,
+    208
+   ],
+   "truthSurface.recent": [
+    0.945,
+    0.0272,
+    208
+   ],
+   "truthBorder.recent": [
+    0.84,
+    0.051,
+    208
+   ],
+   "truth.estimated": [
+    0.455,
+    0.105,
+    68
+   ],
+   "truthSurface.estimated": [
+    0.945,
+    0.0336,
+    68
+   ],
+   "truthBorder.estimated": [
+    0.84,
+    0.063,
+    68
+   ],
+   "truth.unknown": [
+    0.455,
+    0.008,
+    160
+   ],
+   "truthSurface.unknown": [
+    0.945,
+    0.006,
+    160
+   ],
+   "truthBorder.unknown": [
+    0.84,
+    0.012,
+    160
+   ],
+   "alert.600": [
+    0.5,
+    0.17,
+    32
+   ],
+   "alert.50": [
+    0.95,
+    0.025,
+    32
+   ],
+   "alert.border": [
+    0.84,
+    0.06,
+    32
+   ]
+  },
+  "hex": {
+   "paper": "#F4F1E8",
+   "card": "#FFFFFF",
+   "sunk": "#E9E5DB",
+   "ink.900": "#19160D",
+   "ink.600": "#535044",
+   "ink.400": "#6C695E",
+   "rule.200": "#DDDAD0",
+   "rule.300": "#CAC7BC",
+   "rule.control": "#89867C",
+   "truth.confirmed": "#1B6738",
+   "truthSurface.confirmed": "#DDF4E2",
+   "truthBorder.confirmed": "#ADD7B7",
+   "truth.recent": "#00636F",
+   "truthSurface.recent": "#D9F2F6",
+   "truthBorder.recent": "#A4D4DC",
+   "truth.estimated": "#7C4900",
+   "truthSurface.estimated": "#FDE9D6",
+   "truthBorder.estimated": "#E7C49F",
+   "truth.unknown": "#535855",
+   "truthSurface.unknown": "#EAEEEB",
+   "truthBorder.unknown": "#C4CDC8",
+   "alert.600": "#AF2D18",
+   "alert.50": "#FFE9E4",
+   "alert.border": "#EFBDB2"
+  }
+ }
+}
