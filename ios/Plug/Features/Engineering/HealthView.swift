@@ -22,9 +22,6 @@ struct HealthView: View {
                         if let commit = check.response.commit {
                             LabeledContent("Commit", value: commit)
                         }
-                        if let id = check.correlationID {
-                            LabeledContent("Request ID", value: id).font(.caption).textSelection(.enabled)
-                        }
                     } else if let errorMessage {
                         Label("Not connected", systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)

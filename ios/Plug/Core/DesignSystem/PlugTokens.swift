@@ -640,60 +640,82 @@ extension ServiceOffer.TruthLabel {
 
 // MARK: - Details and toasts
 
-/// The sentences or reference codes behind a tap, in a short sheet.
-struct InfoSheet: View {
-    let title: String
-    var lines: [String] = []
-    var rows: [(String, String)] = []
+/// A titled sheet for what sits behind "Details": maps, timelines and plain explanations. Never
+/// internal references; nobody can use those.
+struct DetailsSheet<Content: View>: View {
+    var title = "Details"
+    @ViewBuilder let content: () -> Content
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                 Text(title).plugText(.display).foregroundStyle(PlugTokens.Color.ink900).accessibilityAddTraits(.isHeader)
-                ForEach(lines, id: \.self) { line in
-                    Text(line).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if !rows.isEmpty {
-                    VStack(alignment: .leading, spacing: 0) {
-                        PlugDivider()
-                        ForEach(rows.indices, id: \.self) { index in
-                            VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
-                                Text(rows[index].0).plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
-                                Text(rows[index].1).font(.system(.body, design: .monospaced)).foregroundStyle(PlugTokens.Color.ink900)
-                                    .textSelection(.enabled)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            .padding(.vertical, PlugTokens.Space.s3)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .accessibilityElement(children: .combine)
-                            PlugDivider()
-                        }
-                    }
-                }
+                content()
                 Button("Close") { dismiss() }.buttonStyle(PlugButtonStyle(kind: .secondary))
-                    .padding(.top, PlugTokens.Space.s2)
             }
+            .foregroundStyle(PlugTokens.Color.ink900)
             .padding(PlugTokens.Space.s6)
         }
-        .presentationDetents([.medium])
+        .background(PlugTokens.Color.paper)
+        // Full height: at the medium detent the sheet edge cut through text.
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
         .presentationBackground(PlugTokens.Color.paper)
         .presentationCornerRadius(PlugShape.sheet)
     }
 }
 
-/// "Details": reference codes live behind this, never on the main screen.
-struct DetailsButton: View {
-    let rows: [(String, String)]
+/// "Details": the context behind a screen, in a sheet.
+struct DetailsButton<Content: View>: View {
+    @ViewBuilder let content: () -> Content
     @State private var open = false
 
     var body: some View {
         Button { open = true } label: { Text("Details") }
             .buttonStyle(PlugButtonStyle(kind: .tertiary, fullWidth: false))
             .accessibilityIdentifier("details")
-            .sheet(isPresented: $open) { InfoSheet(title: "Details", rows: rows) }
+            .sheet(isPresented: $open) { DetailsSheet(content: content) }
+    }
+}
+
+/// When something happened or will happen, as a column of dots joined by a hairline. A filled
+/// dot has happened; an open one is still ahead. Every value comes from the server.
+struct DetailTimeline: View {
+    struct Step { let title: String; let value: String; var done = true }
+    let steps: [Step]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(steps.indices, id: \.self) { index in
+                let step = steps[index]
+                HStack(alignment: .top, spacing: PlugTokens.Space.s4) {
+                    ZStack(alignment: .top) {
+                        if index < steps.count - 1 {
+                            Rectangle().fill(PlugTokens.Color.rule300).frame(width: PlugShape.rule)
+                                .padding(.top, 14)
+                        }
+                        Circle()
+                            .fill(step.done ? PlugTokens.Color.brandGreen : PlugTokens.Color.paper)
+                            .overlay(Circle().strokeBorder(step.done ? PlugTokens.Color.brandGreen : PlugTokens.Color.ruleControl,
+                                                           lineWidth: 1.5))
+                            .frame(width: 11, height: 11)
+                            .padding(.top, 4)
+                    }
+                    .frame(width: 12)
+                    .frame(maxHeight: .infinity, alignment: .top)
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
+                        Text(step.title).plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
+                        Text(step.value).plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
+                            .monospacedDigit().fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.bottom, index < steps.count - 1 ? PlugTokens.Space.s6 - 4 : 0)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .accessibilityElement(children: .combine)
+                .plugArrival(index)
+            }
+        }
     }
 }
 
@@ -751,8 +773,6 @@ struct PlugNotice: View {
     var tone: Tone = .neutral
     var actionTitle: String? = nil
     var actionDisabled = false
-    /// Reference codes, behind "Details".
-    var references: [(String, String)] = []
     var action: () -> Void = {}
 
     var body: some View {
@@ -785,7 +805,6 @@ struct PlugNotice: View {
                     .buttonStyle(PlugButtonStyle(kind: .outline))
                     .disabled(actionDisabled)
             }
-            if !references.isEmpty { DetailsButton(rows: references) }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(PlugTokens.Space.s6 - 4)

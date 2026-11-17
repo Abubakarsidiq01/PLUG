@@ -1,4 +1,5 @@
 import AVFoundation
+import MapKit
 import Speech
 import SwiftUI
 
@@ -224,7 +225,9 @@ struct AskView: View {
                                       ("Home help", "IllHomeHelp", Example.services[2], "ask-example-home"),
                                       ("Tech", "IllTech", "I need help repairing my laptop", "ask-example-tech"),
                                       ("Places", "IllPlaces", Example.places[0], "ask-example-places")]
-                    Text("Start with an example").plugText(.title2).accessibilityAddTraits(.isHeader)
+                    // The frame hugs the serif's cap height; the audit sampled clipped descenders as low contrast.
+                    Text("Start with an example").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+                        .padding(.vertical, 3).accessibilityAddTraits(.isHeader)
                     // Four across, two at accessibility sizes. Not a lazy grid: a lazy one drops tiles
                     // out of view, and the tests find them by id.
                     let columns = typeSize.isAccessibilitySize ? 2 : 4
@@ -461,8 +464,10 @@ struct AskView: View {
                     }
                     // Offers fade up row by row (offerList); the rest of a server change lands in place.
                     actions
-                    if let reference = model.request?.requestId ?? model.askId {
-                        DetailsButton(rows: [("Request reference", reference)])
+                    if let request = model.request, model.askQuestion == nil {
+                        DetailsButton { RequestDetails(request: request) }
+                    } else if let place = model.placeQuestion {
+                        DetailsButton { PlaceDetails(place: place) }
                     }
                 }
                 .padding(.horizontal, PlugTokens.Space.s6)
@@ -774,14 +779,13 @@ struct AskView: View {
 
     // MARK: Shared
 
-    /// Says what failed and whether anything was saved; the support code sits behind Details.
+    /// Says what failed and whether anything was saved.
     @ViewBuilder private var failure: some View {
         if let message = model.errorMessage {
             PlugNotice(message: message,
                        tone: .alert,
                        actionTitle: model.hasAsk ? "Retry update" : nil,
-                       actionDisabled: model.isWorking,
-                       references: model.correlationId.map { [("Support reference", $0)] } ?? []) { Task { await model.refresh() } }
+                       actionDisabled: model.isWorking) { Task { await model.refresh() } }
                 .accessibilityIdentifier("request-error")
                 .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 8)))
         }
@@ -962,7 +966,7 @@ private struct OfferDetailView: View {
                         .padding(.top, PlugTokens.Space.s2)
                     }
                     HStack {
-                        DetailsButton(rows: [("Evidence recorded", offer.observedAt.formatted(date: .abbreviated, time: .shortened))])
+                        DetailsButton { OfferDetails(offer: offer) }
                         Spacer()
                     }
                     if offer.source != .seed {
@@ -1256,5 +1260,203 @@ private struct AskingPulse: View {
                 withAnimation(.easeOut(duration: 1.8).repeatForever(autoreverses: false)) { out = true }
             }
             .accessibilityHidden(true)
+    }
+}
+
+// MARK: - Details
+
+/// A time the server sent: the clock alone today, the day too otherwise.
+private func moment(_ date: Date) -> String {
+    Calendar.current.isDateInToday(date) ? date.formatted(date: .omitted, time: .shortened)
+        : date.formatted(.dateTime.month(.abbreviated).day().hour().minute())
+}
+
+private func detailSection<Content: View>(_ title: String, @ViewBuilder _ content: () -> Content) -> some View {
+    VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+        Text(title).plugText(.title2).foregroundStyle(PlugTokens.Color.ink900).accessibilityAddTraits(.isHeader)
+        content()
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+}
+
+/// The illustrated stand-in when there is no position to show: no coordinates were sent.
+private struct DetailsArt: View {
+    let art: String
+    let title: String
+    let line: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+            Image(art).resizable().scaledToFit().frame(height: 120)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, PlugTokens.Space.s4)
+                .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugShape.illustration, style: .continuous))
+                .accessibilityHidden(true)
+            Text(title).plugText(.title).fixedSize(horizontal: false, vertical: true)
+            caption(line)
+        }
+    }
+}
+
+/// The search area of a service request: the approximate point the request carries, with a soft
+/// circle for its distance limit. No pin, so it never reads as a precise position.
+private struct SearchAreaMap: View {
+    let location: RequestLocation
+    let radius: Int
+    var body: some View {
+        let centre = CLLocationCoordinate2D(latitude: location.latitude, longitude: location.longitude)
+        let span = Double(radius) * 2.8
+        let shape = RoundedRectangle(cornerRadius: PlugShape.illustration, style: .continuous)
+        Map(initialPosition: .region(MKCoordinateRegion(center: centre, latitudinalMeters: span, longitudinalMeters: span)),
+            interactionModes: []) {
+            MapCircle(center: centre, radius: CLLocationDistance(radius))
+                .foregroundStyle(PlugTokens.Color.brandGreen.opacity(0.12))
+                .stroke(PlugTokens.Color.brandGreen, lineWidth: 1.5)
+        }
+        .mapStyle(.standard(elevation: .flat, emphasis: .muted, pointsOfInterest: .excludingAll, showsTraffic: false))
+        .mapControls { }
+        .frame(height: 220)
+        .clipShape(shape)
+        .overlay(shape.strokeBorder(PlugTokens.Color.rule300, lineWidth: PlugShape.rule))
+        .accessibilityElement()
+        .accessibilityLabel("Map of the approximate search area, \(distance(radius)) around where you asked")
+        .accessibilityIdentifier("details-map")
+    }
+}
+
+/// Your ask: where PLUG is looking, what has happened so far, and what comes next.
+struct RequestDetails: View {
+    let request: ServiceRequest
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s8) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+                SearchAreaMap(location: request.constraints.location, radius: request.constraints.maxDistanceM)
+                caption("Searching within \(distance(request.constraints.maxDistanceM)) of where you asked. The map shows the area, not your exact spot.")
+            }
+            detailSection("So far") { DetailTimeline(steps: steps) }
+            detailSection("What happens next") {
+                Text(next).plugText(.body).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var steps: [DetailTimeline.Step] {
+        let progress = request.progress
+        let open = request.status.canCancel
+        var steps = [DetailTimeline.Step(title: "Asked", value: moment(request.createdAt))]
+        steps.append(.init(title: "People nearby",
+                           value: progress.contacted == 0 ? "Nobody notified yet"
+                               : "\(progress.contacted) notified, \(progress.replied) replied",
+                           done: progress.contacted > 0))
+        if progress.offersReady > 0 {
+            steps.append(.init(title: "Offers", value: "\(progress.offersReady) \(progress.offersReady == 1 ? "offer" : "offers") ready"))
+        }
+        steps.append(.init(title: open ? "Offers stop" : "Closed", value: open ? moment(request.expiresAt) : status,
+                           done: !open))
+        return steps
+    }
+
+    private var status: String {
+        switch request.status {
+        case .expired: return "Ended at \(moment(request.expiresAt))"
+        case .canceled: return "You stopped asking"
+        case .blocked: return "Not sent"
+        case .confirmed: return "Confirmed by the provider"
+        case .completed: return "Completed"
+        default: return "Closed"
+        }
+    }
+
+    private var next: String {
+        switch request.nextAction {
+        case .answerClarification: return "Answer the question on your ask so PLUG knows who to ask."
+        case .waitForOffers: return "People nearby who offer this see your ask and can send an offer. Offers show up on your ask."
+        case .chooseOffer: return "Compare the offers by price, time and distance. Booking opens when providers can confirm offers, so nothing is booked yet."
+        case .awaitSupplierConfirmation: return "The provider has been asked to confirm. Nothing is booked until they do."
+        case .showResult: return "This request is finished."
+        case .showNoResult: return request.noResultReason?.explanation ?? "No current offers are available."
+        case .none: return "This request is closed. Nobody else will be contacted."
+        }
+    }
+}
+
+/// A place question: who was asked, what came back and how long it holds.
+struct PlaceDetails: View {
+    let place: PlaceQuestion
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s8) {
+            DetailsArt(art: "IllPlaces", title: place.placeName ?? "Your question",
+                       line: "Answered by people nearby, never by PLUG itself.")
+            detailSection("So far") { DetailTimeline(steps: steps) }
+            if let web = place.webAnswer {
+                detailSection("From the web") {
+                    HStack { TruthBadge(label: .notVerified); Spacer(minLength: 0) }
+                    caption("\(web.sourceName), read \(web.retrievedAt.formatted(.relative(presentation: .named))). No person checked this.")
+                }
+            }
+            detailSection("What happens next") {
+                Text(next).plugText(.body).fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var steps: [DetailTimeline.Step] {
+        let progress = place.progress
+        var steps = [DetailTimeline.Step(title: "Asked", value: moment(place.createdAt)),
+                     .init(title: "People nearby",
+                           value: progress.notified == 0 ? "Nobody notified"
+                               : "\(progress.notified) notified, \(progress.opened) opened, \(progress.answered) answered",
+                           done: progress.notified > 0)]
+        switch place.status {
+        case .asking:
+            steps.append(.init(title: "Question open until", value: moment(place.expiresAt), done: false))
+        case .answered:
+            if let answer = place.answer {
+                steps.append(.init(title: "Answer", value: answer.value))
+                steps.append(.init(title: "Current until", value: moment(answer.expiresAt), done: answer.expiresAt <= Date()))
+            }
+        case .unknown:
+            steps.append(.init(title: "Answer", value: "Unknown. No one nearby could check."))
+        }
+        return steps
+    }
+
+    private var next: String {
+        switch place.status {
+        case .asking: return "People nearby can see your question and answer it. Answers show up on your ask."
+        case .answered: return "After the time above, this answer is no longer current. Ask again for a fresh one."
+        case .unknown: return "Nobody could check this time. You can ask again later."
+        }
+    }
+}
+
+/// An offer: how far, when, and how choosing works today.
+private struct OfferDetails: View {
+    let offer: ServiceOffer
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s8) {
+            if let place = offer.place {
+                DetailsArt(art: "IllPlaces", title: "\(distance(offer.distanceM)) away",
+                           line: "\(place.name), \(place.address)")
+            } else {
+                DetailsArt(art: "IllHomeHelp", title: "\(distance(offer.distanceM)) away",
+                           line: "This provider works through PLUG and has no public address.")
+            }
+            detailSection("Timing") {
+                DetailTimeline(steps: [
+                    .init(title: "Information recorded", value: moment(offer.observedAt)),
+                    .init(title: "Earliest", value: moment(offer.availableAt), done: offer.availableAt <= Date()),
+                    .init(title: "Offer ends", value: moment(offer.expiresAt), done: offer.expiresAt <= Date())
+                ])
+            }
+            detailSection("How choosing works") {
+                Text(offer.source == .seed
+                     ? "This is an example offer for preview. Nothing is booked."
+                     : "Compare price, earliest time and distance across offers. Booking opens when providers can confirm offers, so nothing is booked from here yet.")
+                    .plugText(.body).fixedSize(horizontal: false, vertical: true)
+            }
+        }
     }
 }

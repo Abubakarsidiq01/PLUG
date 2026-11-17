@@ -16,7 +16,6 @@ final class RequestModel: ObservableObject {
     @Published private(set) var offers: [ServiceOffer] = []
     @Published private(set) var isWorking = false
     @Published private(set) var errorMessage: String?
-    @Published private(set) var correlationId: String?
     @Published private(set) var isCached = false
     @Published private(set) var refreshedAt: Date?
     @Published private(set) var retryAfter: Date?
@@ -149,7 +148,6 @@ final class RequestModel: ObservableObject {
         askQuestion = nil
         offers = []
         errorMessage = nil
-        correlationId = nil
         isCached = false
         refreshedAt = nil
         createAttempt = nil
@@ -168,7 +166,6 @@ final class RequestModel: ObservableObject {
         revision = UUID()
         isWorking = true
         errorMessage = nil
-        correlationId = nil
         retryAfter = nil
         return revision
     }
@@ -228,7 +225,6 @@ final class RequestModel: ObservableObject {
         guard revision == token else { return }
         isCached = hasAsk
         if let api = error as? APIError {
-            correlationId = api.requestID
             if api.code == "rate_limited" {
                 let delay = max(1, min(api.retryAfterSeconds ?? 60, 3600))
                 retryAfter = now().addingTimeInterval(TimeInterval(delay))
