@@ -1,16 +1,16 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-11-17T21:00:00+00:00",
-  "updated_by": "person_one (P3.S11 in-app provider offers, security review fixes)",
+  "updated_at": "2026-11-17T23:55:00+00:00",
+  "updated_by": "person_one (P3.S12 decline-versus-silence tracking)",
   "completed_phases": [
     "P0",
     "P1",
     "P2"
   ],
   "current_phase": "P3",
-  "current_step": "P3.S11",
-  "current_step_title": "Implement POST /v1/requests/{id}/offers for in-app provider offers, alongside the existing SMS path. Both produce the same validated Offer.",
+  "current_step": "P3.S12",
+  "current_step_title": "Implement decline-versus-silence tracking. A decline is a reply and costs the provider nothing; silence is what lowers a response score.",
   "manual_section": "27.4",
   "readme": "docs/phases/P3-ONE.md",
   "owner": "person_one",
@@ -119,7 +119,7 @@
     "POST /v1/requests/{request_id}/select": "frozen@0.7.0 (merged in PR #46)",
     "POST /v1/requests/{request_id}/offers": "frozen@0.7.0 (merged in PR #46); implemented in P3.S11 behind provider_inbox; expires_at = available_at + 15 minutes per owner decision 2026-11-17 (contract 0.7.2 in progress)",
     "GET /v1/providers/me/inbox": "frozen@0.7.0 (merged in PR #46)",
-    "POST /v1/providers/me/inbox/{match_id}/decline": "frozen@0.7.0 (merged in PR #46)",
+    "POST /v1/providers/me/inbox/{match_id}/decline": "frozen@0.7.0 (merged in PR #46); implemented in P3.S12 behind provider_inbox",
     "POST /v1/providers/me/inbox/{match_id}/reservation": "frozen@0.7.0 (merged in PR #46); 0.7.1 merged in PR #54: respond_by = notified_at + 5 minutes, a decision at or after confirm_by or on a canceled reservation is reservation_closed; implemented in P3.S6 part 2 behind provider_inbox",
     "POST /v1/me/devices": "frozen@0.7.0 (merged in PR #46)",
     "POST /v1/suppliers/opt-in": "frozen@0.7.0 (merged in PR #46)",
@@ -149,6 +149,13 @@
     "provider_inbox": "off (Phase 3 in-app inbox, offers and reservations)"
   },
   "next_actions": [
+    {
+      "id": "P3.S12",
+      "owner": "person_one",
+      "manual_section": "27.4 / 12C.2",
+      "task": "Implement decline-versus-silence tracking (contract 0.7.1 declineMatch). 2026-11-17 progress (branch p3.s12-one-decline-silence, stacked on p3.s11-one-provider-offers, not merged): POST /v1/providers/me/inbox/{match_id}/decline behind requests_v2 and provider_inbox (404 with the flag off). 401 without a session or for an inactive account, 403 for other scopes; 429 with Retry-After past 30 declines per window per caller, counted before any lookup; 404 for a malformed, missing or another provider's match_id. Body is optional MatchDecline: no body or {} or {reason: busy|too_far|price|not_my_skill|other}; anything else is 400 (reason invalid, or body invalid for an extra field or a non-object). A decline writes request_matches.declined_at, decline_reason and replied_at at the same instant and returns InboxItem status declined; declining again returns the first item unchanged (first reason and time kept). 409 request_closed (field match_id) after this provider offered or when the request is no longer submitted/routed/awaiting_responses/ranked; an offer after a decline is 409 request_closed (sendProviderOffer now checks declined_at instead of a reply with no offer). Migration V12 (expand only): request_matches.declined_at and decline_reason (CHECK enum; a reason only with a decline; replied_at = declined_at). InboxItem declined now comes from declined_at. Silence: a match with no reply at respond_by (notified_at + 5 minutes) is expired; for an expired request the end time is the earlier of its deadline and updated_at, so a request still running after the window counts as silence and one that ended inside it is closed (S10 treated every expired request as closed). RequestService.responsiveness(provider) returns the facts the score rests on: answered (an offer or a decline, replied_at set) and silent (MatchStatus expired); closed, not_chosen and open count as neither. Nothing reads it yet. Not done, left for P3.S13: the responsiveness value itself (manual 12C.2 gives replied / matched x 100, but the minimum evidence before a null value is not defined), ProviderProfile.score_breakdown, the score-change log, and whether provider_scores.response_rate (used by match ranking) should be fed from these facts. Suspended standing is still not stored (no 403 suspended). The decline reason is stored but not yet used to tune matching.",
+      "acceptance": "Drafted from P3-ONE.md and contract 0.7.1, to be confirmed by both: a decline returns 200 InboxItem declined and is recorded as a reply with its reason and time, repeated declines return the same item, a decline after offering or on a closed request and an offer after declining are 409 request_closed, another provider's or a malformed match is 404, a bad reason or extra field is 400, 401 without a session, 429 past the limit and 404 while provider_inbox is off; a match past respond_by with no reply is expired and counted as silence, and a decline is never counted as silence; in ./dev check contractTest and ./dev databaseTest on a disposable database."
+    },
     {
       "id": "P3.S11",
       "owner": "person_one",
@@ -301,7 +308,9 @@
     "Reservation timeout and completion run lazily on read and in RequestWorker (fixedDelay 1s, single process). With the worker off and no reads, a pending reservation stays pending past confirm_by until the next touch.",
     "Provider standing (contract 0.7.0 ProviderProfile.standing, active or suspended) is not stored, so answerReservation and sendProviderOffer cannot refuse a suspended provider and treats every provider as active. Add the column and the check when the admin standing route (POST /v1/admin/providers/{user_id}/standing) is built.",
     "P3.S10 hourly cap: MatchService.notify locks the candidate provider_profiles rows (FOR NO KEY UPDATE, id order) inside the worker transaction, and RequestService.workOnce routes up to 20 requests in one transaction. Across requests the lock order is not global, so two workers can deadlock. Latent while one process runs the worker; fix before scaling out (one transaction per request, or lock the union of candidate providers once per pass).",
-    "Truth labels are not aged from observed_at (manual 11.2): an in-app (portal) offer stays confirmed until it expires, which can be up to 7 days and 15 minutes after it was sent. Add server-side aging before portal offers reach real users."
+    "Truth labels are not aged from observed_at (manual 11.2): an in-app (portal) offer stays confirmed until it expires, which can be up to 7 days and 15 minutes after it was sent. Add server-side aging before portal offers reach real users.",
+    "P3.S12: a decline is accepted until the request closes, even after respond_by, so a provider who was silent past the window can turn that match into an answer by declining late. The contract only refuses a decline after offering or once the request closed; decide in P3.S13 whether a reply after respond_by counts as an answer for responsiveness.",
+    "P3.S12: silence on an expired request uses the earlier of its deadline and updated_at as its end. A ranked request whose offers all ran out is expired only when the worker or a read next sees it, so if the worker lags past a provider's reply window that match is counted as silence although the request had already ended."
   ],
   "environments": {
     "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",

@@ -354,8 +354,8 @@ class ProviderOfferTest {
 
     @Test void anOfferOnADeclinedMatchIsRequestClosed() throws Exception {
         var s = scene();
-        jdbc.update("UPDATE request_matches SET replied_at=? WHERE request_id=? AND provider_id=?",
-                java.sql.Timestamp.from(START), s.requestId(), userId(s.provider()));
+        post(s.provider(), "/v1/providers/me/inbox/" + matchId(s.requestId(), s.provider()) + "/decline", "{\"reason\":\"busy\"}", null)
+                .andExpect(status().isOk());
         assertDetail(errorOf(offer(s.provider(), s.requestId(), valid()), 409), "request_id", "request_closed");
     }
 

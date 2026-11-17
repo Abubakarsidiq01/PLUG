@@ -104,4 +104,15 @@ class ReservationFlagOffTest {
                 .content("{\"price_cents\":3000,\"currency\":\"USD\",\"available_at\":\"2026-10-01T20:20:00Z\"}"))
                 .andExpect(status().isNotFound());
     }
+    /// P3.S12: declineMatch is a provider_inbox route too.
+    @Test void declineIsNotFoundWhenTheProviderInboxFlagIsOff() throws Exception {
+        JsonNode session = mapper.readTree(mvc.perform(post("/v1/auth/guest").with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })
+                .contentType(MediaType.APPLICATION_JSON).content("{\"consent_version\":\"2026-09-01\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+        user = session.at("/account/user_id").asText();
+        mvc.perform(post("/v1/providers/me/inbox/mat_" + UUID.randomUUID() + "/decline")
+                .with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })
+                .header("Authorization", "Bearer " + session.get("access_token").asText())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"reason\":\"busy\"}")).andExpect(status().isNotFound());
+    }
 }
