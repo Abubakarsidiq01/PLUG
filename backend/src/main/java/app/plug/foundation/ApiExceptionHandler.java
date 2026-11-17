@@ -58,8 +58,10 @@ public class ApiExceptionHandler {
         return build(request, 415, "validation_failed", "Send a JSON request body.");
     }
 
-    // A permitted path with no handler, such as a route whose feature flag is off.
-    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    // A permitted path with no handler, such as a route whose feature flag is off. A permitted method
+    // on a path another method still serves (POST offers beside GET offers) is the same missing route.
+    @ExceptionHandler({org.springframework.web.servlet.resource.NoResourceFoundException.class,
+            org.springframework.web.HttpRequestMethodNotSupportedException.class})
     ResponseEntity<ErrorEnvelope> noRoute(HttpServletRequest request) {
         return build(request, 404, "not_found", "Not found.");
     }
