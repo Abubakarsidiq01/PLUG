@@ -53,7 +53,7 @@ public class SecurityConfiguration {
         if (requestsV2) {
             auth.requestMatchers(HttpMethod.POST, "/v1/requests", "/v1/requests/*/clarifications", "/v1/requests/*/cancel",
                             // P3.S6: the controller exists only with the provider inbox on; otherwise 404.
-                            "/v1/requests/*/select")
+                            "/v1/requests/*/select", "/v1/providers/me/inbox/*/reservation")
                     .hasAnyAuthority("SCOPE_guest", "SCOPE_member")
                 .requestMatchers(HttpMethod.GET, "/v1/requests/*", "/v1/requests/*/offers")
                     .hasAnyAuthority("SCOPE_guest", "SCOPE_member")

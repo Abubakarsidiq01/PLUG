@@ -75,6 +75,12 @@ public final class RequestPayloads {
     public record Reservation(String reservationId, String offerId, String status, String bookingRef,
             Instant confirmBy, Instant confirmedAt, Instant endedAt, Instant createdAt) {}
     public record Selection(String offerId) {}
+    /// Contract 0.7.1 InboxItem: budget_cents and needed_by are always present, null when unset.
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    public record InboxItem(String matchId, String requestId, String status, String serviceName, List<String> skillTags,
+            Integer budgetCents, String currency, Instant neededBy, int distanceM, Instant respondBy, Instant notifiedAt,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Offer offer,
+            @JsonInclude(JsonInclude.Include.NON_NULL) Reservation reservation) {}
     public record Place(String placeId, String name, String address, int distanceM) {}
     /** Manual v4 §12C: fewer than three completed jobs is "new", never a zero. */
     @JsonInclude(JsonInclude.Include.NON_NULL)

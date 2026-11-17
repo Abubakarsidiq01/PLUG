@@ -226,8 +226,7 @@ public class RequestService {
         });
     }
     /// The provider's answer to a pending reservation, on a match they own. Only "confirm"
-    /// moves a request to confirmed (manual v4 19.6). The HTTP route is frozen in 0.7.0 but its
-    /// InboxItem response needs respond_by, whose lifetime is settled in contract 0.7.1.
+    /// moves a request to confirmed (manual v4 19.6). The HTTP route calls it through answer().
     ReservationService.ProviderDecisionResult decide(String provider, String matchId, String decision) {
         if (!List.of("confirm", "release").contains(decision)) {
             throw ApiException.validation("decision", "invalid", "Choose confirm or release.");
@@ -265,6 +264,54 @@ public class RequestService {
             return new ReservationService.ProviderDecisionResult(wanted, status(id));
         });
     }
+    /// Contract 0.7.1 answerReservation. Account, then request, then match: the common lock order.
+    /// The match row's foreign key means only a provider with a profile can own one.
+    RequestPayloads.InboxItem answer(PlugPrincipal caller, String matchId, String decision) {
+        return transaction.execute(ignored -> {
+            lockAccount(caller);
+            // shortcut: ProviderProfile.standing (0.7.0) is not stored yet, so no provider is suspended;
+            // refuse suspended providers here once the admin standing route stores it.
+            decide(caller.userId(), matchId, decision);
+            return inboxItem(caller.userId(), matchId);
+        });
+    }
+    /// The provider's view of one match: never the asker's words, location or identity.
+    /// shortcut: built only for a match with a reservation (answerReservation); the inbox list
+    /// also needs open, offered, declined and expired from the match's replies.
+    RequestPayloads.InboxItem inboxItem(String provider, String matchId) {
+        Reservation reservation = jdbc.query("SELECT v.* FROM request_reservations v JOIN request_matches m"
+                + " ON m.request_id=v.request_id AND m.provider_id=v.provider_id WHERE m.match_id=? AND m.provider_id=?"
+                + " ORDER BY v.created_at DESC,v.id DESC LIMIT 1", RESERVATION_ROW, matchId, provider).stream().findFirst()
+                .orElseThrow(() -> new IllegalStateException("No reservation on this match"));
+        // A released or timed-out offer is withdrawn but still shown, as in the contract examples.
+        Offer found = reservation.offerId() == null ? null
+                : jdbc.query(OFFER_SELECT + " WHERE o.id=?", OFFER_ROW, reservation.offerId()).stream().findFirst().orElse(null);
+        // The provider sees the asker's distance only to the nearest 100 m (§25 data minimisation).
+        Offer offer = found == null || found.place() == null ? found : new Offer(found.offerId(),
+                new RequestPayloads.Place(found.place().placeId(), found.place().name(), found.place().address(),
+                        roundedDistance(found.place().distanceM())),
+                found.serviceName(), found.priceCents(), found.currency(), found.availableAt(), found.expiresAt(),
+                found.observedAt(), found.truthLabel(), found.source(), found.providerScore(), found.business());
+        // Contract 0.7.1 MatchStatus for a match whose offer the asker chose.
+        String status = switch (reservation.status()) {
+            case "pending" -> "selected";
+            case "confirmed" -> "confirmed";
+            case "released", "timed_out" -> "not_chosen";
+            case "canceled" -> "closed";
+            default -> throw new IllegalStateException("Unknown reservation status");
+        };
+        return jdbc.queryForObject("SELECT m.request_id,m.distance_m,m.notified_at,c.service_name,c.skill_tags,c.budget_cents,"
+                + "c.currency,c.needed_by FROM request_matches m JOIN request_constraints c ON c.request_id=m.request_id"
+                + " WHERE m.match_id=? AND m.provider_id=?", (rs, row) -> {
+                    Instant notified = instant(rs, "notified_at");
+                    return new RequestPayloads.InboxItem(matchId, rs.getString("request_id"), status, rs.getString("service_name"),
+                            List.of((String[]) rs.getArray("skill_tags").getArray()), (Integer) rs.getObject("budget_cents"),
+                            rs.getString("currency"), instant(rs, "needed_by"),
+                            roundedDistance(rs.getInt("distance_m")),
+                            notified.plus(Duration.ofMinutes(5)), notified, offer, reservation);
+                }, matchId, provider);
+    }
+    private static int roundedDistance(int metres) { return (int) Math.min(80_000, Math.round(metres / 100.0) * 100); }
     /// Release or timeout: the offer is withdrawn and the asker gets the other live offers back.
     private void endReservation(String id, String reservationId, String offerId, String outcome, Instant endedAt) {
         jdbc.update("UPDATE request_reservations SET status=?,ended_at=? WHERE id=?", outcome, time(endedAt), reservationId);
@@ -395,10 +442,11 @@ public class RequestService {
     private Reservation reservation(String id) {
         return jdbc.query("SELECT * FROM request_reservations WHERE request_id=?"
                 + " ORDER BY (status IN ('pending','confirmed')) DESC,created_at DESC,id DESC LIMIT 1",
-                (rs, row) -> new Reservation(rs.getString("id"), rs.getString("offer_id"), rs.getString("status"),
-                        rs.getString("booking_ref"), instant(rs, "confirm_by"), instant(rs, "confirmed_at"),
-                        instant(rs, "ended_at"), instant(rs, "created_at")), id).stream().findFirst().orElse(null);
+                RESERVATION_ROW, id).stream().findFirst().orElse(null);
     }
+    private static final org.springframework.jdbc.core.RowMapper<Reservation> RESERVATION_ROW = (rs, row) -> new Reservation(
+            rs.getString("id"), rs.getString("offer_id"), rs.getString("status"), rs.getString("booking_ref"),
+            instant(rs, "confirm_by"), instant(rs, "confirmed_at"), instant(rs, "ended_at"), instant(rs, "created_at"));
     private Progress progress(String id) {
         Integer contacted = jdbc.queryForObject("SELECT (SELECT count(*) FROM request_seed_work WHERE request_id=?)"
                 + " + (SELECT count(*) FROM request_matches WHERE request_id=?)", Integer.class, id, id);
@@ -408,18 +456,21 @@ public class RequestService {
         return new Progress(contacted, replied, offers);
     }
     private List<Offer> listOffers(String id) {
-        return jdbc.query("SELECT o.*,p.name,p.address,w.distance_m,b.business,ps.completed_jobs,ps.trust_score FROM request_offers o JOIN places p ON p.id=o.place_id"
-                + " JOIN request_seed_work w ON w.request_id=o.request_id AND w.place_id=o.place_id"
-                + " LEFT JOIN provider_profiles b ON b.user_id=o.provider_id LEFT JOIN provider_scores ps ON ps.user_id=o.provider_id"
-                + " WHERE o.request_id=? AND o.expires_at>? AND o.withdrawn_at IS NULL ORDER BY o.available_at,o.price_cents,w.distance_m,o.id LIMIT 20",
-                (rs, row) -> new Offer(rs.getString("id"), new Place(rs.getString("place_id"), rs.getString("name"),
-                        rs.getString("address"), rs.getInt("distance_m")), rs.getString("service_name"), rs.getInt("price_cents"),
-                        rs.getString("currency"), instant(rs, "available_at"), instant(rs, "expires_at"), instant(rs, "observed_at"),
-                        rs.getString("truth_label"), rs.getString("source"),
-                        // Seeded demo suppliers have no completed PLUG jobs: New, never a zero.
-                        RequestPayloads.ProviderScore.of(rs.getInt("completed_jobs"), (Integer) rs.getObject("trust_score")),
-                        BusinessProfiles.read(rs.getString("business"))), id, time(clock.instant()));
+        return jdbc.query(OFFER_SELECT + " WHERE o.request_id=? AND o.expires_at>? AND o.withdrawn_at IS NULL"
+                + " ORDER BY o.available_at,o.price_cents,w.distance_m,o.id LIMIT 20", OFFER_ROW, id, time(clock.instant()));
     }
+    private static final String OFFER_SELECT = "SELECT o.*,p.name,p.address,w.distance_m,b.business,ps.completed_jobs,ps.trust_score"
+            + " FROM request_offers o JOIN places p ON p.id=o.place_id"
+            + " JOIN request_seed_work w ON w.request_id=o.request_id AND w.place_id=o.place_id"
+            + " LEFT JOIN provider_profiles b ON b.user_id=o.provider_id LEFT JOIN provider_scores ps ON ps.user_id=o.provider_id";
+    private static final org.springframework.jdbc.core.RowMapper<Offer> OFFER_ROW = (rs, row) -> new Offer(rs.getString("id"),
+            new Place(rs.getString("place_id"), rs.getString("name"), rs.getString("address"), rs.getInt("distance_m")),
+            rs.getString("service_name"), rs.getInt("price_cents"),
+            rs.getString("currency"), instant(rs, "available_at"), instant(rs, "expires_at"), instant(rs, "observed_at"),
+            rs.getString("truth_label"), rs.getString("source"),
+            // Seeded demo suppliers have no completed PLUG jobs: New, never a zero.
+            RequestPayloads.ProviderScore.of(rs.getInt("completed_jobs"), (Integer) rs.getObject("trust_score")),
+            BusinessProfiles.read(rs.getString("business")));
     private String json(List<Option> options) {
         try { return mapper.writeValueAsString(options); }
         catch (com.fasterxml.jackson.core.JsonProcessingException failure) { throw new IllegalStateException("options"); }

@@ -45,8 +45,9 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 /// P3.S6: choosing an offer opens a reservation that only the provider can confirm (manual v4
 /// 19.6). Contract 0.7.0: POST /v1/requests/{id}/select, RequestResource.reservation,
-/// SelectionConflict. The provider decision is tested at service level (its HTTP route waits for
-/// contract 0.7.1). The clock is mutable and starts each test at the fixed instant.
+/// SelectionConflict. The provider decision is tested at service level (groups 7 and 8) and through
+/// its contract 0.7.1 route, answerReservation (group 12). The clock is mutable and starts each
+/// test at the fixed instant.
 @Tag("database")
 @SpringBootTest(properties = {"plug.requests-v2.enabled=true", "plug.requests-v2.worker-enabled=false",
         "plug.provider-inbox.enabled=true", "plug.identity.pepper=phase2-testing-pepper-not-used-in-production"})
@@ -116,7 +117,8 @@ class ReservationTest {
     }
     JsonNode json(ResultActions result) throws Exception {
         JsonNode body = mapper.readTree(result.andReturn().getResponse().getContentAsString());
-        ContractSchemas.validate(body.has("error") ? "Error" : body.has("offers") ? "OfferList" : "RequestResource", body);
+        ContractSchemas.validate(body.has("error") ? "Error" : body.has("offers") ? "OfferList"
+                : body.has("match_id") ? "InboxItem" : "RequestResource", body);
         return body;
     }
     String newKey() { return "reservation-test-" + UUID.randomUUID(); }
@@ -162,7 +164,8 @@ class ReservationTest {
     }
 
     /// Owner with a ranked request, a provider linked to one offer and matched to the request.
-    record Scene(JsonNode owner, String requestId, JsonNode offer, JsonNode other, String provider, String matchId) {}
+    record Scene(JsonNode owner, String requestId, JsonNode offer, JsonNode other, String provider, String matchId,
+            JsonNode providerSession) {}
     Scene scene() throws Exception {
         var owner = guest();
         String id = rankedRequest(owner);
@@ -176,7 +179,7 @@ class ReservationTest {
         jdbc.update("INSERT INTO request_matches(request_id,provider_id,distance_m,rank_score,notified_at,match_id) VALUES(?,?,?,?,?,?)",
                 id, provider, 100, 50, Timestamp.from(START), matchId);
         jdbc.update("UPDATE request_offers SET provider_id=? WHERE id=?", provider, list.get(0).path("offer_id").asText());
-        return new Scene(owner, id, list.get(0), list.get(1), provider, matchId);
+        return new Scene(owner, id, list.get(0), list.get(1), provider, matchId, providerSession);
     }
     JsonNode selectOk(Scene s) throws Exception {
         return json(select(s.owner(), s.requestId(), s.offer().path("offer_id").asText()).andExpect(status().isOk()));
@@ -594,5 +597,138 @@ class ReservationTest {
         var error = json(result).get("error");
         assertThat(error.path("code").asText()).isEqualTo("rate_limited");
         assertThat(error.path("retry_after_seconds").asInt()).isPositive();
+    }
+
+    // ---- 12. answerReservation: POST /v1/providers/me/inbox/{match_id}/reservation ----------
+
+    ResultActions answer(JsonNode who, String matchId, String body) throws Exception {
+        return post(who, "/v1/providers/me/inbox/" + matchId + "/reservation", body, null);
+    }
+    ResultActions answer(Scene s, String decision) throws Exception {
+        return answer(s.providerSession(), s.matchId(), "{\"decision\":\"" + decision + "\"}");
+    }
+    String requestStatus(String requestId) {
+        return jdbc.queryForObject("SELECT status FROM requests WHERE id=?", String.class, requestId);
+    }
+
+    @Test void confirmReturnsTheConfirmedInboxItemAndConfirmsTheRequest() throws Exception {
+        var s = scene();
+        selectOk(s);
+        jdbc.update("UPDATE request_matches SET distance_m=1249 WHERE match_id=?", s.matchId());
+        CLOCK.now = START.plusSeconds(40);
+        var item = json(answer(s, "confirm").andExpect(status().isOk()));
+        assertThat(item.path("match_id").asText()).isEqualTo(s.matchId());
+        assertThat(item.path("request_id").asText()).isEqualTo(s.requestId());
+        assertThat(item.path("status").asText()).isEqualTo("confirmed");
+        assertThat(item.path("service_name").asText()).isNotBlank();
+        assertThat(item.path("skill_tags").get(0).asText()).isEqualTo("barber");
+        assertThat(item.path("currency").asText()).isEqualTo("USD");
+        assertThat(item.has("budget_cents")).isTrue();
+        assertThat(item.has("needed_by")).isTrue();
+        assertThat(item.path("distance_m").asInt()).isEqualTo(1200);
+        assertThat(instant(item, "/notified_at")).isEqualTo(START);
+        assertThat(instant(item, "/respond_by")).isEqualTo(START.plus(Duration.ofMinutes(5)));
+        assertThat(item.at("/offer/offer_id").asText()).isEqualTo(s.offer().path("offer_id").asText());
+        assertThat(item.at("/reservation/status").asText()).isEqualTo("confirmed");
+        assertThat(instant(item, "/reservation/confirmed_at")).isEqualTo(CLOCK.now);
+        var resource = resource(s.owner(), s.requestId());
+        assertThat(resource.path("status").asText()).isEqualTo("confirmed");
+        assertThat(resource.at("/reservation/status").asText()).isEqualTo("confirmed");
+        // Repeating the same decision is 200 with the same item.
+        assertThat(json(answer(s, "confirm").andExpect(status().isOk()))).isEqualTo(item);
+        assertDetail(errorOf(answer(s, "release"), 409), "match_id", "reservation_closed");
+        assertThat(reservationStatus(s.requestId())).isEqualTo("confirmed");
+    }
+
+    @Test void releaseReturnsNotChosenAndTheRequestReturnsToRanked() throws Exception {
+        var s = scene();
+        selectOk(s);
+        CLOCK.now = START.plusSeconds(30);
+        var item = json(answer(s, "release").andExpect(status().isOk()));
+        assertThat(item.path("status").asText()).isEqualTo("not_chosen");
+        assertThat(item.at("/reservation/status").asText()).isEqualTo("released");
+        assertThat(instant(item, "/reservation/ended_at")).isEqualTo(CLOCK.now);
+        assertThat(item.at("/offer/offer_id").asText()).as("the item still carries the withdrawn offer")
+                .isEqualTo(s.offer().path("offer_id").asText());
+        assertThat(json(answer(s, "release").andExpect(status().isOk()))).isEqualTo(item);
+        assertThat(requestStatus(s.requestId())).isEqualTo("ranked");
+        assertDetail(errorOf(answer(s, "confirm"), 409), "match_id", "reservation_closed");
+    }
+
+    @Test void releaseWithNoOtherLiveOfferExpiresTheRequestAsNotConfirmedThroughTheRoute() throws Exception {
+        var s = scene();
+        selectOk(s);
+        jdbc.update("DELETE FROM request_offers WHERE id=?", s.other().path("offer_id").asText());
+        assertThat(json(answer(s, "release").andExpect(status().isOk())).path("status").asText()).isEqualTo("not_chosen");
+        var resource = resource(s.owner(), s.requestId());
+        assertThat(resource.path("status").asText()).isEqualTo("expired");
+        assertThat(resource.path("no_result_reason").asText()).isEqualTo("not_confirmed");
+    }
+
+    @Test void aDecisionAtConfirmByIsClosedAndTheItemIsNotChosen() throws Exception {
+        var s = scene();
+        CLOCK.now = instant(selectOk(s), "/reservation/confirm_by");
+        assertDetail(errorOf(answer(s, "confirm"), 409), "match_id", "reservation_closed");
+        // The 409 rolls back; the asker's next read settles the timeout.
+        assertThat(resource(s.owner(), s.requestId()).path("status").asText()).isEqualTo("ranked");
+        JsonNode item = mapper.valueToTree(service.inboxItem(s.provider(), s.matchId()));
+        ContractSchemas.validate("InboxItem", item);
+        assertThat(item.path("status").asText()).isEqualTo("not_chosen");
+        assertThat(item.at("/reservation/status").asText()).isEqualTo("timed_out");
+    }
+
+    @Test void aDecisionOnACanceledReservationIsClosedAndTheItemIsClosed() throws Exception {
+        var s = scene();
+        selectOk(s);
+        cancel(s.owner(), s.requestId()).andExpect(status().isOk());
+        assertDetail(errorOf(answer(s, "confirm"), 409), "match_id", "reservation_closed");
+        assertDetail(errorOf(answer(s, "release"), 409), "match_id", "reservation_closed");
+        JsonNode item = mapper.valueToTree(service.inboxItem(s.provider(), s.matchId()));
+        ContractSchemas.validate("InboxItem", item);
+        assertThat(item.path("status").asText()).isEqualTo("closed");
+        assertThat(item.at("/reservation/status").asText()).isEqualTo("canceled");
+        assertThat(requestStatus(s.requestId())).isEqualTo("canceled");
+    }
+
+    @Test void aDecisionWithNoReservationIsNoReservation() throws Exception {
+        var s = scene();
+        assertDetail(errorOf(answer(s, "confirm"), 409), "match_id", "no_reservation");
+        assertThat(requestStatus(s.requestId())).isEqualTo("ranked");
+    }
+
+    @Test void theRouteNeedsASession() throws Exception {
+        var s = scene();
+        selectOk(s);
+        answer(null, s.matchId(), "{\"decision\":\"confirm\"}").andExpect(status().isUnauthorized());
+        assertThat(reservationStatus(s.requestId())).isEqualTo("pending");
+    }
+
+    @Test void anotherProvidersMissingOrMalformedMatchIsNotFound() throws Exception {
+        var s = scene();
+        selectOk(s);
+        String confirm = "{\"decision\":\"confirm\"}";
+        errorOf(answer(guest(), s.matchId(), confirm), 404);
+        errorOf(answer(s.providerSession(), "mat_" + UUID.randomUUID(), confirm), 404);
+        errorOf(answer(s.providerSession(), "not-a-match", confirm), 404);
+        errorOf(answer(s.providerSession(), "mat_" + "x".repeat(70), confirm), 404);
+        assertThat(reservationStatus(s.requestId())).isEqualTo("pending");
+    }
+
+    @Test void aBodyThatIsNotAReservationDecisionIsAValidationFailure() throws Exception {
+        var s = scene();
+        selectOk(s);
+        for (String bad : List.of("{}", "{\"decision\":\"confirm\",\"extra\":1}", "{\"decision\":\"maybe\"}",
+                "{\"decision\":true}", "[]", "")) {
+            assertDetail(errorOf(answer(s.providerSession(), s.matchId(), bad), 400), "decision", "invalid");
+        }
+        assertThat(reservationStatus(s.requestId())).isEqualTo("pending");
+    }
+
+    @Test void theThirtyFirstDecisionInAWindowIsRateLimitedWithRetryAfter() throws Exception {
+        var s = scene();
+        for (int n = 0; n < 30; n++) assertDetail(errorOf(answer(s, "confirm"), 409), "match_id", "no_reservation");
+        var result = answer(s, "confirm");
+        result.andExpect(status().isTooManyRequests()).andExpect(header().exists("Retry-After"));
+        assertThat(json(result).at("/error/code").asText()).isEqualTo("rate_limited");
     }
 }
