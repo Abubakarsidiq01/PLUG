@@ -91,4 +91,17 @@ class ReservationFlagOffTest {
                 .header("Authorization", auth).contentType(MediaType.APPLICATION_JSON)
                 .content("{\"apns_token\":\"" + "a".repeat(64) + "\",\"environment\":\"sandbox\"}")).andExpect(status().isNotFound());
     }
+    /// P3.S11: sendProviderOffer is a provider_inbox route; GET offers on the same path stays, so the
+    /// POST must still be 404, not 405 or 500.
+    @Test void sendProviderOfferIsNotFoundWhenTheProviderInboxFlagIsOff() throws Exception {
+        JsonNode session = mapper.readTree(mvc.perform(post("/v1/auth/guest").with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })
+                .contentType(MediaType.APPLICATION_JSON).content("{\"consent_version\":\"2026-09-01\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString());
+        user = session.at("/account/user_id").asText();
+        mvc.perform(post("/v1/requests/req_" + UUID.randomUUID() + "/offers").with(r -> { r.setRemoteAddr(UUID.randomUUID().toString()); return r; })
+                .header("Authorization", "Bearer " + session.get("access_token").asText())
+                .header("Idempotency-Key", "flag-off-test-" + UUID.randomUUID()).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"price_cents\":3000,\"currency\":\"USD\",\"available_at\":\"2026-10-01T20:20:00Z\"}"))
+                .andExpect(status().isNotFound());
+    }
 }
