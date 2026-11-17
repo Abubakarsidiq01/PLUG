@@ -6,14 +6,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-/// Contract 0.7.0 selectOffer and 0.7.1 answerReservation. With the provider inbox off there is no
-/// handler, so both routes are 404.
+/// Contract 0.7.0 selectOffer, getProviderInbox and registerDevice, and 0.7.1 answerReservation. With
+/// the provider inbox off there is no handler, so every route here is 404.
 @RestController
 @ConditionalOnExpression("${plug.requests-v2.enabled:false} and ${plug.provider-inbox.enabled:false}")
 public class ReservationController {
@@ -32,6 +33,23 @@ public class ReservationController {
             throw ApiException.validation("offer_id", "invalid", "Choose one of the offers.");
         }
         return service.select(caller, id, key, new RequestPayloads.Selection(offer.asText()));
+    }
+    @GetMapping("/v1/providers/me/inbox")
+    RequestPayloads.ProviderInbox inbox(@AuthenticationPrincipal PlugPrincipal caller) {
+        return service.inbox(caller);
+    }
+    @PostMapping("/v1/me/devices")
+    void registerDevice(@AuthenticationPrincipal PlugPrincipal caller, @RequestBody(required = false) JsonNode body) {
+        // DeviceRegistration: exactly apns_token (lowercase hex, 64 to 200) and environment.
+        JsonNode token = body == null || !body.isObject() || body.size() != 2 ? null : body.get("apns_token");
+        if (token == null || !token.isTextual() || !token.asText().matches("[0-9a-f]{64,200}")) {
+            throw ApiException.validation("apns_token", "invalid", "Send the device token from Apple.");
+        }
+        JsonNode environment = body.get("environment");
+        if (environment == null || !environment.isTextual() || !List.of("sandbox", "production").contains(environment.asText())) {
+            throw ApiException.validation("environment", "invalid", "Choose sandbox or production.");
+        }
+        service.registerDevice(caller);
     }
     @PostMapping("/v1/providers/me/inbox/{matchId}/reservation")
     RequestPayloads.InboxItem answer(@AuthenticationPrincipal PlugPrincipal caller, @PathVariable String matchId,

@@ -275,42 +275,78 @@ public class RequestService {
             return inboxItem(caller.userId(), matchId);
         });
     }
+    /// Contract 0.7.1 getProviderInbox: open items first, then the last seven days, newest first, at
+    /// most 50. Only the caller's own matches; a caller with no provider profile is 404.
+    RequestPayloads.ProviderInbox inbox(PlugPrincipal caller) {
+        requireCaller(caller);
+        if (!limiter.tryConsume("inbox:" + caller.userId(), 30, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
+        if (jdbc.queryForObject("SELECT count(*) FROM users u JOIN provider_profiles p ON p.user_id=u.id WHERE u.id=? AND u.status='active'",
+                Integer.class, caller.userId()) == 0) {
+            throw ApiException.notFound("You have not offered a service yet.");
+        }
+        Instant now = clock.instant();
+        return transaction.execute(ignored -> {
+            // The first sort key is inboxItem's "open", in SQL, so the 50 kept are the right 50.
+            List<String> ids = jdbc.queryForList("SELECT m.match_id FROM request_matches m JOIN requests r ON r.id=m.request_id"
+                    + " WHERE m.provider_id=? AND m.notified_at>? ORDER BY (m.replied_at IS NULL AND m.notified_at>?"
+                    + " AND r.status IN ('submitted','routed','awaiting_responses','ranked') AND NOT EXISTS (SELECT 1 FROM request_offers o"
+                    + " WHERE o.request_id=m.request_id AND o.provider_id=m.provider_id)) DESC,m.notified_at DESC,m.match_id LIMIT 50",
+                    String.class, caller.userId(), time(now.minus(Duration.ofDays(7))), time(now.minus(REPLY_WINDOW)));
+            return new RequestPayloads.ProviderInbox(ids.stream().map(id -> inboxItem(caller.userId(), id)).toList(),
+                    MatchService.NOTIFICATIONS_PER_HOUR);
+        });
+    }
+    /// Contract 0.7.1: respond_by is notified_at plus this outreach reply window.
+    private static final Duration REPLY_WINDOW = Duration.ofMinutes(5);
     /// The provider's view of one match: never the asker's words, location or identity.
-    /// shortcut: built only for a match with a reservation (answerReservation); the inbox list
-    /// also needs open, offered, declined and expired from the match's replies.
     RequestPayloads.InboxItem inboxItem(String provider, String matchId) {
-        Reservation reservation = jdbc.query("SELECT v.* FROM request_reservations v JOIN request_matches m"
-                + " ON m.request_id=v.request_id AND m.provider_id=v.provider_id WHERE m.match_id=? AND m.provider_id=?"
-                + " ORDER BY v.created_at DESC,v.id DESC LIMIT 1", RESERVATION_ROW, matchId, provider).stream().findFirst()
-                .orElseThrow(() -> new IllegalStateException("No reservation on this match"));
+        MatchRow match = jdbc.queryForObject("SELECT m.request_id,m.distance_m,m.notified_at,m.replied_at,r.status,r.updated_at,"
+                + "c.service_name,c.skill_tags,c.budget_cents,c.currency,c.needed_by FROM request_matches m"
+                + " JOIN requests r ON r.id=m.request_id JOIN request_constraints c ON c.request_id=m.request_id"
+                + " WHERE m.match_id=? AND m.provider_id=?", (rs, row) -> new MatchRow(rs.getString("request_id"),
+                        rs.getInt("distance_m"), instant(rs, "notified_at"), instant(rs, "replied_at"), rs.getString("status"),
+                        instant(rs, "updated_at"), rs.getString("service_name"),
+                        List.of((String[]) rs.getArray("skill_tags").getArray()), (Integer) rs.getObject("budget_cents"),
+                        rs.getString("currency"), instant(rs, "needed_by")), matchId, provider);
+        String requestId = match.requestId();
+        Reservation reservation = jdbc.query("SELECT * FROM request_reservations WHERE request_id=? AND provider_id=?"
+                + " ORDER BY created_at DESC,id DESC LIMIT 1", RESERVATION_ROW, requestId, provider).stream().findFirst().orElse(null);
         // A released or timed-out offer is withdrawn but still shown, as in the contract examples.
-        Offer found = reservation.offerId() == null ? null
-                : jdbc.query(OFFER_SELECT + " WHERE o.id=?", OFFER_ROW, reservation.offerId()).stream().findFirst().orElse(null);
+        Offer found = reservation != null
+                ? reservation.offerId() == null ? null
+                        : jdbc.query(OFFER_SELECT + " WHERE o.id=?", OFFER_ROW, reservation.offerId()).stream().findFirst().orElse(null)
+                : jdbc.query(OFFER_SELECT + " WHERE o.request_id=? AND o.provider_id=? ORDER BY o.observed_at DESC,o.id DESC LIMIT 1",
+                        OFFER_ROW, requestId, provider).stream().findFirst().orElse(null);
         // The provider sees the asker's distance only to the nearest 100 m (§25 data minimisation).
         Offer offer = found == null || found.place() == null ? found : new Offer(found.offerId(),
                 new RequestPayloads.Place(found.place().placeId(), found.place().name(), found.place().address(),
                         roundedDistance(found.place().distanceM())),
                 found.serviceName(), found.priceCents(), found.currency(), found.availableAt(), found.expiresAt(),
                 found.observedAt(), found.truthLabel(), found.source(), found.providerScore(), found.business());
-        // Contract 0.7.1 MatchStatus for a match whose offer the asker chose.
-        String status = switch (reservation.status()) {
+        Instant now = clock.instant();
+        Instant respondBy = match.notifiedAt().plus(REPLY_WINDOW);
+        String request = match.requestStatus();
+        boolean live = List.of("submitted", "routed", "awaiting_responses", "ranked").contains(request);
+        // Contract 0.7.1 MatchStatus.
+        String status = reservation != null ? switch (reservation.status()) {
             case "pending" -> "selected";
             case "confirmed" -> "confirmed";
             case "released", "timed_out" -> "not_chosen";
             case "canceled" -> "closed";
             default -> throw new IllegalStateException("Unknown reservation status");
-        };
-        return jdbc.queryForObject("SELECT m.request_id,m.distance_m,m.notified_at,c.service_name,c.skill_tags,c.budget_cents,"
-                + "c.currency,c.needed_by FROM request_matches m JOIN request_constraints c ON c.request_id=m.request_id"
-                + " WHERE m.match_id=? AND m.provider_id=?", (rs, row) -> {
-                    Instant notified = instant(rs, "notified_at");
-                    return new RequestPayloads.InboxItem(matchId, rs.getString("request_id"), status, rs.getString("service_name"),
-                            List.of((String[]) rs.getArray("skill_tags").getArray()), (Integer) rs.getObject("budget_cents"),
-                            rs.getString("currency"), instant(rs, "needed_by"),
-                            roundedDistance(rs.getInt("distance_m")),
-                            notified.plus(Duration.ofMinutes(5)), notified, offer, reservation);
-                }, matchId, provider);
+        } : offer != null ? (request.equals("canceled") ? "closed"
+                : live && offer.expiresAt().isAfter(now) ? "offered" : "not_chosen")
+        // shortcut: nothing records a decline yet (P3.S12); a reply without an offer is one.
+        : match.repliedAt() != null ? "declined"
+        // The request ended inside the reply window: closed, which is not silence.
+        : !live && match.updatedAt().isBefore(respondBy) ? "closed"
+        : now.isBefore(respondBy) ? "open" : "expired";
+        return new RequestPayloads.InboxItem(matchId, requestId, status, match.serviceName(), match.skillTags(),
+                match.budgetCents(), match.currency(), match.neededBy(), roundedDistance(match.distanceM()),
+                respondBy, match.notifiedAt(), offer, reservation);
     }
+    private record MatchRow(String requestId, int distanceM, Instant notifiedAt, Instant repliedAt, String requestStatus,
+            Instant updatedAt, String serviceName, List<String> skillTags, Integer budgetCents, String currency, Instant neededBy) {}
     private static int roundedDistance(int metres) { return (int) Math.min(80_000, Math.round(metres / 100.0) * 100); }
     /// Release or timeout: the offer is withdrawn and the asker gets the other live offers back.
     private void endReservation(String id, String reservationId, String offerId, String outcome, Instant endedAt) {

@@ -81,6 +81,7 @@ public final class RequestPayloads {
             Integer budgetCents, String currency, Instant neededBy, int distanceM, Instant respondBy, Instant notifiedAt,
             @JsonInclude(JsonInclude.Include.NON_NULL) Offer offer,
             @JsonInclude(JsonInclude.Include.NON_NULL) Reservation reservation) {}
+    public record ProviderInbox(List<InboxItem> items, int notificationsPerHour) {}
     public record Place(String placeId, String name, String address, int distanceM) {}
     /** Manual v4 §12C: fewer than three completed jobs is "new", never a zero. */
     @JsonInclude(JsonInclude.Include.NON_NULL)

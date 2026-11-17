@@ -21,11 +21,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 ///     asked window. The requester never matches themselves.
 ///  2. Rank: response rate first, then trust score, then distance. A responsive newcomer
 ///     outranks a high scorer who has gone quiet.
-///  3. Cap: the best few are notified; there is a hard ceiling that is never lifted.
+///  3. Cap: the best few are notified; there is a hard ceiling that is never lifted, and no provider
+///     is notified more than NOTIFICATIONS_PER_HOUR times in any hour.
 /// Notified providers are recorded in request_matches; Phase 3's inbox delivers to them.
 public class MatchService {
     static final int INITIAL_FANOUT = 6;
     static final int ABSOLUTE_CAP = 16;
+    /// A provider is notified at most this many times an hour (contract 0.7.0); a match over it is not made.
+    static final int NOTIFICATIONS_PER_HOUR = 4;
     /// An as-soon-as-possible ask is served within this window.
     static final Duration ASAP_WINDOW = Duration.ofHours(2);
 
@@ -79,9 +82,19 @@ public class MatchService {
                         ? CustomSkills.keywords(c.serviceName() + " " + request.text())
                         : List.<String>of()).toArray(String[]::new),
                 c.location().longitude(), c.location().latitude(), c.licenceRequired(), request.requestId());
-        List<Candidate> chosen = candidates.stream()
+        List<Candidate> eligible = candidates.stream()
                 .filter(candidate -> available(candidate, start, end))
                 .sorted(Comparator.comparingDouble(Candidate::rank).reversed().thenComparing(Candidate::distanceM))
+                .toList();
+        if (eligible.isEmpty()) return 0;
+        // Concurrent requests must not both take a provider's last notification of the hour: lock the
+        // candidates in id order (no deadlock between workers) and count only once the lock is held.
+        jdbc.queryForList("SELECT user_id FROM provider_profiles WHERE user_id = ANY(?) ORDER BY user_id FOR NO KEY UPDATE",
+                String.class, (Object) eligible.stream().map(Candidate::userId).toArray(String[]::new));
+        Timestamp hourAgo = Timestamp.from(start.minus(Duration.ofHours(1)));
+        List<Candidate> chosen = eligible.stream()
+                .filter(candidate -> jdbc.queryForObject("SELECT count(*) FROM request_matches WHERE provider_id=? AND notified_at>?",
+                        Integer.class, candidate.userId(), hourAgo) < NOTIFICATIONS_PER_HOUR)
                 .limit(Math.min(INITIAL_FANOUT, ABSOLUTE_CAP - already))
                 .toList();
         Timestamp now = Timestamp.from(clock.instant());

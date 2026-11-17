@@ -1,5 +1,6 @@
 package app.plug.request;
 
+import app.plug.foundation.ApiException;
 import app.plug.security.PlugPrincipal;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,18 @@ public class ReservationService {
     /// decision is "confirm" or "release"; the caller is the provider's own user id.
     public ProviderDecisionResult decide(String providerUserId, String matchId, String decision) {
         return requests.decide(providerUserId, matchId, decision);
+    }
+    public RequestPayloads.ProviderInbox inbox(PlugPrincipal caller) {
+        return requests.inbox(caller);
+    }
+    /// Contract 0.7.0 registerDevice, after the body is validated. Push needs an Apple Developer
+    /// Program team (P3-apns); until one is configured nothing is stored and the inbox works by pull.
+    public void registerDevice(PlugPrincipal caller) {
+        requests.requireCaller(caller);
+        if (!requests.limiter.tryConsume("devices:" + caller.userId(), 10, requests.window.length())) {
+            throw ApiException.rateLimited(requests.window.retryAfterSeconds());
+        }
+        throw ApiException.dependencyUnavailable("Notifications are not available yet. Your inbox still updates when you open it.", 3600);
     }
     public RequestPayloads.InboxItem answer(PlugPrincipal caller, String matchId, String decision) {
         return requests.answer(caller, matchId, decision);
