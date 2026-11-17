@@ -206,13 +206,37 @@ class ReservationTest {
         assertThat(reservation.path("reservation_id").asText()).startsWith("rsv_");
         assertThat(reservation.path("offer_id").asText()).isEqualTo(offer.path("offer_id").asText());
         assertThat(reservation.path("booking_ref").asText()).matches("^[2-9A-HJ-NP-Z]{4}$");
-        Instant expected = START.plus(Duration.ofMinutes(10));
         Instant available = instant(offer, "/available_at");
-        assertThat(instant(reservation, "/confirm_by")).isEqualTo(available.isBefore(expected) ? available : expected);
+        Instant floor = START.plus(Duration.ofMinutes(10));
+        Instant cap = START.plus(Duration.ofMinutes(20));
+        Instant expected = available.isAfter(floor) ? (available.isBefore(cap) ? available : cap) : floor;
+        assertThat(instant(reservation, "/confirm_by")).isEqualTo(expected);
         assertThat(instant(reservation, "/created_at")).isEqualTo(START);
         assertThat(reservation.has("confirmed_at")).isFalse();
         assertThat(reservation.has("ended_at")).isFalse();
         assertThat(resource(owner, id).path("reservation")).isEqualTo(reservation);
+    }
+
+    /// confirm_by = min(selected_at + 20 min, max(available_at, selected_at + 10 min)), owner rule 0.7.1.
+    Instant confirmByFor(Instant availableAt) throws Exception {
+        var owner = guest();
+        String id = rankedRequest(owner);
+        String offerId = offers(owner, id).get(0).path("offer_id").asText();
+        // Keep the table checks: observed_at <= available_at < expires_at.
+        jdbc.update("UPDATE request_offers SET observed_at=LEAST(observed_at,?),available_at=?,expires_at=GREATEST(expires_at,?) WHERE id=?",
+                Timestamp.from(availableAt), Timestamp.from(availableAt), Timestamp.from(availableAt.plus(Duration.ofHours(1))), offerId);
+        return instant(json(select(owner, id, offerId).andExpect(status().isOk())), "/reservation/confirm_by");
+    }
+    @Test void anOfferAlreadyAvailableGetsTenMinutesNotAnInstantTimeout() throws Exception {
+        Instant confirmBy = confirmByFor(START.minus(Duration.ofMinutes(5)));
+        assertThat(confirmBy).isEqualTo(START.plus(Duration.ofMinutes(10)));
+    }
+    @Test void aSlotFifteenMinutesAwayMustBeConfirmedByTheSlot() throws Exception {
+        Instant slot = START.plus(Duration.ofMinutes(15));
+        assertThat(confirmByFor(slot)).isEqualTo(slot);
+    }
+    @Test void aSlotTwoHoursAwayIsCappedAtTwentyMinutes() throws Exception {
+        assertThat(confirmByFor(START.plus(Duration.ofHours(2)))).isEqualTo(START.plus(Duration.ofMinutes(20)));
     }
 
     // ---- 2. idempotency and validation ---------------------------------------------------

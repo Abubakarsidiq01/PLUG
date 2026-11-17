@@ -209,13 +209,16 @@ public class RequestService {
                 throw stateConflict("offer_id", "offer_unavailable", "That offer is no longer available. Choose another.");
             }
             Instant available = ((Timestamp) offers.getFirst().get("available_at")).toInstant();
-            Instant tenMinutes = now.plus(Duration.ofMinutes(10));
+            // Owner rule (contract 0.7.1): min(now + 20 min, max(available_at, now + 10 min)).
+            Instant floor = now.plus(Duration.ofMinutes(10));
+            Instant cap = now.plus(Duration.ofMinutes(20));
+            Instant confirmBy = available.isAfter(floor) ? (available.isBefore(cap) ? available : cap) : floor;
             StringBuilder ref = new StringBuilder();
             for (int n = 0; n < 4; n++) ref.append(BOOKING_ALPHABET.charAt(random.nextInt(BOOKING_ALPHABET.length())));
             jdbc.update("INSERT INTO request_reservations(id,request_id,offer_id,provider_id,status,booking_ref,confirm_by,created_at)"
                     + " VALUES(?,?,?,?,'pending',?,?,?)", "rsv_" + UUID.randomUUID(), id, selection.offerId(),
                     offers.getFirst().get("provider_id"), ref.toString(),
-                    time(available.isBefore(tenMinutes) ? available : tenMinutes), time(now));
+                    time(confirmBy), time(now));
             transition(id, "user_selected", null);
             Resource result = read(id);
             remember(caller, "select:" + id, key, selection, result);
