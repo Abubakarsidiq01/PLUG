@@ -27,7 +27,7 @@ added below is one the server already sends.
 - `POST /v1/me/devices` (`registerDevice`) lists 403 (no guest or member scope), 404 (the
   `provider_inbox` flag is off) and 413, as the server already answers.
 - `POST /v1/requests/{request_id}/select` states the 403 `consent_required` rule and lists 415
-  (0.7.1 open item 13).
+  (follow-up item 13 from the P3.S6 review, PROJECT_STATE P3-contract-0.7.1).
 - `InboxItem.service_name` is described as untrusted display text: clients render it as plain
   text, never markup.
 - Corrects 0.7.1's rollback line, which did not name `POST /v1/me/devices`.

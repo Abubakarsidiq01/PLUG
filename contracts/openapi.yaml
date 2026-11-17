@@ -1068,7 +1068,7 @@ paths:
         '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalError' }
   # ---------------------------------------------------------------------------------------
-  # Phase 3 (0.7.0, frozen; 0.7.1 clarifications): selection and reservation, the provider inbox and in-app
+  # Phase 3 (0.7.0, frozen; 0.7.1 and 0.7.2 clarifications): selection and reservation, the provider inbox and in-app
   # offers, SMS suppliers, Twilio webhooks, device registration and the admin monitor.
   # ---------------------------------------------------------------------------------------
   /v1/requests/{request_id}/select:
@@ -2008,8 +2008,9 @@ components:
             - { type: string, minLength: 1, maxLength: 80 }
             - { type: 'null' }
           description: >
-            Human-readable service ("Shoe repair"), safe to display. Null exactly when
-            category is null.
+            Human-readable service ("Shoe repair"). Untrusted display text (it can come from
+            the asker's words or a model's reading of them): render as plain text, never markup.
+            Null exactly when category is null.
         skill_tags:
           type: array
           maxItems: 5
@@ -2874,9 +2875,10 @@ components:
           description: The cap this provider is notified under, so the app can explain it.
     InboxItem:
       description: >
-        One matched request as the provider sees it. Never the asker's words, location or
-        identity: the service, the asker's budget, when it is needed and how far it is from the
-        provider's own base, rounded to 100 m.
+        One matched request as the provider sees it. Never the asker's raw text, location or
+        identity: the service label, the asker's budget, when it is needed and how far it is
+        from the provider's own base, rounded to 100 m. The service label is untrusted display
+        text (see service_name).
       type: object
       additionalProperties: false
       required: [match_id, request_id, status, service_name, skill_tags, budget_cents, currency,
