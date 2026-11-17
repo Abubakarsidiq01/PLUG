@@ -11,6 +11,45 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.7.2 — 2026-11-17 — clarification — P3.S11
+Approval: the owner alone (Person Two is not joining for now); frozen when the owner approves
+and merges the pull request. No new route, field, enum value or error code; every response
+added below is one the server already sends.
+
+**Decided by the owner on 2026-11-17:**
+- `Offer.expires_at` for a `portal` (in-app) offer is `available_at` plus 15 minutes. This
+  resolves 0.7.1 open question 3 for portal offers and unblocks P3.S11. The same rule applies
+  to `sms` offers too unless it is changed before P3.S5. Every portal offer in the fixtures and
+  examples already followed it (available 20:20:00, expires 20:35:00), so none changed;
+  `confirm_by` is unaffected (0.7.1 rule).
+
+**Mechanical (from the P3.S6 and P3.S10 reviews, no new behaviour):**
+- `POST /v1/me/devices` (`registerDevice`) lists 403 (no guest or member scope), 404 (the
+  `provider_inbox` flag is off) and 413, as the server already answers.
+- `POST /v1/requests/{request_id}/select` states the 403 `consent_required` rule and lists 415
+  (follow-up item 13 from the P3.S6 review, PROJECT_STATE P3-contract-0.7.1).
+- `InboxItem.service_name` is described as untrusted display text: clients render it as plain
+  text, never markup.
+- Corrects 0.7.1's rollback line, which did not name `POST /v1/me/devices`.
+
+Fixtures: new `fixtures/me.devices/{validation-error,auth-error,unavailable}.json`,
+`fixtures/requests.select/{consent-required,unsupported-media-type}.json`.
+Tests (owner-authorized): `tests/contracts/fixture-manifest.json` is 0.7.2 with rows for the
+five new fixtures; `fixtures.test.mjs` also requires every `fixtures/me.devices` file to be
+registered; `validate.mjs` checks portal `expires_at` = `available_at` + 15 minutes on offer
+lists, single offers and inbox items.
+Migration note: none.
+Rollback: `provider_inbox` off returns 404 on the inbox routes, on
+`POST /v1/requests/{request_id}/select`, on `POST /v1/requests/{request_id}/offers` and on
+`POST /v1/me/devices`. `sendProviderOffer` also lists 415 for a body that is not JSON.
+
+**Open questions still awaiting the owner (from 0.7.1):** 1 (fan-out cap), 2 (reply window
+against the t+300s stop), 3 for `sms` offers only (proposed above, confirm before P3.S5), 4
+(SMS terms page and support contact), and the P3.S6 review items 11 (select replay code), 12
+(`no_offers` against `not_confirmed` after a late release), 14 (`Reservation.offer_id`
+required but the column is nullable) and 16 (`no_reservation` against `reservation_closed`
+wording).
+
 ### 0.7.1 — 2026-11-17 — clarification, one webhook response change — P3.S6, draft
 Follow-up to the 2026-11-14 contract-guard review of 0.7.0 (PROJECT_STATE next_actions
 `P3-contract-0.7.1`). Approval: the owner is now the sole decision-maker. Person Two is not
