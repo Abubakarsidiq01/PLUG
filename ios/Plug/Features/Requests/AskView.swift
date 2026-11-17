@@ -94,11 +94,12 @@ struct AskView: View {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s8) {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     masthead
+                    homeTitle
+                    // The street sits between the question and the ask box, road edge down.
                     StreetHero(asking: stillAsking)
                         .padding(.top, PlugTokens.Space.s4)
                         .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugShape.illustration, style: .continuous))
                         .clipShape(RoundedRectangle(cornerRadius: PlugShape.illustration, style: .continuous))
-                    homeTitle
                     if !stillAsking { composer }
                     failure
                 }
@@ -217,7 +218,7 @@ struct AskView: View {
     private var discovery: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s8) {
             if !stillAsking {
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     // (title, illustration, example it fills, test identifier). Each only fills the field.
                     let categories = [("Hair & beauty", "IllHairBeauty", Example.services[1], "ask-example-barber"),
                                       ("Home help", "IllHomeHelp", Example.services[2], "ask-example-home"),
