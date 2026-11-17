@@ -13,7 +13,7 @@ public final class RequestStateMachine {
             "routed", Set.of("awaiting_responses", "expired", "canceled"),
             "awaiting_responses", Set.of("ranked", "expired", "canceled"),
             "ranked", Set.of("user_selected", "expired", "canceled"),
-            "user_selected", Set.of("confirmed", "expired", "canceled"),
+            "user_selected", Set.of("ranked", "confirmed", "expired", "canceled"),
             "confirmed", Set.of("completed", "canceled"));
     public static boolean allows(String current, String next, boolean supplierEvent) {
         return LEGAL.getOrDefault(current, Set.of()).contains(next) && (!next.equals("confirmed") || supplierEvent);

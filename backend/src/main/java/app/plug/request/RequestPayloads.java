@@ -67,10 +67,14 @@ public final class RequestPayloads {
     public record Option(String value, String label) {}
     public record Clarification(String clarificationId, String field, String question, List<Option> options) {}
     public record Resource(String requestId, String status, String nextAction, String text, Constraints constraints,
-            Progress progress, Clarification clarification, String noResultReason, Integer pollAfterSeconds,
-            Instant createdAt, Instant updatedAt, Instant expiresAt) {
+            Progress progress, Clarification clarification, String noResultReason, Reservation reservation,
+            Integer pollAfterSeconds, Instant createdAt, Instant updatedAt, Instant expiresAt) {
         @Override public String toString() { return "Resource[redacted]"; }
     }
+    /// Contract 0.7.0 Reservation; null confirmed_at and ended_at are omitted.
+    public record Reservation(String reservationId, String offerId, String status, String bookingRef,
+            Instant confirmBy, Instant confirmedAt, Instant endedAt, Instant createdAt) {}
+    public record Selection(String offerId) {}
     public record Place(String placeId, String name, String address, int distanceM) {}
     /** Manual v4 §12C: fewer than three completed jobs is "new", never a zero. */
     @JsonInclude(JsonInclude.Include.NON_NULL)

@@ -53,6 +53,9 @@ plug:
     anthropic-api-key: ${ANTHROPIC_API_KEY:}
     anthropic-model: ${PLUG_ANTHROPIC_MODEL:claude-sonnet-5-5}
     intent-timeout: ${PLUG_INTENT_TIMEOUT:6s}
+  provider-inbox:
+    # P3.S6: selection and reservation routes exist only with requests-v2 and this on.
+    enabled: ${PLUG_PROVIDER_INBOX_ENABLED:false}
   sms:
     account-sid: ${PLUG_SMS_ACCOUNT_SID:}
     auth-token: ${PLUG_SMS_AUTH_TOKEN:}

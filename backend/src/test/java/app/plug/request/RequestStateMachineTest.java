@@ -13,7 +13,7 @@ class RequestStateMachineTest {
                 "routed:awaiting_responses","routed:expired","routed:canceled",
                 "awaiting_responses:ranked","awaiting_responses:expired","awaiting_responses:canceled",
                 "ranked:user_selected","ranked:expired","ranked:canceled",
-                "user_selected:confirmed","user_selected:expired","user_selected:canceled",
+                "user_selected:ranked","user_selected:confirmed","user_selected:expired","user_selected:canceled",
                 "confirmed:completed","confirmed:canceled");
         for(String current:RequestStateMachine.STATES) for(String next:RequestStateMachine.STATES) {
             assertThat(RequestStateMachine.allows(current,next,true)).as(current+"->"+next).isEqualTo(legal.contains(current+":"+next));
@@ -21,6 +21,9 @@ class RequestStateMachineTest {
                     .isInstanceOf(IllegalStateException.class);
         }
         assertThat(RequestStateMachine.allows("user_selected","confirmed",false)).isFalse();
+        assertThatThrownBy(() -> RequestStateMachine.require("user_selected", "confirmed", false))
+                .isInstanceOf(IllegalStateException.class);
+        assertThat(RequestStateMachine.allows("user_selected", "ranked", false)).isTrue();
         assertThat(RequestStateMachine.allows("unknown","submitted",true)).isFalse();
     }
 }
