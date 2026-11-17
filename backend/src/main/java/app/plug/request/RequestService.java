@@ -14,10 +14,13 @@ import app.plug.request.RequestPayloads.Offers;
 import app.plug.request.RequestPayloads.Option;
 import app.plug.request.RequestPayloads.Place;
 import app.plug.request.RequestPayloads.Progress;
+import app.plug.request.RequestPayloads.Reservation;
 import app.plug.request.RequestPayloads.Resource;
+import app.plug.request.RequestPayloads.Selection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -171,8 +174,119 @@ public class RequestService {
                 throw stateConflict("request_id", "not_cancelable", "This request can no longer be canceled.");
             }
             transition(id, "canceled", null);
+            // Contract Reservation: confirmed_at only while confirmed, ended_at once ended.
+            jdbc.update("UPDATE request_reservations SET status='canceled',confirmed_at=NULL,ended_at=?"
+                    + " WHERE request_id=? AND status IN ('pending','confirmed')", time(clock.instant()), id);
             return read(id);
         });
+    }
+    private static final String BOOKING_ALPHABET = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+    private final SecureRandom random = new SecureRandom();
+    /// P3.S6 selectOffer. The account lock serialises a caller's selections, so a race has one
+    /// winner; the partial unique index on live reservations is the backstop.
+    Resource select(PlugPrincipal caller, String id, String key, Selection selection) {
+        return transaction.execute(ignored -> {
+            lockAccount(caller);
+            requireConsent(caller);
+            // A stored answer is the caller's own, so a retry replays it without spending budget.
+            Resource replay = replay(caller, "select:" + id, key, selection, Resource.class);
+            if (replay != null) return replay;
+            // Before the ownership check, so probing other people's ids spends the caller's budget.
+            if (!limiter.tryConsume("select:" + caller.userId(), 10, window.length())) {
+                throw ApiException.rateLimited(window.retryAfterSeconds());
+            }
+            lockOwned(caller, id);
+            expire(id);
+            String state = status(id);
+            if (List.of("user_selected", "confirmed", "completed").contains(state)) {
+                throw stateConflict("offer_id", "already_selected", "You already chose an offer for this request.");
+            }
+            if (!state.equals("ranked")) throw stateConflict("request_id", "not_selectable", "This request is not ready for a choice.");
+            Instant now = clock.instant();
+            var offers = jdbc.queryForList("SELECT available_at,provider_id FROM request_offers"
+                    + " WHERE id=? AND request_id=? AND expires_at>? AND withdrawn_at IS NULL", selection.offerId(), id, time(now));
+            if (offers.isEmpty()) {
+                throw stateConflict("offer_id", "offer_unavailable", "That offer is no longer available. Choose another.");
+            }
+            Instant available = ((Timestamp) offers.getFirst().get("available_at")).toInstant();
+            Instant tenMinutes = now.plus(Duration.ofMinutes(10));
+            StringBuilder ref = new StringBuilder();
+            for (int n = 0; n < 4; n++) ref.append(BOOKING_ALPHABET.charAt(random.nextInt(BOOKING_ALPHABET.length())));
+            jdbc.update("INSERT INTO request_reservations(id,request_id,offer_id,provider_id,status,booking_ref,confirm_by,created_at)"
+                    + " VALUES(?,?,?,?,'pending',?,?,?)", "rsv_" + UUID.randomUUID(), id, selection.offerId(),
+                    offers.getFirst().get("provider_id"), ref.toString(),
+                    time(available.isBefore(tenMinutes) ? available : tenMinutes), time(now));
+            transition(id, "user_selected", null);
+            Resource result = read(id);
+            remember(caller, "select:" + id, key, selection, result);
+            return result;
+        });
+    }
+    /// The provider's answer to a pending reservation, on a match they own. Only "confirm"
+    /// moves a request to confirmed (manual v4 19.6). The HTTP route is frozen in 0.7.0 but its
+    /// InboxItem response needs respond_by, whose lifetime is settled in contract 0.7.1.
+    ReservationService.ProviderDecisionResult decide(String provider, String matchId, String decision) {
+        if (!List.of("confirm", "release").contains(decision)) {
+            throw ApiException.validation("decision", "invalid", "Choose confirm or release.");
+        }
+        if (provider == null || matchId == null || matchId.length() > 64 || !matchId.matches("mat_[A-Za-z0-9-]+")) {
+            throw ApiException.notFound("Match not found.");
+        }
+        if (!limiter.tryConsume("reservation:" + provider, 30, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
+        return transaction.execute(ignored -> {
+            var match = jdbc.queryForList("SELECT request_id FROM request_matches WHERE match_id=? AND provider_id=?",
+                    String.class, matchId, provider);
+            if (match.isEmpty()) throw ApiException.notFound("Match not found.");
+            String id = match.getFirst();
+            // Request first, then match: the same order every request-level writer uses.
+            jdbc.queryForList("SELECT id FROM requests WHERE id=? FOR UPDATE", id);
+            jdbc.queryForList("SELECT match_id FROM request_matches WHERE match_id=? FOR UPDATE", matchId);
+            expire(id);
+            var rows = jdbc.queryForList("SELECT id,offer_id,status,confirm_by FROM request_reservations"
+                    + " WHERE request_id=? AND provider_id=? ORDER BY created_at DESC,id DESC LIMIT 1", id, provider);
+            if (rows.isEmpty()) throw stateConflict("match_id", "no_reservation", "There is no reservation waiting for you.");
+            var row = rows.getFirst();
+            String current = (String) row.get("status");
+            String wanted = decision.equals("confirm") ? "confirmed" : "released";
+            Instant now = clock.instant();
+            if (current.equals(wanted)) return new ReservationService.ProviderDecisionResult(current, status(id));
+            if (!current.equals("pending") || !now.isBefore(((Timestamp) row.get("confirm_by")).toInstant())) {
+                throw stateConflict("match_id", "reservation_closed", "This reservation is closed.");
+            }
+            if (wanted.equals("confirmed")) {
+                jdbc.update("UPDATE request_reservations SET status='confirmed',confirmed_at=? WHERE id=?", time(now), row.get("id"));
+                transition(id, "confirmed", null, true);
+            } else {
+                endReservation(id, (String) row.get("id"), (String) row.get("offer_id"), "released", now);
+            }
+            return new ReservationService.ProviderDecisionResult(wanted, status(id));
+        });
+    }
+    /// Release or timeout: the offer is withdrawn and the asker gets the other live offers back.
+    private void endReservation(String id, String reservationId, String offerId, String outcome, Instant endedAt) {
+        jdbc.update("UPDATE request_reservations SET status=?,ended_at=? WHERE id=?", outcome, time(endedAt), reservationId);
+        if (offerId != null) jdbc.update("UPDATE request_offers SET withdrawn_at=? WHERE id=? AND withdrawn_at IS NULL", time(endedAt), offerId);
+        if (progress(id).offersReady() > 0) transition(id, "ranked", null);
+        else transition(id, "expired", "not_confirmed");
+    }
+    /// Reservation timers, run under the request lock: timeout at confirm_by, completion three
+    /// hours after the chosen offer's slot.
+    private void settleReservation(String id) {
+        Instant now = clock.instant();
+        String state = status(id);
+        if (state.equals("user_selected")) {
+            var due = jdbc.queryForList("SELECT id,offer_id,confirm_by FROM request_reservations"
+                    + " WHERE request_id=? AND status='pending' AND confirm_by<=?", id, time(now));
+            if (!due.isEmpty()) {
+                var row = due.getFirst();
+                endReservation(id, (String) row.get("id"), (String) row.get("offer_id"), "timed_out",
+                        ((Timestamp) row.get("confirm_by")).toInstant());
+            }
+        } else if (state.equals("confirmed") && jdbc.queryForObject("SELECT count(*) FROM request_reservations v"
+                + " JOIN request_offers o ON o.id=v.offer_id WHERE v.request_id=? AND v.status='confirmed'"
+                + " AND o.available_at + interval '3 hours' <= ?", Integer.class, id, time(now)) > 0) {
+            transition(id, "completed", null);
+        }
     }
     public Offers offers(PlugPrincipal caller, String id) {
         return transaction.execute(ignored -> {
@@ -234,11 +348,14 @@ public class RequestService {
         return ApiException.requestError(409, "conflict", field, code, message);
     }
     private String status(String id) { return jdbc.queryForObject("SELECT status FROM requests WHERE id=?", String.class, id); }
-    private void transition(String id, String next, String reason) {
-        RequestStateMachine.require(status(id), next, false);
+    private void transition(String id, String next, String reason) { transition(id, next, reason, false); }
+    /// supplierEvent is true only on the provider's confirm (decide); nothing else may confirm.
+    private void transition(String id, String next, String reason, boolean supplierEvent) {
+        RequestStateMachine.require(status(id), next, supplierEvent);
         jdbc.update("UPDATE requests SET status=?,no_result_reason=?,updated_at=? WHERE id=?", next, reason, time(clock.instant()), id);
     }
     private void expire(String id) {
+        settleReservation(id);
         Resource resource = read(id);
         if (!List.of("draft", "submitted", "routed", "awaiting_responses", "ranked").contains(resource.status())) return;
         boolean deadline = !resource.expiresAt().isAfter(clock.instant());
@@ -262,24 +379,36 @@ public class RequestService {
                             new Location(rs.getDouble("latitude"), rs.getDouble("longitude"), rs.getString("precision")));
                     Clarification question = state.equals("draft") ? new Clarification(rs.getString("clarification_id"), "category",
                             "What should PLUG look for?", options(rs.getString("clarification_options"))) : null;
+                    Integer poll = switch (action) {
+                        case "wait_for_offers" -> 1;
+                        case "await_supplier_confirmation" -> 5;
+                        default -> null;
+                    };
                     return new Resource(id, state, action, rs.getString("text"), constraints, progress(id), question,
-                            rs.getString("no_result_reason"), action.equals("wait_for_offers") ? 1 : null,
+                            rs.getString("no_result_reason"), reservation(id), poll,
                             instant(rs, "created_at"), instant(rs, "updated_at"), instant(rs, "expires_at"));
                 }, id);
+    }
+    private Reservation reservation(String id) {
+        return jdbc.query("SELECT * FROM request_reservations WHERE request_id=?"
+                + " ORDER BY (status IN ('pending','confirmed')) DESC,created_at DESC,id DESC LIMIT 1",
+                (rs, row) -> new Reservation(rs.getString("id"), rs.getString("offer_id"), rs.getString("status"),
+                        rs.getString("booking_ref"), instant(rs, "confirm_by"), instant(rs, "confirmed_at"),
+                        instant(rs, "ended_at"), instant(rs, "created_at")), id).stream().findFirst().orElse(null);
     }
     private Progress progress(String id) {
         Integer contacted = jdbc.queryForObject("SELECT (SELECT count(*) FROM request_seed_work WHERE request_id=?)"
                 + " + (SELECT count(*) FROM request_matches WHERE request_id=?)", Integer.class, id, id);
         Integer replied = jdbc.queryForObject("SELECT (SELECT count(*) FROM request_seed_work WHERE request_id=? AND replied_at IS NOT NULL)"
                 + " + (SELECT count(*) FROM request_matches WHERE request_id=? AND replied_at IS NOT NULL)", Integer.class, id, id);
-        Integer offers = jdbc.queryForObject("SELECT count(*) FROM request_offers WHERE request_id=? AND expires_at>?", Integer.class, id, time(clock.instant()));
+        Integer offers = jdbc.queryForObject("SELECT count(*) FROM request_offers WHERE request_id=? AND expires_at>? AND withdrawn_at IS NULL", Integer.class, id, time(clock.instant()));
         return new Progress(contacted, replied, offers);
     }
     private List<Offer> listOffers(String id) {
         return jdbc.query("SELECT o.*,p.name,p.address,w.distance_m,b.business,ps.completed_jobs,ps.trust_score FROM request_offers o JOIN places p ON p.id=o.place_id"
                 + " JOIN request_seed_work w ON w.request_id=o.request_id AND w.place_id=o.place_id"
                 + " LEFT JOIN provider_profiles b ON b.user_id=o.provider_id LEFT JOIN provider_scores ps ON ps.user_id=o.provider_id"
-                + " WHERE o.request_id=? AND o.expires_at>? ORDER BY o.available_at,o.price_cents,w.distance_m,o.id LIMIT 20",
+                + " WHERE o.request_id=? AND o.expires_at>? AND o.withdrawn_at IS NULL ORDER BY o.available_at,o.price_cents,w.distance_m,o.id LIMIT 20",
                 (rs, row) -> new Offer(rs.getString("id"), new Place(rs.getString("place_id"), rs.getString("name"),
                         rs.getString("address"), rs.getInt("distance_m")), rs.getString("service_name"), rs.getInt("price_cents"),
                         rs.getString("currency"), instant(rs, "available_at"), instant(rs, "expires_at"), instant(rs, "observed_at"),
@@ -308,8 +437,14 @@ public class RequestService {
             List<String> ids = jdbc.queryForList("SELECT id FROM requests WHERE status IN"
                     + " ('submitted','routed','awaiting_responses')"
                     + " OR (status IN ('draft','ranked') AND expires_at<=?)"
-                    + " OR (status='ranked' AND NOT EXISTS (SELECT 1 FROM request_offers o WHERE o.request_id=requests.id AND o.expires_at>?))"
-                    + " ORDER BY updated_at,id LIMIT 20 FOR UPDATE SKIP LOCKED", String.class, time(clock.instant()), time(clock.instant()));
+                    + " OR (status='ranked' AND NOT EXISTS (SELECT 1 FROM request_offers o WHERE o.request_id=requests.id"
+                    + " AND o.expires_at>? AND o.withdrawn_at IS NULL))"
+                    + " OR (status='user_selected' AND EXISTS (SELECT 1 FROM request_reservations v WHERE v.request_id=requests.id"
+                    + " AND v.status='pending' AND v.confirm_by<=?))"
+                    + " OR (status='confirmed' AND EXISTS (SELECT 1 FROM request_reservations v JOIN request_offers o ON o.id=v.offer_id"
+                    + " WHERE v.request_id=requests.id AND v.status='confirmed' AND o.available_at + interval '3 hours'<=?))"
+                    + " ORDER BY updated_at,id LIMIT 20 FOR UPDATE SKIP LOCKED", String.class,
+                    time(clock.instant()), time(clock.instant()), time(clock.instant()), time(clock.instant()));
             for (String id : ids) {
                 expire(id);
                 Resource resource = read(id);
