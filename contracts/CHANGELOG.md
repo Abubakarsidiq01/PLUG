@@ -40,7 +40,8 @@ registered; `validate.mjs` checks portal `expires_at` = `available_at` + 15 minu
 lists, single offers and inbox items.
 Migration note: none.
 Rollback: `provider_inbox` off returns 404 on the inbox routes, on
-`POST /v1/requests/{request_id}/select` and on `POST /v1/me/devices`.
+`POST /v1/requests/{request_id}/select`, on `POST /v1/requests/{request_id}/offers` and on
+`POST /v1/me/devices`. `sendProviderOffer` also lists 415 for a body that is not JSON.
 
 **Open questions still awaiting the owner (from 0.7.1):** 1 (fan-out cap), 2 (reply window
 against the t+300s stop), 3 for `sms` offers only (proposed above, confirm before P3.S5), 4

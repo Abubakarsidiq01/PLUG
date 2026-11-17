@@ -1563,6 +1563,13 @@
       "error_code": "internal_error"
     },
     {
+      "file": "fixtures/requests.send-offer/unsupported-media-type.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 415,
+      "error_code": "validation_failed"
+    },
+    {
       "file": "fixtures/providers.inbox/success.json",
       "method": "get",
       "path": "/v1/providers/me/inbox",
