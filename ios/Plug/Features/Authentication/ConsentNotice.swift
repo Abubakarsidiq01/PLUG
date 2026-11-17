@@ -29,9 +29,9 @@ struct ConsentNotice: View {
     }
 
     private func documentButton(_ title: String, _ value: LegalDocument) -> some View {
-        Button { document = value } label: { Text(title).underline() }
+        Button { document = value } label: { Text(title).underline(true, color: PlugTokens.Color.ink400) }
             .buttonStyle(.plain).plugText(.label)
-            .foregroundStyle(.primary)
+            .foregroundStyle(PlugTokens.Color.ink900)
             .frame(minHeight: PlugTokens.minTouchTarget)
     }
 }
@@ -90,7 +90,7 @@ private struct LegalDocumentView: View {
                     ForEach(document.sections.indices, id: \.self) { index in
                         let section = document.sections[index]
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                            Text(section.0).plugText(.title3)
+                            Text(section.0).plugText(.title2)
                             Text(section.1).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -98,8 +98,14 @@ private struct LegalDocumentView: View {
                 }
                 .padding(PlugTokens.Space.s6).frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
             }
+            .background(PlugTokens.Color.paper)
+            .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .navigationTitle(document.title).navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() }.fontWeight(.semibold) } }
         }
+        .tint(PlugTokens.Color.ink900)
+        .presentationBackground(PlugTokens.Color.paper)
+        .presentationCornerRadius(PlugShape.sheet)
     }
 }

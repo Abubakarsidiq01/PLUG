@@ -19,54 +19,63 @@ struct WelcomeView: View {
     var body: some View {
         GeometryReader { viewport in
             ScrollView {
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    if page != .welcome { navigation }
-                    if isMethodSelection { Spacer(minLength: PlugTokens.Space.s8) }
-                    if page == .welcome {
-                        Spacer(minLength: PlugTokens.Space.s8)
-                        header
+                VStack(alignment: .leading, spacing: 0) {
+                    if page == .welcome { header } else { navigation }
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s6) { content }
+                            .disabled(googlePending)
+                            .frame(maxWidth: isMethodSelection ? PlugTokens.Layout.authColumn + PlugTokens.Space.s12 : .infinity,
+                                   alignment: .leading)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                        Spacer(minLength: PlugTokens.Space.s4)
+                        ConsentNotice(environment: environment)
                     }
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s6) { content }
-                        .disabled(googlePending)
-                        .frame(maxWidth: isMethodSelection ? PlugTokens.Layout.authColumn : .infinity, alignment: .leading)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    Spacer(minLength: PlugTokens.Space.s6)
-                    ConsentNotice(environment: environment)
+                    .padding(.horizontal, PlugTokens.Space.s4)
+                    .padding(.top, PlugTokens.Space.s8)
+                    .padding(.bottom, PlugTokens.Space.s4)
+                    .frame(maxWidth: AuthLayout.contentWidth)
+                    .frame(maxWidth: .infinity)
+                    .frame(maxHeight: .infinity, alignment: .top)
                 }
-                .padding(.horizontal, PlugTokens.Space.s4)
-                .padding(.vertical, PlugTokens.Space.s6)
-                .frame(maxWidth: AuthLayout.contentWidth)
                 .frame(minHeight: viewport.size.height, alignment: .top)
-                .frame(maxWidth: .infinity)
             }
             .scrollDismissesKeyboard(.interactively)
             .id(page)
+            .transition(reduceMotion ? .opacity : .asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity),
+                                                              removal: .opacity))
         }
         .background(PlugTokens.Color.paper.ignoresSafeArea())
         .foregroundStyle(PlugTokens.Color.ink900)
         .buttonStyle(AuthActionStyle())
         .preferredColorScheme(.light)
-        .animation(.plug(reduceMotion: reduceMotion), value: page)
+        .animation(.plugSheet(reduceMotion: reduceMotion), value: page)
     }
 
     private var isMethodSelection: Bool { page == .signIn || page == .signUp }
 
     private var navigation: some View {
-        HStack {
-            Button { page = .welcome; model.startOver() } label: {
-                Image(systemName: "chevron.left").font(.body.weight(.medium))
-                    .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
+        VStack(spacing: 0) {
+            HStack {
+                Button { page = .welcome; model.startOver() } label: {
+                    Image(systemName: "chevron.left").font(.system(size: 17, weight: .medium))
+                        .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Back to welcome")
+                Spacer()
+                Button { page = .welcome; model.startOver() } label: { PlugLogotype(size: PlugTokens.Layout.logo) }
+                    .buttonStyle(.plain).accessibilityLabel("PLUG home")
+                    .frame(minHeight: PlugTokens.minTouchTarget)
+                Spacer()
+                Color.clear.frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
+                    .accessibilityHidden(true)
             }
-            .buttonStyle(.plain).accessibilityLabel("Back to welcome")
-            Spacer()
-            Button { page = .welcome; model.startOver() } label: { PlugWordmark() }
-                .buttonStyle(.plain).accessibilityLabel("PLUG home")
-            Spacer()
-            Color.clear.frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
-                .accessibilityHidden(true)
+            .disabled(googlePending || model.isWorking)
+            .padding(.horizontal, PlugTokens.Space.s2)
+            .padding(.vertical, PlugTokens.Space.s1)
+            PlugDivider()
         }
-        .disabled(googlePending || model.isWorking)
-        .frame(minHeight: PlugTokens.minTouchTarget)
     }
 
     private var appleEnabled: Bool {
@@ -82,27 +91,30 @@ struct WelcomeView: View {
         return (Bundle.main.object(forInfoDictionaryKey: "PlugPhoneSignInEnabled") as? String) == "YES"
     }
 
+    /// A real photo of someone nearby at work across the top, then the logotype, what PLUG does
+    /// in the serif, and the tested tagline.
     private var header: some View {
-        VStack(spacing: PlugTokens.Space.s6) {
-            PlugLogotype(size: PlugTokens.Layout.logoLarge).accessibilityAddTraits(.isHeader)
-            // What the app does leads; the tested tagline follows as its own text, words unchanged.
-            VStack(spacing: PlugTokens.Space.s2) {
+        VStack(alignment: .leading, spacing: 0) {
+            PlugPhoto(name: "PhotoBarista", height: 340, focus: .center)
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+                PlugLogotype(size: PlugTokens.Layout.logo).accessibilityAddTraits(.isHeader)
+                    .padding(.bottom, PlugTokens.Space.s2)
+                // What the app does leads; the tested tagline follows as its own text, words unchanged.
                 Text("Ask for a service, or about a place nearby.")
-                    .plugText(.body)
+                    .plugText(.hero)
                     .foregroundStyle(PlugTokens.Color.ink900)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("Real-time truth.\nBetter local decisions.")
                     .plugText(.body)
                     .foregroundStyle(PlugTokens.Color.ink600)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-            .multilineTextAlignment(.center)
-            .fixedSize(horizontal: false, vertical: true)
-            if !dynamicTypeSize.isAccessibilitySize {
-                Image("Neighbourhood").resizable().scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .accessibilityHidden(true)
-            }
+            .padding(.horizontal, PlugTokens.Space.s6)
+            .padding(.top, PlugTokens.Space.s6)
+            .frame(maxWidth: AuthLayout.contentWidth, alignment: .leading)
+            .frame(maxWidth: .infinity)
+            .plugArrival()
         }
-        .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder
@@ -181,11 +193,12 @@ struct WelcomeView: View {
                 Button("I have an account") { creatingAccount = false; page = .signIn }
                     .buttonStyle(PlugButtonStyle(kind: .secondary))
                 Button("Continue as guest") { Task { await model.continueAsGuest() } }
-                    .buttonStyle(PlugButtonStyle(kind: .tertiary))
+                    .buttonStyle(PlugButtonStyle(kind: .tertiary, fullWidth: false))
+                    .frame(maxWidth: .infinity)
             }
         case .signIn, .signUp:
             VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                Text(creatingAccount ? "Create your account" : "Welcome back").plugText(.title)
+                Text(creatingAccount ? "Create your account" : "Welcome back").plugText(.display)
                 Text(creatingAccount ? "Choose how you’d like to create your account." : "Use the method linked to your PLUG account.")
                     .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
             }
@@ -283,7 +296,7 @@ struct WelcomeView: View {
                 } onCompletion: { result in handleApple(result) }
                 .signInWithAppleButtonStyle(.black)
                 .frame(maxWidth: .infinity).frame(height: PlugTokens.Space.s12)
-                .clipShape(RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
+                .clipShape(RoundedRectangle(cornerRadius: PlugShape.control, style: .continuous))
             }
             Button { page = .phone } label: {
                 HStack(spacing: PlugTokens.Space.s3) {
@@ -349,7 +362,7 @@ struct WelcomeView: View {
 
     private var phoneEntry: some View {
         VStack(alignment: .leading, spacing: PlugSpacing.small) {
-            Text(creatingAccount ? "Sign up with your phone" : "Sign in with your phone").plugText(.title3)
+            Text(creatingAccount ? "Sign up with your phone" : "Sign in with your phone").plugText(.title)
             PlugTextField(title: "Phone number, including country code", text: $phoneNumber)
                 .textContentType(.telephoneNumber)
                 .keyboardType(.phonePad)
@@ -441,13 +454,15 @@ struct StateMessage: View {
         // The title is its own static text, read first as a heading, so the state can be found
         // by its exact words; the symbol is decorative.
         VStack(alignment: .leading, spacing: PlugSpacing.small) {
-            HStack(alignment: .firstTextBaseline, spacing: PlugTokens.Space.s2) {
-                Image(systemName: systemImage).accessibilityHidden(true)
+            HStack(alignment: .center, spacing: PlugTokens.Space.s3) {
+                Image(systemName: systemImage).font(.system(size: 17, weight: .regular))
+                    .foregroundStyle(PlugTokens.Color.ink600)
+                    .accessibilityHidden(true)
                 Text(title)
+                    .plugText(.title2)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
             }
-            .plugText(.title3)
             Text(detail)
                 .plugText(.body)
                 .foregroundStyle(PlugTokens.Color.ink600)

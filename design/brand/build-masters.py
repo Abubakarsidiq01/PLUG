@@ -1,9 +1,9 @@
-"""Builds the PLUG brand SVG masters. Usage: python3 design/brand/build-masters.py design/brand "#15110F" "#FFF4EC" "#FF2E8B" (ink.900, paper, signal.500)"""
+"""Builds the PLUG brand SVG masters. Usage: python3 design/brand/build-masters.py design/brand "#2B1D14" "#FFF4EC" "#1F4D3A" (ink.900, paper, brand.green)"""
 import math, re, sys, pathlib
 
 if len(sys.argv) != 5 or not all(re.fullmatch(r"#[0-9A-Fa-f]{6}", c) for c in sys.argv[2:5]):
-    sys.exit('usage: build-masters.py <out-dir> <ink #RRGGBB> <paper #RRGGBB> <signal #RRGGBB>, e.g. design/brand "#15110F" "#FFF4EC" "#FF2E8B"')
-out = pathlib.Path(sys.argv[1]); INK, PAPER, SIGNAL = sys.argv[2], sys.argv[3], sys.argv[4]
+    sys.exit('usage: build-masters.py <out-dir> <ink #RRGGBB> <paper #RRGGBB> <brand #RRGGBB>, e.g. design/brand "#2B1D14" "#FFF4EC" "#1F4D3A"')
+out = pathlib.Path(sys.argv[1]); INK, PAPER, BRAND = sys.argv[2], sys.argv[3], sys.argv[4]
 
 # The mark: a P (stem + bowl, cap height 144 on a 256 grid, stem descends 48 below the bowl)
 # whose counter holds a dot: you, held by the P. Centred optically (x 50..206, y 32..224).
@@ -43,10 +43,10 @@ files = {
     "plug-logotype.svg": svg("34 0 674 256", mark_body(INK) + word_body(INK, 234), "PLUG"),
     "plug-logotype-reversed.svg": svg("34 0 674 256", f'<rect x="34" width="674" height="256" fill="{INK}"/>' + mark_body(PAPER) + word_body(PAPER, 234), "PLUG"),
     "plug-logotype-mono.svg": svg("34 0 674 256", mark_body("#000000") + word_body("#000000", 234), "PLUG"),
-    # App icon masters (1024), mark centred in the iOS safe area (ADR-015): ink mark on Signal
-    # pink (light), Signal-pink mark on ink (dark). Ink on Signal is 5.38:1; never white on Signal.
-    "app-icon.svg": svg("0 0 1024 1024", f'<rect width="1024" height="1024" fill="{SIGNAL}"/><g transform="translate(140.8 140.8) scale(2.9)">{mark_body(INK)}</g>', "PLUG"),
-    "app-icon-dark.svg": svg("0 0 1024 1024", f'<rect width="1024" height="1024" fill="{INK}"/><g transform="translate(140.8 140.8) scale(2.9)">{mark_body(SIGNAL)}</g>', "PLUG"),
+    # App icon masters (1024), mark centred in the iOS safe area: a cream mark on forest green
+    # (light, 8.9:1) and a cream mark on espresso (dark, 15:1).
+    "app-icon.svg": svg("0 0 1024 1024", f'<rect width="1024" height="1024" fill="{BRAND}"/><g transform="translate(140.8 140.8) scale(2.9)">{mark_body(PAPER)}</g>', "PLUG"),
+    "app-icon-dark.svg": svg("0 0 1024 1024", f'<rect width="1024" height="1024" fill="{INK}"/><g transform="translate(140.8 140.8) scale(2.9)">{mark_body(PAPER)}</g>', "PLUG"),
     "app-icon-tinted.svg": svg("0 0 1024 1024", f'<rect width="1024" height="1024" fill="#000000"/><g transform="translate(140.8 140.8) scale(2.9)">{mark_body("#FFFFFF")}</g>', "PLUG"),
 }
 for name, text in files.items():

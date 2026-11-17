@@ -36,6 +36,7 @@ struct ProviderOnboardingView: View {
     @State private var availabilityChanged = false
     @State private var isWorking = false
     @State private var errorMessage: String?
+    @State private var toast: String?
     @FocusState private var describing: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -43,11 +44,15 @@ struct ProviderOnboardingView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                    HStack(alignment: .top, spacing: PlugTokens.Space.s2) {
                         // The sheet's name is in the navigation bar, so it stays visible however far the
                         // sheet is scrolled; at the largest sizes a header title went under Cancel.
-                        Text("Turn what you do into a local connection.")
-                            .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                        Text("Tell people nearby what you do.")
+                            .plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                        TestModeTab(lines: [AskView.previewNote,
+                                            "Private test. Your settings are saved for matching. Inbox delivery and booking are not available yet."])
                     }
                     describeStep.marketCard()
                     if !proposed.isEmpty || !unmatched.isEmpty || !ownSkills.isEmpty { skillsStep }
@@ -71,7 +76,7 @@ struct ProviderOnboardingView: View {
                         baseStep.marketCard()
                         if current != nil {
                             Toggle("Receive matching requests", isOn: $accepting)
-                                .plugText(.body).tint(PlugTokens.Color.ink900)
+                                .plugText(.title3).tint(PlugTokens.Color.brandGreen)
                                 .frame(minHeight: PlugTokens.minTouchTarget)
                         }
                     }
@@ -93,18 +98,23 @@ struct ProviderOnboardingView: View {
             }
             .scrollDismissesKeyboard(.interactively)
             .background(PlugTokens.Color.paper)
+            .animation(.plugSheet(reduceMotion: reduceMotion), value: hasSkills)
+            .animation(.plugSheet(reduceMotion: reduceMotion), value: proposed.count + ownSkills.count + unmatched.count)
             // A paper bar, so scrolled text never runs under Cancel at large text sizes.
             .navigationTitle(current == nil ? "Offer a service" : "What you offer")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
-                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.disabled(isWorking) }
+                ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() }.fontWeight(.semibold).disabled(isWorking) }
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { describing = false } }
             }
         }
         .interactiveDismissDisabled(isWorking)
         .tint(PlugTokens.Color.ink900)
+        .plugToast($toast)
+        .presentationBackground(PlugTokens.Color.paper)
+        .presentationCornerRadius(PlugShape.sheet)
         .sensoryFeedback(.selection, trigger: chosen)
         .sensoryFeedback(.selection, trigger: ownSkills)
         .sensoryFeedback(.selection, trigger: radius)
@@ -196,7 +206,7 @@ struct ProviderOnboardingView: View {
 
     private var describeStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("What do you do?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+            Text("What do you do?").plugText(.title).foregroundStyle(PlugTokens.Color.ink900)
             ZStack(alignment: .topLeading) {
                 // Wraps at large sizes and meets the contrast floor, unlike the system placeholder.
                 if description.isEmpty {
@@ -209,10 +219,10 @@ struct ProviderOnboardingView: View {
             }
                 .padding(PlugTokens.Space.s3)
                 .frame(minHeight: PlugTokens.minTouchTarget)
-                .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.control))
-                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.control)
-                    .strokeBorder(describing ? PlugTokens.Color.ink900 : PlugTokens.Color.ruleControl, lineWidth: describing ? 2 : 1))
-                .animation(.plug(reduceMotion: reduceMotion), value: describing)
+                .background(PlugTokens.Color.card, in: RoundedRectangle(cornerRadius: PlugShape.control, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: PlugShape.control, style: .continuous)
+                    .strokeBorder(describing ? PlugTokens.Color.brandGreen : PlugTokens.Color.ruleControl,
+                                  lineWidth: describing ? 1.5 : PlugShape.rule))
                 .accessibilityLabel("What do you do?")
                 .accessibilityIdentifier("provider-description")
             Button("Add skill") {
@@ -220,12 +230,13 @@ struct ProviderOnboardingView: View {
                 guard (3...40).contains(label.count), ownSkills.count < 5 else { return }
                 if !ownSkills.contains(where: { $0.caseInsensitiveCompare(label) == .orderedSame }) {
                     ownSkills.append(label)
+                    toast = "Added \(label)"
                 }
                 description = ""
                 describing = false
                 errorMessage = nil
             }
-            .buttonStyle(FlowActionStyle())
+            .buttonStyle(PlugButtonStyle(kind: .secondary))
             .disabled(isWorking || !(3...40).contains(description.trimmingCharacters(in: .whitespacesAndNewlines).count) || ownSkills.count >= 5)
             .accessibilityIdentifier("provider-add-skill")
             caption("Add one skill at a time, 3 to 40 characters.")
@@ -237,7 +248,7 @@ struct ProviderOnboardingView: View {
 
     private var skillsStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("Your skills").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+            Text("Your skills").plugText(.title).foregroundStyle(PlugTokens.Color.ink900)
             if !proposed.isEmpty {
                 Text("Keep the skills you offer. Tap to remove any others.")
                     .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
@@ -288,7 +299,7 @@ struct ProviderOnboardingView: View {
 
     private var radiusStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("How far will you go?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+            Text("How far will you go?").plugText(.title).foregroundStyle(PlugTokens.Color.ink900)
             PlugFlowLayout {
                 ForEach(Radius.allCases) { option in
                     ProviderChoice(title: option.title, selected: selectedRadius == option.rawValue) {
@@ -304,7 +315,7 @@ struct ProviderOnboardingView: View {
 
     private var availabilityStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("When are you usually free?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+            Text("When are you usually free?").plugText(.title).foregroundStyle(PlugTokens.Color.ink900)
             PlugFlowLayout {
                 ForEach([AvailabilityWindow.Days.weekdays, .weekends, .everyDay], id: \.self) { option in
                     ProviderChoice(title: option.title, selected: days == option) { days = option; availabilityChanged = true }
@@ -341,7 +352,7 @@ struct ProviderOnboardingView: View {
 
     private var baseStep: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            Text("Where do you work from?").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
+            Text("Where do you work from?").plugText(.title).foregroundStyle(PlugTokens.Color.ink900)
             if let label = location.label, location.location != nil {
                 valueRow("Base", label, last: true)
                 // Set already: the way to change it steps back so the save action leads.
@@ -524,31 +535,33 @@ struct InboxView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                        Text("Inbox").plugText(.title)
-                        Text(profile.accepting ? "Your provider profile is saved." : "Your provider profile is paused.")
-                            .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                        PageTitle(title: "Inbox")
+                        Label(profile.accepting ? "Your provider profile is saved." : "Your provider profile is paused.",
+                              systemImage: profile.accepting ? "checkmark.circle.fill" : "pause.circle.fill")
+                            .plugText(.body).fontWeight(.semibold).foregroundStyle(PlugTokens.Color.ink900)
                     }
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                        Text("A place for your next connection")
-                            .plugText(.title2)
+                        Text("No requests here yet")
+                            .plugText(.title)
                         Text("Your skills and hours are saved. Receiving and replying to requests here is coming in a future update.")
                             .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
-                    }.marketCard().accessibilityIdentifier("inbox-empty")
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .foregroundStyle(PlugTokens.Color.ink900)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("inbox-empty")
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                         BusinessIdentity(name: profile.business?.name ?? "Your business", business: profile.business, score: profile.score)
                         if let about = profile.business?.about { Text(about).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600) }
                         if let links = profile.business?.links { BusinessLinks(links: links) }
-                        Text("What you offer").plugText(.title3).foregroundStyle(PlugTokens.Color.ink900)
+                        Text("What you offer").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
                         PlugFlowLayout {
                             ForEach(profile.skills) { skill in
-                                Text(skill.display).plugText(.label).foregroundStyle(PlugTokens.Color.ink900)
-                                    .padding(.horizontal, PlugTokens.Space.s3).padding(.vertical, PlugTokens.Space.s2)
-                                    .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugTokens.Radius.badge))
+                                SkillKey(title: skill.display, fill: PlugTokens.Color.sunk)
                             }
                             ForEach(profile.customSkills ?? [], id: \.self) { label in
-                                Text(label).plugText(.label).foregroundStyle(PlugTokens.Color.ink900)
-                                    .padding(.horizontal, PlugTokens.Space.s3).padding(.vertical, PlugTokens.Space.s2)
-                                    .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.badge).strokeBorder(PlugTokens.Color.rule300))
+                                SkillKey(title: label, fill: PlugTokens.Color.card)
                                     .accessibilityLabel("\(label), your own skill")
                             }
                         }
@@ -566,7 +579,7 @@ struct InboxView: View {
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)
                 .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
-                .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
+                .padding(.horizontal, PlugTokens.Space.s6).padding(.vertical, PlugTokens.Space.s4)
             }
             .background(PlugTokens.Color.paper)
             .toolbar(.hidden, for: .navigationBar)
@@ -600,6 +613,20 @@ private struct BusinessLinkDraft: Identifiable {
     let id = UUID()
     var label: String
     var url = ""
+}
+
+/// A skill shown, not chosen: a small tag that does not press. Listed skills sit on sand; skills
+/// in the provider's own words carry a hairline instead.
+private struct SkillKey: View {
+    let title: String
+    let fill: Color
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: PlugShape.control, style: .continuous)
+        Text(title).plugText(.bodySmall).fontWeight(.medium).foregroundStyle(PlugTokens.Color.ink900)
+            .padding(.horizontal, PlugTokens.Space.s3).frame(minHeight: PlugTokens.minTouchTarget - 8)
+            .background(fill, in: shape)
+            .overlay { if fill != PlugTokens.Color.sunk { shape.strokeBorder(PlugTokens.Color.ruleControl, lineWidth: PlugShape.rule) } }
+    }
 }
 
 /// The shared chip; the name stays for its call sites.

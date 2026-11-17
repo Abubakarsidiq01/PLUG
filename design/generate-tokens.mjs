@@ -62,13 +62,7 @@ cssLines.push(`  --motion-fast: ${tokens.motion.fast}ms;`);
 cssLines.push(`  --motion-base: ${tokens.motion.base}ms;`);
 cssLines.push(`  --motion-slow: ${tokens.motion.slow}ms;`);
 cssLines.push(`  --motion-reveal: ${tokens.motion.reveal}ms;`);
-for (const [name, value] of Object.entries(tokens.motion.mark)) {
-  cssLines.push(`  --motion-mark-${name.replace(/([A-Z])/g, "-$1").toLowerCase()}: ${value}ms;`);
-}
 cssLines.push(`  --motion-press: ${tokens.motion.press}ms;`);
-for (const [name, value] of Object.entries(tokens.motion.rings)) {
-  cssLines.push(`  --motion-rings-${kebabCase(name)}: ${value}ms;`);
-}
 // Spring response (s) and damping fraction, for JS animation code; CSS has no spring timing.
 for (const [name, spring] of namedSprings()) {
   cssLines.push(`  --motion-spring-${kebabCase(name)}-response: ${spring.response};`);
@@ -147,11 +141,6 @@ swiftLines.push(`        static let fast: Double = ${tokens.motion.fast} / 1000`
 swiftLines.push(`        static let base: Double = ${tokens.motion.base} / 1000`);
 swiftLines.push(`        static let slow: Double = ${tokens.motion.slow} / 1000`);
 swiftLines.push(`        static let reveal: Double = ${tokens.motion.reveal} / 1000`);
-swiftLines.push("        enum Mark {");
-for (const [name, value] of Object.entries(tokens.motion.mark)) {
-  swiftLines.push(`            static let ${name}: Double = ${value} / 1000`);
-}
-swiftLines.push("        }");
 swiftLines.push(`        static let springResponse: Double = ${tokens.motion.spring.response}`);
 swiftLines.push(`        static let springDamping: Double = ${tokens.motion.spring.damping}`);
 for (const [name, spring] of namedSprings()) {
@@ -159,11 +148,6 @@ for (const [name, spring] of namedSprings()) {
   swiftLines.push(`        static let ${camel(["spring", name, "damping"])}: Double = ${spring.damping}`);
 }
 swiftLines.push(`        static let press: Double = ${tokens.motion.press} / 1000`);
-swiftLines.push("        enum Rings {");
-for (const [name, value] of Object.entries(tokens.motion.rings)) {
-  swiftLines.push(`            static let ${name}: Double = ${value} / 1000`);
-}
-swiftLines.push("        }");
 swiftLines.push("    }");
 swiftLines.push("    enum Elevation {");
 for (const [name, value] of edges()) {

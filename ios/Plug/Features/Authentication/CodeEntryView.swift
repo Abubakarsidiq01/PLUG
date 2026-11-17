@@ -19,7 +19,7 @@ struct CodeEntryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: PlugSpacing.medium) {
             Text("Enter the code we sent you")
-                .plugText(.title3)
+                .plugText(.title)
             if let expiresAt {
                 Text("It expires \(expiresAt.formatted(date: .omitted, time: .shortened)).")
                     .plugText(.bodySmall)

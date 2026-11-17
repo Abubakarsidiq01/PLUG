@@ -34,33 +34,33 @@ struct PlugApp: App {
     }
 }
 
-/// The cold-start brand moment. It begins where the static launch screen ends (paper, the mark
-/// centred at the SVG's own 256pt size), plays the mark's reveal, then fades away. It never
-/// takes a touch or VoiceOver focus, and it does not run for UI tests or under Reduce Motion.
+/// The cold start: it begins where the static launch screen ends (the espresso mark on cream)
+/// and fades away quickly. It never takes a touch or VoiceOver focus, and it does not run for UI
+/// tests or under Reduce Motion (the launch screen then simply gives way to the app).
 private struct LaunchSplash: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showing = !ProcessInfo.processInfo.arguments.contains("-plug-ui-test-reset")
+    @State private var faded = false
     /// The launch image's point size: plug-mark.svg has a 256-unit viewBox and no width.
     private static let markSize = PlugTokens.Layout.launchMark
 
     var body: some View {
         ZStack {
             if showing && !reduceMotion {
-                ZStack {
-                    PlugTokens.Color.paper
-                    PlugMarkAnimated().frame(width: Self.markSize, height: Self.markSize)
-                }
-                .ignoresSafeArea()
-                .transition(.opacity)
+                PlugTokens.Color.paper
+                PlugMark().frame(width: Self.markSize, height: Self.markSize)
             }
         }
+        .opacity(faded ? 0 : 1)
+        .ignoresSafeArea()
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .task {
             guard showing, !reduceMotion else { return }
-            // The fade overlaps the reveal's last moment, so reveal plus fade stays within 1.2 s.
-            try? await Task.sleep(for: .seconds(PlugTokens.Motion.reveal - PlugTokens.Motion.fast))
-            withAnimation(.easeOut(duration: PlugTokens.Motion.base)) { showing = false }
+            try? await Task.sleep(for: .seconds(PlugTokens.Motion.slow))
+            withAnimation(.easeOut(duration: PlugTokens.Motion.reveal)) { faded = true }
+            try? await Task.sleep(for: .seconds(PlugTokens.Motion.reveal))
+            showing = false
         }
     }
 }
@@ -73,7 +73,7 @@ struct RootView: View {
     @State private var provider: ProviderProfile?
     @State private var selectedTab = "Ask"
     // Fixed like a system tab bar; its labels are capped and use the large-content viewer.
-    private var tabGlyph: CGFloat { PlugTokens.Layout.tabIcon }
+    private var tabGlyph: CGFloat { PlugTokens.Layout.tabIcon - 2 }
     @ObservedObject var model: AuthenticationModel
     let environment: AppEnvironment
 
@@ -90,6 +90,8 @@ struct RootView: View {
             }
         }
         .tint(PlugColor.brand)
+        // Every colour is a fixed palette value; the app is drawn light whatever the system says.
+        .preferredColorScheme(.light)
         .task {
             guard !hasRestored else { return }
             hasRestored = true
@@ -112,34 +114,18 @@ struct RootView: View {
                     foundationPage("Ask", detail: "Request intake is not enabled in this environment.")
                 }
             }
-            .plugTab("Ask", bar: navigationBar)
+            .plugTab("Ask")
             if environment.requestsEnabled, let provider {
                 InboxView(service: requests, profile: provider) { self.provider = $0 }
-                    .plugTab("Inbox", bar: navigationBar)
+                    .plugTab("Inbox")
             }
-            NavigationStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                        Text("Activity").plugText(.title)
-                        VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                            Text("Your asks, in one place")
-                                .plugText(.title2)
-                            Text("Your active ask is on the Ask tab. Past requests aren’t shown here yet.")
-                                .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
-                            Button("Go to Ask") { selectedTab = "Ask" }
-                                .buttonStyle(FlowActionStyle(primary: true))
-                        }.marketCard()
-                    }
-                    .foregroundStyle(PlugTokens.Color.ink900)
-                    .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
-                    .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
-                }.background(PlugTokens.Color.paper)
-                .toolbar(.hidden, for: .navigationBar)
-            }
-            .plugTab("Activity", bar: navigationBar)
+            ActivityView { select("Ask") }
+                .plugTab("Activity")
             ProfileView(model: model, session: session, environment: environment)
-                .plugTab("Profile", bar: navigationBar)
+                .plugTab("Profile")
         }
+        // One bar over every tab, so the selected key can travel between items.
+        .overlay(alignment: .bottom) { navigationBar.ignoresSafeArea(.keyboard, edges: .bottom) }
         .tint(PlugColor.brand)
         .task(id: session.account.userId) {
             provider = nil
@@ -148,31 +134,44 @@ struct RootView: View {
         }
     }
 
-    /// The only bottom navigation. Pages get its height as safe area, so nothing scrolls under it.
+    private func select(_ tab: String) { selectedTab = tab }
+
+    /// The only bottom navigation: a cream bar with a top hairline across the full width, like
+    /// the system tab bar. The selected tab is forest green under a short brass line; the others
+    /// are the muted brown.
     private var navigationBar: some View {
-        HStack(spacing: 0) {
-            navigationItem("Ask", symbol: "square.grid.2x2", selectedSymbol: "square.grid.2x2.fill")
-            if environment.requestsEnabled, provider != nil {
-                navigationItem("Inbox", symbol: "bubble.left.and.bubble.right", selectedSymbol: "bubble.left.and.bubble.right.fill")
+        VStack(spacing: 0) {
+            PlugDivider()
+            HStack(spacing: 0) {
+                navigationItem("Ask", symbol: "magnifyingglass")
+                navigationItem("Activity", symbol: "list.bullet")
+                if environment.requestsEnabled, provider != nil {
+                    navigationItem("Inbox", symbol: "tray")
+                }
+                navigationItem("Profile", symbol: "person")
             }
-            navigationItem("Activity", symbol: "clock", selectedSymbol: "clock.fill")
-            navigationItem("Profile", symbol: "person.crop.circle", selectedSymbol: "person.crop.circle.fill")
+            .padding(.horizontal, PlugTokens.Space.s2)
+            .padding(.top, PlugTokens.Space.s1)
         }
-        .padding(.top, PlugTokens.Space.s2).padding(.bottom, PlugTokens.Space.s1)
-        // Down to the screen edge, so nothing shows through beside the home indicator.
-        .background(PlugTokens.Color.card.ignoresSafeArea(edges: .bottom))
-        .overlay(alignment: .top) { PlugDivider() }
+        .background(PlugTokens.Color.paper.ignoresSafeArea(edges: .bottom))
     }
 
-    private func navigationItem(_ title: String, symbol: String, selectedSymbol: String) -> some View {
-        Button { selectedTab = title } label: {
-            VStack(spacing: PlugTokens.Space.s1) {
-                Image(systemName: selectedTab == title ? selectedSymbol : symbol)
-                    .font(.system(size: tabGlyph, weight: .regular)).frame(height: tabGlyph + PlugTokens.Space.s1)
-                Text(title).plugText(.caption).fontWeight(selectedTab == title ? .semibold : .regular)
+    private func navigationItem(_ title: String, symbol: String) -> some View {
+        let selected = selectedTab == title
+        return Button { select(title) } label: {
+            VStack(spacing: 3) {
+                Image(systemName: selected ? symbol + (symbol == "magnifyingglass" || symbol == "list.bullet" ? "" : ".fill") : symbol)
+                    .font(.system(size: tabGlyph, weight: selected ? .medium : .regular)).frame(height: tabGlyph + PlugTokens.Space.s1)
+                Text(title).font(.system(size: PlugTokens.TypeSize.caption - 1, weight: .medium))
             }
-            .frame(maxWidth: .infinity, minHeight: PlugTokens.minTouchTarget)
-            .foregroundStyle(selectedTab == title ? PlugTokens.Color.ink900 : PlugTokens.Color.ink600)
+            .frame(maxWidth: .infinity, minHeight: PlugShape.buttonHeight - 4)
+            // ink.400 is under 4.5:1 on cream, so unselected labels use ink.600.
+            .foregroundStyle(selected ? PlugTokens.Color.brandGreen : PlugTokens.Color.ink600)
+            .overlay(alignment: .top) {
+                PlugTokens.Color.brandBrass.frame(width: PlugTokens.Space.s6, height: 2)
+                    .offset(y: -PlugTokens.Space.s1)
+                    .opacity(selected ? 1 : 0)
+            }
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -180,7 +179,7 @@ struct RootView: View {
         .accessibilityShowsLargeContentViewer { Label(title, systemImage: symbol) }
         .accessibilityLabel(title)
         .accessibilityIdentifier("navigation-" + title.lowercased())
-        .accessibilityAddTraits(selectedTab == title ? .isSelected : [])
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     private func foundationPage(_ title: String, detail: String) -> some View {
@@ -196,28 +195,69 @@ struct RootView: View {
     }
 }
 
-/// What the account is, and the way out of it. A guest is told plainly what a guest is and
-/// offered the upgrade, because a limit nobody can see is a limit that feels like a bug.
 enum PlugNavigationBar {
-    /// Bar height (44 pt items, 8 + 4 pt padding) at its largest capped label size, plus a gap.
+    /// Bar height (48 pt items, hairline, top padding) plus a gap.
     static let reserved: CGFloat = PlugTokens.Layout.tabReserve
 }
 
 private extension View {
-    /// One page of the bottom navigation: no system tab bar, the custom bar along the bottom, and
-    /// a bottom margin on every scroll view in the tab (pushed pages included) so its last control
-    /// can always scroll clear of the bar. A safe-area inset applied here did not reach scroll
-    /// views inside the tab's navigation stack on iOS 26.
-    func plugTab<Bar: View>(_ name: String, bar: Bar) -> some View {
+    /// One page of the bottom navigation: no system tab bar, and a bottom margin on every scroll
+    /// view in the tab (pushed pages included) so its last control can always scroll clear of the
+    /// bar. A safe-area inset applied here did not reach scroll views inside the tab's navigation
+    /// stack on iOS 26.
+    func plugTab(_ name: String) -> some View {
         toolbar(.hidden, for: .tabBar)
             .contentMargins(.bottom, PlugNavigationBar.reserved, for: .scrollContent)
             .contentMargins(.bottom, PlugNavigationBar.reserved, for: .scrollIndicators)
-            // Like a system tab bar, it stays behind the keyboard instead of riding up over the field.
-            .overlay(alignment: .bottom) { bar.ignoresSafeArea(.keyboard, edges: .bottom) }
             .tag(name)
     }
 }
 
+/// A serif page title with the test-mode tag at the right.
+struct PageTitle: View {
+    let title: String
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            Text(title).plugText(.hero).accessibilityAddTraits(.isHeader)
+            Spacer(minLength: PlugTokens.Space.s2)
+            TestModeTab(lines: [AskView.previewNote])
+        }
+    }
+}
+
+/// Activity shows only what exists: until past asks are listed, it points to the live one.
+private struct ActivityView: View {
+    let goToAsk: () -> Void
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
+                    PageTitle(title: "Activity")
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+                        Text("Your asks, in one place")
+                            .plugText(.title)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text("Your active ask is on the Ask tab. Past requests aren’t shown here yet.")
+                            .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Button("Go to Ask", action: goToAsk)
+                            .buttonStyle(FlowActionStyle(primary: true))
+                            .padding(.top, PlugTokens.Space.s2)
+                    }
+                }
+                .foregroundStyle(PlugTokens.Color.ink900)
+                .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
+                .padding(.horizontal, PlugTokens.Space.s6).padding(.vertical, PlugTokens.Space.s4)
+            }
+            .background(PlugTokens.Color.paper)
+            .toolbar(.hidden, for: .navigationBar)
+        }
+    }
+}
+
+/// What the account is, and the way out of it. A guest is told plainly what a guest is and
+/// offered the upgrade, because a limit nobody can see is a limit that feels like a bug.
 struct ProfileView: View {
     @ObservedObject var model: AuthenticationModel
     let session: Session
@@ -227,38 +267,52 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    Text("Profile").plugText(.title)
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                        Text("Your corner of PLUG")
-                            .plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-                        Text(session.account.isGuest ? "Exploring as a guest" : "Your account, your connections")
-                            .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                    PageTitle(title: "Profile")
+                    HStack(alignment: .center, spacing: PlugTokens.Space.s4) {
+                        PlugMark(ink: PlugTokens.Color.paper, dot: PlugTokens.Color.paper)
+                            .padding(PlugTokens.Space.s4 + 2)
+                            .frame(width: PlugTokens.Layout.portrait, height: PlugTokens.Layout.portrait)
+                            .background(PlugTokens.Color.brandGreen, in: Circle())
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
+                            Text("Your corner of PLUG")
+                                .plugText(.title).foregroundStyle(PlugTokens.Color.ink900)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Text(session.account.isGuest ? "Exploring as a guest" : "Signed in")
+                                .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                        }
                     }
-                    .plugCard()
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                        Text("Account").plugText(.title3)
+                    VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                        Text("Account").plugText(.title2).padding(.bottom, PlugTokens.Space.s1)
+                        PlugDivider()
                         detailRow("Signed in with", description(of: session.account.type))
+                        PlugDivider()
                         detailRow("Terms accepted", session.consent.acceptedVersion ?? "Not yet")
-                    }.marketCard()
+                        PlugDivider()
+                    }
                     if session.account.isGuest {
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                             Text("Make yourself at home")
-                                .plugText(.title2)
+                                .plugText(.title)
                             Text("Create an account to keep your guest requests. Signing in to an existing account switches "
                                  + "accounts; guest activity is not merged into that account.")
                                 .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                                .fixedSize(horizontal: false, vertical: true)
                             Button("Create account or sign in") { model.startOver() }
                                 .buttonStyle(FlowActionStyle(primary: true))
-                        }.marketCard()
+                        }
+                        .foregroundStyle(PlugTokens.Color.ink900)
+                        .plugCard(PlugTokens.Color.sunk)
                     }
                     #if DEBUG
                     NavigationLink { HealthView(client: APIClient(environment: environment)) } label: {
                         HStack {
-                            Label("Developer tools", systemImage: "wrench.and.screwdriver")
+                            Label("Developer tools", systemImage: "wrench.and.screwdriver.fill")
                             Spacer(minLength: PlugTokens.Space.s2)
-                            Image(systemName: "chevron.right")
-                        }.plugText(.body).marketCard()
-                    }.buttonStyle(.plain)
+                            Image(systemName: "chevron.right").fontWeight(.medium)
+                        }.plugText(.body).foregroundStyle(PlugTokens.Color.ink900)
+                        .padding(.vertical, PlugTokens.Space.s3)
+                        .overlay(alignment: .bottom) { PlugDivider() }
+                    }.buttonStyle(PlugPressStyle())
                     #endif
                     Button("Sign out", role: .destructive) { Task { await model.signOut() } }
                         .buttonStyle(FlowActionStyle(destructive: true))
@@ -266,33 +320,36 @@ struct ProfileView: View {
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)
                 .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
-                .padding(.horizontal, PlugTokens.Space.s4).padding(.vertical, PlugTokens.Space.s6)
+                .padding(.horizontal, PlugTokens.Space.s6).padding(.vertical, PlugTokens.Space.s4)
             }
             .background(PlugTokens.Color.paper)
             .toolbar(.hidden, for: .navigationBar)
         }
     }
 
-    /// A label and its value, side by side while that fits and stacked when it does not.
-    /// At the largest Dynamic Type size a side-by-side row leaves too little width for
-    /// either half, and the value ends up clipped — which is the failure §20.3 means by
-    /// "no fixed heights on text containers": let the layout grow instead.
+    /// A label and its value, side by side while that fits and stacked when it does not, so
+    /// the value is never clipped at the largest Dynamic Type size.
     private func detailRow(_ label: String, _ value: String) -> some View {
         ViewThatFits(in: .horizontal) {
-            LabeledContent {
-                Text(value).foregroundStyle(PlugTokens.Color.ink900)
-            } label: {
-                Text(label).foregroundStyle(PlugTokens.Color.ink600)
+            // Both sides keep their full width here, so a row that does not fit stacks instead of
+            // truncating.
+            HStack(alignment: .firstTextBaseline) {
+                Text(label).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                    .fixedSize(horizontal: true, vertical: false)
+                Spacer(minLength: PlugTokens.Space.s2)
+                Text(value).plugText(.body).fontWeight(.medium).foregroundStyle(PlugTokens.Color.ink900)
+                    .fixedSize(horizontal: true, vertical: false)
             }
+            .accessibilityElement(children: .combine)
             VStack(alignment: .leading, spacing: PlugSpacing.small / 2) {
-                Text(label).foregroundStyle(PlugTokens.Color.ink600)
-                Text(value)
+                Text(label).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                Text(value).plugText(.title3)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityElement(children: .combine)
         }
-        .plugText(.body)
+        .padding(.vertical, PlugTokens.Space.s2)
     }
 
     private func description(of type: Account.AccountType) -> String {
