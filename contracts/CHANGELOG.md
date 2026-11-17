@@ -12,11 +12,13 @@ Rollback: <what turning the flag off does>
 ```
 
 ### 0.7.1 — 2026-11-17 — clarification, one webhook response change — P3.S6, draft
-Draft follow-up to the 2026-11-14 contract-guard review of 0.7.0 (PROJECT_STATE next_actions
-`P3-contract-0.7.1`). Not frozen until both people approve the pull request. 0.7.0 itself was
+Follow-up to the 2026-11-14 contract-guard review of 0.7.0 (PROJECT_STATE next_actions
+`P3-contract-0.7.1`). Approval: the owner is now the sole decision-maker. Person Two is not
+joining for now, so items that needed both approvals are settled by the owner alone, and this
+version is frozen when the owner approves and merges the pull request. 0.7.0 itself was
 frozen when PR #46 merged (recorded in PR #50); its labels are corrected below. No new route,
-field, enum value or error code. Each item is marked decided (owner, 2026-11-16), proposed
-(needs both approvals) or mechanical (no product fact).
+field, enum value or error code. Each item is marked decided (owner), mechanical (no product
+fact) or open (awaits the owner).
 
 **Decided by the owner on 2026-11-16:**
 - `InboxItem.respond_by` is `notified_at` plus 5 minutes, the outreach reply window (review
@@ -25,17 +27,24 @@ field, enum value or error code. Each item is marked decided (owner, 2026-11-16)
   routes, although it also serves seed and sms offers; with the flag off it returns 404
   (item 10).
 
-**Proposed, needs both approvals (gaps the contract guard found):**
-- `MatchStatus`: a match whose reservation times out is `not_chosen`; one whose reservation the
-  asker canceled is `closed`, and the inbox item still carries the canceled reservation.
-- A provider decision on a canceled reservation is 409 `reservation_closed`.
-- A reservation times out when the server clock reaches `confirm_by` (`ended_at` equals
-  `confirm_by`, as in `p3-request-not-confirmed.json`); a decision at or after `confirm_by` is
-  409 `reservation_closed` (0.7.0 said "after").
-- If the offer's `available_at` has already passed at selection, `confirm_by` is in the past and
-  the reservation times out on the next check. No new error code.
-- A `user_selected` request does not expire on its own `expires_at`; only `confirm_by` moves it
-  (to `ranked`, or to `expired` with `not_confirmed`).
+**Decided by the owner on 2026-11-17:**
+- `Reservation.confirm_by` = min(`selected_at` + 20 minutes, max(`offer.available_at`,
+  `selected_at` + 10 minutes)), where `selected_at` is the reservation's `created_at`. The
+  provider always gets at least 10 and at most 20 minutes; for a later slot they must confirm
+  before it starts. This replaces 0.7.0's "10 minutes after selection, or the offer's
+  available_at if that is sooner", so `confirm_by` is never in the past at selection (open
+  question 5 of the draft is resolved). Every fixture and example with a reservation now
+  follows it: the sms offer (available 20:15:00, selected 20:00:09) has `confirm_by`
+  20:15:00, and the portal offer (available 20:20:00, selected 20:02:30) has 20:20:00.
+- The gaps the contract guard found, proposed in the draft, are now decided:
+  - `MatchStatus`: a match whose reservation times out is `not_chosen`; one whose reservation the
+    asker canceled is `closed`, and the inbox item still carries the canceled reservation.
+  - A provider decision on a canceled reservation is 409 `reservation_closed`.
+  - A reservation times out when the server clock reaches `confirm_by` (`ended_at` equals
+    `confirm_by`, as in `p3-request-not-confirmed.json`); a decision at or after `confirm_by` is
+    409 `reservation_closed` (0.7.0 said "after").
+  - A `user_selected` request does not expire on its own `expires_at`; only `confirm_by` moves it
+    (to `ranked`, or to `expired` with `not_confirmed`).
 
 **Mechanical (no product fact):**
 - `info.version` 0.7.1. "0.7.0, proposed" section labels in openapi.yaml, the `status` fields of
@@ -57,7 +66,7 @@ field, enum value or error code. Each item is marked decided (owner, 2026-11-16)
 - Cancel's 200 description states that a selected offer's reservation comes back `canceled`
   with `ended_at` (already the 0.7.0 rule).
 
-**Open questions for both people (nothing chosen):**
+**Open questions, awaiting the owner (nothing chosen):**
 1. Fan-out cap (item 1). `AdminMatchHistory.cap` is const 16, but `AdminMatch.wave` allows 3
    waves of 6+4+4 = 14, so 16 is unreachable; the manual says 14 (`SupplierMatcher`) and 16
    (`MatchService`). Options: (a) cap 14, matching the waves; (b) keep 16 and allow a fourth
@@ -73,22 +82,22 @@ field, enum value or error code. Each item is marked decided (owner, 2026-11-16)
 4. SMS terms page and support contact (item 7). `plug.app/sms` and `support@plug.app` are not
    confirmed. The owner names the real page and contact (or a different form) before any opt-in
    text is sent (P3.S2).
-5. Do the proposed rules above hold? In particular, should a canceled match keep its
-   reservation on the inbox item, and is a `confirm_by` already in the past acceptable, or
-   should selection refuse such an offer with `offer_unavailable`?
 
 Fixtures: `fixtures/requests.cancel/reservation-canceled.json` (new; a pending reservation
 canceled); `respond_by` corrected in `providers.inbox/success.json`,
 `providers.decline/{success,already-declined}.json` and
 `providers.reservation/{confirmed,released}.json`. Examples: new
 `p3-request-reservation-canceled.json`, `p3-inbox-item-timed-out.json` and
-`p3-inbox-item-canceled.json` (the last two show proposed mappings), indexed in `p3-index.json`;
-`respond_by` corrected in `p3-inbox.json` and `p3-inbox-item-confirmed.json`.
-Needed in Person Two's lane before this merges (tests/ not edited here):
-`tests/contracts/fixture-manifest.json` to 0.7.1 with a row for the new cancel fixture;
-`validateInboxItem` to allow a reservation on a `closed` item, if proposal 1 holds; the
-`created_at < confirm_by` check in `validateResource`, if the past-`confirm_by` proposal holds;
-`web/src/generated/api.ts` regenerated (`pnpm generate:api`).
+`p3-inbox-item-canceled.json` (the last two show the decided mappings), indexed in
+`p3-index.json`; `respond_by` corrected in `p3-inbox.json` and `p3-inbox-item-confirmed.json`;
+`confirm_by` (and the timed-out `ended_at` and `updated_at`) recomputed by the decided rule
+in every reservation fixture and example.
+Tests (done here with the owner's approval, Person Two's lane being unstaffed):
+`tests/contracts/fixture-manifest.json` is 0.7.1 with a row for the new cancel fixture;
+`validateInboxItem` allows a canceled reservation on a `closed` item and checks `confirm_by`
+against the rule when the offer is present; `validateResource` checks that `confirm_by` is 10
+to 20 minutes after selection and that a timeout ends at `confirm_by`;
+`ios/PlugTests/RequestTests.swift` counts the new cancel fixture.
 Migration note: corrects 0.7.0's note. V10 (expand only) starts with P3.S6, not P3.S2, and
 contains only `request_reservations`, `request_matches.match_id`, `request_offers.withdrawn_at`
 and the `not_confirmed` no-result reason. Supplier, SMS and suppression tables come with their

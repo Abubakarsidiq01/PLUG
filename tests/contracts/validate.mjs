@@ -92,7 +92,10 @@ export function validateResource(body) {
     assert.ok(expected?.includes(body.reservation.status), 'Reservation status does not fit the request status');
     assert.equal(Object.hasOwn(body.reservation, 'confirmed_at'), body.reservation.status === 'confirmed', 'confirmed_at presence');
     assert.equal(Object.hasOwn(body.reservation, 'ended_at'), ['released', 'timed_out', 'canceled'].includes(body.reservation.status), 'ended_at presence');
-    assert.ok(utc(body.reservation.created_at) < utc(body.reservation.confirm_by), 'confirm_by before selection');
+    // 0.7.1: confirm_by = min(selected + 20 min, max(available_at, selected + 10 min)).
+    const window = utc(body.reservation.confirm_by) - utc(body.reservation.created_at);
+    assert.ok(window >= 10 * 60_000 && window <= 20 * 60_000, 'confirm_by is 10 to 20 minutes after selection');
+    if (body.reservation.status === 'timed_out') assert.equal(body.reservation.ended_at, body.reservation.confirm_by, 'A timeout ends at confirm_by');
   }
   if (body.no_result_reason === 'not_confirmed') assert.ok(body.reservation, 'not_confirmed needs the reservation that lapsed');
   assert.ok(body.progress.replied <= body.progress.contacted, 'Replies exceed contacts');
@@ -130,7 +133,14 @@ export function validateOffers(body, clock) {
 export function validateInboxItem(item) {
   validateSchema('InboxItem', item);
   assert.equal(Object.hasOwn(item, 'offer'), ['offered', 'selected', 'confirmed', 'not_chosen'].includes(item.status) || (item.status === 'closed' && Object.hasOwn(item, 'offer')), 'offer presence');
-  assert.equal(Object.hasOwn(item, 'reservation'), ['selected', 'confirmed'].includes(item.status) || (item.status === 'not_chosen' && Object.hasOwn(item, 'reservation')), 'reservation presence');
+  assert.equal(Object.hasOwn(item, 'reservation'), ['selected', 'confirmed'].includes(item.status) || (['not_chosen', 'closed'].includes(item.status) && Object.hasOwn(item, 'reservation')), 'reservation presence');
+  // 0.7.1: a canceled reservation stays on its closed item; a timed-out one makes it not_chosen.
+  if (item.status === 'closed' && item.reservation) assert.equal(item.reservation.status, 'canceled');
+  if (item.offer && item.reservation) {
+    const selected = utc(item.reservation.created_at);
+    const due = Math.min(selected + 20 * 60_000, Math.max(utc(item.offer.available_at), selected + 10 * 60_000));
+    assert.equal(utc(item.reservation.confirm_by), due, 'confirm_by follows the 0.7.1 rule');
+  }
   if (item.offer) assert.equal(item.offer.source, 'portal', 'An inbox offer is an in-app offer');
   if (item.status === 'confirmed') assert.equal(item.reservation.status, 'confirmed');
   if (item.status === 'selected') assert.equal(item.reservation.status, 'pending');

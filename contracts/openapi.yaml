@@ -1197,8 +1197,8 @@ paths:
         reservation is 409 `no_reservation`.
 
 
-        0.7.1, proposed, needs both approvals: a decision on a reservation the asker canceled
-        is 409 `reservation_closed`.
+        0.7.1, decided by the owner on 2026-11-17: a decision on a reservation the asker canceled is
+        409 `reservation_closed`.
       security:
         - plugSession: []
       requestBody:
@@ -1977,7 +1977,7 @@ components:
           description: >
             When the request stops collecting offers, or, in draft, when an unanswered
             clarification lapses. After it the server moves the request to expired.
-            0.7.1, proposed, needs both approvals: a user_selected request does not expire on
+            0.7.1, decided by the owner on 2026-11-17: a user_selected request does not expire on
             this time; only the reservation's confirm_by moves it (to ranked, or to expired
             with not_confirmed).
     RequestConstraints:
@@ -2066,7 +2066,7 @@ components:
         confirmed is reachable only from a supplier event — never a timer, an admin or a
         client. user_selected -> ranked (0.7.0) happens only when the provider releases the
         reservation or confirm_by passes while other live offers remain; with none left the
-        request expires with no_result_reason not_confirmed (0.7.1, proposed: user_selected ->
+        request expires with no_result_reason not_confirmed (0.7.1, decided: user_selected ->
         expired happens only this way, never from the request's own expires_at). confirmed -> completed is made by
         the server 3 hours after the reserved slot starts unless the request was canceled;
         Phase 5 adds disputes and ratings on top of it.
@@ -2831,11 +2831,12 @@ components:
           type: string
           format: date-time
           description: >
-            10 minutes after selection, or the offer's available_at if that is sooner. 0.7.1,
-            proposed, needs both approvals: the reservation times out when the server clock
-            reaches confirm_by, and ended_at equals confirm_by. If the offer's available_at had
-            already passed at selection, confirm_by is in the past and the reservation times
-            out on the next check; there is no separate error code.
+            min(selected_at + 20 minutes, max(offer.available_at, selected_at + 10 minutes)),
+            where selected_at is this reservation's created_at (0.7.1, decided by the owner on
+            2026-11-17; 0.7.0 said 10 minutes or available_at if sooner). The provider always
+            gets at least 10 and at most 20 minutes; for a later slot they must confirm before
+            it starts. confirm_by is therefore never in the past at selection. The reservation
+            times out when the server clock reaches confirm_by, and ended_at equals confirm_by.
         confirmed_at: { type: string, format: date-time, description: Present if and only if status is confirmed. }
         ended_at: { type: string, format: date-time, description: 'Present if and only if status is released, timed_out or canceled.' }
         created_at: { type: string, format: date-time }
@@ -2902,7 +2903,7 @@ components:
         selected — the asker chose their offer and is waiting for confirmation; confirmed —
         they confirmed; not_chosen — the asker chose someone else or their offer expired;
         closed — the request was canceled or expired before they answered (not silence).
-        0.7.1, proposed, needs both approvals: when this provider's reservation times out the
+        0.7.1, decided by the owner on 2026-11-17: when this provider's reservation times out the
         match is not_chosen; when the asker cancels it the match is closed, and the item still
         carries the canceled reservation.
     MatchDecline:

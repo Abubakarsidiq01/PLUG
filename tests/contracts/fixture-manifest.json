@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.7.0",
+  "contract_version": "0.7.1",
   "status": "proposed",
   "clock": "2026-10-01T20:00:10Z",
   "responses": [
@@ -281,6 +281,13 @@
       "path": "/v1/requests/{request_id}/cancel",
       "status": 200,
       "example": "requests-canceled.json"
+    },
+    {
+      "file": "fixtures/requests.cancel/reservation-canceled.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/cancel",
+      "status": 200,
+      "example": "p3-request-reservation-canceled.json"
     },
     {
       "file": "fixtures/requests.create/ambiguous.json",
