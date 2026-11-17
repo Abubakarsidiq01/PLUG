@@ -23,7 +23,7 @@ body {
   flex-direction: column;
   background: var(--color-paper);
   color: var(--color-ink-900);
-  font-family: var(--font-public-sans), system-ui, sans-serif;
+  font-family: var(--font-bricolage), var(--font-display), sans-serif;
   font-size: var(--type-bodyLg-size);
   line-height: var(--type-bodyLg-line);
   font-weight: var(--type-bodyLg-weight);

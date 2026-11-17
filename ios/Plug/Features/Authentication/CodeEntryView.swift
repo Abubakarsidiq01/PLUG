@@ -19,11 +19,11 @@ struct CodeEntryView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: PlugSpacing.medium) {
             Text("Enter the code we sent you")
-                .font(.headline)
+                .plugText(.title)
             if let expiresAt {
                 Text("It expires \(expiresAt.formatted(date: .omitted, time: .shortened)).")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .plugText(.bodySmall)
+                    .foregroundStyle(PlugTokens.Color.ink600)
             }
             PlugTextField(title: "Six-digit code", text: $code)
                 .keyboardType(.numberPad)
@@ -32,16 +32,16 @@ struct CodeEntryView: View {
 
             if let problem {
                 StateMessage(title: title(for: problem), detail: detail(for: problem),
-                             systemImage: "exclamationmark.circle")
+                             systemImage: "exclamationmark.triangle")
             } else if let attemptsRemaining {
                 Text("You have \(attemptsRemaining) attempts.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .plugText(.bodySmall)
+                    .foregroundStyle(PlugTokens.Color.ink600)
             }
 
             if code.count != 6 && problem != .expired {
                 Text("Enter all six digits to continue.")
-                    .font(.footnote).foregroundStyle(PlugTokens.Color.ink600)
+                    .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
             }
 
             if problem == .expired {
@@ -57,7 +57,7 @@ struct CodeEntryView: View {
                     .buttonStyle(AuthActionStyle())
                 if !canResend {
                     Text("You can request another code after 30 seconds.")
-                        .font(.footnote).foregroundStyle(PlugTokens.Color.ink600)
+                        .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                 }
             }
             Button("Change phone number", action: onStartOver)

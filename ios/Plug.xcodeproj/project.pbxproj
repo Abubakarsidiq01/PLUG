@@ -59,6 +59,7 @@
 		D30000000000000000001012 /* ../../fixtures/providers.me in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000012 /* ../../fixtures/providers.me */; };
 		D40000000000000000000101 /* RequestScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40000000000000000000001 /* RequestScreenshotTests.swift */; };
 		E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */ = {isa = PBXBuildFile; fileRef = 7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */; };
+		F0A1B2C3D4E5F60718293A4C /* Newsreader[opsz,wght].ttf in Resources */ = {isa = PBXBuildFile; fileRef = F0A1B2C3D4E5F60718293A4B /* Newsreader[opsz,wght].ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +93,7 @@
 		000000000000000000042011 /* APIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClientTests.swift; sourceTree = "<group>"; };
 		6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Color+Hex.swift"; path = "Core/DesignSystem/Color+Hex.swift"; sourceTree = "<group>"; };
 		7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "Tokens.swift (generated)"; path = ../../design/generated/Tokens.swift; sourceTree = "<group>"; };
+		F0A1B2C3D4E5F60718293A4B /* Newsreader[opsz,wght].ttf */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = file; name = "Newsreader[opsz,wght].ttf"; path = "../../design/fonts/newsreader/Newsreader[opsz,wght].ttf"; sourceTree = "<group>"; };
 		A10000000000000000000001 /* Core/Networking/Endpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/Endpoint.swift; sourceTree = "<group>"; };
 		A10000000000000000000002 /* Core/Networking/APIError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Networking/APIError.swift; sourceTree = "<group>"; };
 		A10000000000000000000003 /* Core/Storage/KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Core/Storage/KeychainStore.swift; sourceTree = "<group>"; };
@@ -205,6 +207,7 @@
 				A10000000000000000000C /* Core/Networking/PlugJSON.swift */,
 				6DB49517B5D2AF9A08A45A59 /* Color+Hex.swift */,
 				7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */,
+				F0A1B2C3D4E5F60718293A4B /* Newsreader[opsz,wght].ttf */,
 			);
 			path = Plug;
 			sourceTree = "<group>";
@@ -409,6 +412,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C10000000000000000000001 /* Resources/Assets.xcassets in Resources */,
+				F0A1B2C3D4E5F60718293A4C /* Newsreader[opsz,wght].ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

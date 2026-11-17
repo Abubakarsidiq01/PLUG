@@ -34,6 +34,10 @@
 	<string>$(PLUG_PHONE_SIGN_IN_ENABLED)</string>
 	<key>PlugRequestsV2Enabled</key>
 	<string>$(PLUG_REQUESTS_V2_ENABLED)</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Newsreader[opsz,wght].ttf</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>

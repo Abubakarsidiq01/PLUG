@@ -1,0 +1,298 @@
+/* Signal (ADR-015). Loaded after globals.css, so these rules win. Hard edges only,
+   never a blur. Ink on pink always; white on pink fails AA. */
+body { font-weight: 500; }
+
+.display,
+.title1,
+.title2,
+.title3 { font-weight: 800; }
+
+.title1 {
+  font-size: clamp(32px, 5vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.title2 { font-size: 24px; line-height: 28px; letter-spacing: -0.02em; }
+
+:focus-visible { outline-width: 3px; }
+
+.text-link { text-decoration-thickness: 2px; }
+.text-link:hover { color: var(--color-signal-deep); }
+
+/* Keycap buttons: 2px ink border, hard 4px ink edge, the key drops 3px when pressed. */
+.button {
+  margin-bottom: var(--elevation-key-edge);
+  border-width: 2px;
+  border-color: var(--color-ink-900);
+  box-shadow: 0 var(--elevation-key-edge) 0 var(--color-ink-900);
+  font-weight: 800;
+  transition: transform 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    box-shadow 280ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background-color var(--motion-fast) var(--motion-easing);
+}
+
+.button:active {
+  transform: translateY(3px);
+  box-shadow: 0 var(--elevation-key-edge-pressed) 0 var(--color-ink-900);
+  transition-duration: var(--motion-press);
+}
+
+.button-primary {
+  background: var(--color-signal-500);
+  color: var(--color-ink-900);
+}
+
+.button-primary:hover { background: var(--color-signal-500); filter: brightness(1.06); }
+.button-primary:active { background: var(--color-signal-500); }
+.button-secondary { background: var(--color-card); }
+.button-secondary:hover { background: var(--color-paper); }
+
+.form-stack .button:disabled {
+  background: var(--color-sunk);
+  color: var(--color-ink-600);
+  box-shadow: none;
+  transform: none;
+}
+
+/* Cards: 2px ink border and a hard 2px edge. */
+.card {
+  border: 2px solid var(--color-ink-900);
+  box-shadow: 0 var(--elevation-card-edge) 0 var(--color-ink-900);
+}
+
+/* Truth labels: icon + word + 2px border. Not verified is hatched and dashed. */
+.truth-badge {
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-width: 2px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.truth-icon {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.truth-unknown { border-style: dashed; }
+
+.truth-not_verified {
+  border: 2px dashed var(--color-truthBorder-unknown);
+  background-color: var(--color-truthSurface-unknown);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='6' height='6'%3E%3Cpath d='M-1 1l2-2M0 6l6-6M5 7l2-2' stroke='%23d3ccc5' stroke-width='1'/%3E%3C/svg%3E");
+}
+
+/* Header and footer: ink rule, cream paper. The logotype dot takes the signal colour. */
+.site-header { position: relative; border-bottom: 2px solid var(--color-ink-900); }
+
+/* Mobile menu: a full-width panel under the header rule; gone from 768px, where the
+   section links sit inline. */
+.site-nav > ul { gap: var(--space-2); }
+
+.site-nav .site-menu-panel {
+  display: block;
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  padding: var(--space-2) var(--space-4) var(--space-4);
+  border-bottom: 2px solid var(--color-ink-900);
+  background: var(--color-card);
+}
+
+.site-nav .site-menu-panel[hidden] { display: none; }
+.site-menu-toggle[aria-expanded="true"] { background: var(--color-sunk); }
+
+.site-menu-panel a {
+  display: flex;
+  align-items: center;
+  min-height: var(--target-min-touch);
+  border-bottom: 2px solid var(--color-rule-200);
+  font-weight: 800;
+}
+
+.site-menu-panel li:last-child a { border-bottom: 0; }
+.site-menu-panel a:hover { color: var(--color-signal-deep); }
+
+@media (min-width: 768px) {
+  .site-nav > ul { gap: var(--space-6); }
+  .site-menu-item { display: none; }
+}
+.logo-type > g > circle { fill: var(--color-signal-500); }
+.site-footer { border-top: 2px solid var(--color-ink-900); }
+.footer-name { font-weight: 800; }
+
+/* Bands alternate pink, white, cream, ink. */
+.band-muted,
+.band-paper { background: var(--color-paper); }
+
+.band-ink {
+  background: var(--color-ink-900);
+  color: var(--color-paper);
+}
+
+.band-ink :focus-visible { outline-color: var(--color-signal-500); }
+.band-ink .split-intro > p,
+.band-ink .split-intro > ul { color: var(--color-paper); }
+.band-ink .text-link { color: var(--color-paper); }
+.band-ink .text-link:hover { color: var(--color-signal-500); }
+.band-ink .plain-list li::before { background: var(--color-signal-500); }
+.band-ink .rules-card { color: var(--color-ink-900); }
+.square-list li::before { background: var(--color-ink-900); }
+
+/* Pink bands: the home hero, the page heads and the notice pages. */
+.hero,
+.page-head,
+.notice-page {
+  background: var(--color-signal-500);
+  color: var(--color-ink-900);
+}
+
+.hero,
+.page-head,
+.notice-page { border-bottom: 2px solid var(--color-ink-900); }
+
+.hero .lede,
+.hero .hero-facts,
+.page-head .page-lede,
+.page-head .page-date { color: var(--color-ink-900); }
+
+.hero .lede { font-weight: 500; }
+
+.hero .button-primary,
+.page-head .button-primary { background: var(--color-card); }
+
+.hero h1 {
+  font-size: clamp(44px, 10vw, 96px);
+  line-height: 0.95;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+}
+
+.hero-mark {
+  width: var(--space-16);
+  height: var(--space-16);
+  color: var(--color-ink-900);
+}
+
+.hero-mark .mark-dot { fill: var(--color-paper); }
+
+@media (min-width: 1024px) {
+  .hero-mark { width: 96px; height: 96px; }
+}
+
+/* One-time hero reveal: a short rise, transform only so contrast never dips. */
+.hero-copy > :not(.hero-mark),
+.hero .example-card {
+  animation: hero-rise var(--motion-slow) var(--motion-easing) both;
+}
+
+.hero-copy > h1 { animation-delay: 150ms; }
+.hero-copy > .lede { animation-delay: 250ms; }
+.hero-copy > .hero-action,
+.hero .example-card { animation-delay: 350ms; }
+
+@keyframes hero-rise {
+  from { transform: translateY(12px); }
+  to { transform: translateY(0); }
+}
+
+.example-quote { font-weight: 800; border-bottom: 2px solid var(--color-ink-900); }
+.example-label { color: var(--color-ink-900); font-weight: 700; }
+.steps li::before { color: var(--color-signal-deep); font-weight: 800; }
+
+.steps .step-result {
+  border: 2px solid var(--color-ink-900);
+  background: var(--color-paper);
+  font-weight: 700;
+}
+
+.legal-draft { border: 2px solid var(--color-ink-900); background: var(--color-paper); }
+.inspector-sample { border-width: 2px; }
+
+/* Tables: pink head over a 2px ink rule, cream zebra rows. */
+.truth-table thead th {
+  border-bottom: 2px solid var(--color-ink-900);
+  background: var(--color-signal-500);
+  color: var(--color-ink-900);
+  font-weight: 800;
+}
+
+.truth-table tbody tr:nth-child(even) th,
+.truth-table tbody tr:nth-child(even) td { background: var(--color-paper); }
+
+.inspector-table tbody th,
+.inspector-table tbody td { padding: var(--space-3) var(--space-4); }
+
+/* Forms: 2px ink border, signal focus ring. */
+.field-input {
+  border: 2px solid var(--color-ink-900);
+  border-radius: var(--radius-control);
+}
+
+.field-input:focus-visible {
+  outline: 3px solid var(--color-signal-500);
+  outline-offset: 2px;
+}
+
+.field-label { font-size: 13px; font-weight: 800; }
+
+.notice-card .form-error,
+.form-error {
+  border: 2px solid var(--color-alert-600);
+  font-weight: 700;
+}
+
+.form-error::before { content: "Error. "; font-weight: 800; }
+
+/* Console bar: ink nav, current section is a signal keycap chip. */
+.console-bar {
+  padding: var(--space-1) var(--space-2);
+  border: 2px solid var(--color-ink-900);
+  border-radius: var(--radius-card);
+  background: var(--color-ink-900);
+  color: var(--color-paper);
+}
+
+.console-bar :focus-visible { outline-color: var(--color-signal-500); }
+.console-sections { gap: var(--space-2); }
+
+.console-sections a {
+  margin-bottom: 0;
+  padding: 0 var(--space-4);
+  border: 0;
+  border-radius: var(--radius-control);
+  color: var(--color-paper);
+  font-weight: 800;
+}
+
+.console-sections a:hover { background: var(--color-ink-600); color: var(--color-paper); }
+
+.console-sections a[aria-current="page"] {
+  background: var(--color-signal-500);
+  color: var(--color-ink-900);
+}
+
+.console-sign-out { padding: 0 var(--space-4); color: var(--color-paper); font-weight: 800; }
+.console-sign-out:hover { color: var(--color-signal-500); }
+
+.inspector-reveal summary { text-decoration-thickness: 2px; }
+
+/* Press travel is replaced by a colour change under reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy > *,
+  .hero .example-card { animation: none; }
+  .button:active { transform: none; filter: brightness(0.92); }
+}
+
+.page-head .overline,
+.hero .overline { color: var(--color-ink-900); }
+.page-head .inspector-sample { color: var(--color-ink-900); }
