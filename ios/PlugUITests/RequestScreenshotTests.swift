@@ -106,13 +106,17 @@ final class RequestScreenshotTests: XCTestCase {
         try audit("ask-home-scrolled")
         try submit(app, text: "business sorting barber under $35")
         XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
+        // Offers fade up one after another; audit once they have landed, not mid-fade.
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
         try audit("results")
         let details = app.buttons["View details"].firstMatch
         reveal(details, in: app)
         details.tap()
         XCTAssertTrue(app.navigationBars["Offer"].waitForExistence(timeout: 20))
+        // The offer is a sheet; audit it once its spring has settled, not mid-flight.
+        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
         try audit("offer-detail")
-        app.navigationBars.buttons.firstMatch.tap()
+        closeOffer(app)
         app.buttons["navigation-activity"].tap()
         try audit("activity")
         app.buttons["navigation-profile"].tap()
@@ -165,6 +169,7 @@ final class RequestScreenshotTests: XCTestCase {
             reveal(sources, in: app)
             XCTAssertTrue(app.staticTexts["Who answered"].exists)
             capture("place-sources-\(suffix)", onlyIfChanged: true)
+            openDetails(app, expecting: "What happens next", name: "place-answered-details-\(suffix)")
         }
     }
 
@@ -202,7 +207,7 @@ final class RequestScreenshotTests: XCTestCase {
             reveal(links, in: app)
             XCTAssertTrue(links.exists)
             capture("business-detail-\(suffix)")
-            swipeBack(app)
+            closeOffer(app)
             swipeBack(app)
             app.buttons["navigation-profile"].tap()
             XCTAssertTrue(app.staticTexts["Your corner of PLUG"].waitForExistence(timeout: 20))
@@ -317,8 +322,10 @@ final class RequestScreenshotTests: XCTestCase {
         details.tap()
         XCTAssertTrue(app.navigationBars["Offer"].waitForExistence(timeout: 20))
         capture("offer-detail-\(suffix)")
-        swipeBack(app)
+        openDetails(app, expecting: "How choosing works", name: "offer-details-\(suffix)", inSheet: true)
+        closeOffer(app)
         XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
+        openDetails(app, expecting: "What happens next", name: "ask-details-\(suffix)")
         stopAndRestart(app, suffix: suffix)
 
         try submit(app, text: "progress barber")
@@ -359,6 +366,7 @@ final class RequestScreenshotTests: XCTestCase {
         let web = app.staticTexts["Usually busy at this hour"]
         reveal(web, in: app)
         capture("place-web-\(suffix)")
+        openDetails(app, expecting: "What happens next", name: "place-details-\(suffix)")
         askAgain(app)
 
         // Unknown on its own: nobody answered and there is no web summary either.
@@ -433,6 +441,28 @@ final class RequestScreenshotTests: XCTestCase {
         }
         let back = app.navigationBars[title].buttons.firstMatch
         if back.exists { back.tap() }
+    }
+    /// Opens "Details", waits for its content (and the map's tiles) to settle, captures it and closes it.
+    private func openDetails(_ app: XCUIApplication, expecting text: String, name: String, inSheet: Bool = false) {
+        let button = app.buttons["details"].firstMatch
+        XCTAssertTrue(button.waitForExistence(timeout: 20))
+        // Inside a sheet the bottom bar is covered, so only hittability matters there.
+        if inSheet { for _ in 0..<8 where !button.isHittable { app.swipeUp() } } else { reveal(button, in: app) }
+        button.tap()
+        XCTAssertTrue(app.staticTexts[text].waitForExistence(timeout: 20))
+        RunLoop.current.run(until: Date().addingTimeInterval(2.5))
+        capture(name)
+        let close = app.buttons["Close"]
+        for _ in 0..<8 where !close.isHittable { app.swipeUp() }
+        close.tap()
+        XCTAssertTrue(app.staticTexts[text].waitForNonExistence(timeout: 10))
+    }
+    /// The offer is a sheet over the results; its Done button closes it.
+    private func closeOffer(_ app: XCUIApplication) {
+        let done = app.navigationBars["Offer"].buttons["Done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 10))
+        done.tap()
+        XCTAssertTrue(app.navigationBars["Offer"].waitForNonExistence(timeout: 10))
     }
     /// Answers the location prompt if it appears. The app asks for permission before it moves
     /// on, so once `settled` holds no prompt is coming and the wait ends there.

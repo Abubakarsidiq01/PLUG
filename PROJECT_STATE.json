@@ -240,6 +240,13 @@
       "acceptance": "Requirements resolved with evidence before corresponding release or provider activation."
     },
     {
+      "id": "P3-ui-pass-ios",
+      "owner": "person_one",
+      "manual_section": "16 / 16.8 / 20",
+      "task": "Owner-authorized iOS UI pass (2026-11-14), alongside the top next_action, branch p3.ui-one-ios-polish: one PLUG type ramp, one card style, no pill chips, button states without fading, spacing on the token scale, home photo card without gradient, decorative emblems and arrows removed, alignment and touch-target fixes. How data is shown only; no data, copy, contract or backend change. Token proposals for Person Two: docs/design/proposals/ui-pass-2026-11-14.md. 2026-11-14: done locally (8 commits, not pushed). iOS unit tests 67 passed, 1 skipped; screenshot suite 7/7 including the accessibility audit; plug-design-gate passed on round 3 for in-scope screens. Open: no physical-device check, no greyscale export, offline/permission/expired states not captured, owner review of the before/after doc. 2026-11-15: superseded by the Nearby redesign (branch p3.ui-one-redesign builds on this branch); review it together with P3-redesign-review.",
+      "acceptance": "Every iOS screen passes the §16.8 design gate except recorded owner exceptions, with before and after simulator screenshots in evidence/ui-pass/2026-11-14 and docs/design/ui-pass-2026-11-14.md; iOS unit tests and the screenshot suite green."
+    },
+    {
       "id": "P3-redesign-review",
       "owner": "both",
       "manual_section": "16.8",
@@ -249,6 +256,7 @@
   ],
   "do_not_touch": [],
   "open_risks": [
+    "Bruno audit exception (approved by the owner 2026-11-17, review 2026-12-01): GHSA-fc5q-39xc-vjpf picomatch ReDoS has no patched release. tools/bruno/audit-gate.cjs allows only this ID. It is not reachable: Bruno uses jscodeshift's core API, and picomatch is loaded only by jscodeshift's CLI Runner. Remove when picomatch ships a patched release.",
     "Own-words skills (ADR-011) are matched by simple keywords and are not reviewed; a provider can describe a lawful skill vaguely or misleadingly. The restricted-intent policy and listed-skill rule guard them, but popular labels should be reviewed and promoted into skills.yaml through vocabulary_gaps.",
     "Scope is open to any lawful service and any public place; the restricted-intent policy is now the only refusal path. It is rule-based, has 46 labelled vectors plus backend tests, and has not been red-teamed by a second person (Person Two P2.S11).",
     "Skill vocabulary is 115 tags; matching quality is untested at low provider density, and place questions have no human answerers until Phase 4, so they end Unknown.",

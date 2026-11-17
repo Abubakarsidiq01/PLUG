@@ -10,7 +10,7 @@ struct HealthView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                     Text("API Status").font(.title2.bold())
 
                     if isLoading {
@@ -22,9 +22,6 @@ struct HealthView: View {
                         if let commit = check.response.commit {
                             LabeledContent("Commit", value: commit)
                         }
-                        if let id = check.correlationID {
-                            LabeledContent("Request ID", value: id).font(.caption).textSelection(.enabled)
-                        }
                     } else if let errorMessage {
                         Label("Not connected", systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)
@@ -32,7 +29,7 @@ struct HealthView: View {
                     }
 
                     Button("Retry", action: load).buttonStyle(.borderedProminent)
-                        .frame(minHeight: 44).disabled(isLoading)
+                        .frame(minHeight: PlugTokens.minTouchTarget).disabled(isLoading)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }

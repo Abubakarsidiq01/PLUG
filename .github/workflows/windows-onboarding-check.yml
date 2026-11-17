@@ -34,9 +34,10 @@ jobs:
 
       - name: Check Bruno dependency compatibility and audit
         run: |
-          node --test tools/bruno/compatibility.test.cjs
+          node --test tools/bruno/compatibility.test.cjs tools/bruno/audit-gate.test.cjs
           if ($LASTEXITCODE -ne 0) { throw "Bruno dependency compatibility checks failed" }
-          npm audit --prefix tools/bruno --audit-level high
+          # High/critical gate with one documented exception; see docs/maintenance/dependency-updates.md.
+          npm audit --prefix tools/bruno --json | node tools/bruno/audit-gate.cjs
           if ($LASTEXITCODE -ne 0) { throw "Bruno dependency audit failed" }
 
       - name: Web install + build (steps 4-5)

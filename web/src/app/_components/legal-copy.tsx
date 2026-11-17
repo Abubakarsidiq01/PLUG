@@ -6,6 +6,12 @@ export function sectionId(heading: string) {
   return heading.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
+// The starter text names the contact inbox in plain words; each mention becomes a mailto link.
+function linkEmail(text: string) {
+  return text.split(CONTACT_EMAIL).flatMap((part, index) =>
+    index === 0 ? [part] : [<a key={index} href={`mailto:${CONTACT_EMAIL}`} className="text-link">{CONTACT_EMAIL}</a>, part]);
+}
+
 export function LegalCopy({ sections }: { sections: LegalSection[] }) {
   return (
     <>
@@ -13,7 +19,7 @@ export function LegalCopy({ sections }: { sections: LegalSection[] }) {
       {sections.map((section) => (
         <section key={section.heading} id={sectionId(section.heading)} aria-labelledby={`${sectionId(section.heading)}-h`}>
           <h2 id={`${sectionId(section.heading)}-h`} className="title3">{section.heading}</h2>
-          {section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+          {section.paragraphs.map((paragraph) => <p key={paragraph}>{linkEmail(paragraph)}</p>)}
         </section>
       ))}
       <p className="legal-contact"><a href={`mailto:${CONTACT_EMAIL}`} className="text-link">Contact PLUG: {CONTACT_EMAIL}</a></p>
