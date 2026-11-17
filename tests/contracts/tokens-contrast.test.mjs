@@ -19,15 +19,18 @@ const ratio = (a, b) => {
 
 const TEXT = [
   ["ink.900", "paper"], ["ink.900", "card"], ["ink.900", "sunk"], ["ink.600", "paper"], ["ink.600", "card"],
-  ["ink.600", "sunk"], ["ink.400", "paper"], ["ink.400", "card"], ["card", "ink.900"], ["card", "ink.950"],
+  ["ink.600", "sunk"], ["card", "ink.900"], ["card", "ink.950"],
   ["alert.600", "alert.50"], ["alert.600", "card"], ["alert.600", "paper"],
-  // Signal (ADR-015): ink on the pink, deep pink on cream, white on deep pink.
-  ["ink.900", "signal.500"], ["signal.deep", "paper"], ["signal.deep", "card"], ["card", "signal.deep"],
+  // Espresso: forest green links on cream, cream text on green actions.
+  ["brand.green", "paper"], ["brand.green", "card"], ["card", "brand.green"], ["card", "brand.greenPressed"],
   ...["confirmed", "recent", "estimated", "unknown"].flatMap((t) => [
     [`truth.${t}`, `truthSurface.${t}`], [`truth.${t}`, "card"], [`truth.${t}`, "paper"],
   ]),
 ];
-const NON_TEXT = [["rule.control", "card"], ["rule.control", "paper"], ["ink.900", "paper"]];
+const NON_TEXT = [
+  ["rule.control", "card"], ["rule.control", "paper"], ["ink.900", "paper"],
+  ["ink.400", "paper"], ["ink.400", "card"], ["brand.brass", "paper"],
+];
 
 for (const [fg, bg] of TEXT) {
   test(`${fg} on ${bg} is at least 4.5:1`, () => assert.ok(ratio(fg, bg) >= 4.5, `${ratio(fg, bg).toFixed(2)}:1`));
@@ -36,11 +39,13 @@ for (const [fg, bg] of NON_TEXT) {
   test(`${fg} against ${bg} is at least 3:1 (WCAG 1.4.11)`, () => assert.ok(ratio(fg, bg) >= 3, `${ratio(fg, bg).toFixed(2)}:1`));
 }
 test("ink.950 stays darker than ink.900", () => assert.ok(luminance(get("ink.950")) < luminance(get("ink.900"))));
-// Never white on Signal: card text on signal.500 fails AA, so it must not be in TEXT above.
-test("card (white) text on signal.500 is below 4.5:1 and never used", () => {
-  assert.ok(ratio("card", "signal.500") < 4.5, `${ratio("card", "signal.500").toFixed(2)}:1`);
-  assert.ok(!TEXT.some(([fg, bg]) => fg === "card" && bg === "signal.500"));
-});
+// ink.400 and brass are below 4.5:1 on cream, so they are non-text only and must not be in TEXT above.
+for (const fg of ["ink.400", "brand.brass"]) {
+  test(`${fg} is below 4.5:1 on paper and never used for text`, () => {
+    assert.ok(ratio(fg, "paper") < 4.5, `${ratio(fg, "paper").toFixed(2)}:1`);
+    assert.ok(!TEXT.some(([f]) => f === fg));
+  });
+}
 test("the self-check matches the WCAG reference ratio", () => {
   color.__black = "#000000"; color.__white = "#FFFFFF";
   assert.equal(ratio("__black", "__white").toFixed(1), "21.0");
