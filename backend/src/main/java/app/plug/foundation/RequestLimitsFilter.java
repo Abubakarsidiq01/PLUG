@@ -43,7 +43,7 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
         // raw URI lets /v1/%72equests reach the same controller without these limits.
         String path = UrlPathHelper.defaultInstance.getPathWithinApplication(request);
         boolean v2Route = requestsV2 && (path.startsWith("/v1/requests/") || path.equals("/v1/asks")
-                || path.startsWith("/v1/asks/") || path.startsWith("/v1/providers/"));
+                || path.startsWith("/v1/asks/") || path.startsWith("/v1/providers/") || path.equals("/v1/me/devices"));
         if (!path.equals("/v1/requests") && !v2Route) {
             chain.doFilter(request, response);
             return;
