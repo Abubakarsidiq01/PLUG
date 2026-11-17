@@ -1,7 +1,7 @@
 # Supplier messages
 
 **Wording owned by Person Two** (P3-TWO.S1); the parser that reads replies is Person One's
-(P3.S5). Proposed with contract 0.7.0. Copy and parser are one artefact: they change together,
+(P3.S5). Frozen with contract 0.7.0; 0.7.1 adds the `{pause}` placeholder. Copy and parser are one artefact: they change together,
 in one pull request, with the regression cases updated (manual §27.4).
 
 | File | What it is |

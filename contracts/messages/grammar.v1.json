@@ -1,6 +1,6 @@
 {
   "version": "grammar.v1",
-  "status": "proposed with contract 0.7.0",
+  "status": "frozen with contract 0.7.0",
   "normalise": [
     "Unicode NFKC, then upper case (Locale.ROOT)",
     "every run of whitespace becomes one space; trim",

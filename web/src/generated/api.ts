@@ -141,7 +141,13 @@ export interface paths {
          */
         get: operations["listOffers"];
         put?: never;
-        post?: never;
+        /**
+         * A matched provider sends one offer, with a price and a time
+         * @description P3.S11, the in-app path. The caller is a provider matched to this request (the request_id comes from their inbox), not its owner. Produces exactly the same validated Offer as an SMS reply: the same price range, the same time rules and the same expiry. One offer per provider per request, enforced by the database.
+         *
+         *     Validation (400, details[0].code): `over_budget` when price_cents exceeds the request's budget; `outside_window` when available_at is in the past, more than 7 days ahead, or after the request's needed_by; `contact_in_note` when the note carries a phone number, email address or link. Conflicts (409): `already_offered` (a second, different offer; the same Idempotency-Key and body replay the first), `request_closed` (the request was selected, canceled or expired, or the match was declined). A request the caller was never matched to is 404, exactly like one that does not exist, and so is the asker sending an offer on their own request.
+         */
+        post: operations["sendProviderOffer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -733,6 +739,376 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/requests/{request_id}/select": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @description Opaque. Logged as the route template, never as the value. A well-formed identifier the caller does not own is 404; a malformed one is also 404, so the two cannot be told apart. */
+                request_id: components["parameters"]["RequestIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Choose one live offer on the caller's own request, which asks its provider to confirm
+         * @description P3.S6. Legal only while the request is `ranked`. Under a row lock the request moves to `user_selected`, `next_action` becomes `await_supplier_confirmation` and `reservation` appears with status `pending`. Nothing is booked yet: the request reaches `confirmed` only when the provider confirms (by SMS CONFIRM or from their inbox), never from a timer, an admin or this client (§19.6).
+         *
+         *     Selection races. Two selections of the same request (double tap, two devices) are serialised by the lock: the same offer again with the same Idempotency-Key replays the first response; any other attempt is 409 with `details[0].code` = `already_selected`. An offer whose `expires_at` has passed, or that is not one of this request's live offers, is 409 `offer_unavailable`; the client reloads the offers. Someone else's request is 404.
+         *
+         *     0.7.1: gated by the `provider_inbox` flag, like the inbox routes, although it also serves seed and sms offers. With the flag off the route returns 404.
+         */
+        post: operations["selectOffer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/providers/me/inbox": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Requests matched to the caller as a provider, newest first
+         * @description P3.S10. Only requests this provider was matched and notified for (inside their own skills, radius, availability and the per-hour notification cap). Each item carries what a provider needs to decide and nothing about the asker: no text, no coordinates, no identity. Open items first, then the last seven days. At most 50 items; there is no paging because notification is capped. A caller with no provider profile is 404.
+         */
+        get: operations["getProviderInbox"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/providers/me/inbox/{match_id}/decline": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @description Opaque. A match that is not the caller's, or a malformed id, is 404. */
+                match_id: components["parameters"]["MatchIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline a matched request. Free, recorded as a reply, never a penalty
+         * @description P3.S12. A decline counts as a reply for responsiveness; only silence lowers it. Declining an already-declined match returns 200 with the same item. Declining after offering, or after the request closed, is 409 `request_closed`.
+         */
+        post: operations["declineMatch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/providers/me/inbox/{match_id}/reservation": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @description Opaque. A match that is not the caller's, or a malformed id, is 404. */
+                match_id: components["parameters"]["MatchIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm or release the reservation an asker made on the caller's offer
+         * @description P3.S6, the in-app supplier event. `confirm` moves the request to `confirmed`; this and the SMS CONFIRM reply are the only two ways a request becomes confirmed. `release` frees the asker to choose another live offer. Repeating the same decision returns 200 with the same item; the other decision after one was recorded, or any decision at or after `confirm_by`, is 409 `reservation_closed`. A match with no pending reservation is 409 `no_reservation`.
+         *
+         *     0.7.1, decided by the owner on 2026-11-17: a decision on a reservation the asker canceled is 409 `reservation_closed`.
+         */
+        post: operations["answerReservation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/me/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Register or refresh this device's push token for provider notifications
+         * @description P3.S10. Upserts by token, so a retry or a relaunch is harmless. The token is stored against the caller's session and removed when that session ends. Provider match alerts use the payload in ProviderMatchNotification and are capped per provider per hour. Push needs an Apple Developer Program team; until one is configured this route is 503 dependency_unavailable and the inbox still works by pull.
+         */
+        post: operations["registerDevice"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/suppliers/opt-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * A business asks to receive request texts. Public; consent completes only by SMS
+         * @description P3.S2. Called by the public web form (manual §21.4), never by the app. Creates or refreshes a supplier in `pending_verification` with consent `pending_confirmation` and queues one opt-in text (template optin_confirm). Consent is `granted` only when that phone replies START, which proves the number belongs to the person who agreed; nothing else is ever sent before then.
+         *
+         *     The answer is the same 202 whether the number is new, pending, already opted in or suppressed, so the form cannot be used to learn who is on PLUG. A number that replied STOP is not texted again from a form: it must text START itself. Rate limits: 5 per hour per network address and 3 per day per phone number, both answered 202 once exceeded, without sending. A wrong consent version is 400 `unsupported_version`. While SMS delivery is off the route is 503.
+         */
+        post: operations["supplierOptIn"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhooks/twilio/inbound": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Inbound SMS from Twilio. Signature, then replay, then a deterministic parse
+         * @description P3.S3 and P3.S5, manual §19.8. No session: the X-Twilio-Signature header is the authentication, verified over the configured public URL (PLUG_PUBLIC_WEBHOOK_URL, never the Host header, which a tunnel or proxy rewrites) and every form parameter, before any parsing, database access or logging. A missing or wrong signature is 403 with the Error body (0.7.1).
+         *
+         *     MessageSid is claimed for 7 days; a duplicate delivery returns 200 and changes nothing, so a retry produces exactly one transition and at most one offer. The body is parsed by the grammar in contracts/messages/grammar.md and applied to the sender's open context. Unparseable, incomplete and out-of-policy replies create no offer and apply no penalty. The body is never logged; the parse result is.
+         *
+         *     The response is always empty TwiML. Replies (HELP, confirmations, hints) are sent by the outbound worker so they pass the same suppression check and appear in the messaging monitor.
+         */
+        post: operations["twilioInbound"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhooks/twilio/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delivery status for an outbound SMS
+         * @description P3.S3. Same signature rule as inbound. Statuses only move forward (queued, sent, delivered | undelivered | failed); an older or repeated status is accepted with 200 and ignored. Error codes 21610 (recipient replied STOP at the carrier) and 30004/30005/30006 (unreachable) suppress the number at once, exactly as a STOP reply would.
+         */
+        post: operations["twilioStatusCallback"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/suppliers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * SMS suppliers with consent and verification state; numbers masked
+         * @description P3-TWO.S2. Admin scope plus a completed second factor; never cached; every read audited. Phone numbers appear only masked to their last two digits.
+         */
+        get: operations["listSuppliers"];
+        put?: never;
+        /**
+         * Record a supplier onboarded by staff (an owner only); consent still comes by SMS
+         * @description P3-TWO.S6. For a business onboarded in person or by phone. Writes the same pending record the web form does and queues the same opt-in text: staff can never mark consent as given. A phone that is already a supplier is 409 `supplier_exists`. Audited with the staff member and reason.
+         */
+        post: operations["createSupplier"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/suppliers/{supplier_id}": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                supplier_id: components["parameters"]["SupplierIdPath"];
+            };
+            cookie?: never;
+        };
+        /** One supplier, with the consent trail */
+        get: operations["getSupplier"];
+        put?: never;
+        /**
+         * Replace a supplier's services, hours, service area and place (an owner only)
+         * @description Replaces the profile fields in SupplierProfile; consent and verification are not editable here. Changing services or the service area of a verified supplier returns it to `pending_verification`. Audited with before and after.
+         */
+        post: operations["updateSupplierProfile"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/suppliers/{supplier_id}/verification": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                supplier_id: components["parameters"]["SupplierIdPath"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify, reject, suspend or reinstate a supplier (an owner only), with a reason
+         * @description Only a `verified` supplier with consent `granted` is ever contacted. Suspension takes effect at send time for already-queued messages. A supplier with no service, no hours or no place cannot be verified (400 `profile_incomplete`). Audited.
+         */
+        post: operations["decideSupplierVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The messaging monitor. Delivery status, parse results and duplicates; no bodies
+         * @description P3-TWO.S7. Every inbound and outbound SMS event, newest first. Numbers masked; no message body is stored for display, only the template id (outbound) or the parse result (inbound). Filter by supplier, request or direction.
+         */
+        get: operations["listMessages"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/opt-outs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every suppressed number (STOP, PAUSE or carrier), masked */
+        get: operations["listOptOuts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/requests/{request_id}/matches": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @description Opaque. Logged as the route template, never as the value. A well-formed identifier the caller does not own is 404; a malformed one is also 404, so the two cannot be told apart. */
+                request_id: components["parameters"]["RequestIdPath"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Who a request reached, on which channel, and what came back
+         * @description P3-TWO.S9. The full fan-out for one request in the order it happened: each SMS supplier and in-app provider contacted, skipped by the per-hour cap or suppressed, and their outcome. No request text, no coordinates, no asker identity.
+         */
+        get: operations["listRequestMatches"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** In-app providers with skills, radius, standing and trust score */
+        get: operations["listProviders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/providers/{user_id}/standing": {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Suspend or reinstate a provider (an owner only), with a reason
+         * @description A suspended provider is never matched or notified and cannot send offers (403); their live offers are withdrawn and any pending reservation is released. Audited.
+         */
+        post: operations["setProviderStanding"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -833,7 +1209,9 @@ export interface components {
             clarification?: components["schemas"]["Clarification"];
             /** @description Present if and only if next_action is show_no_result. */
             no_result_reason?: components["schemas"]["NoResultReason"];
-            /** @description Present if and only if next_action is wait_for_offers. How long to wait before the next GET. It is a polling interval, not an estimate of when offers arrive, and must never be shown as one. */
+            /** @description 0.7.0. Present once an offer has been selected, and from then on always the latest reservation: on user_selected it is pending, on confirmed and completed it is confirmed. Back on ranked with status released or timed_out, it is how the client explains that the provider could not confirm and shows the other live offers (alternate-offer recovery); the released offer is no longer listed. */
+            reservation?: components["schemas"]["Reservation"];
+            /** @description Present if and only if next_action is wait_for_offers or (0.7.0) await_supplier_confirmation. How long to wait before the next GET. It is a polling interval, not an estimate of when offers or a confirmation arrive, and must never be shown as one. */
             poll_after_seconds?: number;
             /** Format: date-time */
             created_at: string;
@@ -841,7 +1219,7 @@ export interface components {
             updated_at: string;
             /**
              * Format: date-time
-             * @description When the request stops collecting offers, or, in draft, when an unanswered clarification lapses. After it the server moves the request to expired.
+             * @description When the request stops collecting offers, or, in draft, when an unanswered clarification lapses. After it the server moves the request to expired. 0.7.1, decided by the owner on 2026-11-17: a user_selected request does not expire on this time; only the reservation's confirm_by moves it (to ranked, or to expired with not_confirmed).
              */
             expires_at: string;
         };
@@ -871,7 +1249,7 @@ export interface components {
             offers_ready: number;
         };
         /**
-         * @description Server-owned state (manual.docx §19.6). Legal transitions, enforced under a row lock: draft -> submitted | expired | canceled; submitted -> routed | blocked | canceled; routed -> awaiting_responses | expired | canceled; awaiting_responses -> ranked | expired | canceled; ranked -> user_selected | expired | canceled; user_selected -> confirmed | expired | canceled; confirmed -> completed | canceled; completed, expired, canceled and blocked are terminal. confirmed is reachable only from a supplier event — never a timer, an admin or a client. Phase 2 reaches draft through ranked plus expired, canceled and blocked; user_selected, confirmed and completed are declared now so Phase 3 adds no value. A blocked request is refused with 422 at creation and is never returned to a client.
+         * @description Server-owned state (manual.docx §19.6). Legal transitions, enforced under a row lock: draft -> submitted | expired | canceled; submitted -> routed | blocked | canceled; routed -> awaiting_responses | expired | canceled; awaiting_responses -> ranked | expired | canceled; ranked -> user_selected | expired | canceled; user_selected -> confirmed | ranked | expired | canceled; confirmed -> completed | canceled; completed, expired, canceled and blocked are terminal. confirmed is reachable only from a supplier event — never a timer, an admin or a client. user_selected -> ranked (0.7.0) happens only when the provider releases the reservation or confirm_by passes while other live offers remain; with none left the request expires with no_result_reason not_confirmed (0.7.1, decided: user_selected -> expired happens only this way, never from the request's own expires_at). confirmed -> completed is made by the server 3 hours after the reserved slot starts unless the request was canceled; Phase 5 adds disputes and ratings on top of it. A blocked request is refused with 422 at creation and is never returned to a client.
          * @enum {string}
          */
         RequestStatus: "draft" | "submitted" | "routed" | "awaiting_responses" | "ranked" | "user_selected" | "confirmed" | "completed" | "expired" | "canceled" | "blocked";
@@ -881,10 +1259,10 @@ export interface components {
          */
         NextAction: "answer_clarification" | "wait_for_offers" | "choose_offer" | "await_supplier_confirmation" | "show_result" | "show_no_result" | "none";
         /**
-         * @description Why there is nothing to show, so the empty state can say why and offer one action. no_coverage — no eligible supplier is within max_distance_m for the category; no_offers — suppliers were contacted but no valid offer arrived, or every offer expired; clarification_unanswered — the draft lapsed before the question was answered.
+         * @description Why there is nothing to show, so the empty state can say why and offer one action. no_coverage — no eligible supplier is within max_distance_m for the category; no_offers — suppliers were contacted but no valid offer arrived, or every offer expired; clarification_unanswered — the draft lapsed before the question was answered; not_confirmed (0.7.0) — an offer was chosen but its provider released it or did not confirm in time, and no other live offer remained.
          * @enum {string}
          */
-        NoResultReason: "no_coverage" | "no_offers" | "clarification_unanswered";
+        NoResultReason: "no_coverage" | "no_offers" | "clarification_unanswered" | "not_confirmed";
         /** @description The one question PLUG may ask. Structured options only; there is no free-text answer. `question` and option labels are server copy, safe to display, and never contain model reasoning. */
         Clarification: {
             clarification_id: string;
@@ -912,7 +1290,12 @@ export interface components {
         /** @description A validated offer. Every value here came from a supplier record or reply that passed server validation; none is generated by a model or filled in by a client. An offer that cannot carry a real price and a real time does not exist. */
         Offer: {
             offer_id: string;
-            place: components["schemas"]["Place"];
+            /** @description Present if and only if source is seed or sms: a business with a public address. An in-app (portal) offer comes from a person whose home is never shown, so it has no place; business carries whatever they chose to publish. */
+            place?: components["schemas"]["Place"];
+            /** @description 0.7.0. Straight-line metres from the request location, computed server-side; equal to place.distance_m when place is present, and rounded to 100 m when it is not. */
+            distance_m: number;
+            /** @description 0.7.0. The provider's own note on an in-app offer, plain text. Never on SMS offers. */
+            note?: string;
             service_name: string;
             price_cents: number;
             currency: components["schemas"]["Currency"];
@@ -923,7 +1306,7 @@ export interface components {
             available_at: string;
             /**
              * Format: date-time
-             * @description When the offer stops being valid. Always later than available_at.
+             * @description When the offer stops being valid. Always later than available_at. Set by the server; the lifetime for sms and portal offers is not yet decided (CHANGELOG 0.7.1, open question).
              */
             expires_at: string;
             /**
@@ -949,11 +1332,11 @@ export interface components {
          */
         TruthLabel: "confirmed" | "recent" | "estimated" | "unknown" | "not_verified";
         /**
-         * @description seed — synthetic Phase 2 supplier data, labelled estimated at best; sms and portal — Phase 3 supplier replies, declared now so Phase 3 adds no value.
+         * @description seed — synthetic Phase 2 supplier data, labelled estimated at best; sms — a supplier's validated SMS reply; portal — an in-app provider offer (POST /v1/requests/{request_id}/offers). sms and portal offers carry truth_label confirmed when made, observed_at is the moment of the reply, and the server ages the label from there (§11.2). Both are the same Offer; only place and note differ, as documented.
          * @enum {string}
          */
         OfferSource: "seed" | "sms" | "portal";
-        /** @description The provider's standing as the asker sees it (manual v4 §12C). Fewer than three completed jobs is state new, never a zero; value is present only when state is scored. Scores come only from completed work and are never computed by a client. */
+        /** @description The provider's standing as the asker sees it (manual v4 §12C). Fewer than three completed jobs is state new, never a zero; value is present only when state is scored. Scores come only from completed work and are never computed by a client. From 0.7.0 value is trust score v1 (ProviderScoreBreakdown); SMS suppliers use the same rules. */
         ProviderScore: {
             /** @enum {string} */
             state: "new" | "scored";
@@ -1185,6 +1568,10 @@ export interface components {
             /** @description True when a licence reference was supplied. The reference itself is never returned. */
             licence_on_file: boolean;
             score: components["schemas"]["ProviderScore"];
+            /** @description 0.7.0. The provider's own components, in plain numbers. Never shown to askers. */
+            score_breakdown?: components["schemas"]["ProviderScoreBreakdown"];
+            /** @description 0.7.0. suspended means no matches and no offers until staff reinstate. */
+            standing?: components["schemas"]["ProviderStanding"];
             /** Format: date-time */
             created_at: string;
         };
@@ -1286,6 +1673,392 @@ export interface components {
         SessionList: {
             sessions: components["schemas"]["SessionSummary"][];
         };
+        OfferSelection: {
+            offer_id: string;
+        };
+        /** @description The asker's choice, waiting for the provider (manual §19.6). Present on RequestResource from the moment an offer is selected. Only a provider event confirms it: an SMS CONFIRM reply or the in-app confirm. If the provider releases it, or `confirm_by` passes, it ends and the request returns to `ranked` when other live offers remain, otherwise to `expired` with no_result_reason `not_confirmed`. */
+        Reservation: {
+            reservation_id: string;
+            offer_id: string;
+            status: components["schemas"]["ReservationStatus"];
+            /** @description Four characters without 0, O, 1 or I. What the provider and the asker both quote; the SMS CONFIRM and RELEASE replies carry it. Not a secret and not an identifier of the asker. */
+            booking_ref: string;
+            /**
+             * Format: date-time
+             * @description min(selected_at + 20 minutes, max(offer.available_at, selected_at + 10 minutes)), where selected_at is this reservation's created_at (0.7.1, decided by the owner on 2026-11-17; 0.7.0 said 10 minutes or available_at if sooner). The provider always gets at least 10 and at most 20 minutes; for a later slot they must confirm before it starts. confirm_by is therefore never in the past at selection. The reservation times out when the server clock reaches confirm_by, and ended_at equals confirm_by.
+             */
+            confirm_by: string;
+            /**
+             * Format: date-time
+             * @description Present if and only if status is confirmed.
+             */
+            confirmed_at?: string;
+            /**
+             * Format: date-time
+             * @description Present if and only if status is released, timed_out or canceled.
+             */
+            ended_at?: string;
+            /** Format: date-time */
+            created_at: string;
+        };
+        /**
+         * @description pending -> confirmed (provider event only) | released (provider) | timed_out (server, at confirm_by) | canceled (the asker canceled the request). confirmed -> canceled (the asker canceled). released, timed_out and canceled are terminal.
+         * @enum {string}
+         */
+        ReservationStatus: "pending" | "confirmed" | "released" | "timed_out" | "canceled";
+        ProviderInbox: {
+            items: components["schemas"]["InboxItem"][];
+            /** @description The cap this provider is notified under, so the app can explain it. */
+            notifications_per_hour: number;
+        };
+        /** @description One matched request as the provider sees it. Never the asker's words, location or identity: the service, the asker's budget, when it is needed and how far it is from the provider's own base, rounded to 100 m. */
+        InboxItem: {
+            match_id: string;
+            request_id: string;
+            status: components["schemas"]["MatchStatus"];
+            service_name: string;
+            skill_tags: components["schemas"]["Category"][];
+            /** @description Null when the asker set no budget. */
+            budget_cents: number | null;
+            currency: components["schemas"]["Currency"];
+            /** @description Null means as soon as possible. */
+            needed_by: string | null;
+            distance_m: number;
+            /**
+             * Format: date-time
+             * @description notified_at plus 5 minutes, the outreach reply window (0.7.1, decided by the owner on 2026-11-16). After this the match is expired and silence is recorded.
+             */
+            respond_by: string;
+            /** Format: date-time */
+            notified_at: string;
+            /** @description Present once this provider has offered. */
+            offer?: components["schemas"]["Offer"];
+            /** @description Present once the asker selected this provider's offer. */
+            reservation?: components["schemas"]["Reservation"];
+        };
+        /**
+         * @description open — waiting for this provider; offered — their offer is live; declined — they said no (a reply, never a penalty); expired — respond_by passed with no reply (silence); selected — the asker chose their offer and is waiting for confirmation; confirmed — they confirmed; not_chosen — the asker chose someone else or their offer expired; closed — the request was canceled or expired before they answered (not silence). 0.7.1, decided by the owner on 2026-11-17: when this provider's reservation times out the match is not_chosen; when the asker cancels it the match is closed, and the item still carries the canceled reservation.
+         * @enum {string}
+         */
+        MatchStatus: "open" | "offered" | "declined" | "expired" | "selected" | "confirmed" | "not_chosen" | "closed";
+        MatchDecline: {
+            /**
+             * @description Optional. Used to tune matching; never shown to the asker, never scored.
+             * @enum {string}
+             */
+            reason?: "busy" | "too_far" | "price" | "not_my_skill" | "other";
+        };
+        ReservationDecision: {
+            /** @enum {string} */
+            decision: "confirm" | "release";
+        };
+        /** @description An in-app offer. The same rules as an SMS reply: a real price and a real time, or no offer at all. expires_at, truth_label and observed_at are set by the server. */
+        ProviderOfferCreate: {
+            price_cents: number;
+            currency: components["schemas"]["Currency"];
+            /**
+             * Format: date-time
+             * @description When the provider can start. Not in the past, not after needed_by, at most 7 days ahead.
+             */
+            available_at: string;
+            /** @description Optional, shown to the asker as plain text. No phone numbers, email addresses or links (400 contact_in_note): contact happens after confirmation. */
+            note?: string;
+        };
+        /** @description The APNs payload for a provider match (P3.S10), documented here because both lanes own part of it: Person One sends it, Person Two owns the wording (template provider_match in contracts/messages). Never the asker's words, location or identity. Sent only inside the per-provider hourly cap; a match over the cap is not made, so the request goes to the next provider rather than waiting. */
+        ProviderMatchNotification: {
+            aps: {
+                alert: {
+                    title: string;
+                    body: string;
+                };
+                /**
+                 * @description Its own sound, never the default alert.
+                 * @constant
+                 */
+                sound: "provider_match.caf";
+                /** @constant */
+                category: "PROVIDER_MATCH";
+                /** @constant */
+                "thread-id": "provider-inbox";
+                /** @constant */
+                "interruption-level"?: "active";
+            };
+            match_id: string;
+        };
+        DeviceRegistration: {
+            apns_token: string;
+            /** @enum {string} */
+            environment: "sandbox" | "production";
+        };
+        Device: {
+            device_id: string;
+            /** @enum {string} */
+            environment: "sandbox" | "production";
+            /** Format: date-time */
+            registered_at: string;
+        };
+        /** @description Trust score v1 (P3.S13, manual §12C.2), shown only to the provider themselves and to staff. Customer rating (weight 40) arrives with reviews in Phase 5; until then the overall value is the weighted mean of the four components that exist, reweighted to their 60 points (completion 25, reliability 15, responsiveness 10, standing 10). A component with too little evidence is null, never zero. Every score change is logged with its cause. */
+        ProviderScoreBreakdown: {
+            /** @constant */
+            version: "v1";
+            completion: components["schemas"]["ScoreComponent"];
+            reliability: components["schemas"]["ScoreComponent"];
+            responsiveness: components["schemas"]["ScoreComponent"];
+            standing: components["schemas"]["ScoreComponent"];
+            /** @description Phase 5. */
+            customer_rating: null;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ScoreComponent: {
+            value: number | null;
+            /** @description How many events it rests on: confirmed jobs (completion, reliability), matches answered or left silent (responsiveness), days of standing (standing). */
+            basis: number;
+        };
+        /** @enum {string} */
+        ProviderStanding: "active" | "suspended";
+        ProviderStandingDecision: {
+            standing: components["schemas"]["ProviderStanding"];
+            reason: string;
+        };
+        AdminProvider: {
+            user_id: string;
+            /** @description The business name if the provider set one. */
+            display_name?: string;
+            skills: components["schemas"]["SkillTag"][];
+            custom_skills?: string[];
+            travel_radius_m: number;
+            accepting: boolean;
+            licence_on_file?: boolean;
+            standing: components["schemas"]["ProviderStanding"];
+            score: components["schemas"]["ProviderScore"];
+            score_breakdown: components["schemas"]["ProviderScoreBreakdown"];
+            /** Format: date-time */
+            created_at: string;
+        };
+        AdminProviderPage: {
+            items: components["schemas"]["AdminProvider"][];
+            next_cursor: string | null;
+        };
+        /**
+         * @description The only form a supplier's number ever takes in a response. Never logged in any form.
+         * @example +1 *** *** **42
+         */
+        PhoneMasked: string;
+        /** @description What the public opt-in form sends (manual §21.4). The honeypot stays in the web server action and never reaches the API. */
+        SupplierOptIn: {
+            business_name: string;
+            /** @description E.164, United States numbers only in V1. Stored as a keyed hash plus an encrypted copy for sending; never logged. */
+            phone: string;
+            /** @description The SMS terms version the form displayed (contracts/messages/README.md). Anything else is 400 unsupported_version. */
+            consent_version: string;
+            /**
+             * @description The unticked-by-default box. false is 400 consent_required.
+             * @constant
+             */
+            consent: true;
+        };
+        SupplierOptInReceipt: {
+            /** @constant */
+            status: "confirmation_sent_if_eligible";
+        };
+        SupplierCreate: {
+            business_name: string;
+            phone: string;
+            /** @description How this business was onboarded (in person, phone call); recorded in the audit trail. */
+            reason: string;
+        };
+        /** @description What staff record for an SMS supplier. place becomes a `plc_` Place shared with Phase 4: there is one place model. */
+        SupplierProfile: {
+            business_name: string;
+            /** @description Vocabulary tags only (400 unknown_skill). A requires_licence tag needs licence_ref. */
+            skill_tags: components["schemas"]["Category"][];
+            place: components["schemas"]["SupplierPlace"];
+            /** @description How far from the place a request may be. The supplier's own answer, never a global default. */
+            service_radius_m: number;
+            hours: components["schemas"]["AvailabilityWindow"][];
+            time_zone: string;
+            licence_ref?: string;
+            /** @description Who staff spoke to. Never sent in a text. */
+            contact_name?: string;
+        };
+        SupplierPlace: {
+            address: string;
+            location: components["schemas"]["RequestLocation"];
+        };
+        /** @description A business reached by SMS. It has no PLUG account and no session; staff manage it and the supplier acts only by text. Contacted only while verification is `verified` and consent is `granted`. */
+        Supplier: {
+            supplier_id: string;
+            business_name: string;
+            phone_masked: components["schemas"]["PhoneMasked"];
+            skill_tags?: components["schemas"]["Category"][];
+            place_id?: string;
+            address?: string;
+            service_radius_m?: number;
+            hours?: components["schemas"]["AvailabilityWindow"][];
+            time_zone?: string;
+            licence_on_file?: boolean;
+            contact_name?: string;
+            verification: {
+                status: components["schemas"]["SupplierVerificationStatus"];
+                /** Format: date-time */
+                decided_at?: string;
+                reason?: string;
+            };
+            consent: components["schemas"]["SupplierConsent"];
+            /** @description Newest first. Present on GET /v1/admin/suppliers/{supplier_id} only. */
+            consent_trail?: components["schemas"]["SupplierConsentEvent"][];
+            open_context?: components["schemas"]["SmsContext"];
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        /** @enum {string} */
+        SupplierVerificationStatus: "pending_verification" | "verified" | "rejected" | "suspended";
+        SupplierVerificationDecision: {
+            /**
+             * @description verified also reinstates a suspended supplier.
+             * @enum {string}
+             */
+            status: "verified" | "rejected" | "suspended";
+            reason: string;
+        };
+        SupplierConsent: {
+            state: components["schemas"]["SupplierConsentState"];
+            version: string;
+            /** Format: date-time */
+            changed_at: string;
+            /**
+             * Format: date-time
+             * @description Present if and only if state is paused.
+             */
+            paused_until?: string;
+        };
+        /**
+         * @description pending_confirmation -> granted (START from that phone) | revoked (STOP); granted -> paused (PAUSE, 24 h) | revoked (STOP, or carrier opt-out 21610); paused -> granted (START, or paused_until passes) | revoked (STOP); revoked -> granted (START from that phone; never from a form or from staff).
+         * @enum {string}
+         */
+        SupplierConsentState: "pending_confirmation" | "granted" | "paused" | "revoked";
+        SupplierConsentEvent: {
+            state: components["schemas"]["SupplierConsentState"];
+            /** @enum {string} */
+            source: "web_form" | "staff_entry" | "sms_keyword" | "carrier" | "pause_elapsed";
+            version: string;
+            /** Format: date-time */
+            occurred_at: string;
+        };
+        /** @description What a reply from this supplier will be applied to. A supplier has at most one open context at a time, which is what makes a bare YES or CONFIRM unambiguous: the matcher skips a supplier whose context is open. */
+        SmsContext: {
+            /** @enum {string} */
+            kind: "outreach" | "reservation";
+            request_id: string;
+            /** Format: date-time */
+            closes_at: string;
+        };
+        AdminSupplierPage: {
+            items: components["schemas"]["Supplier"][];
+            next_cursor: string | null;
+        };
+        /**
+         * @description The grammar's verdict on one inbound SMS (contracts/messages/grammar.md). Only offer, decline, confirm and release touch a request, and only offer creates an offer. incomplete, over_budget, outside_window, unparseable and no_open_context create nothing and cost the supplier nothing. duplicate is a replayed MessageSid.
+         * @enum {string}
+         */
+        InboundParseResult: "offer" | "decline" | "confirm" | "release" | "stop" | "start" | "pause" | "help" | "incomplete" | "over_budget" | "outside_window" | "unparseable" | "no_open_context" | "duplicate";
+        /**
+         * @description suppressed — not sent, because the number was opted out, paused or the supplier suspended at send time; dead_lettered — retries exhausted, waiting for a person.
+         * @enum {string}
+         */
+        DeliveryStatus: "queued" | "sent" | "delivered" | "undelivered" | "failed" | "suppressed" | "dead_lettered";
+        AdminMessage: {
+            message_id: string;
+            /** @enum {string} */
+            direction: "inbound" | "outbound";
+            supplier_id?: string;
+            request_id?: string;
+            phone_masked: components["schemas"]["PhoneMasked"];
+            /** @description Outbound only. */
+            template_id?: string;
+            delivery_status?: components["schemas"]["DeliveryStatus"];
+            /** @description Twilio's numeric error code, outbound only. */
+            error_code?: string;
+            parse_result?: components["schemas"]["InboundParseResult"];
+            offer_id?: string;
+            /** Format: date-time */
+            occurred_at: string;
+        };
+        AdminMessagePage: {
+            items: components["schemas"]["AdminMessage"][];
+            next_cursor: string | null;
+        };
+        AdminOptOut: {
+            phone_masked: components["schemas"]["PhoneMasked"];
+            supplier_id?: string;
+            /** @enum {string} */
+            state: "revoked" | "paused";
+            /** @enum {string} */
+            source: "sms_keyword" | "carrier";
+            /** Format: date-time */
+            since: string;
+            /** Format: date-time */
+            paused_until?: string;
+        };
+        AdminOptOutPage: {
+            items: components["schemas"]["AdminOptOut"][];
+            next_cursor: string | null;
+        };
+        AdminMatch: {
+            /** @enum {string} */
+            channel: "sms" | "app";
+            /** @description A supplier for sms, a provider's user id for app. */
+            recipient_id: string;
+            /** @description 1 is the first six; 2 and 3 are the expansion steps of four. */
+            wave: number;
+            rank_score?: number;
+            distance_m?: number;
+            /**
+             * @description capped — skipped by the provider's hourly cap and not contacted; suppressed — skipped at send time (opt-out, pause or suspension); silent — no reply by respond_by. The latest outcome per recipient.
+             * @enum {string}
+             */
+            outcome: "contacted" | "capped" | "suppressed" | "offered" | "declined" | "silent" | "unparseable" | "selected" | "confirmed" | "released" | "timed_out";
+            offer_id?: string;
+            /** Format: date-time */
+            at: string;
+        };
+        AdminMatchHistory: {
+            request_id: string;
+            status: components["schemas"]["RequestStatus"];
+            contacted: number;
+            /**
+             * @description The combined ceiling across SMS and in-app.
+             * @constant
+             */
+            cap: 16;
+            matches: components["schemas"]["AdminMatch"][];
+        };
+        /** @description Twilio's inbound message parameters. Only these are read; Twilio may send more, and all of them are covered by the signature, so unknown parameters are accepted and ignored rather than refused. */
+        TwilioInboundForm: {
+            MessageSid: string;
+            /** @description Must equal the configured account; otherwise ignored with 200. */
+            AccountSid: string;
+            From: string;
+            /** @description Must be one of PLUG's sending numbers; otherwise ignored with 200. */
+            To: string;
+            Body: string;
+            /** @description Media is never fetched or stored. */
+            NumMedia?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        TwilioStatusForm: {
+            MessageSid: string;
+            AccountSid: string;
+            /** @enum {string} */
+            MessageStatus: "accepted" | "scheduled" | "queued" | "sending" | "sent" | "delivered" | "undelivered" | "failed" | "canceled" | "read" | "receiving" | "received";
+            ErrorCode?: string;
+        } & {
+            [key: string]: unknown;
+        };
         /** @description The error envelope. Every non-2xx response has exactly this shape (manual.docx §18.2). */
         Error: {
             error: {
@@ -1346,6 +2119,15 @@ export interface components {
                 "application/json": components["schemas"]["Error"];
             };
         };
+        /** @description 0.7.1. conflict. details[0] = { field: phone, code: supplier_exists } when the phone is already a supplier, or { field: Idempotency-Key, code: idempotency_key_reused | request_in_progress }. */
+        SupplierConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
         /** @description No such resource, or it does not belong to the caller. */
         NotFound: {
             headers: {
@@ -1366,6 +2148,24 @@ export interface components {
         };
         /** @description conflict. The request is not in a state that allows this action, or the Idempotency-Key was reused. details[0].code is one of not_awaiting_clarification, not_cancelable, idempotency_key_reused, request_in_progress. The client reloads GET /v1/requests/{request_id} and follows its next_action. */
         RequestStateConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description conflict. details[0].code is one of already_selected (another offer was already chosen), offer_unavailable (expired, withdrawn or not this request's), not_selectable (the request is not ranked), idempotency_key_reused or request_in_progress. The client reloads GET /v1/requests/{request_id} and follows its next_action. */
+        SelectionConflict: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["Error"];
+            };
+        };
+        /** @description conflict. details[0].code is one of already_offered, request_closed, no_reservation, reservation_closed, idempotency_key_reused or request_in_progress. The provider app reloads the inbox. */
+        MatchStateConflict: {
             headers: {
                 [name: string]: unknown;
             };
@@ -1423,6 +2223,9 @@ export interface components {
         AskIdPath: string;
         /** @description Opaque. Logged as the route template, never as the value. A well-formed identifier the caller does not own is 404; a malformed one is also 404, so the two cannot be told apart. */
         RequestIdPath: string;
+        /** @description Opaque. A match that is not the caller's, or a malformed id, is 404. */
+        MatchIdPath: string;
+        SupplierIdPath: string;
     };
     requestBodies: never;
     headers: {
@@ -1629,6 +2432,47 @@ export interface operations {
             500: components["responses"]["InternalError"];
         };
     };
+    sendProviderOffer: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                /** @description Client-generated, stable across every retry of the same logical action (a UUID works). Stored per account with a hash of the body: the same key and body return the original response unchanged; the same key with a different body is 409 conflict with details[0].code = idempotency_key_reused; a duplicate arriving while the first is still running is 409 with request_in_progress. Missing or malformed is 400 with details[0].field = Idempotency-Key. Keys are kept for 24 hours (manual.docx §19.2). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKeyHeader"];
+            };
+            path: {
+                /** @description Opaque. Logged as the route template, never as the value. A well-formed identifier the caller does not own is 404; a malformed one is also 404, so the two cannot be told apart. */
+                request_id: components["parameters"]["RequestIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderOfferCreate"];
+            };
+        };
+        responses: {
+            /** @description The validated offer, as the asker will see it. */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Offer"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["MatchStateConflict"];
+            413: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+        };
+    };
     cancelRequest: {
         parameters: {
             query?: never;
@@ -1644,7 +2488,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Canceled. status is `canceled` and next_action is `none`. */
+            /** @description Canceled. status is `canceled` and next_action is `none`. If an offer was selected, reservation is present with status `canceled` and ended_at (0.7.0; fixture added in 0.7.1). */
             200: {
                 headers: {
                     "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
@@ -2531,6 +3375,655 @@ export interface operations {
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
             409: components["responses"]["Conflict"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    selectOffer: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                /** @description Client-generated, stable across every retry of the same logical action (a UUID works). Stored per account with a hash of the body: the same key and body return the original response unchanged; the same key with a different body is 409 conflict with details[0].code = idempotency_key_reused; a duplicate arriving while the first is still running is 409 with request_in_progress. Missing or malformed is 400 with details[0].field = Idempotency-Key. Keys are kept for 24 hours (manual.docx §19.2). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKeyHeader"];
+            };
+            path: {
+                /** @description Opaque. Logged as the route template, never as the value. A well-formed identifier the caller does not own is 404; a malformed one is also 404, so the two cannot be told apart. */
+                request_id: components["parameters"]["RequestIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferSelection"];
+            };
+        };
+        responses: {
+            /** @description Selected. status is `user_selected` and reservation.status is `pending`. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RequestResource"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["SelectionConflict"];
+            413: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    getProviderInbox: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The inbox, possibly empty. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderInbox"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    declineMatch: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @description Opaque. A match that is not the caller's, or a malformed id, is 404. */
+                match_id: components["parameters"]["MatchIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["MatchDecline"];
+            };
+        };
+        responses: {
+            /** @description Declined. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboxItem"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["MatchStateConflict"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    answerReservation: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @description Opaque. A match that is not the caller's, or a malformed id, is 404. */
+                match_id: components["parameters"]["MatchIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReservationDecision"];
+            };
+        };
+        responses: {
+            /** @description Recorded. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InboxItem"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["MatchStateConflict"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    registerDevice: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeviceRegistration"];
+            };
+        };
+        responses: {
+            /** @description Registered. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Device"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["DependencyUnavailable"];
+        };
+    };
+    supplierOptIn: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                /** @description Client-generated, stable across every retry of the same logical action (a UUID works). Stored per account with a hash of the body: the same key and body return the original response unchanged; the same key with a different body is 409 conflict with details[0].code = idempotency_key_reused; a duplicate arriving while the first is still running is 409 with request_in_progress. Missing or malformed is 400 with details[0].field = Idempotency-Key. Keys are kept for 24 hours (manual.docx §19.2). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKeyHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierOptIn"];
+            };
+        };
+        responses: {
+            /** @description Received. Says nothing about whether the number was known. */
+            202: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SupplierOptInReceipt"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            409: components["responses"]["IdempotencyConflict"];
+            413: components["responses"]["ValidationFailed"];
+            429: components["responses"]["RateLimited"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["DependencyUnavailable"];
+        };
+    };
+    twilioInbound: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["TwilioInboundForm"];
+            };
+        };
+        responses: {
+            /** @description Accepted, duplicate or ignored. Empty TwiML. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response/>";
+                };
+            };
+            /** @description Missing or invalid signature. Error body, code forbidden (0.7.1). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Body over 16 KiB. Error body, code validation_failed (0.7.1). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not processed; Twilio's own retry policy applies. Error body, code internal_error (0.7.1). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    twilioStatusCallback: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/x-www-form-urlencoded": components["schemas"]["TwilioStatusForm"];
+            };
+        };
+        responses: {
+            /** @description Accepted or ignored. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Missing or invalid signature. Error body, code forbidden (0.7.1). */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Body over 16 KiB. Error body, code validation_failed (0.7.1). */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Not processed. Error body, code internal_error (0.7.1). */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    listSuppliers: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from the previous page's next_cursor. An invalid cursor is 400; start again. */
+                cursor?: components["parameters"]["AdminCursor"];
+                limit?: components["parameters"]["AdminLimit"];
+                verification?: components["schemas"]["SupplierVerificationStatus"];
+            };
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSupplierPage"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    createSupplier: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+                /** @description Client-generated, stable across every retry of the same logical action (a UUID works). Stored per account with a hash of the body: the same key and body return the original response unchanged; the same key with a different body is 409 conflict with details[0].code = idempotency_key_reused; a duplicate arriving while the first is still running is 409 with request_in_progress. Missing or malformed is 400 with details[0].field = Idempotency-Key. Keys are kept for 24 hours (manual.docx §19.2). */
+                "Idempotency-Key": components["parameters"]["IdempotencyKeyHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierCreate"];
+            };
+        };
+        responses: {
+            /** @description Created, pending verification and consent. */
+            201: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Supplier"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            409: components["responses"]["SupplierConflict"];
+            500: components["responses"]["InternalError"];
+            503: components["responses"]["DependencyUnavailable"];
+        };
+    };
+    getSupplier: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                supplier_id: components["parameters"]["SupplierIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The supplier. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Supplier"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    updateSupplierProfile: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                supplier_id: components["parameters"]["SupplierIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierProfile"];
+            };
+        };
+        responses: {
+            /** @description Updated. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Supplier"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    decideSupplierVerification: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                supplier_id: components["parameters"]["SupplierIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SupplierVerificationDecision"];
+            };
+        };
+        responses: {
+            /** @description Recorded. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Supplier"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    listMessages: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from the previous page's next_cursor. An invalid cursor is 400; start again. */
+                cursor?: components["parameters"]["AdminCursor"];
+                limit?: components["parameters"]["AdminLimit"];
+                supplier_id?: string;
+                request_id?: string;
+                direction?: "inbound" | "outbound";
+            };
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminMessagePage"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    listOptOuts: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from the previous page's next_cursor. An invalid cursor is 400; start again. */
+                cursor?: components["parameters"]["AdminCursor"];
+                limit?: components["parameters"]["AdminLimit"];
+            };
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOptOutPage"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    listRequestMatches: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                /** @description Opaque. Logged as the route template, never as the value. A well-formed identifier the caller does not own is 404; a malformed one is also 404, so the two cannot be told apart. */
+                request_id: components["parameters"]["RequestIdPath"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The match history. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminMatchHistory"];
+                };
+            };
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    listProviders: {
+        parameters: {
+            query?: {
+                /** @description Opaque cursor from the previous page's next_cursor. An invalid cursor is 400; start again. */
+                cursor?: components["parameters"]["AdminCursor"];
+                limit?: components["parameters"]["AdminLimit"];
+            };
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description One page. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProviderPage"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            500: components["responses"]["InternalError"];
+        };
+    };
+    setProviderStanding: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description Client-generated correlation ID. Echoed back on the response and carried into both lanes' structured logs so the connected checkpoint can find one request in both places. The server generates one if absent or invalid (manual.docx §19.2). */
+                "X-Request-Id"?: components["parameters"]["RequestIdHeader"];
+            };
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProviderStandingDecision"];
+            };
+        };
+        responses: {
+            /** @description Recorded. */
+            200: {
+                headers: {
+                    "X-Request-Id": components["headers"]["RequestIdResponseHeader"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminProvider"];
+                };
+            };
+            400: components["responses"]["ValidationFailed"];
+            401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             500: components["responses"]["InternalError"];
         };
     };

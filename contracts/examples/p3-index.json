@@ -26,5 +26,8 @@
   "p3-admin-providers.json": "AdminProviderPage",
   "p3-provider-standing.json": "ProviderStandingDecision",
   "p3-twilio-inbound.json": "TwilioInboundForm",
-  "p3-twilio-status.json": "TwilioStatusForm"
+  "p3-twilio-status.json": "TwilioStatusForm",
+  "p3-request-reservation-canceled.json": "RequestResource",
+  "p3-inbox-item-timed-out.json": "InboxItem",
+  "p3-inbox-item-canceled.json": "InboxItem"
 }

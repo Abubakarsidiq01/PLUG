@@ -1,6 +1,6 @@
 {
   "version": "templates.v1",
-  "status": "proposed with contract 0.7.0; wording owned by Person Two",
+  "status": "frozen with contract 0.7.0, placeholders amended in 0.7.1; wording owned by Person Two",
   "consent_version": "sms-2026-10-09",
   "limits": {
     "sms_max_rendered_chars": 306,
@@ -65,11 +65,17 @@
     "terms_url": {
       "max": 30,
       "example": "plug.app/sms",
-      "rule": "the published SMS terms page"
+      "rule": "the published SMS terms page; the example is not a confirmed address (CHANGELOG 0.7.1 open question)"
     },
     "support": {
       "max": 30,
-      "example": "support@plug.app"
+      "example": "support@plug.app",
+      "rule": "the support contact; the example is not a confirmed address (CHANGELOG 0.7.1 open question)"
+    },
+    "pause": {
+      "max": 3,
+      "example": "24h",
+      "rule": "the configured PAUSE length in whole hours with an h suffix (0.7.1)"
     }
   },
   "sms": {
@@ -79,7 +85,7 @@
     },
     "optin_confirmed": {
       "when": "START, from pending_confirmation, paused or revoked",
-      "body": "PLUG: You're in. We'll text you when a nearby customer needs you. Reply PAUSE for a 24h break, STOP to opt out, HELP for help."
+      "body": "PLUG: You're in. We'll text you when a nearby customer needs you. Reply PAUSE for a {pause} break, STOP to opt out, HELP for help."
     },
     "outreach": {
       "when": "the supplier is matched; opens an outreach context",
@@ -131,7 +137,7 @@
     },
     "help": {
       "when": "result help; also Twilio's HELP reply",
-      "body": "PLUG sends you nearby customer requests. Reply YES <price> <time> to offer, NO to skip, PAUSE for a 24h break, STOP to opt out. Help: {support}"
+      "body": "PLUG sends you nearby customer requests. Reply YES <price> <time> to offer, NO to skip, PAUSE for a {pause} break, STOP to opt out. Help: {support}"
     },
     "stop_confirm": {
       "when": "result stop; also Twilio's STOP reply",
