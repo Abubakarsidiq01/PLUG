@@ -13,4 +13,4 @@ copied unchanged from the official Google Fonts repository,
 `413e7357809ddd12fd80a96a8a396de0e401638d4acd3cb3e37532f0472ac682`), renamed only so
 `next/font/local` paths stay plain. Variable axes: opsz 12 to 96, wdth 75 to 100, wght 200 to
 800. Licensed under the SIL Open Font License 1.1; see OFL-BricolageGrotesque.txt. The master
-copy lives in `design/fonts/bricolage-grotesque/`. Not wired into any page yet.
+copy lives in `design/fonts/bricolage-grotesque/`. Loaded in `layout.tsx` with `next/font/local` as `--font-bricolage`. The Public Sans files above are no longer imported.

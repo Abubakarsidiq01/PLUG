@@ -1,18 +1,14 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import "./signal.css";
 import { SiteFooter, SiteHeader } from "./_components/site-chrome";
 
-// Manual v4 §10: Public Sans, bundled locally so builds need no font service.
-const publicSans = localFont({
-  variable: "--font-public-sans",
+// ADR-015 Signal: Bricolage Grotesque variable (OFL), bundled locally so builds need no font service.
+const bricolage = localFont({
+  variable: "--font-bricolage",
   display: "swap",
-  src: [
-    { path: "./fonts/public-sans-latin-400-normal.woff2", weight: "400", style: "normal" },
-    { path: "./fonts/public-sans-latin-500-normal.woff2", weight: "500", style: "normal" },
-    { path: "./fonts/public-sans-latin-600-normal.woff2", weight: "600", style: "normal" },
-    { path: "./fonts/public-sans-latin-700-normal.woff2", weight: "700", style: "normal" },
-  ],
+  src: [{ path: "./fonts/bricolage-grotesque-variable.ttf", weight: "200 800", style: "normal" }],
 });
 
 // manual.docx §15.2 title pattern: "<Page> — PLUG".
@@ -24,7 +20,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={publicSans.variable}>
+    <html lang="en" className={bricolage.variable}>
       <body>
         <a href="#main" className="skip-link">Skip to content</a>
         <SiteHeader />

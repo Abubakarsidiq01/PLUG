@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Logo } from "./brand-art";
+import { SiteMenu } from "./site-menu";
 
 // There is no sign-up endpoint yet, so the one call to action leads to Support,
 // which carries the operator's confirmed contact address.
@@ -7,8 +8,15 @@ export const JOIN_HREF = "/support#join";
 export const JOIN_LABEL = "Ask to join the private test";
 export const CONTACT_EMAIL = "privacy@plugapp.com";
 
+const sectionLinks = [
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#truth-labels", label: "Truth labels" },
+  { href: "/support", label: "Support" },
+];
+
 // Figure 14 header: logo left, section links and the join action right. The header
 // action is the secondary style so each page keeps exactly one primary button.
+// Under 768px the section links move into SiteMenu.
 export function SiteHeader() {
   return (
     <header className="site-header">
@@ -16,14 +24,15 @@ export function SiteHeader() {
         <Logo />
         <nav aria-label="Main" className="site-nav">
           <ul>
-            <li className="site-nav-optional"><Link href="/#how-it-works">How it works</Link></li>
-            <li className="site-nav-optional"><Link href="/#truth-labels">Truth labels</Link></li>
-            <li className="site-nav-optional"><Link href="/support">Support</Link></li>
+            {sectionLinks.map((link) => (
+              <li key={link.href} className="site-nav-optional"><Link href={link.href}>{link.label}</Link></li>
+            ))}
             <li>
               <Link href={JOIN_HREF} className="button button-secondary">
                 Ask to join
               </Link>
             </li>
+            <li className="site-menu-item"><SiteMenu links={sectionLinks} /></li>
           </ul>
         </nav>
       </div>

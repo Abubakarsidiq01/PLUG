@@ -8,7 +8,7 @@ import { TruthBadge, type TruthLabel } from "./_components/truth-badge";
 // Every sentence here must be true of the private test today: no metrics,
 // testimonials, logos, counters, ratings or stock imagery (§15.1, §16.4).
 export const metadata: Metadata = {
-  title: { absolute: "PLUG — find a local service that fits your budget and time" },
+  title: { absolute: "PLUG: find a local service that fits your budget and time" },
   description:
     "Tell PLUG what you need in plain words. It works out the service, budget and time and shows who nearby can help. In private testing on iPhone.",
 };
@@ -102,7 +102,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="truth-labels" className="band band-muted" aria-labelledby="truth-title">
+      <section id="truth-labels" className="band band-paper" aria-labelledby="truth-title">
         <div className="container split">
           <div className="split-intro">
             <h2 id="truth-title" className="title2">Every result says how PLUG knows it</h2>
@@ -134,7 +134,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="status" className="band" aria-labelledby="status-title">
+      <section id="status" className="band band-ink" aria-labelledby="status-title">
         <div className="container split">
           <div className="split-intro">
             <h2 id="status-title" className="title2">What the private test does today</h2>
