@@ -157,7 +157,8 @@ extension View {
 
 // MARK: - The mark
 
-/// The PLUG logotype, the same drawn artwork as the website (design/brand), set in espresso.
+/// The PLUG logotype (design/brand/plug-logotype.svg): the green and brass Ask P mark and "plug"
+/// in espresso, cropped to its ink so it aligns with the text column.
 /// A fixed-size brand lockup: `size` is its height, and content around it scales instead.
 struct PlugLogotype: View {
     var size: CGFloat = PlugTokens.Layout.mark
@@ -170,11 +171,12 @@ struct PlugLogotype: View {
 }
 
 struct PlugWordmark: View {
-    var body: some View { PlugLogotype(size: PlugTokens.Layout.logo) }
+    var body: some View { PlugLogotype(size: PlugTokens.Layout.mark) }
 }
 
-/// design/brand/plug-mark.svg on its 256 grid: a stem joined to a bowl, with the counter cut
-/// out (even-odd fill). The dot inside the counter is drawn separately: it is you.
+/// design/brand/plug-mark.svg on its 256 grid ("Ask P"): an open P that is also a question
+/// mark. The stem runs x 67..103 and the bowl is a 270 degree arc, outer radius 62 and inner 26,
+/// centred at (129, 91). The dot under the stem is drawn separately: it is the asker.
 struct PlugMarkShape: Shape {
     func path(in rect: CGRect) -> Path {
         let unit = min(rect.width, rect.height) / 256
@@ -182,31 +184,30 @@ struct PlugMarkShape: Shape {
             CGPoint(x: rect.minX + x * unit, y: rect.minY + y * unit)
         }
         var path = Path()
-        path.move(to: point(50, 32))
-        path.addLine(to: point(134, 32))
-        path.addRelativeArc(center: point(134, 104), radius: 72 * unit,
-                            startAngle: .degrees(-90), delta: .degrees(180))
-        path.addLine(to: point(96, 176))
-        path.addLine(to: point(96, 224))
-        path.addLine(to: point(50, 224))
+        path.move(to: point(67, 161))
+        path.addLine(to: point(67, 91))
+        path.addRelativeArc(center: point(129, 91), radius: 62 * unit, startAngle: .degrees(180), delta: .degrees(270))
+        path.addLine(to: point(129, 117))
+        path.addRelativeArc(center: point(129, 91), radius: 26 * unit, startAngle: .degrees(90), delta: .degrees(-270))
+        path.addLine(to: point(103, 161))
         path.closeSubpath()
-        path.addEllipse(in: CGRect(origin: point(90, 60), size: CGSize(width: 88 * unit, height: 88 * unit)))
         return path
     }
 }
 
-/// The mark with its dot, still. `dot` colours the dot (you) so it can read on any surface.
+/// The mark with its dot, still: forest green P and brass dot on light surfaces. On green or
+/// espresso pass `ink: paper` and keep the brass dot.
 struct PlugMark: View {
-    var ink: Color = PlugTokens.Color.ink900
-    var dot: Color = PlugTokens.Color.ink900
+    var ink: Color = PlugTokens.Color.brandGreen
+    var dot: Color = PlugTokens.Color.brandBrass
 
     var body: some View {
         GeometryReader { geometry in
             let unit = min(geometry.size.width, geometry.size.height) / 256
             ZStack(alignment: .topLeading) {
-                PlugMarkShape().fill(ink, style: FillStyle(eoFill: true))
+                PlugMarkShape().fill(ink)
                 Circle().fill(dot).frame(width: 42 * unit, height: 42 * unit)
-                    .position(x: 134 * unit, y: 104 * unit)
+                    .position(x: 85 * unit, y: 204 * unit)
             }
         }
         .aspectRatio(1, contentMode: .fit)

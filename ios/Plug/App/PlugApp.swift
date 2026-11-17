@@ -34,7 +34,7 @@ struct PlugApp: App {
     }
 }
 
-/// The cold start: it begins where the static launch screen ends (the espresso mark on cream)
+/// The cold start: it begins where the static launch screen ends (the green and brass mark on cream)
 /// and fades away quickly. It never takes a touch or VoiceOver focus, and it does not run for UI
 /// tests or under Reduce Motion (the launch screen then simply gives way to the app).
 private struct LaunchSplash: View {
@@ -267,7 +267,7 @@ struct ProfileView: View {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     PageTitle(title: "Profile")
                     HStack(alignment: .center, spacing: PlugTokens.Space.s4) {
-                        PlugMark(ink: PlugTokens.Color.paper, dot: PlugTokens.Color.paper)
+                        PlugMark(ink: PlugTokens.Color.paper)
                             .padding(PlugTokens.Space.s4 + 2)
                             .frame(width: PlugTokens.Layout.portrait, height: PlugTokens.Layout.portrait)
                             .background(PlugTokens.Color.brandGreen, in: Circle())

@@ -127,7 +127,7 @@ struct AskView: View {
     private var masthead: some View {
         HStack(alignment: .center) {
             // One logotype everywhere, the app and the website (owner decision, 2026-10-08).
-            PlugLogotype(size: PlugTokens.Layout.logo)
+            PlugLogotype(size: PlugTokens.Layout.mark)
             Spacer()
         }
         .padding(.top, PlugTokens.Space.s1)

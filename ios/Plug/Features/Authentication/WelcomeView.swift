@@ -64,7 +64,7 @@ struct WelcomeView: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Back to welcome")
                 Spacer()
-                Button { page = .welcome; model.startOver() } label: { PlugLogotype(size: PlugTokens.Layout.logo) }
+                Button { page = .welcome; model.startOver() } label: { PlugLogotype(size: PlugTokens.Layout.mark) }
                     .buttonStyle(.plain).accessibilityLabel("PLUG home")
                     .frame(minHeight: PlugTokens.minTouchTarget)
                 Spacer()
@@ -101,7 +101,7 @@ struct WelcomeView: View {
                 .frame(maxWidth: .infinity)
                 .background(PlugTokens.Color.sunk.ignoresSafeArea(edges: .top))
             VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                PlugLogotype(size: PlugTokens.Layout.logo).accessibilityAddTraits(.isHeader)
+                PlugLogotype(size: PlugTokens.Layout.mark).accessibilityAddTraits(.isHeader)
                     .padding(.bottom, PlugTokens.Space.s2)
                 // What the app does leads; the tested tagline follows as its own text, words unchanged.
                 Text("Ask for a service, or about a place nearby.")
