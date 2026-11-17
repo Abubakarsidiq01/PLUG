@@ -284,8 +284,14 @@ public class RequestService {
                 + " ORDER BY v.created_at DESC,v.id DESC LIMIT 1", RESERVATION_ROW, matchId, provider).stream().findFirst()
                 .orElseThrow(() -> new IllegalStateException("No reservation on this match"));
         // A released or timed-out offer is withdrawn but still shown, as in the contract examples.
-        Offer offer = reservation.offerId() == null ? null
+        Offer found = reservation.offerId() == null ? null
                 : jdbc.query(OFFER_SELECT + " WHERE o.id=?", OFFER_ROW, reservation.offerId()).stream().findFirst().orElse(null);
+        // The provider sees the asker's distance only to the nearest 100 m (§25 data minimisation).
+        Offer offer = found == null || found.place() == null ? found : new Offer(found.offerId(),
+                new RequestPayloads.Place(found.place().placeId(), found.place().name(), found.place().address(),
+                        roundedDistance(found.place().distanceM())),
+                found.serviceName(), found.priceCents(), found.currency(), found.availableAt(), found.expiresAt(),
+                found.observedAt(), found.truthLabel(), found.source(), found.providerScore(), found.business());
         // Contract 0.7.1 MatchStatus for a match whose offer the asker chose.
         String status = switch (reservation.status()) {
             case "pending" -> "selected";
@@ -301,10 +307,11 @@ public class RequestService {
                     return new RequestPayloads.InboxItem(matchId, rs.getString("request_id"), status, rs.getString("service_name"),
                             List.of((String[]) rs.getArray("skill_tags").getArray()), (Integer) rs.getObject("budget_cents"),
                             rs.getString("currency"), instant(rs, "needed_by"),
-                            (int) Math.min(80_000, Math.round(rs.getInt("distance_m") / 100.0) * 100),
+                            roundedDistance(rs.getInt("distance_m")),
                             notified.plus(Duration.ofMinutes(5)), notified, offer, reservation);
                 }, matchId, provider);
     }
+    private static int roundedDistance(int metres) { return (int) Math.min(80_000, Math.round(metres / 100.0) * 100); }
     /// Release or timeout: the offer is withdrawn and the asker gets the other live offers back.
     private void endReservation(String id, String reservationId, String offerId, String outcome, Instant endedAt) {
         jdbc.update("UPDATE request_reservations SET status=?,ended_at=? WHERE id=?", outcome, time(endedAt), reservationId);
