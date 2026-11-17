@@ -20,4 +20,7 @@ public class ReservationService {
     public ProviderDecisionResult decide(String providerUserId, String matchId, String decision) {
         return requests.decide(providerUserId, matchId, decision);
     }
+    public RequestPayloads.InboxItem answer(PlugPrincipal caller, String matchId, String decision) {
+        return requests.answer(caller, matchId, decision);
+    }
 }
