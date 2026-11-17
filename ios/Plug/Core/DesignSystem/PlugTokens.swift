@@ -404,6 +404,8 @@ struct FlatToolbarButton: ViewModifier {
     @ScaledMetric(relativeTo: .body) private var glyph: CGFloat = PlugTokens.TypeSize.title3
 
     @ViewBuilder func body(content: Content) -> some View {
+        // CI builds with Xcode 16 (iOS 18 SDK), which has no sharedBackgroundVisibility.
+        #if compiler(>=6.2)
         if #available(iOS 26, *) {
             content.toolbar {
                 ToolbarItem(placement: .topBarTrailing) { button }
@@ -414,6 +416,11 @@ struct FlatToolbarButton: ViewModifier {
                 ToolbarItem(placement: .topBarTrailing) { button }
             }
         }
+        #else
+        content.toolbar {
+            ToolbarItem(placement: .topBarTrailing) { button }
+        }
+        #endif
     }
 
     private var button: some View {
