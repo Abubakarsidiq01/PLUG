@@ -46,9 +46,30 @@ Install from the repository root:
 
 ```sh
 npm ci --prefix tools/bruno --ignore-scripts --no-audit --no-fund
-node --test tools/bruno/compatibility.test.cjs
-npm audit --prefix tools/bruno --audit-level high
+node --test tools/bruno/compatibility.test.cjs tools/bruno/audit-gate.test.cjs
+npm audit --prefix tools/bruno --json | node tools/bruno/audit-gate.cjs
 ```
+
+`tools/bruno/audit-gate.cjs` fails on any high or critical advisory except the
+exception below. It also fails if npm audit returns no report.
+
+### Audit exception: GHSA-fc5q-39xc-vjpf (picomatch)
+
+- Advisory: [GHSA-fc5q-39xc-vjpf](https://github.com/advisories/GHSA-fc5q-39xc-vjpf),
+  high, ReDoS in picomatch through 4.0.7. No patched release exists.
+- Path: `@usebruno/cli` 4.3.0, then `@usebruno/converters` 0.25.0, then
+  `jscodeshift` 17.4.0, then `picomatch` 4.0.7. jscodeshift 17.3.0 uses
+  micromatch, whose picomatch 2.x is also affected.
+- Not reachable: Bruno uses jscodeshift's core API (`index.js`, then
+  `src/core.js`). picomatch is loaded only by `src/ignoreFiles.js`, which only
+  jscodeshift's CLI Runner uses. Bruno does not run that Runner.
+- Approved by the owner on 2026-11-17. Review on 2026-12-01.
+- Remove when picomatch ships a patched release. Then delete the ID from
+  `ALLOWED` in `tools/bruno/audit-gate.cjs` and this section.
+
+The same change pins rimraf 6.1.4, glob 14.0.3 and minimatch 11.0.3 through
+overrides. These clear the moderate advisories GHSA-3g3m-2fjr-6pw4 (glob) and
+GHSA-g3hv-75wg-m249 (minimatch) on the google-gax and gaxios rimraf path.
 
 Run API checks from `tests/api` with the backend running:
 
