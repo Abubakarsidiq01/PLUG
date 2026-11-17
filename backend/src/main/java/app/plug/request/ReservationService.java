@@ -36,6 +36,9 @@ public class ReservationService {
     public RequestPayloads.Offer sendOffer(PlugPrincipal caller, String requestId, String key, RequestPayloads.OfferCreate offer) {
         return requests.sendOffer(caller, requestId, key, offer);
     }
+    public RequestPayloads.InboxItem decline(PlugPrincipal caller, String matchId, String reason) {
+        return requests.decline(caller, matchId, reason);
+    }
     public RequestPayloads.InboxItem answer(PlugPrincipal caller, String matchId, String decision) {
         return requests.answer(caller, matchId, decision);
     }

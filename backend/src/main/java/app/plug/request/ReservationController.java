@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-/// Contract 0.7.0 selectOffer, getProviderInbox and registerDevice, and 0.7.1 answerReservation and sendProviderOffer. With
+/// Contract 0.7.0 selectOffer, getProviderInbox and registerDevice, 0.7.1 answerReservation and sendProviderOffer, and declineMatch. With
 /// the provider inbox off there is no handler, so every route here is 404.
 @RestController
 @ConditionalOnExpression("${plug.requests-v2.enabled:false} and ${plug.provider-inbox.enabled:false}")
@@ -112,6 +112,19 @@ public class ReservationController {
             throw ApiException.validation("environment", "invalid", "Choose sandbox or production.");
         }
         service.registerDevice(caller);
+    }
+    @PostMapping("/v1/providers/me/inbox/{matchId}/decline")
+    RequestPayloads.InboxItem decline(@AuthenticationPrincipal PlugPrincipal caller, @PathVariable String matchId,
+            @RequestBody(required = false) JsonNode body) {
+        // MatchDecline: no body, or an object with at most reason, one of the listed values.
+        if (body != null && (!body.isObject() || body.size() > (body.has("reason") ? 1 : 0))) {
+            throw ApiException.validation("body", "invalid", "Send only a reason.");
+        }
+        JsonNode reason = body == null ? null : body.get("reason");
+        if (reason != null && (!reason.isTextual() || !List.of("busy", "too_far", "price", "not_my_skill", "other").contains(reason.asText()))) {
+            throw ApiException.validation("reason", "invalid", "Choose one of the listed reasons.");
+        }
+        return service.decline(caller, matchId, reason == null ? null : reason.asText());
     }
     @PostMapping("/v1/providers/me/inbox/{matchId}/reservation")
     RequestPayloads.InboxItem answer(@AuthenticationPrincipal PlugPrincipal caller, @PathVariable String matchId,

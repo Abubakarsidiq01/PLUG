@@ -296,13 +296,11 @@ public class RequestService {
             if (matched.isEmpty()) throw ApiException.notFound("Request not found.");
             // Request first, then match: the same order every request-level writer uses.
             jdbc.queryForList("SELECT id FROM requests WHERE id=? FOR UPDATE", id);
-            var match = jdbc.queryForMap("SELECT distance_m,replied_at FROM request_matches WHERE match_id=? FOR UPDATE",
+            var match = jdbc.queryForMap("SELECT distance_m,declined_at FROM request_matches WHERE match_id=? FOR UPDATE",
                     matched.getFirst());
             expire(id);
-            boolean offered = jdbc.queryForObject("SELECT count(*) FROM request_offers WHERE request_id=? AND provider_id=?"
-                    + " AND source='portal'", Integer.class, id, caller.userId()) > 0;
-            // shortcut: nothing writes a decline until P3.S12; a reply with no offer is one.
-            if (!LIVE.contains(status(id)) || (match.get("replied_at") != null && !offered)) {
+            // A declined match is closed to this provider (contract 0.7.1 declineMatch).
+            if (!LIVE.contains(status(id)) || match.get("declined_at") != null) {
                 throw stateConflict("request_id", "request_closed", "This request has closed.");
             }
             Constraints c = read(id).constraints();
@@ -333,6 +331,51 @@ public class RequestService {
             return result;
         });
     }
+    /// Contract 0.7.1 declineMatch. Free and recorded as a reply, never a penalty: replied_at is set
+    /// with the decline. Account, then request, then match: the common lock order.
+    RequestPayloads.InboxItem decline(PlugPrincipal caller, String matchId, String reason) {
+        requireCaller(caller);
+        // Before the match lookup, so probing match ids spends the caller's budget.
+        if (!limiter.tryConsume("decline:" + caller.userId(), 30, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
+        if (matchId == null || matchId.length() > 64 || !matchId.matches("mat_[A-Za-z0-9-]+")) throw ApiException.notFound("Match not found.");
+        return transaction.execute(ignored -> {
+            lockAccount(caller);
+            // shortcut: ProviderProfile.standing is not stored yet, so no provider is suspended (403
+            // suspended); refuse suspended providers here once the admin standing route stores it.
+            var match = jdbc.queryForList("SELECT request_id FROM request_matches WHERE match_id=? AND provider_id=?",
+                    String.class, matchId, caller.userId());
+            if (match.isEmpty()) throw ApiException.notFound("Match not found.");
+            String id = match.getFirst();
+            jdbc.queryForList("SELECT id FROM requests WHERE id=? FOR UPDATE", id);
+            var row = jdbc.queryForMap("SELECT declined_at FROM request_matches WHERE match_id=? FOR UPDATE", matchId);
+            // Declining again returns the first decline unchanged.
+            if (row.get("declined_at") != null) return inboxItem(caller.userId(), matchId);
+            expire(id);
+            boolean offered = jdbc.queryForObject("SELECT count(*) FROM request_offers WHERE request_id=? AND provider_id=?",
+                    Integer.class, id, caller.userId()) > 0;
+            if (offered || !LIVE.contains(status(id))) throw stateConflict("match_id", "request_closed", "This request has closed.");
+            Instant now = clock.instant();
+            jdbc.update("UPDATE request_matches SET declined_at=?,replied_at=?,decline_reason=? WHERE match_id=?",
+                    time(now), time(now), reason, matchId);
+            return inboxItem(caller.userId(), matchId);
+        });
+    }
+    /// The facts responsiveness rests on (manual v4 §12C.2, ScoreComponent.basis): matches answered
+    /// (an offer or a decline) and matches left silent (MatchStatus expired). Nothing else counts.
+    record Responsiveness(int answered, int silent) {}
+    /// shortcut: reads every match through inboxItem, one provider at a time; P3.S13 can move this
+    /// into one query if scoring many providers at once needs it.
+    Responsiveness responsiveness(String provider) {
+        return transaction.execute(ignored -> {
+            int answered = 0;
+            int silent = 0;
+            for (var row : jdbc.queryForList("SELECT match_id,replied_at FROM request_matches WHERE provider_id=?", provider)) {
+                if (row.get("replied_at") != null) answered++;
+                else if (inboxItem(provider, (String) row.get("match_id")).status().equals("expired")) silent++;
+            }
+            return new Responsiveness(answered, silent);
+        });
+    }
     /// Contract 0.7.1 getProviderInbox: open items first, then the last seven days, newest first, at
     /// most 50. Only the caller's own matches; a caller with no provider profile is 404.
     RequestPayloads.ProviderInbox inbox(PlugPrincipal caller) {
@@ -360,12 +403,12 @@ public class RequestService {
     private static final Duration REPLY_WINDOW = Duration.ofMinutes(5);
     /// The provider's view of one match: never the asker's words, location or identity.
     RequestPayloads.InboxItem inboxItem(String provider, String matchId) {
-        MatchRow match = jdbc.queryForObject("SELECT m.request_id,m.distance_m,m.notified_at,m.replied_at,r.status,r.updated_at,"
+        MatchRow match = jdbc.queryForObject("SELECT m.request_id,m.distance_m,m.notified_at,m.declined_at,r.status,r.updated_at,r.expires_at,"
                 + "c.service_name,c.skill_tags,c.budget_cents,c.currency,c.needed_by FROM request_matches m"
                 + " JOIN requests r ON r.id=m.request_id JOIN request_constraints c ON c.request_id=m.request_id"
                 + " WHERE m.match_id=? AND m.provider_id=?", (rs, row) -> new MatchRow(rs.getString("request_id"),
-                        rs.getInt("distance_m"), instant(rs, "notified_at"), instant(rs, "replied_at"), rs.getString("status"),
-                        instant(rs, "updated_at"), rs.getString("service_name"),
+                        rs.getInt("distance_m"), instant(rs, "notified_at"), instant(rs, "declined_at"), rs.getString("status"),
+                        instant(rs, "updated_at"), instant(rs, "expires_at"), rs.getString("service_name"),
                         List.of((String[]) rs.getArray("skill_tags").getArray()), (Integer) rs.getObject("budget_cents"),
                         rs.getString("currency"), instant(rs, "needed_by")), matchId, provider);
         String requestId = match.requestId();
@@ -403,29 +446,35 @@ public class RequestService {
             default -> throw new IllegalStateException("Unknown reservation status");
         } : offer != null ? (request.equals("canceled") ? "closed"
                 : live && offer.expiresAt().isAfter(now) ? "offered" : "not_chosen")
-        // shortcut: nothing records a decline yet (P3.S12); a reply without an offer is one.
-        : match.repliedAt() != null ? "declined"
+        // A decline is a reply, never silence, whatever the request did afterwards.
+        : match.declinedAt() != null ? "declined"
         // Silent so far. Whether the reply window closed before the request did decides silence.
-        : silentStatus(requestId, provider, request, match.updatedAt(), respondBy, now);
+        : silentStatus(requestId, provider, request, match.updatedAt(), match.expiresAt(), respondBy, now);
         return new RequestPayloads.InboxItem(matchId, requestId, status, match.serviceName(), match.skillTags(),
                 match.budgetCents(), match.currency(), match.neededBy(), roundedDistance(match.distanceM()),
                 respondBy, match.notifiedAt(), offer, reservation);
     }
     /// MatchStatus for a provider who neither offered nor replied (contract 0.7.1).
-    private String silentStatus(String requestId, String provider, String request, Instant updatedAt, Instant respondBy, Instant now) {
+    private String silentStatus(String requestId, String provider, String request, Instant updatedAt, Instant expiresAt,
+            Instant respondBy, Instant now) {
         // When the asker first chose someone else's offer: exact, from the reservation.
         Timestamp chosen = jdbc.queryForObject("SELECT min(created_at) FROM request_reservations WHERE request_id=?"
                 + " AND provider_id IS DISTINCT FROM ?", Timestamp.class, requestId, provider);
         if (chosen != null) return chosen.toInstant().isBefore(respondBy) ? "not_chosen" : "expired";
         // Canceled is terminal and only transition() writes updated_at, so it is the cancel time.
         if (request.equals("canceled")) return updatedAt.isBefore(respondBy) ? "closed" : "expired";
-        // shortcut: expired (and blocked) are set lazily, so no end time is recorded; such a match is
-        // closed rather than counted as silence. Record the end time if P3.S12 scores silence from it.
+        // Expiry is lazy, so updated_at is when someone looked; the request ended no later than that or
+        // its deadline. Ended inside the window is closed. shortcut: a ranked request whose offers ran
+        // out is expired only when next read, so a slow worker can count that late look as silence.
+        if (request.equals("expired")) {
+            Instant ended = expiresAt.isBefore(updatedAt) ? expiresAt : updatedAt;
+            return ended.isBefore(respondBy) ? "closed" : "expired";
+        }
         if (!List.of("submitted", "routed", "awaiting_responses", "ranked").contains(request)) return "closed";
         return now.isBefore(respondBy) ? "open" : "expired";
     }
-    private record MatchRow(String requestId, int distanceM, Instant notifiedAt, Instant repliedAt, String requestStatus,
-            Instant updatedAt, String serviceName, List<String> skillTags, Integer budgetCents, String currency, Instant neededBy) {}
+    private record MatchRow(String requestId, int distanceM, Instant notifiedAt, Instant declinedAt, String requestStatus,
+            Instant updatedAt, Instant expiresAt, String serviceName, List<String> skillTags, Integer budgetCents, String currency, Instant neededBy) {}
     private static int roundedDistance(int metres) { return (int) Math.min(80_000, Math.round(metres / 100.0) * 100); }
     /// Release or timeout: the offer is withdrawn and the asker gets the other live offers back.
     private void endReservation(String id, String reservationId, String offerId, String outcome, Instant endedAt) {
