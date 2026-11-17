@@ -49,6 +49,8 @@ struct ProviderOnboardingView: View {
                     Text("Tell people nearby what you do.")
                         .plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
                         .fixedSize(horizontal: false, vertical: true)
+                    // Honest about what is not live yet: matching uses these settings, delivery does not exist.
+                    caption("Your settings are saved for matching. Inbox delivery and booking are not available yet.")
                     describeStep.marketCard()
                     if !proposed.isEmpty || !unmatched.isEmpty || !ownSkills.isEmpty { skillsStep }
                     if hasSkills {
