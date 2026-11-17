@@ -44,16 +44,11 @@ struct ProviderOnboardingView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    HStack(alignment: .top, spacing: PlugTokens.Space.s2) {
-                        // The sheet's name is in the navigation bar, so it stays visible however far the
-                        // sheet is scrolled; at the largest sizes a header title went under Cancel.
-                        Text("Tell people nearby what you do.")
-                            .plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Spacer(minLength: 0)
-                        TestModeTab(lines: [AskView.previewNote,
-                                            "Private test. Your settings are saved for matching. Inbox delivery and booking are not available yet."])
-                    }
+                    // The sheet's name is in the navigation bar, so it stays visible however far the
+                    // sheet is scrolled; at the largest sizes a header title went under Cancel.
+                    Text("Tell people nearby what you do.")
+                        .plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
+                        .fixedSize(horizontal: false, vertical: true)
                     describeStep.marketCard()
                     if !proposed.isEmpty || !unmatched.isEmpty || !ownSkills.isEmpty { skillsStep }
                     if hasSkills {
@@ -541,6 +536,7 @@ struct InboxView: View {
                             .plugText(.body).fontWeight(.semibold).foregroundStyle(PlugTokens.Color.ink900)
                     }
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+                        IllustrationTile(name: "IllInbox", size: 88)
                         Text("No requests here yet")
                             .plugText(.title)
                         Text("Your skills and hours are saved. Receiving and replying to requests here is coming in a future update.")

@@ -213,15 +213,12 @@ private extension View {
     }
 }
 
-/// A serif page title with the test-mode tag at the right.
+/// A serif page title.
 struct PageTitle: View {
     let title: String
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(title).plugText(.hero).accessibilityAddTraits(.isHeader)
-            Spacer(minLength: PlugTokens.Space.s2)
-            TestModeTab(lines: [AskView.previewNote])
-        }
+        Text(title).plugText(.hero).accessibilityAddTraits(.isHeader)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -235,6 +232,7 @@ private struct ActivityView: View {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     PageTitle(title: "Activity")
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+                        IllustrationTile(name: "IllActivity", size: 88)
                         Text("Your asks, in one place")
                             .plugText(.title)
                             .fixedSize(horizontal: false, vertical: true)

@@ -30,7 +30,9 @@ struct AskView: View {
     private enum Page: Hashable { case answer }
     private let service: RequestServing
     private let onProviderChange: (ProviderProfile) -> Void
-    static let previewNote = "Private preview. Offers are examples. Booking isn’t available yet."
+    /// The one disclosure left from the preview: shown only where example (seed) offers appear.
+    static let exampleNote = "Example offers for preview. Booking isn’t available yet."
+    @State private var tileTaps = 0
 
     init(service: RequestServing, onProviderChange: @escaping (ProviderProfile) -> Void = { _ in }) {
         self.service = service
@@ -92,6 +94,10 @@ struct AskView: View {
             VStack(alignment: .leading, spacing: PlugTokens.Space.s8) {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     masthead
+                    StreetHero(asking: stillAsking)
+                        .padding(.top, PlugTokens.Space.s4)
+                        .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugShape.illustration, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: PlugShape.illustration, style: .continuous))
                     homeTitle
                     if !stillAsking { composer }
                     failure
@@ -116,13 +122,12 @@ struct AskView: View {
         }
     }
 
-    /// PLUG on the left, the test-mode tag on the right, on cream.
+    /// PLUG on cream.
     private var masthead: some View {
         HStack(alignment: .center) {
             // One logotype everywhere, the app and the website (owner decision, 2026-10-08).
             PlugLogotype(size: PlugTokens.Layout.logo)
             Spacer()
-            TestModeTab(lines: [Self.previewNote])
         }
         .padding(.top, PlugTokens.Space.s1)
     }
@@ -177,12 +182,31 @@ struct AskView: View {
             .padding(.leading, PlugTokens.Space.s4)
             .padding(.trailing, PlugTokens.Space.s2)
             .background(PlugTokens.Color.sunk, in: shape)
+            .opacity(sending ? 0.55 : 1)
+            .scaleEffect(sending && !reduceMotion ? 0.98 : 1, anchor: .bottom)
+            .animation(.plugSheet(reduceMotion: reduceMotion), value: sending)
             .overlay(shape.strokeBorder(textFocused ? PlugTokens.Color.brandGreen : .clear, lineWidth: 1.5))
             .animation(reduceMotion ? nil : .easeOut(duration: PlugTokens.Motion.fast), value: textFocused)
-            Button { ask() } label: { Text("Ask people nearby") }
+            Button { ask() } label: {
+                // The words give way to a small progress while the ask goes out.
+                ZStack {
+                    Text("Ask people nearby").opacity(sending ? 0 : 1)
+                    if sending {
+                        HStack(spacing: PlugTokens.Space.s2) {
+                            ProgressView().tint(PlugTokens.Color.paper).controlSize(.small)
+                            Text("Sending")
+                        }
+                        .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 6)))
+                    }
+                }
+                .animation(.plugSheet(reduceMotion: reduceMotion), value: sending)
+            }
                 .buttonStyle(PlugButtonStyle(kind: .primary))
                 .accessibilityIdentifier("ask-submit")
-                .disabled(model.isWorking || location.isWorking)
+                .accessibilityLabel(sending ? "Sending" : "Ask people nearby")
+                .disabled((model.isWorking || location.isWorking) && !sending)
+                .allowsHitTesting(!sending)
+                .sensoryFeedback(.impact(weight: .medium), trigger: sending) { _, now in now }
             if let note = voice.message { caption(note) }
             if showValidation, let error = model.textError { fieldError(error) }
             locationNote
@@ -194,11 +218,11 @@ struct AskView: View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s8) {
             if !stillAsking {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                    // (title, photo, example it fills, test identifier). Each only fills the field.
-                    let categories = [("Hair & beauty", "PhotoBarber", Example.services[1], "ask-example-barber"),
-                                      ("Home help", "PhotoHomeHelp", Example.services[2], "ask-example-home"),
-                                      ("Tech", "PhotoTech", "I need help repairing my laptop", "ask-example-tech"),
-                                      ("Places", "PhotoPlaces", Example.places[0], "ask-example-places")]
+                    // (title, illustration, example it fills, test identifier). Each only fills the field.
+                    let categories = [("Hair & beauty", "IllHairBeauty", Example.services[1], "ask-example-barber"),
+                                      ("Home help", "IllHomeHelp", Example.services[2], "ask-example-home"),
+                                      ("Tech", "IllTech", "I need help repairing my laptop", "ask-example-tech"),
+                                      ("Places", "IllPlaces", Example.places[0], "ask-example-places")]
                     Text("Start with an example").plugText(.title2).accessibilityAddTraits(.isHeader)
                     // Four across, two at accessibility sizes. Not a lazy grid: a lazy one drops tiles
                     // out of view, and the tests find them by id.
@@ -215,14 +239,14 @@ struct AskView: View {
             VStack(spacing: 0) {
                 PlugDivider()
                 if !stillAsking {
-                    featureRow(photo: "PhotoStreet", title: "Know before you go",
+                    featureRow(art: "IllKnowBefore", title: "Know before you go",
                                line: "Ask people near a place how busy it is right now.", id: "ask-example-place",
                                hint: "Fills a question about a place. Nothing is sent yet.") {
                         fillExample(Example.places[0])
                     }
                     PlugDivider()
                 }
-                featureRow(photo: "PhotoTailor", title: "Do you offer a service?",
+                featureRow(art: "IllOfferService", title: "Do you offer a service?",
                            line: "Add your skills, hours and how far you travel.", id: "offer-service",
                            label: "Offer a service") {
                     offeringService = true
@@ -233,24 +257,24 @@ struct AskView: View {
         .foregroundStyle(PlugTokens.Color.ink900)
     }
 
-    /// (title, photo, example it fills, identifier): a small rounded-square thumbnail with its
-    /// label below, like a service catalogue. The tile whose example is in the field has a brass
-    /// ring.
+    /// (title, illustration, example it fills, identifier): an illustration on a sand tile with
+    /// its label below, like a service catalogue. The tile whose example is in the field has a
+    /// brass ring. A press settles to 0.97 with a light tap.
     private func categoryTile(_ category: (String, String, String, String)) -> some View {
         let chosen = model.text == category.2
-        let shape = RoundedRectangle(cornerRadius: PlugShape.control, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: PlugShape.illustration + 3, style: .continuous)
         // The label sits outside the button and repeats its name, so the accessibility audit
-        // reads the text against the cream, not against the photo above it.
+        // reads the text against the cream, not against the art above it.
         return VStack(spacing: PlugTokens.Space.s2) {
-            Button { fillExample(category.2) } label: {
-                Image(category.1).resizable().scaledToFill()
-                    .frame(width: thumbnail, height: thumbnail)
-                    .clipShape(shape)
+            Button { tileTaps += 1; fillExample(category.2) } label: {
+                IllustrationTile(name: category.1)
                     .padding(3)
                     .overlay(shape.strokeBorder(PlugTokens.Color.brandBrass, lineWidth: 2).opacity(chosen ? 1 : 0))
+                    .animation(.plug(reduceMotion: reduceMotion), value: chosen)
                     .contentShape(Rectangle())
             }
-            .buttonStyle(PlugPressStyle())
+            .buttonStyle(PlugPressStyle(scale: 0.97))
+            .sensoryFeedback(.impact(weight: .light), trigger: tileTaps)
             .disabled(model.isWorking)
             .accessibilityLabel(category.0)
             .accessibilityIdentifier(category.3)
@@ -266,17 +290,14 @@ struct AskView: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// A compact row: a small thumbnail, a serif title, one line, and a chevron. The thumbnail
-    /// sits beside the button, so the audit reads the words against the cream.
-    private func featureRow(photo: String, title: String, line: String, id: String,
+    /// A compact row: a small illustration tile, a serif title, one line, and a chevron. The
+    /// tile sits beside the button, so the audit reads the words against the cream.
+    private func featureRow(art: String, title: String, line: String, id: String,
                             label: String? = nil, hint: String = "",
                             action: @escaping () -> Void) -> some View {
         HStack(alignment: .center, spacing: PlugTokens.Space.s4) {
-            Image(photo).resizable().scaledToFill()
-                .frame(width: thumbnail, height: thumbnail)
-                .clipShape(RoundedRectangle(cornerRadius: PlugShape.control, style: .continuous))
+            IllustrationTile(name: art, size: thumbnail)
                 .onTapGesture { if !model.isWorking { action() } }
-                .accessibilityHidden(true)
             Button(action: action) {
                 HStack(alignment: .center, spacing: PlugTokens.Space.s3) {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
@@ -312,6 +333,8 @@ struct AskView: View {
     }
 
     private var stillAsking: Bool { model.hasActiveAsk }
+    /// The ask is on its way: submitting, or waiting for the location it needs first.
+    private var sending: Bool { (model.isWorking && !model.hasAsk) || askWhenLocated }
 
     /// Shown after swiping back from a request that is still asking people.
     private var resumeCard: some View {
@@ -366,6 +389,7 @@ struct AskView: View {
     }
 
     private func ask() {
+        guard !sending else { return }
         showValidation = true
         voice.stop()
         textFocused = false
@@ -469,17 +493,16 @@ struct AskView: View {
     /// being asked between hairlines.
     private var answerBand: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            HStack(alignment: .center) {
-                Overline("Your request")
-                Spacer()
-                TestModeTab(lines: [Self.previewNote])
-            }
+            Overline("Your request")
             Text(askedText).plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
             if let status = bandStatus {
-                Text(status).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
-                    .fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .firstTextBaseline, spacing: PlugTokens.Space.s2) {
+                    AskingPulse()
+                    Text(status).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             if model.isCached {
                 Label("Saved result. Refresh to check it is still current.", systemImage: "clock.arrow.circlepath")
@@ -595,6 +618,7 @@ struct AskView: View {
                 Text("\(model.offers.count) \(model.offers.count == 1 ? "offer" : "offers")")
                     .plugText(.hero).monospacedDigit()
                 Text(offersTitle(request)).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                if model.offers.contains(where: { $0.source == .seed }) { caption(Self.exampleNote) }
             }
             if model.offers.count > 1 {
                 PlugFlowLayout(spacing: PlugTokens.Space.s2) {
@@ -898,18 +922,10 @@ private struct OfferDetailView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                        // The test-mode tag shares the name's line, so the first screen of the sheet
-                        // holds the name, any notice and the price.
-                        HStack(alignment: .firstTextBaseline, spacing: PlugTokens.Space.s2) {
-                            Text(offer.businessName).plugText(.display)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Spacer(minLength: 0)
-                            if offer.source == .seed {
-                                TestModeTab(lines: ["Demo offer. Booking isn’t available yet.",
-                                                    "Demo data for private testing. This is not a real offer and nothing is booked."])
-                            }
-                        }
+                        Text(offer.businessName).plugText(.display)
+                            .fixedSize(horizontal: false, vertical: true)
                         Text(offer.serviceName).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
+                        if offer.source == .seed { caption("Example offer for preview. Nothing is booked.") }
                         if let line = scoreText(offer.providerScore) {
                             Text(line).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
                         }
@@ -1220,5 +1236,24 @@ final class VoiceDictation: ObservableObject {
         task = nil
         isListening = false
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    }
+}
+
+/// A small green dot with one ring breathing out of it, beside "Asking ... nearby". The only
+/// looping motion in the app; still under Reduce Motion.
+private struct AskingPulse: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var out = false
+    var body: some View {
+        Circle().fill(PlugTokens.Color.brandGreen).frame(width: 8, height: 8)
+            .background {
+                Circle().stroke(PlugTokens.Color.brandGreen, lineWidth: 1)
+                    .scaleEffect(out ? 2.6 : 1).opacity(out ? 0 : 0.7)
+            }
+            .onAppear {
+                guard !reduceMotion else { return }
+                withAnimation(.easeOut(duration: 1.8).repeatForever(autoreverses: false)) { out = true }
+            }
+            .accessibilityHidden(true)
     }
 }

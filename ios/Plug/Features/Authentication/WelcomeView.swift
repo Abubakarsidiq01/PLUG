@@ -91,11 +91,15 @@ struct WelcomeView: View {
         return (Bundle.main.object(forInfoDictionaryKey: "PlugPhoneSignInEnabled") as? String) == "YES"
     }
 
-    /// A real photo of someone nearby at work across the top, then the logotype, what PLUG does
-    /// in the serif, and the tested tagline.
+    /// The illustrated street across the top on sand (the same art as Home, so the app reads as
+    /// one place), then the logotype, what PLUG does in the serif, and the tested tagline.
     private var header: some View {
         VStack(alignment: .leading, spacing: 0) {
-            PlugPhoto(name: "PhotoBarista", height: 340, focus: .center)
+            StreetHero()
+                .frame(maxWidth: AuthLayout.contentWidth)
+                .padding(.top, PlugTokens.Space.s12)
+                .frame(maxWidth: .infinity)
+                .background(PlugTokens.Color.sunk.ignoresSafeArea(edges: .top))
             VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
                 PlugLogotype(size: PlugTokens.Layout.logo).accessibilityAddTraits(.isHeader)
                     .padding(.bottom, PlugTokens.Space.s2)

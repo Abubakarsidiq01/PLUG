@@ -1,41 +1,49 @@
-# Photo credits (iOS app)
+# Photo and illustration credits (iOS app)
 
-Every photograph in `ios/Plug/Resources/Assets.xcassets/Photo*.imageset` is a real photograph
-taken by the person named below. None is AI-generated. Each was downloaded from its Unsplash page
-at 1200 px, then resized and recompressed with `sips` (max 1200 px long edge, JPEG quality 66, under 250 KB).
-No other edits were made.
+## Photos
 
-All are used under the [Unsplash License](https://unsplash.com/license): free to use, including
-commercially, with no permission needed. Attribution is not required; we give it anyway. The
-license does not allow selling the photos unaltered or using them to build a competing service.
+The iOS app ships no photographs. On 2026-11-17 the owner asked for illustrations instead of
+photos, the way service apps such as Uber and Lyft present their categories, and every
+`Photo*.imageset` was removed from `ios/Plug/Resources/Assets.xcassets`:
 
-The photos are decorative. They are never shown as a provider's own work, on an offer, or as
-proof of anything a provider or place claims.
+| Removed asset | Was | Replaced by |
+| --- | --- | --- |
+| PhotoBarber | Unsplash, Obi (@obionyeador) | IllHairBeauty |
+| PhotoHomeHelp | Unsplash, Annie Gray (@anniegray) | IllHomeHelp |
+| PhotoTech | Unsplash, Samsung Memory (@samsungmemory) | IllTech |
+| PhotoPlaces | Unsplash, Dale Honeycutt (@cdaleh) | IllPlaces |
+| PhotoStreet | Unsplash, Daniel (@unsplashbydan) | IllKnowBefore |
+| PhotoTailor | Unsplash, Nathan Dumlao (@nate_dumlao) | IllOfferService |
+| PhotoBarista | Unsplash, Brooke Cagle (@brookecagle) | IllHeroStreet with IllHeroPin (Welcome) |
 
-PLUG is tested in Austin, Texas, so every photo shows an American setting or a setting that
-does not read as anywhere in particular. On 2026-11-16 eight photos set in Lagos, Dar es Salaam
-and other non-US places were replaced. PLUG is a service app, so photos are rare: one large
-photo on Welcome and small thumbnails in the Ask service grid. Results, offers, Activity,
-Profile, Inbox and empty states show no stock photos. PhotoBraids and PhotoShopFront were
-removed from the asset catalogue when their empty states lost their photos.
+Earlier removals: `PhotoBraids` and `PhotoShopFront` (2026-11-16), and the AI-generated
+`AskBarber` and `ServiceConnection`.
 
-| Asset | Subject (as the source page describes it) | Photographer | Source page | Where it appears |
-| --- | --- | --- | --- | --- |
-| PhotoBarber | Man cutting hair (Virginia, USA) | Obi (@obionyeador) | https://unsplash.com/photos/man-cutting-hair-man--sRVfY0f2d8 | Ask home, "Hair & beauty" thumbnail |
-| PhotoHomeHelp | Man standing in front of a miter saw, in a house | Annie Gray (@anniegray) | https://unsplash.com/photos/man-standing-infront-of-miter-saw-WEWTGkPUVT0 | Ask home, "Home help" thumbnail |
-| PhotoTech | A person working on a laptop with a screwdriver | Samsung Memory (@samsungmemory) | https://unsplash.com/photos/a-person-working-on-a-laptop-with-a-screwdriver-6RcDLyy0s1I | Ask home, "Tech" thumbnail |
-| PhotoPlaces | The Texas State Capitol in Austin (Austin, TX, USA) | Dale Honeycutt (@cdaleh) | https://unsplash.com/photos/UnRQMowT5rM | Ask home, "Places" thumbnail |
-| PhotoStreet | A group of people sitting at tables under umbrellas (Austin, TX, USA) | Daniel (@unsplashbydan) | https://unsplash.com/photos/a-group-of-people-sitting-at-tables-under-umbrellas-8aE2acBzTlw | Ask home, "Know before you go" thumbnail |
-| PhotoTailor | A barista in a plaid shirt and apron using a tablet at a wooden counter | Nathan Dumlao (@nate_dumlao) | https://unsplash.com/photos/barista-using-tablet-in-coffee-shop-X_bbCAYzlTs | Ask home, "Do you offer a service?" thumbnail |
-| PhotoBarista | Man in blue and white plaid dress shirt standing in front of table (coffee shop) | Brooke Cagle (@brookecagle) | https://unsplash.com/photos/man-in-blue-and-white-plaid-dress-shirt-standing-in-front-of-table-UYaBqDP6JoY | Welcome screen, the one large photo |
+## Illustrations
 
-The asset names are older than the photos (PhotoTailor now shows a café owner); they were kept so
-no code had to change. Small product markings remain on two photos:
-a tool maker's name on the saw in PhotoHomeHelp and a model number on the drive in PhotoTech.
-Neither is legible at the size the app shows them.
+Every illustration is original work drawn for PLUG by hand as SVG. None is stock art, traced
+from another product, or AI-generated. Sources live in `design/illustrations/`; each asset
+catalogue imageset holds an exact copy of its source SVG with `preserves-vector-representation`
+on, so the art stays sharp at every size and Dynamic Type setting.
 
-Removed: `AskBarber` and `ServiceConnection` were AI-generated images. They were not referenced by
-any Swift file and have been deleted from the asset catalogue.
+Style rules, so new art matches: PLUG palette only (cream #FFF4EC and #FFFBF7, sand #F1E6D8,
+#E4D3BE and #D6C1A6, espresso #2B1D14, #4A3628 and #1A110B, forest #1F4D3A, #2E6A51 and
+#163829, brass #A9793A, #C79A5B and #87602C); flat fills, no gradients, no outlines except
+window frames; light from the top left, so right-hand faces take the darker tone; one soft
+ground shadow ellipse in #E4D3BE; 96 x 96 viewBox for tiles.
 
-When adding a photo: take it from a free Unsplash License or Pexels License page (not Unsplash+),
-copy the photographer and URL from that page exactly, and add a row here in the same change.
+| Asset | Source | Where it appears |
+| --- | --- | --- |
+| IllHairBeauty | `design/illustrations/hair-beauty.svg` (scissors and comb) | Ask home, "Hair & beauty" tile |
+| IllHomeHelp | `home-help.svg` (toolbox, wrench, hammer) | Ask home, "Home help" tile |
+| IllTech | `tech.svg` (cracked phone, screwdriver) | Ask home, "Tech" tile |
+| IllPlaces | `places.svg` (storefront, map pin) | Ask home, "Places" tile |
+| IllKnowBefore | `know-before.svg` (clock over a queue line) | Ask home, "Know before you go" row |
+| IllOfferService | `offer-service.svg` (apron with a price tag) | Ask home, "Do you offer a service?" row |
+| IllHeroStreet | `hero-street.svg` (a street of local businesses, a van arriving) | Ask home header, Welcome header |
+| IllHeroPin | `hero-pin.svg` (brass map pin) | Drops onto the cafe in the street, once |
+| IllActivity | `activity.svg` (clipboard) | Activity empty state |
+| IllInbox | `inbox.svg` (envelope) | Provider Inbox empty state |
+
+The illustrations are decorative. VoiceOver skips them, and they are never shown as a
+provider's own work, on an offer, or as proof of anything a provider or place claims.

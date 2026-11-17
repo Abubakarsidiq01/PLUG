@@ -25,6 +25,8 @@ enum PlugShape {
     static let sheet = PlugTokens.Radius.sheet
     static let rule: CGFloat = 1
     static let buttonHeight: CGFloat = 52
+    /// Illustration tiles: softer than cards so the art reads as an object, not a panel.
+    static let illustration: CGFloat = 12
 }
 
 // MARK: - Type
@@ -377,17 +379,19 @@ struct PlugPrimaryButton: View {
 /// A photo tile or feature that settles to 0.98 when pressed; it dims a little instead under
 /// Reduce Motion.
 struct PlugPressStyle: ButtonStyle {
+    var scale: CGFloat = 0.98
     func makeBody(configuration: Configuration) -> some View {
-        PlugPressBody(configuration: configuration)
+        PlugPressBody(configuration: configuration, scale: scale)
     }
 }
 
 private struct PlugPressBody: View {
     let configuration: ButtonStyleConfiguration
+    let scale: CGFloat
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? scale : 1)
             .opacity(configuration.isPressed && reduceMotion ? 0.8 : 1)
             .animation(.plug(reduceMotion: reduceMotion), value: configuration.isPressed)
     }
@@ -633,31 +637,7 @@ extension ServiceOffer.TruthLabel {
     }
 }
 
-// MARK: - Test mode, details and toasts
-
-/// The test-mode marker: a small hairline tag in espresso text. A tap opens the full
-/// disclosure, so the sentences that used to repeat on every screen are one tap away.
-struct TestModeTab: View {
-    let lines: [String]
-    @State private var open = false
-
-    var body: some View {
-        Button { open = true } label: {
-            Text("Test mode").plugText(.label).foregroundStyle(PlugTokens.Color.ink900)
-                .lineLimit(1).fixedSize()
-                .padding(.horizontal, PlugTokens.Space.s2).padding(.vertical, PlugTokens.Space.s1)
-                .overlay(RoundedRectangle(cornerRadius: PlugTokens.Radius.badge, style: .continuous)
-                    .strokeBorder(PlugTokens.Color.ruleControl, lineWidth: PlugShape.rule))
-                .frame(minHeight: PlugTokens.minTouchTarget)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .dynamicTypeSize(...DynamicTypeSize.accessibility2)
-        .accessibilityLabel("Test mode")
-        .accessibilityHint("Explains what is a test in this build")
-        .sheet(isPresented: $open) { InfoSheet(title: "Test mode", lines: lines) }
-    }
-}
+// MARK: - Details and toasts
 
 /// The sentences or reference codes behind a tap, in a short sheet.
 struct InfoSheet: View {
@@ -746,7 +726,7 @@ private struct PlugToastModifier: ViewModifier {
                     .allowsHitTesting(false)
                 }
             }
-            .animation(reduceMotion ? .easeOut(duration: PlugTokens.Motion.fast) : .easeOut(duration: PlugTokens.Motion.base), value: message)
+            .animation(.plugSheet(reduceMotion: reduceMotion), value: message)
             .sensoryFeedback(.success, trigger: message) { _, now in now != nil }
     }
 }
@@ -894,28 +874,78 @@ extension View {
     }
 }
 
-/// A real photograph (sources in docs/design/photo-credits.md) cropped to fill a fixed height.
-/// Decorative, so VoiceOver skips it. Never used as a provider's own work or on an offer.
-struct PlugPhoto: View {
+/// One of PLUG's spot illustrations (sources in design/illustrations) centred on a sand tile
+/// with 12pt corners. Decorative, so VoiceOver skips it; the words beside it carry the meaning.
+struct IllustrationTile: View {
     let name: String
-    var height: CGFloat
-    /// Which part of the photo stays in frame when it is cropped.
-    var focus: Alignment = .center
+    /// A fixed side, or nil to fill the width offered as a square.
+    var size: CGFloat? = nil
 
     var body: some View {
-        Color.clear
-            .frame(maxWidth: .infinity)
-            .frame(height: height)
-            .overlay(alignment: focus) { Image(name).resizable().scaledToFill() }
-            .clipped()
+        Image(name).resizable().scaledToFit()
+            .padding((size ?? 72) * 0.08)
+            .frame(width: size, height: size)
+            .aspectRatio(1, contentMode: .fit)
+            .background(PlugTokens.Color.sunk, in: RoundedRectangle(cornerRadius: PlugShape.illustration, style: .continuous))
             .accessibilityHidden(true)
     }
 }
 
-extension View {
-    /// A photo's frame: square by default, or the 4pt tile corner. Never a border.
-    func photoFrame(radius: CGFloat = 0) -> some View {
-        clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+/// The illustrated street on sand. A brass pin drops onto the cafe once, the first time it
+/// appears, with one soft ring as it lands. While `asking`, the ring breathes slowly; that is
+/// the only loop. Under Reduce Motion the pin is simply there and nothing moves.
+struct StreetHero: View {
+    var asking = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var landed = false
+    @State private var ringScale: CGFloat = 0.6
+    @State private var ringOpacity = 0.0
+    // Where the pin's tip touches the cafe roof, in the artwork's 360 x 168 units.
+    private let tip = CGPoint(x: 228, y: 75)
+
+    var body: some View {
+        Image("IllHeroStreet").resizable().aspectRatio(360.0 / 168.0, contentMode: .fit)
+            .overlay {
+                GeometryReader { proxy in
+                    let unit = proxy.size.width / 360
+                    ZStack {
+                        Ellipse().strokeBorder(PlugTokens.Color.brandBrass, lineWidth: 1.5)
+                            .frame(width: 30 * unit, height: 9 * unit)
+                            .scaleEffect(ringScale).opacity(ringOpacity)
+                            .position(x: tip.x * unit, y: tip.y * unit)
+                        Image("IllHeroPin").resizable()
+                            .frame(width: 28 * unit, height: 36 * unit)
+                            .position(x: tip.x * unit, y: (tip.y - 18) * unit)
+                            .offset(y: landed ? 0 : -48 * unit)
+                            .opacity(landed ? 1 : 0)
+                    }
+                }
+            }
+            .task { await land() }
+            .onChange(of: asking) { _, now in
+                if now { breathe() } else {
+                    var still = Transaction(); still.disablesAnimations = true
+                    withTransaction(still) { ringScale = 0.6; ringOpacity = 0 }
+                }
+            }
+            .accessibilityHidden(true)
+    }
+
+    private func land() async {
+        guard !landed else { return }
+        if reduceMotion { landed = true; return }
+        try? await Task.sleep(for: .milliseconds(250))
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.62)) { landed = true }
+        try? await Task.sleep(for: .milliseconds(380))
+        ringScale = 0.6; ringOpacity = 0.9
+        withAnimation(.easeOut(duration: 1.0)) { ringScale = 2.0; ringOpacity = 0 }
+        if asking { breathe() }
+    }
+
+    private func breathe() {
+        guard !reduceMotion, landed else { return }
+        ringScale = 0.6; ringOpacity = 0.6
+        withAnimation(.easeOut(duration: 2.4).repeatForever(autoreverses: false)) { ringScale = 2.0; ringOpacity = 0 }
     }
 }
 

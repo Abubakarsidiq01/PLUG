@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+<ellipse cx="50" cy="84" rx="32" ry="4" fill="#E4D3BE"/>
+<g transform="translate(29 22) rotate(-30) scale(1.12)">
+<path d="M-3.5 -8.3 V-1.5 H3.5 V-8.3 A9 9 0 1 1 -3.5 -8.3 Z" fill="#C79A5B"/>
+<path d="M3.5 -8.3 A9 9 0 0 1 4.6 7.7 L3 8 V-1.5 H3.5 Z" fill="#A9793A"/>
+<rect x="-3.2" y="5" width="6.4" height="34" rx="3.2" fill="#C79A5B"/>
+<rect x="0.6" y="5" width="2.6" height="34" rx="1.3" fill="#A9793A"/>
+</g>
+<rect x="56" y="14" width="5" height="30" rx="2.5" fill="#4A3628" transform="translate(8 2) rotate(24 58 30)"/>
+<rect x="49" y="12" width="17" height="8" rx="2" fill="#2B1D14" transform="translate(8 2) rotate(24 58 30)"/>
+<path d="M16 46 H66 L78 38 H28 Z" fill="#2E6A51"/>
+<path d="M66 46 L78 38 V70 L66 78 Z" fill="#163829"/>
+<rect x="16" y="46" width="50" height="32" fill="#1F4D3A"/>
+<rect x="16" y="54" width="50" height="2" fill="#163829"/>
+<path d="M66 54 L78 46 V48 L66 56 Z" fill="#0F281D"/>
+<path d="M38 42 V35 Q38 31 42 31 H54 Q58 31 58 35 V42" fill="none" stroke="#2B1D14" stroke-width="3.6" stroke-linecap="round"/>
+<rect x="36.5" y="51" width="9" height="8" rx="1.6" fill="#C79A5B"/>
+<rect x="39.5" y="54" width="3" height="2" rx="1" fill="#87602C"/>
+<rect x="16" y="46" width="50" height="1.6" fill="#3B7C60"/>
+</svg>
