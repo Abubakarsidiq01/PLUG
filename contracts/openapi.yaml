@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.7.0
+  version: 0.7.1
   description: >
     Phase 0 to Phase 3 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
@@ -279,7 +279,10 @@ paths:
         - plugSession: []
       responses:
         '200':
-          description: Canceled. status is `canceled` and next_action is `none`.
+          description: >
+            Canceled. status is `canceled` and next_action is `none`. If an offer was selected,
+            reservation is present with status `canceled` and ended_at (0.7.0; fixture added in
+            0.7.1).
           headers:
             X-Request-Id: { $ref: '#/components/headers/RequestIdResponseHeader' }
           content:
@@ -1065,7 +1068,7 @@ paths:
         '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalError' }
   # ---------------------------------------------------------------------------------------
-  # Phase 3 (0.7.0, proposed): selection and reservation, the provider inbox and in-app
+  # Phase 3 (0.7.0, frozen; 0.7.1 clarifications): selection and reservation, the provider inbox and in-app
   # offers, SMS suppliers, Twilio webhooks, device registration and the admin monitor.
   # ---------------------------------------------------------------------------------------
   /v1/requests/{request_id}/select:
@@ -1089,6 +1092,10 @@ paths:
         An offer whose `expires_at` has passed, or that is not one of this request's live
         offers, is 409 `offer_unavailable`; the client reloads the offers. Someone else's
         request is 404.
+
+
+        0.7.1: gated by the `provider_inbox` flag, like the inbox routes, although it also
+        serves seed and sms offers. With the flag off the route returns 404.
       security:
         - plugSession: []
       parameters:
@@ -1186,8 +1193,12 @@ paths:
         and the SMS CONFIRM reply are the only two ways a request becomes confirmed.
         `release` frees the asker to choose another live offer. Repeating the same decision
         returns 200 with the same item; the other decision after one was recorded, or any
-        decision after `confirm_by`, is 409 `reservation_closed`. A match with no pending
+        decision at or after `confirm_by`, is 409 `reservation_closed`. A match with no pending
         reservation is 409 `no_reservation`.
+
+
+        0.7.1, proposed, needs both approvals: a decision on a reservation the asker canceled
+        is 409 `reservation_closed`.
       security:
         - plugSession: []
       requestBody:
@@ -1291,7 +1302,7 @@ paths:
         authentication, verified over the configured public URL (PLUG_PUBLIC_WEBHOOK_URL,
         never the Host header, which a tunnel or proxy rewrites) and every form parameter,
         before any parsing, database access or logging. A missing or wrong signature is 403
-        with no body.
+        with the Error body (0.7.1).
 
 
         MessageSid is claimed for 7 days; a duplicate delivery returns 200 and changes
@@ -1318,11 +1329,14 @@ paths:
             text/xml:
               schema: { type: string, const: '<?xml version="1.0" encoding="UTF-8"?><Response/>' }
         '403':
-          description: Missing or invalid signature. No body.
+          description: Missing or invalid signature. Error body, code forbidden (0.7.1).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
         '413':
-          description: Body over 16 KiB. No body.
+          description: Body over 16 KiB. Error body, code validation_failed (0.7.1).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
         '500':
-          description: Not processed; Twilio's own retry policy applies. No body.
+          description: Not processed; Twilio's own retry policy applies. Error body, code internal_error (0.7.1).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
   /v1/webhooks/twilio/status:
     post:
       operationId: twilioStatusCallback
@@ -1344,11 +1358,14 @@ paths:
         '204':
           description: Accepted or ignored.
         '403':
-          description: Missing or invalid signature. No body.
+          description: Missing or invalid signature. Error body, code forbidden (0.7.1).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
         '413':
-          description: Body over 16 KiB. No body.
+          description: Body over 16 KiB. Error body, code validation_failed (0.7.1).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
         '500':
-          description: Not processed. No body.
+          description: Not processed. Error body, code internal_error (0.7.1).
+          content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
   /v1/admin/suppliers:
     get:
       operationId: listSuppliers
@@ -1407,7 +1424,7 @@ paths:
         '400': { $ref: '#/components/responses/ValidationFailed' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '409': { $ref: '#/components/responses/Conflict' }
+        '409': { $ref: '#/components/responses/SupplierConflict' }
         '503': { $ref: '#/components/responses/DependencyUnavailable' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/admin/suppliers/{supplier_id}:
@@ -1731,6 +1748,12 @@ components:
     Conflict:
       description: The identity is already attached to a different account.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    SupplierConflict:
+      description: >
+        0.7.1. conflict. details[0] = { field: phone, code: supplier_exists } when the phone is
+        already a supplier, or { field: Idempotency-Key, code: idempotency_key_reused |
+        request_in_progress }.
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
     NotFound:
       description: No such resource, or it does not belong to the caller.
       content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
@@ -1954,6 +1977,9 @@ components:
           description: >
             When the request stops collecting offers, or, in draft, when an unanswered
             clarification lapses. After it the server moves the request to expired.
+            0.7.1, proposed, needs both approvals: a user_selected request does not expire on
+            this time; only the reservation's confirm_by moves it (to ranked, or to expired
+            with not_confirmed).
     RequestConstraints:
       description: >
         The constraints the server will execute, after explicit values, validated
@@ -2040,7 +2066,8 @@ components:
         confirmed is reachable only from a supplier event — never a timer, an admin or a
         client. user_selected -> ranked (0.7.0) happens only when the provider releases the
         reservation or confirm_by passes while other live offers remain; with none left the
-        request expires with no_result_reason not_confirmed. confirmed -> completed is made by
+        request expires with no_result_reason not_confirmed (0.7.1, proposed: user_selected ->
+        expired happens only this way, never from the request's own expires_at). confirmed -> completed is made by
         the server 3 hours after the reserved slot starts unless the request was canceled;
         Phase 5 adds disputes and ratings on top of it.
         A blocked request is refused with 422 at creation and is never returned to a client.
@@ -2155,7 +2182,10 @@ components:
         expires_at:
           type: string
           format: date-time
-          description: When the offer stops being valid. Always later than available_at.
+          description: >
+            When the offer stops being valid. Always later than available_at. Set by the
+            server; the lifetime for sms and portal offers is not yet decided (CHANGELOG 0.7.1,
+            open question).
         observed_at:
           type: string
           format: date-time
@@ -2768,7 +2798,7 @@ components:
           maxItems: 50
           items: { $ref: '#/components/schemas/SessionSummary' }
     # -------------------------------------------------------------------------------------
-    # Phase 3 (0.7.0, proposed)
+    # Phase 3 (0.7.0, frozen; 0.7.1 clarifications)
     # -------------------------------------------------------------------------------------
     OfferSelection:
       type: object
@@ -2801,8 +2831,11 @@ components:
           type: string
           format: date-time
           description: >
-            10 minutes after selection, or the offer's available_at if that is sooner. After it
-            the reservation is timed_out by the server.
+            10 minutes after selection, or the offer's available_at if that is sooner. 0.7.1,
+            proposed, needs both approvals: the reservation times out when the server clock
+            reaches confirm_by, and ended_at equals confirm_by. If the offer's available_at had
+            already passed at selection, confirm_by is in the past and the reservation times
+            out on the next check; there is no separate error code.
         confirmed_at: { type: string, format: date-time, description: Present if and only if status is confirmed. }
         ended_at: { type: string, format: date-time, description: 'Present if and only if status is released, timed_out or canceled.' }
         created_at: { type: string, format: date-time }
@@ -2854,7 +2887,9 @@ components:
         respond_by:
           type: string
           format: date-time
-          description: After this the match is expired and silence is recorded.
+          description: >
+            notified_at plus 5 minutes, the outreach reply window (0.7.1, decided by the owner
+            on 2026-11-16). After this the match is expired and silence is recorded.
         notified_at: { type: string, format: date-time }
         offer: { $ref: '#/components/schemas/Offer', description: Present once this provider has offered. }
         reservation: { $ref: '#/components/schemas/Reservation', description: Present once the asker selected this provider's offer. }
@@ -2867,6 +2902,9 @@ components:
         selected — the asker chose their offer and is waiting for confirmation; confirmed —
         they confirmed; not_chosen — the asker chose someone else or their offer expired;
         closed — the request was canceled or expired before they answered (not silence).
+        0.7.1, proposed, needs both approvals: when this provider's reservation times out the
+        match is not_chosen; when the asker cancels it the match is closed, and the item still
+        carries the canceled reservation.
     MatchDecline:
       type: object
       additionalProperties: false

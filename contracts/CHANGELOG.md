@@ -11,6 +11,91 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.7.1 — 2026-11-17 — clarification, one webhook response change — P3.S6, draft
+Draft follow-up to the 2026-11-14 contract-guard review of 0.7.0 (PROJECT_STATE next_actions
+`P3-contract-0.7.1`). Not frozen until both people approve the pull request. 0.7.0 itself was
+frozen when PR #46 merged (recorded in PR #50); its labels are corrected below. No new route,
+field, enum value or error code. Each item is marked decided (owner, 2026-11-16), proposed
+(needs both approvals) or mechanical (no product fact).
+
+**Decided by the owner on 2026-11-16:**
+- `InboxItem.respond_by` is `notified_at` plus 5 minutes, the outreach reply window (review
+  item 3, in-app part). Fixtures and examples whose `respond_by` was 2 seconds short now match.
+- `POST /v1/requests/{request_id}/select` is gated by the `provider_inbox` flag, like the inbox
+  routes, although it also serves seed and sms offers; with the flag off it returns 404
+  (item 10).
+
+**Proposed, needs both approvals (gaps the contract guard found):**
+- `MatchStatus`: a match whose reservation times out is `not_chosen`; one whose reservation the
+  asker canceled is `closed`, and the inbox item still carries the canceled reservation.
+- A provider decision on a canceled reservation is 409 `reservation_closed`.
+- A reservation times out when the server clock reaches `confirm_by` (`ended_at` equals
+  `confirm_by`, as in `p3-request-not-confirmed.json`); a decision at or after `confirm_by` is
+  409 `reservation_closed` (0.7.0 said "after").
+- If the offer's `available_at` has already passed at selection, `confirm_by` is in the past and
+  the reservation times out on the next check. No new error code.
+- A `user_selected` request does not expire on its own `expires_at`; only `confirm_by` moves it
+  (to `ranked`, or to `expired` with `not_confirmed`).
+
+**Mechanical (no product fact):**
+- `info.version` 0.7.1. "0.7.0, proposed" section labels in openapi.yaml, the `status` fields of
+  templates.v1.json and grammar.v1.json, grammar.md, messages/README.md and fixtures/README.md
+  now say frozen (item 8). Still saying "proposed", not edited here (other lanes):
+  `backend/src/test/java/app/plug/foundation/ContractTest.java:50` and
+  `FixtureContractTest.java:58` comments, and `tests/contracts/fixture-manifest.json`
+  `"status"`.
+- 409 on `POST /v1/admin/suppliers` now uses a new `SupplierConflict` response whose text names
+  `supplier_exists` (field `phone`) and the idempotency codes, instead of `Conflict`'s identity
+  wording (item 4). Body unchanged.
+- Twilio webhook 403, 413 and 500 now carry the `Error` body (`forbidden`, `validation_failed`,
+  `internal_error`), as the `Error` schema requires of every non-2xx (item 5). The only
+  response-shape change; no webhook is built yet.
+- templates.v1.json: "24h" in `optin_confirmed` and `help` is now a `{pause}` placeholder (max 3
+  characters, example `24h`; the maximum is only for the length check and can be raised)
+  (item 6). The `terms_url` and `support` rules now say their examples are not confirmed
+  addresses (item 7; the examples are unchanged).
+- Cancel's 200 description states that a selected offer's reservation comes back `canceled`
+  with `ended_at` (already the 0.7.0 rule).
+
+**Open questions for both people (nothing chosen):**
+1. Fan-out cap (item 1). `AdminMatchHistory.cap` is const 16, but `AdminMatch.wave` allows 3
+   waves of 6+4+4 = 14, so 16 is unreachable; the manual says 14 (`SupplierMatcher`) and 16
+   (`MatchService`). Options: (a) cap 14, matching the waves; (b) keep 16 and allow a fourth
+   wave or larger waves; (c) make `cap` a server-set integer in a range instead of a const.
+   Blocks P3.S15.
+2. Reply window against the t+300s stop (item 2). A wave-3 contact at t+180s with a 5-minute
+   window runs to t+480s. Options: (a) keep 5 minutes per contact and amend the manual's
+   t+300s stop; (b) end every window at t+300s, so later waves get shorter windows (conflicts
+   with the decided in-app `respond_by` unless that is limited to SMS); (c) start the waves
+   sooner or shorten their spacing so every window ends by t+300s.
+3. `Offer.expires_at` lifetime for `sms` and `portal` offers (item 3). Not decided; P3.S6 must
+   not choose one. Blocks P3.S11.
+4. SMS terms page and support contact (item 7). `plug.app/sms` and `support@plug.app` are not
+   confirmed. The owner names the real page and contact (or a different form) before any opt-in
+   text is sent (P3.S2).
+5. Do the proposed rules above hold? In particular, should a canceled match keep its
+   reservation on the inbox item, and is a `confirm_by` already in the past acceptable, or
+   should selection refuse such an offer with `offer_unavailable`?
+
+Fixtures: `fixtures/requests.cancel/reservation-canceled.json` (new; a pending reservation
+canceled); `respond_by` corrected in `providers.inbox/success.json`,
+`providers.decline/{success,already-declined}.json` and
+`providers.reservation/{confirmed,released}.json`. Examples: new
+`p3-request-reservation-canceled.json`, `p3-inbox-item-timed-out.json` and
+`p3-inbox-item-canceled.json` (the last two show proposed mappings), indexed in `p3-index.json`;
+`respond_by` corrected in `p3-inbox.json` and `p3-inbox-item-confirmed.json`.
+Needed in Person Two's lane before this merges (tests/ not edited here):
+`tests/contracts/fixture-manifest.json` to 0.7.1 with a row for the new cancel fixture;
+`validateInboxItem` to allow a reservation on a `closed` item, if proposal 1 holds; the
+`created_at < confirm_by` check in `validateResource`, if the past-`confirm_by` proposal holds;
+`web/src/generated/api.ts` regenerated (`pnpm generate:api`).
+Migration note: corrects 0.7.0's note. V10 (expand only) starts with P3.S6, not P3.S2, and
+contains only `request_reservations`, `request_matches.match_id`, `request_offers.withdrawn_at`
+and the `not_confirmed` no-result reason. Supplier, SMS and suppression tables come with their
+own steps.
+Rollback: `provider_inbox` off returns 404 on the inbox routes and on
+`POST /v1/requests/{request_id}/select`. `supplier_messaging` off as in 0.7.0.
+
 ### 0.7.0 — 2026-10-09 — additive, one client-visible relaxation — P3.S1, proposed
 Proposed by Person One for the Phase 3 contract session (manual §27.4). Not frozen until both
 approve the pull request; nothing in P3.S2 onward starts before then. Covers all eight items

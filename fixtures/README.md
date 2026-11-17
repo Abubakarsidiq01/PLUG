@@ -7,7 +7,7 @@ file per outcome per operation, named `<operation>/<outcome>.json`.
 `ContractTest`; the files here are what the Bruno collection, Playwright and the
 iOS decoding tests build against.
 
-## Phase 3 — proposed contract 0.7.0
+## Phase 3 — contract 0.7.0 (frozen), 0.7.1 additions
 
 One scenario runs through every Phase 3 file: the ranked barber request
 `req_01J9Z6Q3V8M2K4P7R5T1W0XY3B` from `requests.get/success.json` gets an SMS offer from

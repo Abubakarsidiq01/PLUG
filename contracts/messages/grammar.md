@@ -1,6 +1,6 @@
 # Inbound reply grammar, v1
 
-**Proposed with contract 0.7.0.** A grammar, not a language model (manual §19.8). The
+**Frozen with contract 0.7.0.** A grammar, not a language model (manual §19.8). The
 keyword sets and limits are in [grammar.v1.json](grammar.v1.json); the regression cases are
 in [cases.v1.json](cases.v1.json). The backend parser (P3.S5) loads both and must pass every
 case. Copy in [templates.v1.json](templates.v1.json) tells suppliers what to send, so the
