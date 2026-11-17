@@ -280,17 +280,19 @@ public class RequestService {
     RequestPayloads.ProviderInbox inbox(PlugPrincipal caller) {
         requireCaller(caller);
         if (!limiter.tryConsume("inbox:" + caller.userId(), 30, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
-        if (jdbc.queryForObject("SELECT count(*) FROM users u JOIN provider_profiles p ON p.user_id=u.id WHERE u.id=? AND u.status='active'",
-                Integer.class, caller.userId()) == 0) {
-            throw ApiException.notFound("You have not offered a service yet.");
-        }
         Instant now = clock.instant();
         return transaction.execute(ignored -> {
+            // The same account check as answerReservation: 401 for an inactive account.
+            lockAccount(caller);
+            if (jdbc.queryForObject("SELECT count(*) FROM provider_profiles WHERE user_id=?", Integer.class, caller.userId()) == 0) {
+                throw ApiException.notFound("You have not offered a service yet.");
+            }
             // The first sort key is inboxItem's "open", in SQL, so the 50 kept are the right 50.
             List<String> ids = jdbc.queryForList("SELECT m.match_id FROM request_matches m JOIN requests r ON r.id=m.request_id"
                     + " WHERE m.provider_id=? AND m.notified_at>? ORDER BY (m.replied_at IS NULL AND m.notified_at>?"
                     + " AND r.status IN ('submitted','routed','awaiting_responses','ranked') AND NOT EXISTS (SELECT 1 FROM request_offers o"
-                    + " WHERE o.request_id=m.request_id AND o.provider_id=m.provider_id)) DESC,m.notified_at DESC,m.match_id LIMIT 50",
+                    + " WHERE o.request_id=m.request_id AND o.provider_id=m.provider_id)"
+                    + " AND NOT EXISTS (SELECT 1 FROM request_reservations v WHERE v.request_id=m.request_id)) DESC,m.notified_at DESC,m.match_id LIMIT 50",
                     String.class, caller.userId(), time(now.minus(Duration.ofDays(7))), time(now.minus(REPLY_WINDOW)));
             return new RequestPayloads.ProviderInbox(ids.stream().map(id -> inboxItem(caller.userId(), id)).toList(),
                     MatchService.NOTIFICATIONS_PER_HOUR);
@@ -311,6 +313,13 @@ public class RequestService {
         String requestId = match.requestId();
         Reservation reservation = jdbc.query("SELECT * FROM request_reservations WHERE request_id=? AND provider_id=?"
                 + " ORDER BY created_at DESC,id DESC LIMIT 1", RESERVATION_ROW, requestId, provider).stream().findFirst().orElse(null);
+        Instant now = clock.instant();
+        // A pending reservation past confirm_by reads as the timeout settleReservation will write, so the
+        // list takes no request or match lock and never waits for the worker.
+        if (reservation != null && reservation.status().equals("pending") && !now.isBefore(reservation.confirmBy())) {
+            reservation = new Reservation(reservation.reservationId(), reservation.offerId(), "timed_out", reservation.bookingRef(),
+                    reservation.confirmBy(), null, reservation.confirmBy(), reservation.createdAt());
+        }
         // A released or timed-out offer is withdrawn but still shown, as in the contract examples.
         Offer found = reservation != null
                 ? reservation.offerId() == null ? null
@@ -323,7 +332,6 @@ public class RequestService {
                         roundedDistance(found.place().distanceM())),
                 found.serviceName(), found.priceCents(), found.currency(), found.availableAt(), found.expiresAt(),
                 found.observedAt(), found.truthLabel(), found.source(), found.providerScore(), found.business());
-        Instant now = clock.instant();
         Instant respondBy = match.notifiedAt().plus(REPLY_WINDOW);
         String request = match.requestStatus();
         boolean live = List.of("submitted", "routed", "awaiting_responses", "ranked").contains(request);
@@ -338,12 +346,24 @@ public class RequestService {
                 : live && offer.expiresAt().isAfter(now) ? "offered" : "not_chosen")
         // shortcut: nothing records a decline yet (P3.S12); a reply without an offer is one.
         : match.repliedAt() != null ? "declined"
-        // The request ended inside the reply window: closed, which is not silence.
-        : !live && match.updatedAt().isBefore(respondBy) ? "closed"
-        : now.isBefore(respondBy) ? "open" : "expired";
+        // Silent so far. Whether the reply window closed before the request did decides silence.
+        : silentStatus(requestId, provider, request, match.updatedAt(), respondBy, now);
         return new RequestPayloads.InboxItem(matchId, requestId, status, match.serviceName(), match.skillTags(),
                 match.budgetCents(), match.currency(), match.neededBy(), roundedDistance(match.distanceM()),
                 respondBy, match.notifiedAt(), offer, reservation);
+    }
+    /// MatchStatus for a provider who neither offered nor replied (contract 0.7.1).
+    private String silentStatus(String requestId, String provider, String request, Instant updatedAt, Instant respondBy, Instant now) {
+        // When the asker first chose someone else's offer: exact, from the reservation.
+        Timestamp chosen = jdbc.queryForObject("SELECT min(created_at) FROM request_reservations WHERE request_id=?"
+                + " AND provider_id IS DISTINCT FROM ?", Timestamp.class, requestId, provider);
+        if (chosen != null) return chosen.toInstant().isBefore(respondBy) ? "not_chosen" : "expired";
+        // Canceled is terminal and only transition() writes updated_at, so it is the cancel time.
+        if (request.equals("canceled")) return updatedAt.isBefore(respondBy) ? "closed" : "expired";
+        // shortcut: expired (and blocked) are set lazily, so no end time is recorded; such a match is
+        // closed rather than counted as silence. Record the end time if P3.S12 scores silence from it.
+        if (!List.of("submitted", "routed", "awaiting_responses", "ranked").contains(request)) return "closed";
+        return now.isBefore(respondBy) ? "open" : "expired";
     }
     private record MatchRow(String requestId, int distanceM, Instant notifiedAt, Instant repliedAt, String requestStatus,
             Instant updatedAt, String serviceName, List<String> skillTags, Integer budgetCents, String currency, Instant neededBy) {}

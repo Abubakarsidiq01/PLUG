@@ -144,6 +144,12 @@ class ProviderInboxTest {
                 requestId, provider, distance, 50, Timestamp.from(notifiedAt), matchId);
         return matchId;
     }
+    /// Another offer on the request (a seed offer, so no provider) was chosen at this time.
+    void otherChosen(String requestId, Instant at) {
+        jdbc.update("INSERT INTO request_reservations(id,request_id,offer_id,provider_id,status,booking_ref,confirm_by,created_at)"
+                + " VALUES(?,?,NULL,NULL,'pending','ABCD',?,?)", "rsv_" + UUID.randomUUID(), requestId,
+                Timestamp.from(at.plus(Duration.ofMinutes(10))), Timestamp.from(at));
+    }
     /// A request worked through the real flow until it is ranked with two seed offers.
     String rankedRequest(JsonNode owner) throws Exception {
         String id = createRequest(owner, ReservationTest.HERE);
@@ -257,8 +263,19 @@ class ProviderInboxTest {
         expected.put(seedMatch(seedRequest(owner, "canceled", START.minus(Duration.ofMinutes(1))), me,
                 START.minus(Duration.ofMinutes(3)), 900), "closed");
         expected.put(seedMatch(seedRequest(owner, "ranked", START), me, START.minus(Duration.ofMinutes(10)), 900), "expired");
-        // The request expired long after the window: the provider's silence is still expired.
-        expected.put(seedMatch(seedRequest(owner, "expired", START), me, START.minus(Duration.ofHours(2)), 900), "expired");
+        // Canceled after the window: the cancel time is exact (canceled is terminal), so this was silence.
+        expected.put(seedMatch(seedRequest(owner, "canceled", START), me, START.minus(Duration.ofMinutes(20)), 900), "expired");
+        // Expired requests are expired lazily, so their updated_at is when someone looked, not when they
+        // ended. With no reliable end time the item is closed, never recorded as the provider's silence.
+        expected.put(seedMatch(seedRequest(owner, "expired", START), me, START.minus(Duration.ofMinutes(2)), 900), "closed");
+        expected.put(seedMatch(seedRequest(owner, "expired", START), me, START.minus(Duration.ofHours(2)), 900), "closed");
+        // The asker chose another offer: inside this provider's reply window is not_chosen; after it, silence.
+        String chosenInside = seedRequest(owner, "user_selected", START);
+        otherChosen(chosenInside, START.minus(Duration.ofMinutes(4)));
+        expected.put(seedMatch(chosenInside, me, START.minus(Duration.ofMinutes(6)), 900), "not_chosen");
+        String chosenAfter = seedRequest(owner, "user_selected", START);
+        otherChosen(chosenAfter, START.minus(Duration.ofMinutes(30)));
+        expected.put(seedMatch(chosenAfter, me, START.minus(Duration.ofMinutes(40)), 900), "expired");
         String old = seedMatch(seedRequest(owner, "expired", START.minus(Duration.ofDays(8))), me, START.minus(Duration.ofDays(8)), 900);
 
         JsonNode body = inboxOk(provider);
@@ -277,7 +294,8 @@ class ProviderInboxTest {
             assertThat(Instant.parse(item.path("respond_by").asText()))
                     .isEqualTo(Instant.parse(item.path("notified_at").asText()).plus(Duration.ofMinutes(5)));
             String status = item.path("status").asText();
-            assertThat(item.has("offer")).isEqualTo(List.of("offered", "selected", "confirmed", "not_chosen").contains(status));
+            if (List.of("offered", "selected", "confirmed").contains(status)) assertThat(item.has("offer")).isTrue();
+            if (List.of("open", "expired", "closed").contains(status)) assertThat(item.has("offer")).isFalse();
             assertThat(item.has("reservation")).isEqualTo(List.of("selected", "confirmed").contains(status));
             if (item.path("request_id").asText().equals(offered)) assertThat(item.path("distance_m").asInt()).isEqualTo(100);
         }
@@ -286,6 +304,31 @@ class ProviderInboxTest {
         for (String asked : List.of(owner, userId(offeredOwner), userId(selectedOwner), "Barber under", "near the market", "32.528")) {
             assertThat(raw).doesNotContain(asked);
         }
+    }
+
+    @Test void aReservationPastConfirmByReadsAsNotChosenWithoutWaitingForTheWorker() throws Exception {
+        var owner = guest();
+        String id = rankedRequest(owner);
+        var provider = guest();
+        String me = userId(provider);
+        provide(provider, ReservationTest.HERE);
+        List<String> offers = offerIds(owner, id);
+        jdbc.update("UPDATE request_offers SET provider_id=? WHERE id=?", me, offers.get(0));
+        String match = seedMatch(id, me, START, 900);
+        select(owner, id, offers.get(0));
+        Instant confirmBy = jdbc.queryForObject("SELECT confirm_by FROM request_reservations WHERE request_id=?", Timestamp.class, id)
+                .toInstant();
+        CLOCK.now = confirmBy.minusSeconds(1);
+        assertThat(inboxOk(provider).at("/items/0/status").asText()).isEqualTo("selected");
+        CLOCK.now = confirmBy;
+        JsonNode item = inboxOk(provider).at("/items/0");
+        assertThat(item.path("match_id").asText()).isEqualTo(match);
+        assertThat(item.path("status").asText()).isEqualTo("not_chosen");
+        assertThat(item.at("/reservation/status").asText()).isEqualTo("timed_out");
+        assertThat(Instant.parse(item.at("/reservation/ended_at").asText())).isEqualTo(confirmBy);
+        // Read only: the worker still owns the write.
+        assertThat(jdbc.queryForObject("SELECT status FROM request_reservations WHERE request_id=?", String.class, id))
+                .isEqualTo("pending");
     }
 
     @Test void theInboxHoldsAtMostFiftyItemsAndNeverAnotherProvidersMatches() throws Exception {
@@ -312,6 +355,13 @@ class ProviderInboxTest {
     @Test void theInboxNeedsASessionAndAProviderProfile() throws Exception {
         assertThat(json(inbox(null).andExpect(status().isUnauthorized())).at("/error/code").asText()).isEqualTo("unauthenticated");
         assertThat(json(inbox(guest()).andExpect(status().isNotFound())).at("/error/code").asText()).isEqualTo("not_found");
+    }
+
+    @Test void theInboxIsUnauthenticatedForAnInactiveAccount() throws Exception {
+        var provider = guest();
+        provide(provider, FAR);
+        jdbc.update("UPDATE users SET status='deleted',deleted_at=now() WHERE id=?", userId(provider));
+        assertThat(json(inbox(provider).andExpect(status().isUnauthorized())).at("/error/code").asText()).isEqualTo("unauthenticated");
     }
 
     @Test void theInboxIsRateLimitedPerCallerWithRetryAfter() throws Exception {
