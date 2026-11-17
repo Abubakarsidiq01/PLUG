@@ -276,10 +276,6 @@ public class RequestService {
         });
     }
     private static final List<String> LIVE = List.of("submitted", "routed", "awaiting_responses", "ranked");
-    /// A phone number (seven or more digits, separators allowed), an email address or a link.
-    private static final java.util.regex.Pattern CONTACT = java.util.regex.Pattern.compile(
-            "(?:\\+?\\d[\\s().-]*){7,}|[^\\s@]+@[^\\s@]+\\.[^\\s@]+|(?i:https?://|www\\.)"
-                    + "|(?i:\\b[a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.(?:com|net|org|io|co|me|app|ly|us|info|biz|xyz|link|site)\\b)");
     /// Contract 0.7.1 sendProviderOffer, the in-app path. The caller is a provider matched to the
     /// request; anyone else, the asker included, gets the same 404 as a request that does not exist.
     Offer sendOffer(PlugPrincipal caller, String id, String key, RequestPayloads.OfferCreate input) {
@@ -303,12 +299,10 @@ public class RequestService {
             var match = jdbc.queryForMap("SELECT distance_m,replied_at FROM request_matches WHERE match_id=? FOR UPDATE",
                     matched.getFirst());
             expire(id);
-            if (jdbc.queryForObject("SELECT count(*) FROM request_offers WHERE request_id=? AND provider_id=?", Integer.class,
-                    id, caller.userId()) > 0) {
-                throw stateConflict("request_id", "already_offered", "You already sent an offer for this request.");
-            }
+            boolean offered = jdbc.queryForObject("SELECT count(*) FROM request_offers WHERE request_id=? AND provider_id=?"
+                    + " AND source='portal'", Integer.class, id, caller.userId()) > 0;
             // shortcut: nothing writes a decline until P3.S12; a reply with no offer is one.
-            if (!LIVE.contains(status(id)) || match.get("replied_at") != null) {
+            if (!LIVE.contains(status(id)) || (match.get("replied_at") != null && !offered)) {
                 throw stateConflict("request_id", "request_closed", "This request has closed.");
             }
             Constraints c = read(id).constraints();
@@ -321,16 +315,18 @@ public class RequestService {
                     || (c.neededBy() != null && available.isAfter(c.neededBy()))) {
                 throw ApiException.validation("available_at", "outside_window", "Choose a time before the customer needs it.");
             }
-            if (input.note() != null && CONTACT.matcher(input.note()).find()) {
-                throw ApiException.validation("note", "contact_in_note", "Leave out phone numbers, emails and links.");
-            }
             String offerId = "off_" + UUID.randomUUID();
             // Owner decision 2026-11-17: a portal offer is valid until 15 minutes after its slot starts.
-            jdbc.update("INSERT INTO request_offers(id,request_id,service_name,price_cents,currency,available_at,expires_at,"
-                    + "observed_at,truth_label,source,provider_id,note,distance_m) VALUES(?,?,?,?,?,?,?,?,'confirmed','portal',?,?,?)",
-                    offerId, id, c.serviceName(), input.priceCents(), input.currency(), time(available),
-                    time(available.plus(Duration.ofMinutes(15))), time(now), caller.userId(), input.note(),
-                    roundedDistance((Integer) match.get("distance_m")));
+            // One portal offer per provider per request: the unique index is the guard, so a second is 409.
+            try {
+                jdbc.update("INSERT INTO request_offers(id,request_id,service_name,price_cents,currency,available_at,expires_at,"
+                        + "observed_at,truth_label,source,provider_id,note,distance_m) VALUES(?,?,?,?,?,?,?,?,'confirmed','portal',?,?,?)",
+                        offerId, id, c.serviceName(), input.priceCents(), input.currency(), time(available),
+                        time(available.plus(Duration.ofMinutes(15))), time(now), caller.userId(), input.note(),
+                        roundedDistance((Integer) match.get("distance_m")));
+            } catch (org.springframework.dao.DuplicateKeyException clash) {
+                throw stateConflict("request_id", "already_offered", "You already sent an offer for this request.");
+            }
             jdbc.update("UPDATE request_matches SET replied_at=? WHERE match_id=?", time(now), matched.getFirst());
             Offer result = jdbc.queryForObject(OFFER_SELECT + " WHERE o.id=?", OFFER_ROW, offerId);
             remember(caller, "offer:" + id, key, input, result);

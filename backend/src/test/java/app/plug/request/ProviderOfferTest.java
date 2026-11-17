@@ -203,6 +203,15 @@ class ProviderOfferTest {
                 "request_id", "already_offered");
     }
 
+    /// The database's one-offer-per-provider index is the guard, so a clash there is 409, never 500.
+    @Test void aClashOnTheOneOfferPerProviderIndexIsAlreadyOfferedNotAServerError() throws Exception {
+        var s = scene();
+        // Another provider's offer is moved onto this provider, so only the insert itself can refuse.
+        String first = offerOk(s.second(), s.requestId(), valid()).path("offer_id").asText();
+        jdbc.update("UPDATE request_offers SET provider_id=? WHERE id=?", userId(s.provider()), first);
+        assertDetail(errorOf(offer(s.provider(), s.requestId(), valid()), 409), "request_id", "already_offered");
+    }
+
     // ---- 2. validation -------------------------------------------------------------------
 
     @Test void aPriceAboveTheBudgetIsOverBudget() throws Exception {
@@ -232,11 +241,44 @@ class ProviderOfferTest {
     @Test void aPhoneNumberEmailOrLinkInTheNoteIsContactInNote() throws Exception {
         var s = scene();
         Instant at = START.plus(Duration.ofMinutes(20));
-        for (String note : List.of("Call me on 318-555-0142", "text +1 (318) 555 0142", "me@example.com",
-                "Book at https://cuts.example", "see www.cuts.example", "cutsbyjo.com")) {
+        for (String note : List.of("Call me on 318-555-0142", "text +1 (318) 555 0142", "512/555/1234", "512_555_1234",
+                "512,555,1234", "512*555*1234", "512|555|1234", "5 1 2 5 5 5 1 2 3 4",
+                // Full-width and Arabic-Indic digits.
+                "\uFF15\uFF11\uFF12\uFF15\uFF15\uFF15\uFF11\uFF12\uFF13\uFF14", "\u0665\u0661\u0662\u0665\u0665\u0665\u0661\u0662\u0663\u0664",
+                "me@example.com", "jo at gmail dot com", "jo (at) gmail (dot) com", "Book at https://cuts.example",
+                "see www.cuts.example", "cutsbyjo.com", "cuts.dev", "cuts.ai", "cuts.gg", "cuts.shop", "linktr.ee/cuts",
+                "cuts . com", "cuts dot com", "cuts\uFF0Ecom")) {
             assertDetail(errorOf(offer(s.provider(), s.requestId(), body(3000, at, note)), 400), "note", "contact_in_note");
         }
         assertThat(jdbc.queryForObject("SELECT count(*) FROM request_offers WHERE request_id=?", Integer.class, s.requestId())).isZero();
+        // Ordinary notes pass. A regex cannot catch every spelled-out number; moderation is the backstop.
+        for (String note : List.of("2 chairs", "$30", "3:30 pm", "15 min", "2 chairs free at 3:30 pm, $30 for 15 min.",
+                "Fades and line-ups. I can come to you or you can come to me.", "Free. Walk-ins welcome at the shop.")) {
+            assertThat(ReservationController.CONTACT.matcher(note).find()).as(note).isFalse();
+        }
+    }
+
+    @Test void controlBidiAndZeroWidthCharactersInTheNoteAreInvalidAndTheNoteIsStoredNormalized() throws Exception {
+        var s = scene();
+        Instant at = START.plus(Duration.ofMinutes(20));
+        for (String note : List.of("line\nbreak", "tab\there", "bell\u0007", "evil \u202Eoc.stuc", "iso \u2066x\u2069",
+                "zero\u200Bwidth", "joiner\u200Dhere", "bom\uFEFF")) {
+            assertDetail(errorOf(offer(s.provider(), s.requestId(), body(3000, at, note)), 400), "note", "invalid");
+        }
+        JsonNode sent = offerOk(s.provider(), s.requestId(), body(3000, at, "\uFF26ades \uFB01ne"));
+        assertThat(sent.path("note").asText()).isEqualTo("Fades fine");
+    }
+
+    @Test void availableAtMustBeRfc3339WithSeconds() throws Exception {
+        var s = scene();
+        for (String time : List.of("2026-10-01T20:20Z", "2026-10-01 20:20:00Z", "2026-10-01T20:20:00", "2026-10-01T20:20:00+0000",
+                "2026-10-01", "20261001T202000Z", "2026-10-01T20:20:00.Z")) {
+            assertDetail(errorOf(offer(s.provider(), s.requestId(),
+                    "{\"price_cents\":3000,\"currency\":\"USD\",\"available_at\":\"" + time + "\"}"), 400), "available_at", "invalid");
+        }
+        JsonNode sent = offerOk(s.provider(), s.requestId(),
+                "{\"price_cents\":3000,\"currency\":\"USD\",\"available_at\":\"2026-10-01T15:20:00.000-05:00\"}");
+        assertThat(Instant.parse(sent.path("available_at").asText())).isEqualTo(START.plus(Duration.ofMinutes(20)));
     }
 
     @Test void aBodyThatIsNotAProviderOfferCreateOrAMissingKeyIsAValidationFailure() throws Exception {
