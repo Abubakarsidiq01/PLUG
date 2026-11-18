@@ -123,7 +123,7 @@ public class AdminInspection {
                 Arrays.asList(tags));
     }
 
-    private static <T> Page<T> page(List<T> rows, int size, java.util.function.Function<T, String> cursorOf) {
+    static <T> Page<T> page(List<T> rows, int size, java.util.function.Function<T, String> cursorOf) {
         String next = rows.size() > size ? cursorOf.apply(rows.get(size - 1)) : null;
         return new Page<>(rows.subList(0, Math.min(size, rows.size())), next);
     }
@@ -142,12 +142,12 @@ public class AdminInspection {
         return limit;
     }
 
-    private static String encode(String... parts) {
+    static String encode(String... parts) {
         return Base64.getUrlEncoder().withoutPadding()
                 .encodeToString(String.join("\n", parts).getBytes(StandardCharsets.UTF_8));
     }
 
-    private static String[] decode(String cursor, int parts) {
+    static String[] decode(String cursor, int parts) {
         try {
             if (cursor.length() > 512) throw invalidCursor();
             String[] values = new String(Base64.getUrlDecoder().decode(cursor), StandardCharsets.UTF_8).split("\n", -1);
@@ -158,7 +158,7 @@ public class AdminInspection {
         }
     }
 
-    private static Instant instant(String value) {
+    static Instant instant(String value) {
         try { return Instant.parse(value); }
         catch (RuntimeException invalid) { throw invalidCursor(); }
     }

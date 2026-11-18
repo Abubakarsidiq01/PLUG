@@ -29,5 +29,6 @@
   "p3-twilio-status.json": "TwilioStatusForm",
   "p3-request-reservation-canceled.json": "RequestResource",
   "p3-inbox-item-timed-out.json": "InboxItem",
-  "p3-inbox-item-canceled.json": "InboxItem"
+  "p3-inbox-item-canceled.json": "InboxItem",
+  "p3-provider-profile-scored.json": "ProviderProfile"
 }

@@ -1,17 +1,17 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-11-17T23:55:00+00:00",
-  "updated_by": "person_one (P3.S12 decline-versus-silence tracking)",
+  "updated_at": "2026-11-18T02:30:00+00:00",
+  "updated_by": "person_one (P3.S13 trust score v1 and P3.S14 new_provider state)",
   "completed_phases": [
     "P0",
     "P1",
     "P2"
   ],
   "current_phase": "P3",
-  "current_step": "P3.S12",
-  "current_step_title": "Implement decline-versus-silence tracking. A decline is a reply and costs the provider nothing; silence is what lowers a response score.",
-  "manual_section": "27.4",
+  "current_step": "P3.S13",
+  "current_step_title": "Trust score v1 and the New provider state (P3.S13 with P3.S14): completion, responsiveness, reliability and standing, logged with their cause; New below three completed jobs; owner-only standing control.",
+  "manual_section": "27.4 / 12C.2 / 12C.3 / 19A.5",
   "readme": "docs/phases/P3-ONE.md",
   "owner": "person_one",
   "blocked_on": null,
@@ -149,6 +149,20 @@
     "provider_inbox": "off (Phase 3 in-app inbox, offers and reservations)"
   },
   "next_actions": [
+    {
+      "id": "P3.S13",
+      "owner": "person_one",
+      "manual_section": "27.4 / 12C.2 / 19A.5",
+      "task": "Implement trust score v1 (contract 0.7.0 ProviderScore, ProviderScoreBreakdown, ScoreComponent). 2026-11-18 progress (branch p3.s13-one-trust-score, stacked on p3.s12-one-decline-silence, not merged): TrustScore (backend/src/main/java/app/plug/request/TrustScore.java) computes the owner's v1 rules (decisions.P3.S13-trust-score-v1): completion = completed jobs / confirmed bookings (reservations still confirmed; asker cancellations leave the denominator; release or timeout before confirming is not a booking), null below 3; responsiveness = answered / (answered + silent), open matches inside respond_by excluded, null below 5, from one SQL query that reproduces the inbox MatchStatus (RequestService.responsiveness now delegates to it, no N+1); reliability always null, basis 0; standing 100 active or 0 suspended, basis = days since the profile was created or standing last changed; value = weighted mean of non-null components (completion 25, reliability 15, responsiveness 10, standing 10), no recency weighting. Reads (GET /v1/providers/me, POST /v1/providers/skills, admin) compute it live; every event recomputes it in its own transaction and writes provider_scores (completed_jobs, response_rate 0..1 once 5 matches exist, trust_score only once 3 jobs are completed, updated_at) and a score_history row (old/new value, completed_jobs, components, cause, at) when anything but standing's day count moved. Causes: job_completed, reservation_confirmed, reservation_released, reservation_timed_out, reservation_canceled, offer_sent, match_declined, silence_detected (the worker marks each unanswered match past respond_by once, request_matches.silence_checked_at, in its own SKIP LOCKED transaction), standing_changed. ProviderProfile now carries score_breakdown and standing. Migration V13 (expand only): provider_profiles.standing and standing_changed_at, provider_scores.updated_at, score_history, request_matches.silence_checked_at, two partial indexes. Example added: contracts/examples/p3-provider-profile-scored.json (no schema change). Tests: TrustScoreTest (10 database tests, fixed mutable clock). Not done: recency weighting, per-skill scores, the nightly recompute named in manual 19A.5, Verified (12C.4), anti-gaming (12C.5).",
+      "acceptance": "Drafted from the owner decisions of 2026-11-17, to be confirmed by the owner: fewer than 3 completed jobs is state new with no value (never 0) in /v1/providers/me and on offers; from the third completed job the value is the weighted mean of the non-null components; an asker cancelling a confirmed booking does not lower completion; a decline never lowers responsiveness and silence does; components below their evidence minimum are null and reliability is always null; every change is a score_history row with its cause; GET /v1/providers/me returns schema-valid score_breakdown and standing."
+    },
+    {
+      "id": "P3.S14",
+      "owner": "person_one",
+      "manual_section": "27.4 / 12C.3",
+      "task": "Implement the New provider state and provider standing (contract 0.7.0 ProviderStanding, listProviders, setProviderStanding). 2026-11-18 progress (same branch as P3.S13): New is ProviderScore state new below 3 completed jobs, stored as trust_score null; MatchService ranks a provider with no trust score on a neutral 50 and no response rate on 0.5, never 0 (documented in MatchService). GET /v1/admin/providers (cursor/limit like the other admin pages, newest first, audited admin.read providers) and POST /v1/admin/providers/{user_id}/standing ({standing active|suspended, reason 3..300}, nothing else) behind requests_v2: admin scope with a completed second factor (SecurityConfiguration), then an active staff account with role owner (403 otherwise, checked before validation); 404 for an unknown or malformed user_id; 400 required or invalid on reason, invalid on standing, extra field or non-object body; returns AdminProvider, Cache-Control no-store; audited as provider.standing_changed with reason '<standing>: <reason>' in audit_events. Suspending, in one transaction, locks the provider's requests in id order, withdraws their live offers (not a confirmed booking's), releases their pending reservations (the asker's request returns to ranked or expires not_confirmed), sets standing and standing_changed_at and recomputes the score (standing 0). A suspended provider is never matched or notified, and sendProviderOffer, declineMatch and answerReservation return 403 forbidden. Reinstating sets standing active (standing 100); withdrawn offers stay withdrawn. All three 'shortcut: standing not stored' sites are replaced.",
+      "acceptance": "Drafted from the owner decisions of 2026-11-17, to be confirmed by the owner: a suspended provider is not matched, their offer, decline and reservation answer are 403, their live offer is withdrawn and their pending reservation released, the change is audited and logged with cause standing_changed; reinstating restores matching, offers and standing 100; the admin routes are 401 without a session, 403 for a guest, a staff member, an admin without a second factor or an admin with no owner account, 404 for an unknown provider, 400 for a bad reason; ranking never treats a New provider as 0."
+    },
     {
       "id": "P3.S12",
       "owner": "person_one",
@@ -310,7 +324,14 @@
     "P3.S10 hourly cap: MatchService.notify locks the candidate provider_profiles rows (FOR NO KEY UPDATE, id order) inside the worker transaction, and RequestService.workOnce routes up to 20 requests in one transaction. Across requests the lock order is not global, so two workers can deadlock. Latent while one process runs the worker; fix before scaling out (one transaction per request, or lock the union of candidate providers once per pass).",
     "Truth labels are not aged from observed_at (manual 11.2): an in-app (portal) offer stays confirmed until it expires, which can be up to 7 days and 15 minutes after it was sent. Add server-side aging before portal offers reach real users.",
     "P3.S12: a decline is accepted until the request closes, even after respond_by, so a provider who was silent past the window can turn that match into an answer by declining late. The contract only refuses a decline after offering or once the request closed; decide in P3.S13 whether a reply after respond_by counts as an answer for responsiveness.",
-    "P3.S12: silence on an expired request uses the earlier of its deadline and updated_at as its end. A ranked request whose offers all ran out is expired only when the worker or a read next sees it, so if the worker lags past a provider's reply window that match is counted as silence although the request had already ended."
+    "P3.S12: silence on an expired request uses the earlier of its deadline and updated_at as its end. A ranked request whose offers all ran out is expired only when the worker or a read next sees it, so if the worker lags past a provider's reply window that match is counted as silence although the request had already ended.",
+    "P3.S13: completion follows the owner rule literally, so a booking counts in the denominator from the moment it is confirmed. While a job is in progress completion dips (3 completed of 4 confirmed is 75) and the score_history row says reservation_confirmed; it recovers at completion. Decide whether an open booking should count only once its completion time has passed.",
+    "P3.S13: response_rate in provider_scores now feeds match ranking (it was always null, so 0.5). A provider below 5 matches still ranks on 0.5 and a New provider on trust 50, by design (P3.S14); both are neutral defaults, not evidence.",
+    "P3.S13: the manual (19A.5) also names a nightly recompute; there is none. Scores move only on the listed events, and standing's day count is computed on read, so nothing stale is shown, but provider_scores.updated_at is the last event, not the last night.",
+    "P3.S13: GET /v1/admin/providers computes each row's score live (about four queries a provider, at most 100 a page). Fine for the console now; store the breakdown if pages grow.",
+    "P3.S14: a selection that races a suspension can still open a pending reservation on the suspended provider's offer (the offer was read before the suspension committed). The provider cannot confirm it (403) and it times out at confirm_by; locking the offer's profile in selectOffer would close it.",
+    "P3.S14: the free-text suspension reason is stored only in audit_events.reason (never in a log line). It is staff-written but may mention a customer; treat audit_events as Sensitive when exporting.",
+    "P3.S14: suspending does not change accepting (the fixture admin.providers.standing/suspended.json shows accepting false). Matching filters on standing, so the effect is the same; confirm which the console should show."
   ],
   "environments": {
     "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
@@ -821,6 +842,21 @@
       "title": "Any lawful service, Claude extraction, nearby-business discovery",
       "file": "docs/decisions/ADR-009-open-service-scope.md",
       "accepted_by": "owner"
+    },
+    "P3.S13-trust-score-v1": {
+      "date": "2026-11-17",
+      "accepted_by": "owner",
+      "title": "Trust score v1 and standing, honest v1 rules",
+      "rules": [
+        "Completion = completed jobs / confirmed bookings for that provider. A booking counts as confirmed once the provider confirmed it; asker cancellations are excluded from the denominator because the schema has no cancel actor; provider release or timeout before confirmation is not a booking. Evidence minimum 3 confirmed bookings, else null.",
+        "Responsiveness = answered (offer or decline) / (answered + silent); open matches still inside respond_by are excluded. Evidence minimum 5 matches, else null.",
+        "Reliability = null with basis 0 until on-time and price evidence exists (Phase 5 reviews). Never faked.",
+        "Standing = 100 while active, 0 while suspended; basis = days since the provider profile was created or last standing change.",
+        "Overall value = weighted mean over non-null components, completion 25, reliability 15, responsiveness 10, standing 10 (customer_rating null until Phase 5). No recency weighting in v1.",
+        "Fewer than 3 completed jobs is ProviderScore state new with completed_jobs and no value, never 0; match ranking keeps a neutral default for New.",
+        "Every score change is logged with its cause in score_history. Standing control is owner-only through listProviders and setProviderStanding."
+      ],
+      "code": "backend/src/main/java/app/plug/request/TrustScore.java"
     }
   }
 }

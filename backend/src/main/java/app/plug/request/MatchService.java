@@ -20,7 +20,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 ///     default), accepting requests, licensed when a tag requires it, and available in the
 ///     asked window. The requester never matches themselves.
 ///  2. Rank: response rate first, then trust score, then distance. A responsive newcomer
-///     outranks a high scorer who has gone quiet.
+///     outranks a high scorer who has gone quiet. A New provider (fewer than three completed jobs,
+///     so no stored trust score) and one without five matches of evidence (no response rate) rank
+///     on a neutral 50 and 0.5, never 0 (manual v4 §12C.3, P3.S14).
+///  A suspended provider is never matched (P3.S14).
 ///  3. Cap: the best few are notified; there is a hard ceiling that is never lifted, and no provider
 ///     is notified more than NOTIFICATIONS_PER_HOUR times in any hour.
 /// Notified providers are recorded in request_matches; Phase 3's inbox delivers to them.
@@ -63,7 +66,7 @@ public class MatchService {
                        COALESCE(ps.response_rate, 0.5) AS response_rate, COALESCE(ps.trust_score, 50) AS trust_score
                   FROM provider_profiles pp
                   LEFT JOIN provider_scores ps ON ps.user_id = pp.user_id
-                 WHERE pp.accepting
+                 WHERE pp.accepting AND pp.standing = 'active'
                    AND pp.user_id <> ?
                    AND (EXISTS (SELECT 1 FROM provider_skills s WHERE s.user_id = pp.user_id AND s.skill_tag = ANY(?))
                         OR EXISTS (SELECT 1 FROM provider_custom_skills cs WHERE cs.user_id = pp.user_id
