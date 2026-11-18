@@ -1,0 +1,49 @@
+{
+  "user_id": "usr_b83d2aa4-bd55-49de-88ba-1c4071509ea2",
+  "skills": [
+    {
+      "tag": "barber",
+      "display": "Barber",
+      "requires_licence": false
+    }
+  ],
+  "travel_radius_m": 4828,
+  "availability": [
+    {
+      "days": "every_day",
+      "from": "09:00",
+      "to": "24:00"
+    }
+  ],
+  "time_zone": "America/Chicago",
+  "accepting": true,
+  "licence_on_file": false,
+  "score": {
+    "state": "scored",
+    "value": 91,
+    "completed_jobs": 3
+  },
+  "score_breakdown": {
+    "version": "v1",
+    "completion": {
+      "value": 100,
+      "basis": 3
+    },
+    "reliability": {
+      "value": null,
+      "basis": 0
+    },
+    "responsiveness": {
+      "value": 60,
+      "basis": 5
+    },
+    "standing": {
+      "value": 100,
+      "basis": 12
+    },
+    "customer_rating": null,
+    "updated_at": "2026-10-13T19:00:00Z"
+  },
+  "standing": "active",
+  "created_at": "2026-10-01T20:00:00Z"
+}

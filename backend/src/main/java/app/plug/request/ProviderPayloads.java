@@ -43,6 +43,11 @@ public final class ProviderPayloads {
     }
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record ProviderProfile(String userId, List<SkillTag> skills, int travelRadiusM, List<AvailabilityWindow> availability,
-            String timeZone, boolean accepting, boolean licenceOnFile, RequestPayloads.ProviderScore score, Instant createdAt, BusinessProfile business,
+            String timeZone, boolean accepting, boolean licenceOnFile, RequestPayloads.ProviderScore score,
+            TrustScore.Breakdown scoreBreakdown, String standing, Instant createdAt, BusinessProfile business,
             List<String> customSkills) {}
+    /// Contract 0.7.0 AdminProvider: the staff view, never the base location or licence reference.
+    public record AdminProvider(String userId, String displayName, List<SkillTag> skills, List<String> customSkills,
+            int travelRadiusM, boolean accepting, boolean licenceOnFile, String standing, RequestPayloads.ProviderScore score,
+            TrustScore.Breakdown scoreBreakdown, Instant createdAt) {}
 }
