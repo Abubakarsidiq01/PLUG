@@ -20,7 +20,7 @@ released (`requests.get/reservation-released.json`, alternate-offer recovery) or
 |---|---|
 | `requests.select/` | selection, replay, `already_selected`, `offer_unavailable`, `not_selectable` |
 | `requests.send-offer/` | a matched provider's offer; `over_budget`, `outside_window`, `contact_in_note`, `already_offered`, `request_closed`, never matched (404), suspended (403) |
-| `providers.inbox/`, `providers.decline/`, `providers.reservation/` | the inbox, a free decline, confirm and release |
+| `providers.inbox/`, `providers.decline/`, `providers.reservation/` | the inbox, a free decline, confirm and release; a suspended provider's decline or answer (403) |
 | `suppliers.opt-in/` | the one public route: the same 202 for every number, consent and version errors |
 | `admin.suppliers.*`, `admin.messages/`, `admin.opt-outs/`, `admin.matches/`, `admin.providers.*` | the admin monitor and management routes; every number masked |
 

@@ -49,6 +49,7 @@ public class RequestService {
     private final RestrictedIntentPolicy policy;
     private final MatchService matches;
     private final String consent;
+    final TrustScore scores;
     final FixedWindowLimiter limiter = new FixedWindowLimiter(4096);
     final RateWindow window;
     public RequestService(JdbcTemplate jdbc, PlatformTransactionManager manager, ObjectMapper mapper, RequestClock clock,
@@ -63,6 +64,7 @@ public class RequestService {
         this.matches = matches;
         this.consent = consent;
         this.window = window;
+        this.scores = new TrustScore(jdbc, this.clock);
     }
     public Resource create(PlugPrincipal caller, String key, Create input) {
         requireCaller(caller);
@@ -175,8 +177,11 @@ public class RequestService {
             }
             transition(id, "canceled", null);
             // Contract Reservation: confirmed_at only while confirmed, ended_at once ended.
-            jdbc.update("UPDATE request_reservations SET status='canceled',confirmed_at=NULL,ended_at=?"
-                    + " WHERE request_id=? AND status IN ('pending','confirmed')", time(clock.instant()), id);
+            for (String provider : jdbc.queryForList("UPDATE request_reservations SET status='canceled',confirmed_at=NULL,ended_at=?"
+                    + " WHERE request_id=? AND status IN ('pending','confirmed') RETURNING provider_id", String.class,
+                    time(clock.instant()), id)) {
+                scores.recompute(provider, "reservation_canceled");
+            }
             return read(id);
         });
     }
@@ -236,6 +241,7 @@ public class RequestService {
         }
         if (!limiter.tryConsume("reservation:" + provider, 30, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
         return transaction.execute(ignored -> {
+            requireActiveStanding(provider);
             var match = jdbc.queryForList("SELECT request_id FROM request_matches WHERE match_id=? AND provider_id=?",
                     String.class, matchId, provider);
             if (match.isEmpty()) throw ApiException.notFound("Match not found.");
@@ -258,8 +264,10 @@ public class RequestService {
             if (wanted.equals("confirmed")) {
                 jdbc.update("UPDATE request_reservations SET status='confirmed',confirmed_at=? WHERE id=?", time(now), row.get("id"));
                 transition(id, "confirmed", null, true);
+                scores.recompute(provider, "reservation_confirmed");
             } else {
                 endReservation(id, (String) row.get("id"), (String) row.get("offer_id"), "released", now);
+                scores.recompute(provider, "reservation_released");
             }
             return new ReservationService.ProviderDecisionResult(wanted, status(id));
         });
@@ -269,8 +277,7 @@ public class RequestService {
     RequestPayloads.InboxItem answer(PlugPrincipal caller, String matchId, String decision) {
         return transaction.execute(ignored -> {
             lockAccount(caller);
-            // shortcut: ProviderProfile.standing (0.7.0) is not stored yet, so no provider is suspended;
-            // refuse suspended providers here once the admin standing route stores it.
+            // decide refuses a suspended provider (403).
             decide(caller.userId(), matchId, decision);
             return inboxItem(caller.userId(), matchId);
         });
@@ -288,8 +295,7 @@ public class RequestService {
             if (!limiter.tryConsume("offer:" + caller.userId(), 10, window.length())) {
                 throw ApiException.rateLimited(window.retryAfterSeconds());
             }
-            // shortcut: ProviderProfile.standing is not stored yet, so no provider is suspended (403
-            // suspended); refuse suspended providers here once the admin standing route stores it.
+            requireActiveStanding(caller.userId());
             List<String> matched = id.length() > 64 || !id.matches("req_[A-Za-z0-9-]+") ? List.of()
                     : jdbc.queryForList("SELECT m.match_id FROM request_matches m JOIN requests r ON r.id=m.request_id"
                             + " WHERE m.request_id=? AND m.provider_id=? AND r.user_id<>?", String.class, id, caller.userId(), caller.userId());
@@ -326,6 +332,8 @@ public class RequestService {
                 throw stateConflict("request_id", "already_offered", "You already sent an offer for this request.");
             }
             jdbc.update("UPDATE request_matches SET replied_at=? WHERE match_id=?", time(now), matched.getFirst());
+            // Before the read, so the returned offer carries the score this offer produced.
+            scores.recompute(caller.userId(), "offer_sent");
             Offer result = jdbc.queryForObject(OFFER_SELECT + " WHERE o.id=?", OFFER_ROW, offerId);
             remember(caller, "offer:" + id, key, input, result);
             return result;
@@ -340,8 +348,7 @@ public class RequestService {
         if (matchId == null || matchId.length() > 64 || !matchId.matches("mat_[A-Za-z0-9-]+")) throw ApiException.notFound("Match not found.");
         return transaction.execute(ignored -> {
             lockAccount(caller);
-            // shortcut: ProviderProfile.standing is not stored yet, so no provider is suspended (403
-            // suspended); refuse suspended providers here once the admin standing route stores it.
+            requireActiveStanding(caller.userId());
             var match = jdbc.queryForList("SELECT request_id FROM request_matches WHERE match_id=? AND provider_id=?",
                     String.class, matchId, caller.userId());
             if (match.isEmpty()) throw ApiException.notFound("Match not found.");
@@ -357,24 +364,43 @@ public class RequestService {
             Instant now = clock.instant();
             jdbc.update("UPDATE request_matches SET declined_at=?,replied_at=?,decline_reason=? WHERE match_id=?",
                     time(now), time(now), reason, matchId);
+            scores.recompute(caller.userId(), "match_declined");
             return inboxItem(caller.userId(), matchId);
         });
     }
-    /// The facts responsiveness rests on (manual v4 §12C.2, ScoreComponent.basis): matches answered
-    /// (an offer or a decline) and matches left silent (MatchStatus expired). Nothing else counts.
+    /// The facts responsiveness rests on (manual v4 §12C.2, ScoreComponent.basis): matches answered by
+    /// respond_by (an offer or a decline) and matches left silent (no reply by then). Nothing else counts.
     record Responsiveness(int answered, int silent) {}
-    /// shortcut: reads every match through inboxItem, one provider at a time; P3.S13 can move this
-    /// into one query if scoring many providers at once needs it.
-    Responsiveness responsiveness(String provider) {
-        return transaction.execute(ignored -> {
-            int answered = 0;
-            int silent = 0;
-            for (var row : jdbc.queryForList("SELECT match_id,replied_at FROM request_matches WHERE provider_id=?", provider)) {
-                if (row.get("replied_at") != null) answered++;
-                else if (inboxItem(provider, (String) row.get("match_id")).status().equals("expired")) silent++;
+    /// One query (TrustScore.responsiveness), the same answer inboxItem's MatchStatus gives.
+    Responsiveness responsiveness(String provider) { return scores.responsiveness(provider); }
+    /// P3.S14: a suspended provider may not offer, decline or answer a reservation (contract 403).
+    private void requireActiveStanding(String provider) {
+        if (jdbc.queryForObject("SELECT count(*) FROM provider_profiles WHERE user_id=? AND standing='suspended'",
+                Integer.class, provider) > 0) {
+            throw ApiException.forbidden("This operation is not allowed.");
+        }
+    }
+    /// P3.S14 suspension, in the owner's transaction: every live offer of the provider is withdrawn and
+    /// every pending reservation released, so askers get their other offers back. A confirmed booking
+    /// stands. Requests are locked first, in id order, as every request-level writer does.
+    /// shortcut: a selection racing the suspension can still open a pending reservation; the provider
+    /// cannot confirm it (403) and it times out at confirm_by. Lock the offer's profile in select to close it.
+    void suspend(String provider) {
+        Instant now = clock.instant();
+        List<String> ids = jdbc.queryForList("SELECT request_id FROM request_offers WHERE provider_id=? AND withdrawn_at IS NULL"
+                + " AND expires_at>? UNION SELECT request_id FROM request_reservations WHERE provider_id=? AND status='pending' ORDER BY 1",
+                String.class, provider, time(now), provider);
+        for (String id : ids) jdbc.queryForList("SELECT id FROM requests WHERE id=? FOR UPDATE", id);
+        for (String id : ids) {
+            expire(id);
+            jdbc.update("UPDATE request_offers o SET withdrawn_at=? WHERE request_id=? AND provider_id=? AND withdrawn_at IS NULL"
+                    + " AND NOT EXISTS (SELECT 1 FROM request_reservations v WHERE v.offer_id=o.id AND v.status='confirmed')",
+                    time(now), id, provider);
+            for (var pending : jdbc.queryForList("SELECT id,offer_id FROM request_reservations WHERE request_id=? AND provider_id=?"
+                    + " AND status='pending'", id, provider)) {
+                endReservation(id, (String) pending.get("id"), (String) pending.get("offer_id"), "released", now);
             }
-            return new Responsiveness(answered, silent);
-        });
+        }
     }
     /// Contract 0.7.1 getProviderInbox: open items first, then the last seven days, newest first, at
     /// most 50. Only the caller's own matches; a caller with no provider profile is 404.
@@ -400,7 +426,7 @@ public class RequestService {
         });
     }
     /// Contract 0.7.1: respond_by is notified_at plus this outreach reply window.
-    private static final Duration REPLY_WINDOW = Duration.ofMinutes(5);
+    static final Duration REPLY_WINDOW = Duration.ofMinutes(5);
     /// The provider's view of one match: never the asker's words, location or identity.
     RequestPayloads.InboxItem inboxItem(String provider, String matchId) {
         MatchRow match = jdbc.queryForObject("SELECT m.request_id,m.distance_m,m.notified_at,m.declined_at,r.status,r.updated_at,r.expires_at,"
@@ -489,17 +515,22 @@ public class RequestService {
         Instant now = clock.instant();
         String state = status(id);
         if (state.equals("user_selected")) {
-            var due = jdbc.queryForList("SELECT id,offer_id,confirm_by FROM request_reservations"
+            var due = jdbc.queryForList("SELECT id,offer_id,confirm_by,provider_id FROM request_reservations"
                     + " WHERE request_id=? AND status='pending' AND confirm_by<=?", id, time(now));
             if (!due.isEmpty()) {
                 var row = due.getFirst();
                 endReservation(id, (String) row.get("id"), (String) row.get("offer_id"), "timed_out",
                         ((Timestamp) row.get("confirm_by")).toInstant());
+                scores.recompute((String) row.get("provider_id"), "reservation_timed_out");
             }
-        } else if (state.equals("confirmed") && jdbc.queryForObject("SELECT count(*) FROM request_reservations v"
-                + " JOIN request_offers o ON o.id=v.offer_id WHERE v.request_id=? AND v.status='confirmed'"
-                + " AND o.available_at + interval '3 hours' <= ?", Integer.class, id, time(now)) > 0) {
-            transition(id, "completed", null);
+        } else if (state.equals("confirmed")) {
+            var done = jdbc.queryForList("SELECT v.provider_id FROM request_reservations v"
+                    + " JOIN request_offers o ON o.id=v.offer_id WHERE v.request_id=? AND v.status='confirmed'"
+                    + " AND o.available_at + interval '3 hours' <= ?", id, time(now));
+            if (!done.isEmpty()) {
+                transition(id, "completed", null);
+                scores.recompute((String) done.getFirst().get("provider_id"), "job_completed");
+            }
         }
     }
     public Offers offers(PlugPrincipal caller, String id) {
@@ -676,6 +707,16 @@ public class RequestService {
                     default -> { }
                 }
             }
+        });
+        // Silence (P3.S13): each match past respond_by with no reply is scored once. Its own transaction,
+        // and SKIP LOCKED, so a provider's concurrent offer or decline is never waited on.
+        transaction.executeWithoutResult(ignored -> {
+            Instant now = clock.instant();
+            List<String> providers = jdbc.queryForList("UPDATE request_matches SET silence_checked_at=? WHERE match_id IN"
+                    + " (SELECT match_id FROM request_matches WHERE replied_at IS NULL AND silence_checked_at IS NULL"
+                    + " AND notified_at<=? ORDER BY notified_at LIMIT 50 FOR UPDATE SKIP LOCKED) RETURNING provider_id",
+                    String.class, time(now), time(now.minus(REPLY_WINDOW)));
+            providers.stream().distinct().sorted().forEach(provider -> scores.recompute(provider, "silence_detected"));
         });
     }
     private void route(Resource resource) {

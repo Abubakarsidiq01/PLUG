@@ -150,15 +150,78 @@ public class ProviderService {
         List<AvailabilityWindow> availability = jdbc.query(
                 "SELECT days,from_minute,to_minute FROM provider_availability WHERE user_id=? ORDER BY position",
                 (rs, n) -> new AvailabilityWindow(rs.getString(1), clockText(rs.getInt(2)), clockText(rs.getInt(3))), userId);
-        var scores = jdbc.queryForList("SELECT completed_jobs,trust_score FROM provider_scores WHERE user_id=?", userId);
-        int completed = scores.isEmpty() ? 0 : ((Number) scores.getFirst().get("completed_jobs")).intValue();
-        Integer trust = scores.isEmpty() || scores.getFirst().get("trust_score") == null ? null
-                : ((Number) scores.getFirst().get("trust_score")).intValue();
+        var score = requests.scores.compute(userId);
         return jdbc.queryForObject("SELECT * FROM provider_profiles WHERE user_id=?", (rs, n) -> new ProviderProfile(userId,
                 skills, rs.getInt("travel_radius_m"), availability, rs.getString("time_zone"), rs.getBoolean("accepting"),
-                rs.getString("licence_ref") != null, RequestPayloads.ProviderScore.of(completed, trust),
+                rs.getString("licence_ref") != null, score.score(), score.breakdown(), score.standing(),
                 rs.getTimestamp("created_at").toInstant(), BusinessProfiles.read(rs.getString("business")),
                 customSkills.labels(userId)), userId);
+    }
+
+    /// Contract 0.7.0 listProviders and setProviderStanding are for an owner only: SecurityConfiguration
+    /// already requires the admin scope and a completed second factor; the role is checked here, against
+    /// the staff account, as StaffAccounts checks it for staff management.
+    void requireOwner(PlugPrincipal caller) {
+        if (caller == null) throw ApiException.unauthenticated("Sign in to continue.");
+        if (jdbc.queryForObject("SELECT count(*) FROM staff_accounts WHERE user_id=? AND role='owner' AND status='active'",
+                Integer.class, caller.userId()) == 0) {
+            throw ApiException.forbidden("This operation is not allowed.");
+        }
+    }
+
+    /// Newest first, with the same opaque cursors as the other admin pages. Each read is audited. The
+    /// controller has checked the owner.
+    /// shortcut: each row computes its score live (two queries a provider, at most 100 a page); store the
+    /// breakdown with provider_scores if the console needs larger pages.
+    AdminInspection.Page<ProviderPayloads.AdminProvider> list(PlugPrincipal caller, String cursor, int limit) {
+        audit(caller, "admin.read", "providers", "list", null);
+        String[] after = cursor == null ? null : AdminInspection.decode(cursor, 2);
+        List<String> ids = after == null
+                ? jdbc.queryForList("SELECT user_id FROM provider_profiles ORDER BY created_at DESC, user_id DESC LIMIT ?",
+                        String.class, limit + 1)
+                : jdbc.queryForList("SELECT user_id FROM provider_profiles WHERE (created_at, user_id) < (?, ?)"
+                        + " ORDER BY created_at DESC, user_id DESC LIMIT ?", String.class,
+                        Timestamp.from(AdminInspection.instant(after[0])), after[1], limit + 1);
+        return AdminInspection.page(ids.stream().map(this::admin).toList(), limit,
+                p -> AdminInspection.encode(p.createdAt().toString(), p.userId()));
+    }
+
+    /// Suspends or reinstates a provider (P3.S14). Suspending withdraws their live offers and releases
+    /// their pending reservations first, then the standing changes, the score is recomputed and the
+    /// decision is audited with its reason, all in one transaction. The controller has checked the owner.
+    ProviderPayloads.AdminProvider setStanding(PlugPrincipal caller, String userId, String standing, String reason) {
+        return transaction.execute(ignored -> {
+            if (userId.length() > 64 || !userId.matches("usr_[A-Za-z0-9-]{1,60}") || jdbc.queryForObject(
+                    "SELECT count(*) FROM provider_profiles WHERE user_id=?", Integer.class, userId) == 0) {
+                throw ApiException.notFound("That provider was not found.");
+            }
+            // The provider's account row first, as their offer, decline and reservation answer lock it
+            // first: one of them either finishes before the suspension or sees it and is refused (403).
+            jdbc.queryForList("SELECT id FROM users WHERE id=? FOR UPDATE", userId);
+            if (standing.equals("suspended")) requests.suspend(userId);
+            // Suspending also stops accepting (fixture admin.providers.standing/suspended.json); reinstating
+            // leaves it off, so the provider turns it back on themselves through POST /v1/providers/skills.
+            if (jdbc.update("UPDATE provider_profiles SET standing=?,standing_changed_at=?,"
+                    + "accepting=CASE WHEN ?='suspended' THEN false ELSE accepting END WHERE user_id=? AND standing<>?",
+                    standing, Timestamp.from(clock.instant()), standing, userId, standing) > 0) {
+                requests.scores.recompute(userId, "standing_changed");
+            }
+            audit(caller, "provider.standing_changed", "provider", userId, standing + ": " + reason);
+            return admin(userId);
+        });
+    }
+
+    private ProviderPayloads.AdminProvider admin(String userId) {
+        ProviderProfile p = read(userId);
+        return new ProviderPayloads.AdminProvider(userId, p.business() == null ? null : p.business().name(), p.skills(),
+                p.customSkills(), p.travelRadiusM(), p.accepting(), p.licenceOnFile(), p.standing(), p.score(), p.scoreBreakdown(),
+                p.createdAt());
+    }
+
+    private void audit(PlugPrincipal caller, String action, String resource, String resourceId, String reason) {
+        jdbc.update("INSERT INTO audit_events(occurred_at,actor_id,actor_role,action,resource,resource_id,reason,request_id)"
+                + " VALUES(?,?,'admin',?,?,?,?,?)", Timestamp.from(clock.instant()), caller.userId(), action, resource, resourceId,
+                reason, org.slf4j.MDC.get("request_id"));
     }
 
     static int minutes(String clockText) {
