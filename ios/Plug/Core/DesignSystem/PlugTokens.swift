@@ -24,6 +24,10 @@ enum PlugShape {
     static let control = PlugTokens.Radius.control
     static let sheet = PlugTokens.Radius.sheet
     static let rule: CGFloat = 1
+    /// A focused field or a chosen option: a slightly heavier forest-green line.
+    static let focusRule: CGFloat = 1.5
+    /// A large choice row: a little taller than a button, so the options read as a list to pick from.
+    static let choiceHeight: CGFloat = 56
     static let buttonHeight: CGFloat = 52
     /// Illustration tiles: softer than cards so the art reads as an object, not a panel.
     static let illustration: CGFloat = 12

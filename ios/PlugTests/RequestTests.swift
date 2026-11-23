@@ -58,6 +58,14 @@ final class RequestTests: XCTestCase {
         XCTAssertThrowsError(try result.validated())
     }
 
+    func testDeviceFixGoesStaleAfterTenMinutesButATypedAddressDoesNot() {
+        let now = Date()
+        XCTAssertFalse(RequestLocationModel.isStale(fixedAt: nil, now: now))
+        XCTAssertFalse(RequestLocationModel.isStale(fixedAt: now.addingTimeInterval(-9 * 60), now: now))
+        XCTAssertTrue(RequestLocationModel.isStale(fixedAt: now.addingTimeInterval(-11 * 60), now: now))
+        XCTAssertFalse(RequestLocationModel().isStale())
+    }
+
     func testKnowBeforeQuestionsAreExactAndStayWithinTheAskLimit() throws {
         let place = KnowBefore.placeName("H-E-B", street: "South Congress Avenue")
         XCTAssertEqual(place, "H-E-B on South Congress Avenue")

@@ -131,6 +131,7 @@ struct KnowBeforeSheet: View {
     @State private var query = ""
     @State private var place: String?
     @State private var kind: MKPointOfInterestCategory?
+    @ScaledMetric(relativeTo: .body) private var glyph: CGFloat = 14
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -201,7 +202,7 @@ struct KnowBeforeSheet: View {
             }
             if !query.isEmpty {
                 Button { query = "" } label: {
-                    Image(systemName: "xmark").font(.system(size: 14, weight: .medium))
+                    Image(systemName: "xmark").font(.system(size: min(glyph, PlugTokens.Layout.iconMax), weight: .medium))
                         .foregroundStyle(PlugTokens.Color.ink600)
                         .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
                         .contentShape(Rectangle())
@@ -331,7 +332,7 @@ struct KnowBeforeSheet: View {
     }
 
     private var chevron: some View {
-        Image(systemName: "chevron.right").font(.system(size: 14, weight: .medium))
+        Image(systemName: "chevron.right").font(.system(size: min(glyph, PlugTokens.Layout.iconMax), weight: .medium))
             .foregroundStyle(PlugTokens.Color.brandGreen).accessibilityHidden(true)
     }
 }
@@ -344,6 +345,7 @@ private struct KnowBeforeQuestion: View {
     @State private var other = ""
     @FocusState private var otherFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dismiss) private var back
 
     private var question: String? { topic.flatMap { KnowBefore.question($0, place: place, other: other) } }
 
@@ -394,6 +396,9 @@ private struct KnowBeforeQuestion: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
+        // A plain text Back, not the system's round glass one; the sheet still swipes down.
+        .navigationBarBackButtonHidden(true)
+        .modifier(SheetBarButton(title: "Back", back: true, id: "kbg-back") { back() })
         .sensoryFeedback(.selection, trigger: topic)
     }
 }
@@ -466,7 +471,7 @@ struct ExampleAskSheet: View {
 
 private enum KnowBeforeCopy {
     static let howItWorks = "People near the place answer. If nobody can, PLUG says Unknown."
-    static let location = "PLUG uses your approximate location when you ask, never before."
+    static let location = "PLUG sends your approximate location only when you ask."
 }
 
 /// A large choice: the words on the left, an open or filled green circle on the right.
@@ -490,10 +495,10 @@ private struct ChoiceRow: View {
             }
             .padding(.horizontal, PlugTokens.Space.s4)
             .padding(.vertical, PlugTokens.Space.s4)
-            .frame(maxWidth: .infinity, minHeight: PlugShape.buttonHeight + 4, alignment: .leading)
+            .frame(maxWidth: .infinity, minHeight: PlugShape.choiceHeight, alignment: .leading)
             .background(selected ? PlugTokens.Color.card : .clear, in: shape)
             .overlay(shape.strokeBorder(selected ? PlugTokens.Color.brandGreen : PlugTokens.Color.rule300,
-                                        lineWidth: selected ? 1.5 : PlugShape.rule))
+                                        lineWidth: selected ? PlugShape.focusRule : PlugShape.rule))
             .contentShape(shape)
         }
         .buttonStyle(PlugPressStyle())
@@ -556,7 +561,7 @@ private struct AskTextBox: View {
             }
             .padding(PlugTokens.Space.s4)
             .background(PlugTokens.Color.sunk, in: shape)
-            .overlay(shape.strokeBorder(focus.wrappedValue ? PlugTokens.Color.brandGreen : .clear, lineWidth: 1.5))
+            .overlay(shape.strokeBorder(focus.wrappedValue ? PlugTokens.Color.brandGreen : .clear, lineWidth: PlugShape.focusRule))
             if text.count > limit - 60 {
                 caption("\(text.count) of \(limit) characters")
             }
@@ -570,11 +575,7 @@ private extension View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close", action: close).fontWeight(.semibold).accessibilityIdentifier("sheet-close")
-                }
-            }
+            .modifier(SheetBarButton(title: "Close", id: "sheet-close", action: close))
     }
 
     func knowBeforePresentation() -> some View {
@@ -582,5 +583,48 @@ private extension View {
             .presentationDragIndicator(.visible)
             .presentationBackground(PlugTokens.Color.paper)
             .presentationCornerRadius(PlugShape.sheet)
+    }
+}
+
+/// A bar action as plain espresso text, never the round glass button iOS 26 puts behind toolbar
+/// items. CI builds with Xcode 16 (iOS 18 SDK), which has no sharedBackgroundVisibility.
+private struct SheetBarButton: ViewModifier {
+    let title: String
+    var back = false
+    let id: String
+    let action: () -> Void
+    @ScaledMetric(relativeTo: .body) private var glyph: CGFloat = 16
+
+    @ViewBuilder func body(content: Content) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26, *) {
+            content.toolbar { ToolbarItem(placement: .topBarLeading) { button }.sharedBackgroundVisibility(.hidden) }
+        } else {
+            content.toolbar { ToolbarItem(placement: .topBarLeading) { button } }
+        }
+        #else
+        content.toolbar { ToolbarItem(placement: .topBarLeading) { button } }
+        #endif
+    }
+
+    private var button: some View {
+        Button(action: action) {
+            HStack(spacing: PlugTokens.Space.s1) {
+                if back {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: min(glyph, PlugTokens.Layout.iconMax), weight: .semibold))
+                        .accessibilityHidden(true)
+                }
+                Text(title).plugText(.action).lineLimit(1)
+            }
+            // The bar proposes a narrow width; the label keeps its own so it never wraps.
+            .fixedSize()
+            .foregroundStyle(PlugTokens.Color.ink900)
+            .frame(minHeight: PlugTokens.minTouchTarget)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .accessibilityIdentifier(id)
     }
 }

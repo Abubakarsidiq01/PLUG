@@ -5,13 +5,16 @@ import Foundation
 final class RequestLocationModel: NSObject, ObservableObject, @preconcurrency CLLocationManagerDelegate {
     @Published var address = "" {
         didSet {
-            if address != oldValue { generation = UUID(); location = nil; label = nil; isWorking = false; geocoder.cancelGeocode() }
+            if address != oldValue { generation = UUID(); location = nil; fixedAt = nil; label = nil; isWorking = false; geocoder.cancelGeocode() }
         }
     }
     @Published private(set) var location: RequestLocation?
     @Published private(set) var label: String?
     @Published private(set) var errorMessage: String?
     @Published private(set) var isWorking = false
+    /// When the current device fix was taken; nil for a typed address, which does not go stale.
+    private(set) var fixedAt: Date?
+    static let maxFixAge: TimeInterval = 10 * 60
     private let manager = CLLocationManager()
     private let geocoder = CLGeocoder()
     private var generation = UUID()
@@ -45,12 +48,20 @@ final class RequestLocationModel: NSObject, ObservableObject, @preconcurrency CL
                 return
             }
             location = RequestLocation(latitude: coordinate.latitude, longitude: coordinate.longitude, precision: .coarse)
+            fixedAt = nil
             label = [match.name, match.locality, match.administrativeArea].compactMap { $0 }.joined(separator: ", ")
         } catch {
             guard generation == current else { return }
             errorMessage = "The address could not be checked. Your address is kept; reconnect and try again."
         }
         if generation == current { isWorking = false }
+    }
+
+    /// A device fix older than ten minutes is asked for again before it is sent with an ask.
+    func isStale(now: Date = Date()) -> Bool { Self.isStale(fixedAt: fixedAt, now: now) }
+    static func isStale(fixedAt: Date?, now: Date) -> Bool {
+        guard let fixedAt else { return false }
+        return now.timeIntervalSince(fixedAt) > maxFixAge
     }
 
     func useDeviceLocation() {
@@ -84,6 +95,7 @@ final class RequestLocationModel: NSObject, ObservableObject, @preconcurrency CL
             return
         }
         location = RequestLocation(latitude: fix.coordinate.latitude, longitude: fix.coordinate.longitude, precision: .coarse)
+        fixedAt = fix.timestamp
         label = "Current approximate location"
     }
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {

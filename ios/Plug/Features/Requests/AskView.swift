@@ -418,7 +418,8 @@ struct AskView: View {
         voice.stop()
         textFocused = false
         guard model.textError == nil else { return }
-        if let located = location.location {
+        // A fix taken earlier (in Know before you go, or a past ask) is renewed once it is stale.
+        if let located = location.location, !location.isStale() {
             Task { await model.submit(location: located) }
         } else {
             askWhenLocated = true
@@ -448,7 +449,7 @@ struct AskView: View {
             }
         } else {
             caption(location.isWorking ? "Finding your approximate location…"
-                    : "PLUG uses your approximate location when you ask, never before.")
+                    : "PLUG sends your approximate location only when you ask.")
         }
     }
 
