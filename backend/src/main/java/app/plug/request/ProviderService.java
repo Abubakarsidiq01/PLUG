@@ -195,9 +195,15 @@ public class ProviderService {
                     "SELECT count(*) FROM provider_profiles WHERE user_id=?", Integer.class, userId) == 0) {
                 throw ApiException.notFound("That provider was not found.");
             }
+            // The provider's account row first, as their offer, decline and reservation answer lock it
+            // first: one of them either finishes before the suspension or sees it and is refused (403).
+            jdbc.queryForList("SELECT id FROM users WHERE id=? FOR UPDATE", userId);
             if (standing.equals("suspended")) requests.suspend(userId);
-            if (jdbc.update("UPDATE provider_profiles SET standing=?,standing_changed_at=? WHERE user_id=? AND standing<>?",
-                    standing, Timestamp.from(clock.instant()), userId, standing) > 0) {
+            // Suspending also stops accepting (fixture admin.providers.standing/suspended.json); reinstating
+            // leaves it off, so the provider turns it back on themselves through POST /v1/providers/skills.
+            if (jdbc.update("UPDATE provider_profiles SET standing=?,standing_changed_at=?,"
+                    + "accepting=CASE WHEN ?='suspended' THEN false ELSE accepting END WHERE user_id=? AND standing<>?",
+                    standing, Timestamp.from(clock.instant()), standing, userId, standing) > 0) {
                 requests.scores.recompute(userId, "standing_changed");
             }
             audit(caller, "provider.standing_changed", "provider", userId, standing + ": " + reason);

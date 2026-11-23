@@ -250,7 +250,8 @@ class TrustScoreTest {
         // completion 100 (25) and standing 100 (10); responsiveness has 3 of the 5 matches it needs.
         assertThat(three.path("score").path("value").asInt()).isEqualTo(100);
         assertComponent(three.path("score_breakdown"), "completion", 100, 3);
-        assertComponent(three.path("score_breakdown"), "reliability", null, 0);
+        // Reliability has no evidence before Phase 5 reviews: null, resting on the 3 confirmed jobs.
+        assertComponent(three.path("score_breakdown"), "reliability", null, 3);
         assertComponent(three.path("score_breakdown"), "responsiveness", null, 3);
         assertThat(storedTrust(provider)).isEqualTo(100);
 
@@ -263,7 +264,7 @@ class TrustScoreTest {
         assertThat(storedTrust(provider)).isEqualTo(91);
         assertThat(jdbc.queryForObject("SELECT response_rate FROM provider_scores WHERE user_id=?", Double.class, userId(provider)))
                 .isEqualTo(0.6);
-        assertThat(causes(provider)).contains("offer_sent", "reservation_confirmed", "job_completed", "silence_detected")
+        assertThat(causes(provider)).contains("offer_sent", "job_completed", "silence_detected")
                 .doesNotContain("standing_changed");
         // Every row records the change it made and why.
         assertThat(jdbc.queryForObject("SELECT new_value FROM score_history WHERE provider_id=? ORDER BY id DESC LIMIT 1",
@@ -299,13 +300,26 @@ class TrustScoreTest {
         provide(provider);
         for (int n = 0; n < 3; n++) completeJob(provider);
         Ask booked = confirmedBooking(provider);
-        // Owner rule: the open booking counts once confirmed, so 3 completed of 4 confirmed is 75.
-        assertComponent(me(provider).path("score_breakdown"), "completion", 75, 4);
         post(booked.asker(), "/v1/requests/" + booked.id() + "/cancel", "", null).andExpect(status().isOk());
         JsonNode after = me(provider);
         assertComponent(after.path("score_breakdown"), "completion", 100, 3);
         assertThat(after.path("score").path("value").asInt()).isEqualTo(100);
-        assertThat(causes(provider)).contains("reservation_canceled");
+    }
+
+    @Test void aConfirmedJobStillInProgressDoesNotCountUntilItCompletes() throws Exception {
+        var provider = guest();
+        provide(provider);
+        for (int n = 0; n < 3; n++) completeJob(provider);
+        confirmedBooking(provider);
+        // Job 4 is confirmed but its slot + 3 h has not come: 3 of 3, not 3 of 4.
+        assertComponent(me(provider).path("score_breakdown"), "completion", 100, 3);
+        CLOCK.now = CLOCK.now.plus(Duration.ofMinutes(20)).plus(Duration.ofHours(2));
+        assertComponent(me(provider).path("score_breakdown"), "completion", 100, 3);
+        CLOCK.now = CLOCK.now.plus(Duration.ofHours(1));
+        service.workOnce();
+        JsonNode done = me(provider);
+        assertComponent(done.path("score_breakdown"), "completion", 100, 4);
+        assertThat(done.path("score").path("completed_jobs").asInt()).isEqualTo(4);
     }
 
     @Test void aReleaseOrTimeoutBeforeConfirmingIsNotABooking() throws Exception {
@@ -359,7 +373,55 @@ class TrustScoreTest {
         assertThat(storedTrust(provider)).isNull();
     }
 
+    @Test void aReplyAfterRespondByIsStillSilence() throws Exception {
+        var provider = guest();
+        provide(provider);
+        Ask declined = ask();
+        CLOCK.now = CLOCK.now.plus(Duration.ofMinutes(6));
+        post(provider, "/v1/providers/me/inbox/" + matchId(declined.id(), provider) + "/decline", "{\"reason\":\"busy\"}", null)
+                .andExpect(status().isOk());
+        assertThat(service.responsiveness(userId(provider))).isEqualTo(new RequestService.Responsiveness(0, 1));
+        CLOCK.now = CLOCK.now.plus(Duration.ofMinutes(61));
+        Ask offered = ask();
+        CLOCK.now = CLOCK.now.plus(Duration.ofMinutes(6));
+        offerOk(provider, offered.id());
+        assertThat(service.responsiveness(userId(provider))).isEqualTo(new RequestService.Responsiveness(0, 2));
+        // The same reply inside the window is an answer.
+        CLOCK.now = CLOCK.now.plus(Duration.ofMinutes(61));
+        Ask onTime = ask();
+        CLOCK.now = CLOCK.now.plus(Duration.ofMinutes(4));
+        offerOk(provider, onTime.id());
+        assertThat(service.responsiveness(userId(provider))).isEqualTo(new RequestService.Responsiveness(1, 2));
+    }
+
     // ---- 4. standing: suspend and reinstate ----------------------------------------------
+
+    @Test void aSuspensionWaitsForTheProvidersAccountLockSoARacingOfferCannotSlipPast() throws Exception {
+        var owner = staffMember("owner", true);
+        var provider = guest();
+        provide(provider);
+        var held = new java.util.concurrent.CountDownLatch(1);
+        var release = new java.util.concurrent.CountDownLatch(1);
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        try {
+            // Stands in for an offer, decline or answer in flight: they lock the account row first.
+            var holder = pool.submit(() -> new TransactionTemplate(transactions).executeWithoutResult(ignored -> {
+                jdbc.queryForList("SELECT id FROM users WHERE id=? FOR UPDATE", userId(provider));
+                held.countDown();
+                try { release.await(); } catch (InterruptedException stop) { Thread.currentThread().interrupt(); }
+            }));
+            held.await();
+            var suspension = pool.submit(() -> suspend(owner, provider, "suspended"));
+            Thread.sleep(700);
+            assertThat(suspension.isDone()).as("waits for the account lock").isFalse();
+            release.countDown();
+            holder.get();
+            assertThat(suspension.get().path("standing").asText()).isEqualTo("suspended");
+        } finally {
+            release.countDown();
+            pool.shutdownNow();
+        }
+    }
 
     @Test void suspendingStopsMatchingRefusesActionsWithdrawsOffersReleasesReservationsAndReinstatingRestores() throws Exception {
         var owner = staffMember("owner", true);
@@ -379,6 +441,7 @@ class TrustScoreTest {
         JsonNode suspended = suspend(owner, provider, "suspended");
         assertThat(suspended.path("user_id").asText()).isEqualTo(userId(provider));
         assertThat(suspended.path("standing").asText()).isEqualTo("suspended");
+        assertThat(suspended.path("accepting").asBoolean()).as("suspending stops accepting").isFalse();
         assertThat(suspended.path("display_name").asText()).isEqualTo("Fresh Line Studio");
         assertComponent(suspended.path("score_breakdown"), "standing", 0, 0);
         assertThat(me(provider).path("standing").asText()).isEqualTo("suspended");
@@ -413,11 +476,17 @@ class TrustScoreTest {
         assertThat(jdbc.queryForObject("SELECT components->'standing'->>'value' FROM score_history WHERE provider_id=?"
                 + " AND cause='standing_changed'", String.class, userId(provider))).isEqualTo("0");
 
-        // Reinstated: standing 100 again, matched again, may offer again.
+        // Reinstated: standing 100 again, but accepting stays off until the provider turns it on.
         JsonNode active = suspend(owner, provider, "active");
         assertThat(active.path("standing").asText()).isEqualTo("active");
+        assertThat(active.path("accepting").asBoolean()).isFalse();
         assertComponent(active.path("score_breakdown"), "standing", 100, 0);
         assertThat(causes(provider)).endsWith("silence_detected", "standing_changed");
+        CLOCK.now = CLOCK.now.plus(Duration.ofMinutes(61));
+        assertThat(matchId(ask().id(), provider)).as("not accepting, so not matched").isNull();
+        // The provider accepts again themselves, and is matched and may offer again.
+        provide(provider);
+        assertThat(me(provider).path("accepting").asBoolean()).isTrue();
         CLOCK.now = CLOCK.now.plus(Duration.ofMinutes(61));
         Ask back = ask();
         assertThat(matchId(back.id(), provider)).isNotNull();

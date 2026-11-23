@@ -9,13 +9,18 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 /// Trust score v1 (P3.S13 and P3.S14; manual v4 §12C.2, §12C.3, §19A.5; contract 0.7.0
 /// ProviderScoreBreakdown). Owner decisions 2026-11-17, the honest v1 rules:
-///  - completion: completed jobs / confirmed bookings. A booking counts once its provider confirmed
-///    it, so an open booking counts before it completes. An asker's cancellation leaves the
-///    denominator (the schema records no cancel actor); a release or timeout before confirming is
-///    not a booking. Null below 3 confirmed bookings.
-///  - responsiveness: answered (an offer or a decline) / (answered + silent). An open match still
-///    inside respond_by counts as neither. Null below 5 matches.
-///  - reliability: null, basis 0, until on-time and price evidence exists (Phase 5 reviews). Never faked.
+///  - completion: completed jobs / confirmed bookings whose outcome is known. A booking still in
+///    progress (before its slot + 3 h completion) does not count yet. An asker's cancellation leaves
+///    the denominator (the schema records no cancel actor, and cancel clears confirmed_at); a release
+///    or timeout before confirming is not a booking. Null below 3 such bookings. PLUG records no
+///    provider failure after confirming yet (no provider cancel or no-show), so in v1 the only known
+///    outcome is completed and completion is 100 whenever it has evidence. That is the rule, not a bug:
+///    a provider-side failure, once recorded, is the second outcome counted in "decided" below.
+///  - responsiveness: answered / (answered + silent). Answered is an offer or a decline by respond_by;
+///    a reply after it is still silence (owner rule: silence is no reply by respond_by). An open match
+///    still inside respond_by counts as neither. Null below 5 matches.
+///  - reliability: null until on-time and price evidence exists (Phase 5 reviews), never faked; its
+///    basis is the confirmed jobs it will rest on (contract ScoreComponent.basis), as completion's.
 ///  - standing: 100 while active, 0 while suspended; basis is days since the profile was created or
 ///    its standing last changed.
 ///  - value: the weighted mean of the non-null components, completion 25, reliability 15,
@@ -48,23 +53,24 @@ class TrustScore {
                 SELECT pp.standing, COALESCE(pp.standing_changed_at, pp.created_at) AS since,
                        -- The last recompute (every event runs one), else the profile's creation: stable across reads.
                        COALESCE(max(ps.updated_at), pp.created_at) AS updated_at,
-                       count(v.id) FILTER (WHERE v.status = 'confirmed') AS confirmed,
-                       count(v.id) FILTER (WHERE v.status = 'confirmed' AND r.status = 'completed') AS completed
+                       -- Confirmed bookings with a known outcome. Completed is the only one PLUG records today;
+                       -- a provider cancel or no-show joins this count, and only this one, once recorded.
+                       count(v.id) FILTER (WHERE v.status = 'confirmed' AND r.status = 'completed') AS decided
                   FROM provider_profiles pp
                   LEFT JOIN request_reservations v ON v.provider_id = pp.user_id
                   LEFT JOIN requests r ON r.id = v.request_id
                   LEFT JOIN provider_scores ps ON ps.user_id = pp.user_id
                  WHERE pp.user_id = ? GROUP BY pp.user_id
                 """, provider);
-        int confirmed = ((Number) facts.get("confirmed")).intValue();
-        int completed = ((Number) facts.get("completed")).intValue();
+        int decided = ((Number) facts.get("decided")).intValue();
+        int completed = decided;
         boolean active = "active".equals(facts.get("standing"));
         Instant since = ((Timestamp) facts.get("since")).toInstant();
         Instant updated = ((Timestamp) facts.get("updated_at")).toInstant();
         RequestService.Responsiveness replies = responsiveness(provider);
         int matches = replies.answered() + replies.silent();
-        Component completion = new Component(confirmed >= MIN_BOOKINGS ? percent(completed, confirmed) : null, confirmed);
-        Component reliability = new Component(null, 0);
+        Component completion = new Component(decided >= MIN_BOOKINGS ? percent(completed, decided) : null, decided);
+        Component reliability = new Component(null, decided);
         Component responsiveness = new Component(matches >= MIN_MATCHES ? percent(replies.answered(), matches) : null, matches);
         Component standing = new Component(active ? 100 : 0, (int) Math.max(0, Duration.between(since, now).toDays()));
         double weighted = 0;
@@ -116,14 +122,14 @@ class TrustScore {
 
     private static int percent(int part, int whole) { return (int) Math.round(100.0 * part / whole); }
 
-    /// The facts responsiveness rests on, in one query: matches answered (replied_at set, by an offer
-    /// or a decline) and matches left silent, which is exactly RequestService.inboxItem's MatchStatus
-    /// expired for a match with no reply. Closed, not_chosen and open count as neither.
+    /// The facts responsiveness rests on, in one query: matches answered by respond_by (an offer or a
+    /// decline) and matches left silent: a reply after respond_by, or no reply where the inbox shows
+    /// MatchStatus expired. Closed, not_chosen and open count as neither.
     RequestService.Responsiveness responsiveness(String provider) {
         String respondBy = "m.notified_at + interval '" + RequestService.REPLY_WINDOW.toSeconds() + " seconds'";
         return jdbc.queryForObject("""
-                SELECT count(*) FILTER (WHERE m.replied_at IS NOT NULL) AS answered,
-                       count(*) FILTER (WHERE m.replied_at IS NULL
+                SELECT count(*) FILTER (WHERE m.replied_at <= %1$s) AS answered,
+                       count(*) FILTER (WHERE m.replied_at > %1$s OR (m.replied_at IS NULL
                            AND NOT EXISTS (SELECT 1 FROM request_reservations v
                                             WHERE v.request_id = m.request_id AND v.provider_id = m.provider_id)
                            AND NOT EXISTS (SELECT 1 FROM request_offers o
@@ -132,7 +138,7 @@ class TrustScore {
                                     WHEN r.status = 'canceled' THEN r.updated_at >= %1$s
                                     WHEN r.status = 'expired' THEN LEAST(r.expires_at, r.updated_at) >= %1$s
                                     WHEN r.status IN ('submitted','routed','awaiting_responses','ranked') THEN ? >= %1$s
-                                    ELSE false END) AS silent
+                                    ELSE false END)) AS silent
                   FROM request_matches m
                   JOIN requests r ON r.id = m.request_id
                   -- When the asker first chose someone else's offer.

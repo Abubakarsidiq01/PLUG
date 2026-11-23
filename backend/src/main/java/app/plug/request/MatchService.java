@@ -92,10 +92,14 @@ public class MatchService {
         if (eligible.isEmpty()) return 0;
         // Concurrent requests must not both take a provider's last notification of the hour: lock the
         // candidates in id order (no deadlock between workers) and count only once the lock is held.
-        jdbc.queryForList("SELECT user_id FROM provider_profiles WHERE user_id = ANY(?) ORDER BY user_id FOR NO KEY UPDATE",
-                String.class, (Object) eligible.stream().map(Candidate::userId).toArray(String[]::new));
+        // Standing and accepting are read again under the lock, so a suspension that committed after the
+        // candidate query is never matched (P3.S14).
+        var stillEligible = new java.util.HashSet<>(jdbc.queryForList("SELECT user_id FROM provider_profiles"
+                + " WHERE user_id = ANY(?) AND standing = 'active' AND accepting ORDER BY user_id FOR NO KEY UPDATE",
+                String.class, (Object) eligible.stream().map(Candidate::userId).toArray(String[]::new)));
         Timestamp hourAgo = Timestamp.from(start.minus(Duration.ofHours(1)));
         List<Candidate> chosen = eligible.stream()
+                .filter(candidate -> stillEligible.contains(candidate.userId()))
                 .filter(candidate -> jdbc.queryForObject("SELECT count(*) FROM request_matches WHERE provider_id=? AND notified_at>?",
                         Integer.class, candidate.userId(), hourAgo) < NOTIFICATIONS_PER_HOUR)
                 .limit(Math.min(INITIAL_FANOUT, ABSOLUTE_CAP - already))

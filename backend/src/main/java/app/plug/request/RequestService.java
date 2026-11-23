@@ -368,8 +368,8 @@ public class RequestService {
             return inboxItem(caller.userId(), matchId);
         });
     }
-    /// The facts responsiveness rests on (manual v4 §12C.2, ScoreComponent.basis): matches answered
-    /// (an offer or a decline) and matches left silent (MatchStatus expired). Nothing else counts.
+    /// The facts responsiveness rests on (manual v4 §12C.2, ScoreComponent.basis): matches answered by
+    /// respond_by (an offer or a decline) and matches left silent (no reply by then). Nothing else counts.
     record Responsiveness(int answered, int silent) {}
     /// One query (TrustScore.responsiveness), the same answer inboxItem's MatchStatus gives.
     Responsiveness responsiveness(String provider) { return scores.responsiveness(provider); }
