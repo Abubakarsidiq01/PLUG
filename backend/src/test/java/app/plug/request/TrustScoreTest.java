@@ -218,6 +218,10 @@ class TrustScoreTest {
         var provider = guest();
         provide(provider);
         JsonNode fresh = me(provider);
+        // Reads are stable: the same profile twice, whatever the clock says in between.
+        CLOCK.now = CLOCK.now.plusSeconds(30);
+        assertThat(me(provider)).isEqualTo(fresh);
+        assertThat(fresh.at("/score_breakdown/updated_at").asText()).isEqualTo(fresh.path("created_at").asText());
         assertThat(fresh.path("standing").asText()).isEqualTo("active");
         assertThat(fresh.path("score").path("state").asText()).isEqualTo("new");
         assertThat(fresh.path("score").has("value")).isFalse();

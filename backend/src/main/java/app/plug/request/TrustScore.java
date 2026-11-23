@@ -21,7 +21,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 ///  - value: the weighted mean of the non-null components, completion 25, reliability 15,
 ///    responsiveness 10, standing 10 (customer rating, 40, arrives in Phase 5). No recency weighting.
 ///  - New: fewer than 3 completed jobs shows state new and no value, never 0 (§12C.3).
-/// Reads compute it live. recompute() runs in the transaction of every event that can move it and
+/// Reads compute it live, stamped with the last recompute. recompute() runs in the transaction of every event that can move it and
 /// writes provider_scores (offers and match ranking read it) and a score_history row per change.
 class TrustScore {
     record Component(@JsonInclude(JsonInclude.Include.ALWAYS) Integer value, int basis) {}
@@ -46,17 +46,21 @@ class TrustScore {
         Instant now = clock.instant();
         var facts = jdbc.queryForMap("""
                 SELECT pp.standing, COALESCE(pp.standing_changed_at, pp.created_at) AS since,
+                       -- The last recompute (every event runs one), else the profile's creation: stable across reads.
+                       COALESCE(max(ps.updated_at), pp.created_at) AS updated_at,
                        count(v.id) FILTER (WHERE v.status = 'confirmed') AS confirmed,
                        count(v.id) FILTER (WHERE v.status = 'confirmed' AND r.status = 'completed') AS completed
                   FROM provider_profiles pp
                   LEFT JOIN request_reservations v ON v.provider_id = pp.user_id
                   LEFT JOIN requests r ON r.id = v.request_id
+                  LEFT JOIN provider_scores ps ON ps.user_id = pp.user_id
                  WHERE pp.user_id = ? GROUP BY pp.user_id
                 """, provider);
         int confirmed = ((Number) facts.get("confirmed")).intValue();
         int completed = ((Number) facts.get("completed")).intValue();
         boolean active = "active".equals(facts.get("standing"));
         Instant since = ((Timestamp) facts.get("since")).toInstant();
+        Instant updated = ((Timestamp) facts.get("updated_at")).toInstant();
         RequestService.Responsiveness replies = responsiveness(provider);
         int matches = replies.answered() + replies.silent();
         Component completion = new Component(confirmed >= MIN_BOOKINGS ? percent(completed, confirmed) : null, confirmed);
@@ -76,7 +80,7 @@ class TrustScore {
         var score = completed < MIN_COMPLETED_FOR_VALUE ? new RequestPayloads.ProviderScore("new", null, completed)
                 : new RequestPayloads.ProviderScore("scored", value, completed);
         Double rate = matches >= MIN_MATCHES ? Math.round(1000.0 * replies.answered() / matches) / 1000.0 : null;
-        return new Score(score, new Breakdown("v1", completion, reliability, responsiveness, standing, null, now),
+        return new Score(score, new Breakdown("v1", completion, reliability, responsiveness, standing, null, updated),
                 active ? "active" : "suspended", value, rate);
     }
 
