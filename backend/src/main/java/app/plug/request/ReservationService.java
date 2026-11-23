@@ -33,6 +33,9 @@ public class ReservationService {
         }
         throw ApiException.dependencyUnavailable("Notifications are not available yet. Your inbox still updates when you open it.", 3600);
     }
+    public RequestPayloads.Offer sendOffer(PlugPrincipal caller, String requestId, String key, RequestPayloads.OfferCreate offer) {
+        return requests.sendOffer(caller, requestId, key, offer);
+    }
     public RequestPayloads.InboxItem answer(PlugPrincipal caller, String matchId, String decision) {
         return requests.answer(caller, matchId, decision);
     }

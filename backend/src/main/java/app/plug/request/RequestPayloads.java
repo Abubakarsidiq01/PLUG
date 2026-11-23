@@ -1,7 +1,6 @@
 package app.plug.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -91,13 +90,14 @@ public final class RequestPayloads {
                     : new ProviderScore("scored", trustScore, completedJobs);
         }
     }
-    public record Offer(String offerId, Place place, String serviceName, int priceCents, String currency,
-            Instant availableAt, Instant expiresAt, Instant observedAt, String truthLabel, String source,
-            ProviderScore providerScore, ProviderPayloads.BusinessProfile business) {
-        // Contract 0.7.0: distance on the offer itself, because an in-app provider's offer
-        // has no public place. Seed offers always have one, so it is the place's distance.
-        @JsonProperty("distance_m")
-        public int distanceM() { return place.distanceM(); }
+    /// Contract 0.7.0: distance on the offer itself, because an in-app (portal) provider's offer has
+    /// no public place; it equals place.distance_m when there is one. note is portal only.
+    public record Offer(String offerId, Place place, int distanceM, String note, String serviceName, int priceCents,
+            String currency, Instant availableAt, Instant expiresAt, Instant observedAt, String truthLabel, String source,
+            ProviderScore providerScore, ProviderPayloads.BusinessProfile business) {}
+    /// Contract 0.7.1 ProviderOfferCreate, after the controller validated its shape.
+    public record OfferCreate(int priceCents, String currency, Instant availableAt, String note) {
+        @Override public String toString() { return "OfferCreate[redacted]"; }
     }
     public record Offers(String requestId, List<Offer> offers) {}
 

@@ -275,6 +275,64 @@ public class RequestService {
             return inboxItem(caller.userId(), matchId);
         });
     }
+    private static final List<String> LIVE = List.of("submitted", "routed", "awaiting_responses", "ranked");
+    /// Contract 0.7.1 sendProviderOffer, the in-app path. The caller is a provider matched to the
+    /// request; anyone else, the asker included, gets the same 404 as a request that does not exist.
+    Offer sendOffer(PlugPrincipal caller, String id, String key, RequestPayloads.OfferCreate input) {
+        return transaction.execute(ignored -> {
+            lockAccount(caller);
+            requireConsent(caller);
+            Offer replay = replay(caller, "offer:" + id, key, input, Offer.class);
+            if (replay != null) return replay;
+            // Before the match lookup, so probing request ids spends the caller's budget.
+            if (!limiter.tryConsume("offer:" + caller.userId(), 10, window.length())) {
+                throw ApiException.rateLimited(window.retryAfterSeconds());
+            }
+            // shortcut: ProviderProfile.standing is not stored yet, so no provider is suspended (403
+            // suspended); refuse suspended providers here once the admin standing route stores it.
+            List<String> matched = id.length() > 64 || !id.matches("req_[A-Za-z0-9-]+") ? List.of()
+                    : jdbc.queryForList("SELECT m.match_id FROM request_matches m JOIN requests r ON r.id=m.request_id"
+                            + " WHERE m.request_id=? AND m.provider_id=? AND r.user_id<>?", String.class, id, caller.userId(), caller.userId());
+            if (matched.isEmpty()) throw ApiException.notFound("Request not found.");
+            // Request first, then match: the same order every request-level writer uses.
+            jdbc.queryForList("SELECT id FROM requests WHERE id=? FOR UPDATE", id);
+            var match = jdbc.queryForMap("SELECT distance_m,replied_at FROM request_matches WHERE match_id=? FOR UPDATE",
+                    matched.getFirst());
+            expire(id);
+            boolean offered = jdbc.queryForObject("SELECT count(*) FROM request_offers WHERE request_id=? AND provider_id=?"
+                    + " AND source='portal'", Integer.class, id, caller.userId()) > 0;
+            // shortcut: nothing writes a decline until P3.S12; a reply with no offer is one.
+            if (!LIVE.contains(status(id)) || (match.get("replied_at") != null && !offered)) {
+                throw stateConflict("request_id", "request_closed", "This request has closed.");
+            }
+            Constraints c = read(id).constraints();
+            Instant now = clock.instant();
+            Instant available = input.availableAt();
+            if (c.budgetCents() != null && input.priceCents() > c.budgetCents()) {
+                throw ApiException.validation("price_cents", "over_budget", "That is above the customer's budget.");
+            }
+            if (available.isBefore(now) || available.isAfter(now.plus(Duration.ofDays(7)))
+                    || (c.neededBy() != null && available.isAfter(c.neededBy()))) {
+                throw ApiException.validation("available_at", "outside_window", "Choose a time before the customer needs it.");
+            }
+            String offerId = "off_" + UUID.randomUUID();
+            // Owner decision 2026-11-17: a portal offer is valid until 15 minutes after its slot starts.
+            // One portal offer per provider per request: the unique index is the guard, so a second is 409.
+            try {
+                jdbc.update("INSERT INTO request_offers(id,request_id,service_name,price_cents,currency,available_at,expires_at,"
+                        + "observed_at,truth_label,source,provider_id,note,distance_m) VALUES(?,?,?,?,?,?,?,?,'confirmed','portal',?,?,?)",
+                        offerId, id, c.serviceName(), input.priceCents(), input.currency(), time(available),
+                        time(available.plus(Duration.ofMinutes(15))), time(now), caller.userId(), input.note(),
+                        roundedDistance((Integer) match.get("distance_m")));
+            } catch (org.springframework.dao.DuplicateKeyException clash) {
+                throw stateConflict("request_id", "already_offered", "You already sent an offer for this request.");
+            }
+            jdbc.update("UPDATE request_matches SET replied_at=? WHERE match_id=?", time(now), matched.getFirst());
+            Offer result = jdbc.queryForObject(OFFER_SELECT + " WHERE o.id=?", OFFER_ROW, offerId);
+            remember(caller, "offer:" + id, key, input, result);
+            return result;
+        });
+    }
     /// Contract 0.7.1 getProviderInbox: open items first, then the last seven days, newest first, at
     /// most 50. Only the caller's own matches; a caller with no provider profile is 404.
     RequestPayloads.ProviderInbox inbox(PlugPrincipal caller) {
@@ -327,9 +385,10 @@ public class RequestService {
                 : jdbc.query(OFFER_SELECT + " WHERE o.request_id=? AND o.provider_id=? ORDER BY o.observed_at DESC,o.id DESC LIMIT 1",
                         OFFER_ROW, requestId, provider).stream().findFirst().orElse(null);
         // The provider sees the asker's distance only to the nearest 100 m (§25 data minimisation).
+        // A portal offer's distance was rounded when it was written.
         Offer offer = found == null || found.place() == null ? found : new Offer(found.offerId(),
                 new RequestPayloads.Place(found.place().placeId(), found.place().name(), found.place().address(),
-                        roundedDistance(found.place().distanceM())),
+                        roundedDistance(found.place().distanceM())), roundedDistance(found.distanceM()), found.note(),
                 found.serviceName(), found.priceCents(), found.currency(), found.availableAt(), found.expiresAt(),
                 found.observedAt(), found.truthLabel(), found.source(), found.providerScore(), found.business());
         Instant respondBy = match.notifiedAt().plus(REPLY_WINDOW);
@@ -513,15 +572,18 @@ public class RequestService {
     }
     private List<Offer> listOffers(String id) {
         return jdbc.query(OFFER_SELECT + " WHERE o.request_id=? AND o.expires_at>? AND o.withdrawn_at IS NULL"
-                + " ORDER BY o.available_at,o.price_cents,w.distance_m,o.id LIMIT 20", OFFER_ROW, id, time(clock.instant()));
+                + " ORDER BY o.available_at,o.price_cents,offer_distance_m,o.id LIMIT 20", OFFER_ROW, id, time(clock.instant()));
     }
-    private static final String OFFER_SELECT = "SELECT o.*,p.name,p.address,w.distance_m,b.business,ps.completed_jobs,ps.trust_score"
-            + " FROM request_offers o JOIN places p ON p.id=o.place_id"
-            + " JOIN request_seed_work w ON w.request_id=o.request_id AND w.place_id=o.place_id"
+    /// Seed offers take their place and distance from the seed work; portal offers have neither and
+    /// carry their own rounded distance.
+    private static final String OFFER_SELECT = "SELECT o.*,p.name,p.address,COALESCE(w.distance_m,o.distance_m) AS offer_distance_m,"
+            + "b.business,ps.completed_jobs,ps.trust_score FROM request_offers o LEFT JOIN places p ON p.id=o.place_id"
+            + " LEFT JOIN request_seed_work w ON w.request_id=o.request_id AND w.place_id=o.place_id"
             + " LEFT JOIN provider_profiles b ON b.user_id=o.provider_id LEFT JOIN provider_scores ps ON ps.user_id=o.provider_id";
     private static final org.springframework.jdbc.core.RowMapper<Offer> OFFER_ROW = (rs, row) -> new Offer(rs.getString("id"),
-            new Place(rs.getString("place_id"), rs.getString("name"), rs.getString("address"), rs.getInt("distance_m")),
-            rs.getString("service_name"), rs.getInt("price_cents"),
+            rs.getString("place_id") == null ? null
+                    : new Place(rs.getString("place_id"), rs.getString("name"), rs.getString("address"), rs.getInt("offer_distance_m")),
+            rs.getInt("offer_distance_m"), rs.getString("note"), rs.getString("service_name"), rs.getInt("price_cents"),
             rs.getString("currency"), instant(rs, "available_at"), instant(rs, "expires_at"), instant(rs, "observed_at"),
             rs.getString("truth_label"), rs.getString("source"),
             // Seeded demo suppliers have no completed PLUG jobs: New, never a zero.

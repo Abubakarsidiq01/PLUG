@@ -2,15 +2,15 @@
   "schema_version": "plug-state/1",
   "product": "PLUG",
   "updated_at": "2026-11-17T21:00:00+00:00",
-  "updated_by": "person_one (contract 0.7.2: portal Offer.expires_at = available_at + 15 minutes; registerDevice, select and InboxItem.service_name clarifications)",
+  "updated_by": "person_one (P3.S11 in-app provider offers, security review fixes)",
   "completed_phases": [
     "P0",
     "P1",
     "P2"
   ],
   "current_phase": "P3",
-  "current_step": "P3.S6",
-  "current_step_title": "Create offer expiry, selection-race handling, reservation request, supplier confirmation and cancellation state machines.",
+  "current_step": "P3.S11",
+  "current_step_title": "Implement POST /v1/requests/{id}/offers for in-app provider offers, alongside the existing SMS path. Both produce the same validated Offer.",
   "manual_section": "27.4",
   "readme": "docs/phases/P3-ONE.md",
   "owner": "person_one",
@@ -116,9 +116,9 @@
     "GET /v1/admin/staff": "frozen@0.6.0 (merged in PR #36)",
     "POST /v1/admin/staff/invites": "frozen@0.6.0 (merged in PR #36)",
     "POST /v1/admin/staff/{user_id}/disable": "frozen@0.6.0 (merged in PR #36)",
-    "POST /v1/requests/{request_id}/select": "frozen@0.7.0 (merged in PR #46); 0.7.2 (branch p3.s11-both-contract-0.7.2, not merged): 403 consent_required stated and 415 listed",
-    "POST /v1/requests/{request_id}/offers": "frozen@0.7.0 (merged in PR #46); 0.7.2 (branch p3.s11-both-contract-0.7.2, not merged): a portal offer expires at available_at + 15 minutes (owner decision 2026-11-17)",
-    "GET /v1/providers/me/inbox": "frozen@0.7.0 (merged in PR #46); 0.7.2 (branch p3.s11-both-contract-0.7.2, not merged): InboxItem.service_name described as untrusted display text",
+    "POST /v1/requests/{request_id}/select": "frozen@0.7.0 (merged in PR #46); 0.7.2 (branch p3.s11-both-contract-0.7.2, merged in PR #59): 403 consent_required stated and 415 listed",
+    "POST /v1/requests/{request_id}/offers": "frozen@0.7.0 (merged in PR #46); implemented in P3.S11 behind provider_inbox; expires_at = available_at + 15 minutes per owner decision 2026-11-17 (contract 0.7.2 merged in PR #59)",
+    "GET /v1/providers/me/inbox": "frozen@0.7.0 (merged in PR #46); 0.7.2 (branch p3.s11-both-contract-0.7.2, merged in PR #59): InboxItem.service_name described as untrusted display text",
     "POST /v1/providers/me/inbox/{match_id}/decline": "frozen@0.7.0 (merged in PR #46)",
     "POST /v1/providers/me/inbox/{match_id}/reservation": "frozen@0.7.0 (merged in PR #46); 0.7.1 merged in PR #54: respond_by = notified_at + 5 minutes, a decision at or after confirm_by or on a canceled reservation is reservation_closed; implemented in P3.S6 part 2 behind provider_inbox",
     "POST /v1/me/devices": "frozen@0.7.0 (merged in PR #46); 0.7.2 (branch p3.s11-both-contract-0.7.2, not merged): 403, 404 (provider_inbox off) and 413 listed; fixtures/me.devices added",
@@ -149,6 +149,13 @@
     "provider_inbox": "off (Phase 3 in-app inbox, offers and reservations)"
   },
   "next_actions": [
+    {
+      "id": "P3.S11",
+      "owner": "person_one",
+      "manual_section": "27.4",
+      "task": "Implement POST /v1/requests/{request_id}/offers (contract 0.7.1 sendProviderOffer) for in-app provider offers; the SMS path waits for P3.S5. 2026-11-17 progress (branch p3.s11-one-provider-offers, not merged): route behind requests_v2 and provider_inbox (404 with the flag off; a POST beside the GET offers handler is now 404 instead of 405/500). Caller must be a provider matched to the request: never matched, nonexistent, malformed or the asker's own request are the same 404. Idempotency-Key required, same key and body replay the first 201, another body with that key is idempotency_key_reused; the replay runs before the limiter, which allows 10 offers per window per caller before any lookup (429 with Retry-After). Body checked against ProviderOfferCreate (additionalProperties false, price 500..50000, currency USD else unsupported, RFC 3339 available_at, note 1..140). Server checks: over_budget, outside_window (past, more than 7 days ahead, after needed_by), contact_in_note on the NFKC-normalized note (seven or more digits with any separators, Unicode digits, emails including 'at ... dot' spellings, URLs, any word.tld and spaced or spelled '.com'; '2 chairs', '$30', '3:30 pm' and '15 min' pass; spelled-out numbers are left to moderation). A note with control, bidi or zero-width characters is 400 invalid; available_at must be RFC 3339 with seconds and an offset. 409 already_offered (a second offer, enforced by a partial unique index on portal offers whose violation maps to 409), request_closed (not submitted/routed/awaiting_responses/ranked, or the match has replied_at with no offer, the decline stand-in until P3.S12). The Offer: source portal, truth_label confirmed, observed_at now, no place, note, distance_m from the match rounded to 100 m, expires_at = available_at + 15 minutes (owner decision 2026-11-17; written into contract 0.7.2 by a separate PR). Sending sets request_matches.replied_at. Migration V11 (expand only): place_id nullable for portal only, note and distance_m columns, truth_label confirmed and source portal allowed, seed offers stay estimated. Offer reads use LEFT JOINs so portal offers list for the asker and show in the inbox as offered; the next worker pass ranks an awaiting_responses request once every seed replied and an offer is live; the asker can select it and only the provider's confirm books it (tested end to end). Not done: suspended standing (not stored, no 403 suspended), truth_label aging from observed_at (a portal offer stays confirmed until it expires), the iOS offer screen (P3.S16), SMS offers (P3.S5). Seed offers still carry no provider and can never be confirmed.",
+      "acceptance": "Drafted from P3-ONE.md and contract 0.7.1, to be confirmed by both: a matched provider's in-app offer is the same validated Offer the asker lists (portal, confirmed, no place, distance rounded to 100 m, expires 15 minutes after its slot), over_budget, outside_window and contact_in_note are 400, already_offered and request_closed are 409, an unmatched provider, a missing request and the asker's own request are 404, 401 without a session, 429 past the limit, 404 while provider_inbox is off, and the request reaches ranked and confirmed only through the provider; in ./dev check contractTest and ./dev databaseTest on a disposable database."
+    },
     {
       "id": "P3.S6",
       "owner": "person_one",
@@ -292,9 +299,9 @@
     "Visual redesign (direction C Nearby) 2026-11-15 on p3.ui-one-redesign (iOS) and p3.design-two-redesign (brand, tokens, web; Person Two to review). Reviewer verdicts only; SignInScreenshotTests line 186 fails without a sign-in backend before and after; swiftlint not run locally; mark needs a trademark search.",
     "booking_ref has 20 bits and is not unique (contract: not secret). The P3.S5 SMS CONFIRM must find a reservation by sender and pending status, never by booking_ref alone.",
     "Reservation timeout and completion run lazily on read and in RequestWorker (fixedDelay 1s, single process). With the worker off and no reads, a pending reservation stays pending past confirm_by until the next touch.",
-    "Seed offers carry no provider_id, so a reservation on a seed offer can never be confirmed and always times out. Harmless while provider_inbox is off; real confirmations need provider-owned offers (P3.S11 in-app offers).",
-    "Provider standing (contract 0.7.0 ProviderProfile.standing, active or suspended) is not stored, so answerReservation cannot refuse a suspended provider and treats every provider as active. Add the column and the check when the admin standing route (POST /v1/admin/providers/{user_id}/standing) is built.",
-    "P3.S10 hourly cap: MatchService.notify locks the candidate provider_profiles rows (FOR NO KEY UPDATE, id order) inside the worker transaction, and RequestService.workOnce routes up to 20 requests in one transaction. Across requests the lock order is not global, so two workers can deadlock. Latent while one process runs the worker; fix before scaling out (one transaction per request, or lock the union of candidate providers once per pass)."
+    "Provider standing (contract 0.7.0 ProviderProfile.standing, active or suspended) is not stored, so answerReservation and sendProviderOffer cannot refuse a suspended provider and treats every provider as active. Add the column and the check when the admin standing route (POST /v1/admin/providers/{user_id}/standing) is built.",
+    "P3.S10 hourly cap: MatchService.notify locks the candidate provider_profiles rows (FOR NO KEY UPDATE, id order) inside the worker transaction, and RequestService.workOnce routes up to 20 requests in one transaction. Across requests the lock order is not global, so two workers can deadlock. Latent while one process runs the worker; fix before scaling out (one transaction per request, or lock the union of candidate providers once per pass).",
+    "Truth labels are not aged from observed_at (manual 11.2): an in-app (portal) offer stays confirmed until it expires, which can be up to 7 days and 15 minutes after it was sent. Add server-side aging before portal offers reach real users."
   ],
   "environments": {
     "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
