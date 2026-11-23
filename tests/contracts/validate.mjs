@@ -125,6 +125,8 @@ export function validateOffers(body, clock) {
     if (offer.place) assert.equal(offer.distance_m, offer.place.distance_m, 'distance_m must equal place.distance_m');
     else assert.equal(offer.distance_m % 100, 0, 'distance_m is rounded to 100 m without a place');
     assert.ok(utc(offer.expires_at) > utc(offer.available_at), 'Offer expires before its slot');
+    // 0.7.2: a portal offer lives until 15 minutes after its slot starts.
+    if (offer.source === 'portal') assert.equal(utc(offer.expires_at) - utc(offer.available_at), 15 * 60_000, 'portal expires_at is available_at + 15 minutes');
     assert.ok(utc(offer.expires_at) > utc(clock), 'Expired offer returned');
     assert.ok(utc(offer.observed_at) <= utc(clock), 'Future observation');
   }
@@ -142,6 +144,7 @@ export function validateInboxItem(item) {
     assert.equal(utc(item.reservation.confirm_by), due, 'confirm_by follows the 0.7.1 rule');
   }
   if (item.offer) assert.equal(item.offer.source, 'portal', 'An inbox offer is an in-app offer');
+  if (item.offer) assert.equal(utc(item.offer.expires_at) - utc(item.offer.available_at), 15 * 60_000, 'portal expires_at is available_at + 15 minutes');
   if (item.status === 'confirmed') assert.equal(item.reservation.status, 'confirmed');
   if (item.status === 'selected') assert.equal(item.reservation.status, 'pending');
   for (const key of ['text', 'location', 'user_id']) assert.ok(!Object.hasOwn(item, key), `Inbox leaks ${key}`);

@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.7.1",
+  "contract_version": "0.7.2",
   "status": "proposed",
   "clock": "2026-10-01T20:00:10Z",
   "responses": [
@@ -1427,6 +1427,26 @@
       "error_code": "rate_limited"
     },
     {
+      "file": "fixtures/requests.select/consent-required.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/select",
+      "status": 403,
+      "error_code": "forbidden",
+      "details": [
+        {
+          "field": "consent",
+          "code": "consent_required"
+        }
+      ]
+    },
+    {
+      "file": "fixtures/requests.select/unsupported-media-type.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/select",
+      "status": 415,
+      "error_code": "validation_failed"
+    },
+    {
       "file": "fixtures/requests.select/transient-error.json",
       "method": "post",
       "path": "/v1/requests/{request_id}/select",
@@ -1541,6 +1561,13 @@
       "path": "/v1/requests/{request_id}/offers",
       "status": 500,
       "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/requests.send-offer/unsupported-media-type.json",
+      "method": "post",
+      "path": "/v1/requests/{request_id}/offers",
+      "status": 415,
+      "error_code": "validation_failed"
     },
     {
       "file": "fixtures/providers.inbox/success.json",
@@ -2226,6 +2253,34 @@
       "path": "/v1/requests/{request_id}/offers",
       "status": 200,
       "example": "p3-offers-sms-and-app.json"
+    },
+    {
+      "file": "fixtures/me.devices/validation-error.json",
+      "method": "post",
+      "path": "/v1/me/devices",
+      "status": 400,
+      "error_code": "validation_failed",
+      "details": [
+        {
+          "field": "apns_token",
+          "code": "invalid",
+          "message": "Send the device token from Apple."
+        }
+      ]
+    },
+    {
+      "file": "fixtures/me.devices/auth-error.json",
+      "method": "post",
+      "path": "/v1/me/devices",
+      "status": 401,
+      "error_code": "unauthenticated"
+    },
+    {
+      "file": "fixtures/me.devices/unavailable.json",
+      "method": "post",
+      "path": "/v1/me/devices",
+      "status": 503,
+      "error_code": "dependency_unavailable"
     }
   ],
   "not_applicable": {

@@ -13,7 +13,7 @@ const readFixture = (operation, outcome) => readJSON(`fixtures/requests.${operat
 test('every request fixture is registered exactly once and every documented response has coverage', () => {
   assert.equal(manifest.contract_version, contract.info.version);
   const files = readdirSync(new URL('fixtures/', root))
-    .filter(name => /^(requests|asks|providers|admin|staff|suppliers)\./.test(name))
+    .filter(name => /^(requests|asks|providers|admin|staff|suppliers)\.|^me\.devices$/.test(name))
     .flatMap(folder => readdirSync(new URL(`fixtures/${folder}/`, root))
       .filter(name => name.endsWith('.json')).map(name => `fixtures/${folder}/${name}`));
   assert.equal(new Set(rows.map(row => row.file)).size, rows.length);

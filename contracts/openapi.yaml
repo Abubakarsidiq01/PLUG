@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.7.1
+  version: 0.7.2
   description: >
     Phase 0 to Phase 3 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
@@ -255,6 +255,7 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/MatchStateConflict' }
         '413': { $ref: '#/components/responses/ValidationFailed' }
+        '415': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/requests/{request_id}/cancel:
@@ -1068,7 +1069,7 @@ paths:
         '409': { $ref: '#/components/responses/Conflict' }
         '500': { $ref: '#/components/responses/InternalError' }
   # ---------------------------------------------------------------------------------------
-  # Phase 3 (0.7.0, frozen; 0.7.1 clarifications): selection and reservation, the provider inbox and in-app
+  # Phase 3 (0.7.0, frozen; 0.7.1 and 0.7.2 clarifications): selection and reservation, the provider inbox and in-app
   # offers, SMS suppliers, Twilio webhooks, device registration and the admin monitor.
   # ---------------------------------------------------------------------------------------
   /v1/requests/{request_id}/select:
@@ -1096,6 +1097,11 @@ paths:
 
         0.7.1: gated by the `provider_inbox` flag, like the inbox routes, although it also
         serves seed and sms offers. With the flag off the route returns 404.
+
+
+        0.7.2: the caller must hold the guest or member scope and have accepted the current
+        consent version, otherwise 403 forbidden with `details[0].code` = consent_required.
+        A body that is not application/json is 415.
       security:
         - plugSession: []
       parameters:
@@ -1119,6 +1125,7 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/SelectionConflict' }
         '413': { $ref: '#/components/responses/ValidationFailed' }
+        '415': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/providers/me/inbox:
@@ -1231,6 +1238,10 @@ paths:
         alerts use the payload in ProviderMatchNotification and are capped per provider per
         hour. Push needs an Apple Developer Program team; until one is configured this route
         is 503 dependency_unavailable and the inbox still works by pull.
+
+
+        0.7.2: gated by the `provider_inbox` flag, like the inbox routes; with the flag off the
+        route returns 404. A caller without the guest or member scope is 403.
       security:
         - plugSession: []
       parameters:
@@ -1250,6 +1261,9 @@ paths:
               schema: { $ref: '#/components/schemas/Device' }
         '400': { $ref: '#/components/responses/ValidationFailed' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '413': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
         '503': { $ref: '#/components/responses/DependencyUnavailable' }
         '500': { $ref: '#/components/responses/InternalError' }
@@ -1995,8 +2009,9 @@ components:
             - { type: string, minLength: 1, maxLength: 80 }
             - { type: 'null' }
           description: >
-            Human-readable service ("Shoe repair"), safe to display. Null exactly when
-            category is null.
+            Human-readable service ("Shoe repair"). Untrusted display text (it can come from
+            the asker's words or a model's reading of them): render as plain text, never markup.
+            Null exactly when category is null.
         skill_tags:
           type: array
           maxItems: 5
@@ -2184,8 +2199,9 @@ components:
           format: date-time
           description: >
             When the offer stops being valid. Always later than available_at. Set by the
-            server; the lifetime for sms and portal offers is not yet decided (CHANGELOG 0.7.1,
-            open question).
+            server. 0.7.2, decided by the owner on 2026-11-17: a portal (in-app) offer expires
+            at available_at plus 15 minutes. The same rule applies to sms offers too unless it
+            is changed before P3.S5.
         observed_at:
           type: string
           format: date-time
@@ -2860,9 +2876,10 @@ components:
           description: The cap this provider is notified under, so the app can explain it.
     InboxItem:
       description: >
-        One matched request as the provider sees it. Never the asker's words, location or
-        identity: the service, the asker's budget, when it is needed and how far it is from the
-        provider's own base, rounded to 100 m.
+        One matched request as the provider sees it. Never the asker's raw text, location or
+        identity: the service label, the asker's budget, when it is needed and how far it is
+        from the provider's own base, rounded to 100 m. The service label is untrusted display
+        text (see service_name).
       type: object
       additionalProperties: false
       required: [match_id, request_id, status, service_name, skill_tags, budget_cents, currency,
@@ -2871,7 +2888,13 @@ components:
         match_id: { type: string, maxLength: 64, pattern: '^mat_[A-Za-z0-9-]+$' }
         request_id: { type: string, maxLength: 64, pattern: '^req_[A-Za-z0-9-]+$' }
         status: { $ref: '#/components/schemas/MatchStatus' }
-        service_name: { type: string, minLength: 1, maxLength: 80 }
+        service_name:
+          type: string
+          minLength: 1
+          maxLength: 80
+          description: >
+            0.7.2. Untrusted display text: it can be written from the asker's words or a model's
+            reading of them. Clients render it as plain text, never as markup or a link.
         skill_tags: { type: array, minItems: 1, maxItems: 5, items: { $ref: '#/components/schemas/Category' } }
         budget_cents:
           oneOf:
