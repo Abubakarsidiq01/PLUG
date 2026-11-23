@@ -265,10 +265,16 @@ class ProviderInboxTest {
         expected.put(seedMatch(seedRequest(owner, "ranked", START), me, START.minus(Duration.ofMinutes(10)), 900), "expired");
         // Canceled after the window: the cancel time is exact (canceled is terminal), so this was silence.
         expected.put(seedMatch(seedRequest(owner, "canceled", START), me, START.minus(Duration.ofMinutes(20)), 900), "expired");
-        // Expired requests are expired lazily, so their updated_at is when someone looked, not when they
-        // ended. With no reliable end time the item is closed, never recorded as the provider's silence.
+        // P3.S12: an expired request ended no later than the earlier of its deadline and updated_at (lazy
+        // expiry writes updated_at when someone looked). Ended inside the reply window: closed, not silence.
         expected.put(seedMatch(seedRequest(owner, "expired", START), me, START.minus(Duration.ofMinutes(2)), 900), "closed");
-        expected.put(seedMatch(seedRequest(owner, "expired", START), me, START.minus(Duration.ofHours(2)), 900), "closed");
+        // Still running two hours after this provider's window closed: that was silence.
+        expected.put(seedMatch(seedRequest(owner, "expired", START), me, START.minus(Duration.ofHours(2)), 900), "expired");
+        // A decline is a reply, whatever happened to the request afterwards.
+        String declined = seedMatch(seedRequest(owner, "canceled", START), me, START.minus(Duration.ofMinutes(30)), 900);
+        jdbc.update("UPDATE request_matches SET replied_at=?,declined_at=?,decline_reason='busy' WHERE match_id=?",
+                Timestamp.from(START.minus(Duration.ofMinutes(29))), Timestamp.from(START.minus(Duration.ofMinutes(29))), declined);
+        expected.put(declined, "declined");
         // The asker chose another offer: inside this provider's reply window is not_chosen; after it, silence.
         String chosenInside = seedRequest(owner, "user_selected", START);
         otherChosen(chosenInside, START.minus(Duration.ofMinutes(4)));
