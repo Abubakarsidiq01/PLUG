@@ -824,9 +824,9 @@ private enum Example {
     static let hairBeauty = ["Someone to do knotless braids, $120 max", "Barber under $35 in the next hour",
                              "Nails done this afternoon", "Brows shaped today"]
     static let homeHelp = ["Fix a leaking sink today", "Mount a TV this weekend",
-                           "Assemble a bed frame tomorrow", "House cleaning on Saturday morning"]
+                           "Build a bed frame tomorrow", "House cleaning on Saturday morning"]
     static let tech = ["I need help repairing my laptop", "Fix a cracked phone screen today",
-                       "Replace my phone battery this week"]
+                       "Phone battery replacement this week"]
 }
 
 /// The server's score wording, or nil when it sent a scored state without a value: no number
