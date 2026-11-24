@@ -1,11 +1,22 @@
+import CoreLocation
 import XCTest
+
+extension XCTestCase {
+    /// A fresh simulator has no location, so the location-based steps would wait and fail.
+    /// Every UI test sets the same fixed place before launching; a physical device keeps its own.
+    func simulateFixtureLocation() {
+        #if targetEnvironment(simulator)
+        XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 32.528, longitude: -92.714))
+        #endif
+    }
+}
 
 /// Synthetic fixture-server screenshots exercise real SwiftUI and HTTP decoding. They
 /// are explicitly separate from the connected backend and physical-device G2 evidence.
 /// The walk follows manual v4 Figures A1 to A3: ask, working, offers, unknown, the web
 /// answer, and offering a service from the same account.
 final class RequestScreenshotTests: XCTestCase {
-    override func setUp() { super.setUp(); continueAfterFailure = false }
+    override func setUp() { super.setUp(); continueAfterFailure = false; simulateFixtureLocation() }
 
     func testRequestStatesDefaultText() throws { try walk(largest: false) }
     func testRequestStatesLargestText() throws { try walk(largest: true) }

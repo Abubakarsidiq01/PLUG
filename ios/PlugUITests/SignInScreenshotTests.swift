@@ -18,6 +18,7 @@ final class SignInScreenshotTests: XCTestCase {
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
+        simulateFixtureLocation()
     }
 
     func testSignInStatesAtDefaultTextSize() {
