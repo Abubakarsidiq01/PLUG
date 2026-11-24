@@ -682,32 +682,48 @@ public class RequestService {
         Timestamp value = rs.getTimestamp(name);
         return value == null ? null : value.toInstant();
     }
-    // Each invocation performs one bounded unit of persisted work under the same row lock
-    // as cancellation. Multiple instances skip locked rows; a restart resumes from the DB.
+    // Each invocation performs bounded units of persisted work under the same row lock as
+    // cancellation, one transaction per request: matching locks provider rows in id order within a
+    // request, so a transaction never holds two requests' provider locks (no cross-worker deadlock).
+    // Multiple instances skip locked rows; a restart resumes from the DB.
     public void workOnce() {
-        transaction.executeWithoutResult(ignored -> {
-            List<String> ids = jdbc.queryForList("SELECT id FROM requests WHERE status IN"
-                    + " ('submitted','routed','awaiting_responses')"
-                    + " OR (status IN ('draft','ranked') AND expires_at<=?)"
-                    + " OR (status='ranked' AND NOT EXISTS (SELECT 1 FROM request_offers o WHERE o.request_id=requests.id"
-                    + " AND o.expires_at>? AND o.withdrawn_at IS NULL))"
-                    + " OR (status='user_selected' AND EXISTS (SELECT 1 FROM request_reservations v WHERE v.request_id=requests.id"
-                    + " AND v.status='pending' AND v.confirm_by<=?))"
-                    + " OR (status='confirmed' AND EXISTS (SELECT 1 FROM request_reservations v JOIN request_offers o ON o.id=v.offer_id"
-                    + " WHERE v.request_id=requests.id AND v.status='confirmed' AND o.available_at + interval '3 hours'<=?))"
-                    + " ORDER BY updated_at,id LIMIT 20 FOR UPDATE SKIP LOCKED", String.class,
-                    time(clock.instant()), time(clock.instant()), time(clock.instant()), time(clock.instant()));
-            for (String id : ids) {
+        List<String> done = new java.util.ArrayList<>();
+        for (int n = 0; n < 20; n++) {
+            String worked = transaction.execute(ignored -> {
+                Instant now = clock.instant();
+                List<String> ids = jdbc.queryForList("SELECT id FROM requests WHERE (status IN"
+                        + " ('submitted','routed','awaiting_responses')"
+                        + " OR (status IN ('draft','ranked') AND expires_at<=?)"
+                        + " OR (status='ranked' AND NOT EXISTS (SELECT 1 FROM request_offers o WHERE o.request_id=requests.id"
+                        + " AND o.expires_at>? AND o.withdrawn_at IS NULL))"
+                        // A ranked request may still be owed an expansion wave until t+300s (P3.S15).
+                        + " OR (status='ranked' AND created_at>?)"
+                        + " OR (status='user_selected' AND EXISTS (SELECT 1 FROM request_reservations v WHERE v.request_id=requests.id"
+                        + " AND v.status='pending' AND v.confirm_by<=?))"
+                        + " OR (status='confirmed' AND EXISTS (SELECT 1 FROM request_reservations v JOIN request_offers o ON o.id=v.offer_id"
+                        + " WHERE v.request_id=requests.id AND v.status='confirmed' AND o.available_at + interval '3 hours'<=?)))"
+                        + " AND NOT (id = ANY(?)) ORDER BY updated_at,id LIMIT 1 FOR UPDATE SKIP LOCKED", String.class,
+                        time(now), time(now), time(now.minus(MatchService.FANOUT_STOP)), time(now), time(now),
+                        (Object) done.toArray(String[]::new));
+                if (ids.isEmpty()) return null;
+                String id = ids.getFirst();
                 expire(id);
                 Resource resource = read(id);
                 switch (resource.status()) {
                     case "submitted" -> route(resource);
                     case "routed" -> transition(id, "awaiting_responses", null);
-                    case "awaiting_responses" -> reply(resource);
+                    case "awaiting_responses" -> {
+                        matches.expand(resource);
+                        reply(read(id));
+                    }
+                    case "ranked" -> matches.expand(resource);
                     default -> { }
                 }
-            }
-        });
+                return id;
+            });
+            if (worked == null) break;
+            done.add(worked);
+        }
         // Silence (P3.S13): each match past respond_by with no reply is scored once. Its own transaction,
         // and SKIP LOCKED, so a provider's concurrent offer or decline is never waited on.
         transaction.executeWithoutResult(ignored -> {
@@ -761,6 +777,7 @@ public class RequestService {
         // Matched providers answer from their inbox in Phase 3; until then they count as
         // contacted, not replied, and a request with no offers waits for its deadline.
         if (seedsWaiting == 0 && progress.offersReady() > 0) transition(id, "ranked", null);
-        else if (progress.replied() == progress.contacted()) transition(id, "expired", "no_offers");
+        // Everyone answered without an offer: no_offers, unless a later fan-out wave is still due.
+        else if (progress.replied() == progress.contacted() && !matches.wavesPending(resource)) transition(id, "expired", "no_offers");
     }
 }

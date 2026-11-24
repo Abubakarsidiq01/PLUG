@@ -51,7 +51,10 @@ public class RequestV2Configuration {
             CustomSkills customSkills) {
         return new IntentAdapter(mapper, clock.clock(), provider, timeout, vocabulary).withCustomSkills(customSkills);
     }
-    @Bean MatchService matchService(JdbcTemplate jdbc, RequestClock clock) { return new MatchService(jdbc, clock.clock()); }
+    @Bean MatchService matchService(JdbcTemplate jdbc, RequestClock clock,
+            @Value("${plug.provider-inbox.enabled:false}") boolean providerInbox) {
+        return new MatchService(jdbc, clock.clock(), providerInbox);
+    }
     @Bean AskService askService(JdbcTemplate jdbc, PlatformTransactionManager manager, ObjectMapper mapper, RequestClock clock,
             IntentAdapter intent, RestrictedIntentPolicy policy, RequestService requests) {
         return new AskService(jdbc, manager, mapper, clock.clock(), intent, policy, requests);

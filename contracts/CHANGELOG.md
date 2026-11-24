@@ -11,6 +11,29 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.7.4 — 2026-11-23 — clarification — P3.S15
+Approval: the owner alone; frozen when the owner approves and merges the pull request. No new
+route, field, enum value or error code: one const and one bound tightened, descriptions only.
+
+**Decided by the owner on 2026-11-23 (closes 0.7.1 open questions 1 and 2):**
+- Fan-out cap (question 1, option a): at most 14 contacts per request, in-app and SMS
+  together. `AdminMatchHistory.cap` is const 14 (was 16) and `contacted` has maximum 14.
+  Waves: the best 6 at t0 (the request's creation), 4 more at t+120s, 4 more at t+240s; no new
+  wave from t+300s. A wave runs only while the request has fewer than 2 live offers (the
+  manual's `SupplierMatcher` rule "fewer than 2 replies", read as live offers: a decline does
+  not stop expansion). A provider over the hourly notification cap (4) is skipped and the next
+  candidate is used. `AdminMatch.wave` stays 1..3 and now names the times.
+- Reply window (question 2, option a): every contact keeps the full 5 minutes from its own
+  `notified_at` (`InboxItem.respond_by`), even past the t+300s stop; t+300s stops new waves
+  only. A wave-3 contact at t+240s may answer until t+540s.
+
+Examples: `p3-admin-matches.json` cap 14.
+Fixtures: `admin.matches/success.json` cap 14.
+Tests: `tests/contracts/fixture-manifest.json` is 0.7.4.
+Migration note: none for the contract. The server adds `request_matches.wave` (V14, expand only;
+existing rows are wave 1).
+Rollback: `provider_inbox` off keeps Phase 2's single wave of 6 (no expansion).
+
 ### 0.7.3 — 2026-11-23 — clarification — P3.S13, P3.S14
 Approval: the owner alone; frozen when the owner approves and merges the pull request. No
 schema change: no new route, field, enum value or error code.

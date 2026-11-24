@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.7.3
+  version: 0.7.4
   description: >
     Phase 0 to Phase 3 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
@@ -2913,7 +2913,9 @@ components:
           format: date-time
           description: >
             notified_at plus 5 minutes, the outreach reply window (0.7.1, decided by the owner
-            on 2026-11-16). After this the match is expired and silence is recorded.
+            on 2026-11-16). After this the match is expired and silence is recorded. Every
+            contact keeps the full 5 minutes from its own notified_at, even when that runs past
+            the t+300s fan-out stop (0.7.4): a wave-3 contact at t+240s may answer until t+540s.
         notified_at: { type: string, format: date-time }
         offer: { $ref: '#/components/schemas/Offer', description: Present once this provider has offered. }
         reservation: { $ref: '#/components/schemas/Reservation', description: Present once the asker selected this provider's offer. }
@@ -3314,7 +3316,11 @@ components:
           type: integer
           minimum: 1
           maximum: 3
-          description: 1 is the first six; 2 and 3 are the expansion steps of four.
+          description: >
+            1 is the best six at t0 (when the request was created); 2 and 3 are the expansion
+            steps of four at t+120s and t+240s, each only while the request has fewer than 2
+            live offers. No new wave starts from t+300s (0.7.4, decided by the owner on
+            2026-11-23).
         rank_score: { type: number }
         distance_m: { type: integer, minimum: 0, maximum: 80000 }
         outcome:
@@ -3334,8 +3340,13 @@ components:
       properties:
         request_id: { type: string, maxLength: 64, pattern: '^req_[A-Za-z0-9-]+$' }
         status: { $ref: '#/components/schemas/RequestStatus' }
-        contacted: { type: integer, minimum: 0, maximum: 16 }
-        cap: { type: integer, const: 16, description: The combined ceiling across SMS and in-app. }
+        contacted: { type: integer, minimum: 0, maximum: 14 }
+        cap:
+          type: integer
+          const: 14
+          description: >
+            The combined ceiling across SMS and in-app per request, 6 + 4 + 4 (0.7.4, decided by
+            the owner on 2026-11-23). A provider skipped by the hourly cap is not counted.
         matches: { type: array, maxItems: 64, items: { $ref: '#/components/schemas/AdminMatch' } }
     TwilioInboundForm:
       description: >
