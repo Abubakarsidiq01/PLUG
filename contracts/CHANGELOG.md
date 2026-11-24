@@ -11,6 +11,34 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.7.3 — 2026-11-23 — clarification — P3.S13, P3.S14
+Approval: the owner alone; frozen when the owner approves and merges the pull request. No
+schema change: no new route, field, enum value or error code.
+
+**Trust score v1 rules (owner decisions 2026-11-17, amended 2026-11-23), as the server computes
+ProviderScoreBreakdown:**
+- completion: completed jobs over confirmed jobs whose outcome is known. A job still in progress
+  does not count; asker cancellations are excluded; a release or timeout before confirming is not
+  a booking. Null below 3. PLUG records no provider cancel or no-show yet, so it is 100 whenever it
+  has evidence.
+- responsiveness: replies (an offer or a decline) by respond_by over replies plus silence; a reply
+  after respond_by is silence; open matches are excluded. Null below 5.
+- reliability: null until Phase 5 reviews; its basis is the confirmed jobs, as completion's.
+- standing: 100 while active, 0 while suspended; basis is days since the profile was created or
+  its standing last changed. Suspending also sets accepting false.
+- value: weighted mean of the non-null components (completion 25, reliability 15, responsiveness
+  10, standing 10); state new below 3 completed jobs.
+
+Examples: new `p3-provider-profile-scored.json` (ProviderProfile with score_breakdown and
+standing); `p3-admin-providers.json` corrected to these rules (reliability null, completion 100,
+responsiveness null below 5 matches, value 94).
+Fixtures: `admin.providers.list/success.json` (mirrors the example) and
+`admin.providers.standing/suspended.json` (standing 0, responsiveness null) corrected; new
+`providers.decline/suspended.json` and `providers.reservation/suspended.json` (403 forbidden).
+Tests: `tests/contracts/fixture-manifest.json` is 0.7.3 with rows for the two new fixtures.
+Migration note: none.
+Rollback: none needed; documentation and fixtures only.
+
 ### 0.7.2 — 2026-11-17 — clarification — P3.S11
 Approval: the owner alone (Person Two is not joining for now); frozen when the owner approves
 and merges the pull request. No new route, field, enum value or error code; every response

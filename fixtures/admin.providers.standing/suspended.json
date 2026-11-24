@@ -27,12 +27,12 @@
       "basis": 1
     },
     "responsiveness": {
-      "value": 100,
+      "value": null,
       "basis": 3
     },
     "standing": {
-      "value": 100,
-      "basis": 12
+      "value": 0,
+      "basis": 0
     },
     "customer_rating": null,
     "updated_at": "2026-10-01T19:00:00Z"

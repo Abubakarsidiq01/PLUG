@@ -16,17 +16,17 @@
       "standing": "active",
       "score": {
         "state": "scored",
-        "value": 87,
+        "value": 94,
         "completed_jobs": 41
       },
       "score_breakdown": {
         "version": "v1",
         "completion": {
-          "value": 96,
+          "value": 100,
           "basis": 41
         },
         "reliability": {
-          "value": 88,
+          "value": null,
           "basis": 41
         },
         "responsiveness": {
@@ -71,7 +71,7 @@
           "basis": 1
         },
         "responsiveness": {
-          "value": 100,
+          "value": null,
           "basis": 3
         },
         "standing": {

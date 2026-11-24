@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.7.2",
+  "contract_version": "0.7.3",
   "status": "proposed",
   "clock": "2026-10-01T20:00:10Z",
   "responses": [
@@ -1671,6 +1671,13 @@
       "error_code": "forbidden"
     },
     {
+      "file": "fixtures/providers.decline/suspended.json",
+      "method": "post",
+      "path": "/v1/providers/me/inbox/{match_id}/decline",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
       "file": "fixtures/providers.decline/rate-limited.json",
       "method": "post",
       "path": "/v1/providers/me/inbox/{match_id}/decline",
@@ -1746,6 +1753,13 @@
     },
     {
       "file": "fixtures/providers.reservation/forbidden.json",
+      "method": "post",
+      "path": "/v1/providers/me/inbox/{match_id}/reservation",
+      "status": 403,
+      "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/providers.reservation/suspended.json",
       "method": "post",
       "path": "/v1/providers/me/inbox/{match_id}/reservation",
       "status": 403,

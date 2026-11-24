@@ -20,7 +20,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 ///     default), accepting requests, licensed when a tag requires it, and available in the
 ///     asked window. The requester never matches themselves.
 ///  2. Rank: response rate first, then trust score, then distance. A responsive newcomer
-///     outranks a high scorer who has gone quiet.
+///     outranks a high scorer who has gone quiet. A New provider (fewer than three completed jobs,
+///     so no stored trust score) and one without five matches of evidence (no response rate) rank
+///     on a neutral 50 and 0.5, never 0 (manual v4 §12C.3, P3.S14).
+///  A suspended provider is never matched (P3.S14).
 ///  3. Cap: the best few are notified; there is a hard ceiling that is never lifted, and no provider
 ///     is notified more than NOTIFICATIONS_PER_HOUR times in any hour.
 /// Notified providers are recorded in request_matches; Phase 3's inbox delivers to them.
@@ -63,7 +66,7 @@ public class MatchService {
                        COALESCE(ps.response_rate, 0.5) AS response_rate, COALESCE(ps.trust_score, 50) AS trust_score
                   FROM provider_profiles pp
                   LEFT JOIN provider_scores ps ON ps.user_id = pp.user_id
-                 WHERE pp.accepting
+                 WHERE pp.accepting AND pp.standing = 'active'
                    AND pp.user_id <> ?
                    AND (EXISTS (SELECT 1 FROM provider_skills s WHERE s.user_id = pp.user_id AND s.skill_tag = ANY(?))
                         OR EXISTS (SELECT 1 FROM provider_custom_skills cs WHERE cs.user_id = pp.user_id
@@ -89,10 +92,14 @@ public class MatchService {
         if (eligible.isEmpty()) return 0;
         // Concurrent requests must not both take a provider's last notification of the hour: lock the
         // candidates in id order (no deadlock between workers) and count only once the lock is held.
-        jdbc.queryForList("SELECT user_id FROM provider_profiles WHERE user_id = ANY(?) ORDER BY user_id FOR NO KEY UPDATE",
-                String.class, (Object) eligible.stream().map(Candidate::userId).toArray(String[]::new));
+        // Standing and accepting are read again under the lock, so a suspension that committed after the
+        // candidate query is never matched (P3.S14).
+        var stillEligible = new java.util.HashSet<>(jdbc.queryForList("SELECT user_id FROM provider_profiles"
+                + " WHERE user_id = ANY(?) AND standing = 'active' AND accepting ORDER BY user_id FOR NO KEY UPDATE",
+                String.class, (Object) eligible.stream().map(Candidate::userId).toArray(String[]::new)));
         Timestamp hourAgo = Timestamp.from(start.minus(Duration.ofHours(1)));
         List<Candidate> chosen = eligible.stream()
+                .filter(candidate -> stillEligible.contains(candidate.userId()))
                 .filter(candidate -> jdbc.queryForObject("SELECT count(*) FROM request_matches WHERE provider_id=? AND notified_at>?",
                         Integer.class, candidate.userId(), hourAgo) < NOTIFICATIONS_PER_HOUR)
                 .limit(Math.min(INITIAL_FANOUT, ABSOLUTE_CAP - already))
