@@ -513,6 +513,34 @@ final class RequestTests: XCTestCase {
         XCTAssertFalse(model.isWorking)
     }
 
+    func testSelectStillInProgressKeepsTheKeySoARetryReplays() async throws {
+        let service = StubRequests()
+        let ranked = try resource("requests.get", "success")
+        let offers = try PlugJSON.decoder.decode(ServiceOfferList.self, from: fixture("requests.offers", "sms-and-app"))
+        let pending = try resource("requests.select", "success")
+        service.onCreate = { _, _ in ranked }
+        service.onOffers = { _ in offers }
+        service.onGet = { _ in ranked }
+        let inProgress = Data(#"{"error":{"code":"conflict","message":"Still working.","request_id":"req_x","details":[{"field":"Idempotency-Key","code":"request_in_progress"}]}}"#.utf8)
+        var keys: [String] = []
+        service.onSelect = { _, _, key in
+            keys.append(key)
+            if keys.count == 1 { throw APIError(status: 409, body: inProgress, requestID: nil) }
+            return pending
+        }
+        let model = RequestModel(service: service)
+        model.setActive(false)
+        model.text = "Barber"
+        await model.submit(location: location)
+        let chosen = try XCTUnwrap(offers.offers.first { $0.offerId == pending.reservation?.offerId })
+        await model.select(chosen)
+        XCTAssertEqual(model.errorMessage, "Your choice is still being sent. Wait, then try again.")
+        await model.select(chosen)
+        XCTAssertEqual(keys.count, 2)
+        XCTAssertEqual(keys[0], keys[1], "A retry after request_in_progress replays the same choice")
+        XCTAssertEqual(model.request?.status, .userSelected)
+    }
+
     func testSelectNotFoundMeansBookingIsOffAndNothingChanges() async throws {
         let service = StubRequests()
         let ranked = try resource("requests.get", "success")
@@ -743,7 +771,7 @@ final class RequestTests: XCTestCase {
         XCTAssertEqual(model.errorMessage, "This request has closed. This is where it stands now.")
         XCTAssertEqual(model.item(inbox.items[0].matchId)?.status, .open, "Only the server moves a match")
         await model.answer(inbox.items[0], .confirm)
-        XCTAssertEqual(model.errorMessage, "Too many tries. Wait a minute and try again.")
+        XCTAssertEqual(model.errorMessage, "Too many tries. Wait, then try again.")
     }
 
     func testDeclineAndReservationAnswersReplaceTheItemWithTheServers() async throws {

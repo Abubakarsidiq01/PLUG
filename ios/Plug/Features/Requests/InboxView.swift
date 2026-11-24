@@ -72,7 +72,7 @@ final class InboxModel: ObservableObject {
             switch api.fieldCode {
             case "over_budget": fieldErrors[.price] = "That is over their budget. Offer their budget or less."
             case "outside_window": fieldErrors[.start] = "Choose a time from now until they need it, within 7 days."
-            case "contact_in_note": fieldErrors[.note] = "Leave out phone numbers, emails and links. Contact happens after they confirm."
+            case "contact_in_note": fieldErrors[.note] = "Leave out phone numbers, emails and links. Contact happens after the booking is confirmed."
             default: errorMessage = "Check the price, time and note, then send again. Nothing was sent."
             }
         } catch let api as APIError where api.code == "conflict" && api.fieldCode == "request_in_progress" {
@@ -123,7 +123,7 @@ final class InboxModel: ObservableObject {
     private func message(for error: Error, action: String) async -> String {
         if let api = error as? APIError {
             switch api.code {
-            case "rate_limited": return "Too many tries. Wait a minute and try again."
+            case "rate_limited": return "Too many tries. Wait, then try again."
             case "unauthenticated":
                 items = []
                 notificationsPerHour = nil
@@ -164,8 +164,8 @@ struct InboxView: View {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
                     VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
                         PageTitle(title: "Inbox")
-                        Label(profile.accepting ? "Your provider profile is saved." : "Your provider profile is paused.",
-                              systemImage: profile.accepting ? "checkmark.circle.fill" : "pause.circle.fill")
+                        Label(profile.accepting ? "Receiving requests" : "Paused",
+                              systemImage: profile.accepting ? "tray.and.arrow.down" : "pause.circle")
                             .plugText(.body).fontWeight(.semibold).foregroundStyle(PlugTokens.Color.ink900)
                     }
                     if let error = inbox.errorMessage {
@@ -197,7 +197,7 @@ struct InboxView: View {
             .navigationDestination(for: String.self) { matchId in InboxItemView(model: inbox, matchId: matchId) }
             .sheet(isPresented: $editing) {
                 ProviderOnboardingView(service: service, location: location, current: profile,
-                                       inboxAvailable: inbox.availability == .available) { saved in
+                                       inboxAvailable: inbox.availability == .unknown ? nil : inbox.availability == .available) { saved in
                     editing = false
                     onChange(saved)
                 }
@@ -208,13 +208,13 @@ struct InboxView: View {
     }
 
     private var emptyLine: String {
-        let cap = inbox.notificationsPerHour.map { " PLUG sends you at most \($0) an hour." } ?? ""
+        let cap = inbox.notificationsPerHour.map { " " + capLine($0) } ?? ""
         return "When someone nearby asks for what you offer, the request shows up here with the time you have to reply.\(cap)"
     }
 
     private func emptyState(title: String, line: String) -> some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-            IllustrationTile(name: "IllInbox", size: 88)
+            IllustrationTile(name: "IllInbox", size: PlugTokens.Layout.portraitLarge)
             Text(title).plugText(.title)
             Text(line).plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
                 .fixedSize(horizontal: false, vertical: true)
@@ -233,7 +233,7 @@ struct InboxView: View {
             if !waiting.isEmpty { section("Needs your answer", waiting) }
             if !earlier.isEmpty { section("Earlier", earlier) }
             if let cap = inbox.notificationsPerHour {
-                caption("PLUG sends you at most \(cap) requests an hour.")
+                caption(capLine(cap))
             }
         }
         .accessibilityElement(children: .contain)
@@ -275,7 +275,7 @@ struct InboxView: View {
                 Text(profile.availability.map(\.summary).joined(separator: "\n")).plugText(.body)
             }
             Button("Edit business & services") { editing = true }
-                .buttonStyle(FlowActionStyle(primary: true))
+                .buttonStyle(PlugButtonStyle(kind: .secondary))
                 .accessibilityIdentifier("provider-edit")
         }
         .marketCard()
@@ -283,6 +283,9 @@ struct InboxView: View {
 }
 
 // MARK: - Shared pieces
+
+/// One wording for the hourly cap wherever it appears.
+private func capLine(_ cap: Int) -> String { "PLUG sends you at most \(cap) requests an hour." }
 
 extension InboxItem {
     var budgetText: String { budgetCents.map { "Up to \(money($0, currency))" } ?? "No budget set" }
@@ -312,7 +315,7 @@ private struct StatusTag: View {
     let item: InboxItem
     var body: some View {
         let strong = [.open, .selected].contains(item.status)
-        let shape = RoundedRectangle(cornerRadius: PlugShape.control, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: PlugTokens.Radius.badge, style: .continuous)
         Text(item.statusTitle).plugText(.label)
             .foregroundStyle(strong ? PlugTokens.Color.paper : PlugTokens.Color.ink900)
             .padding(.horizontal, PlugTokens.Space.s2).padding(.vertical, PlugTokens.Space.s1)
@@ -353,16 +356,20 @@ private struct InboxRow: View {
                     Spacer(minLength: 0)
                     StatusTag(item: item)
                 }
-                Text("\(item.budgetText) · \(item.neededText) · \(distance(item.distanceM)) away")
-                    .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                    .fixedSize(horizontal: false, vertical: true)
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
+                    Text(item.budgetText)
+                    Text(item.neededText)
+                    Text("\(distance(item.distanceM)) away")
+                }
+                .plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                .fixedSize(horizontal: false, vertical: true)
                 if item.status == .open { Countdown(until: item.respondBy, verb: "reply") }
                 if item.status == .selected, let reservation = item.reservation {
                     Countdown(until: reservation.confirmBy, verb: "confirm")
                 }
             }
             .multilineTextAlignment(.leading)
-            Image(systemName: "chevron.right").font(.system(size: 14, weight: .medium))
+            Image(systemName: "chevron.right").font(.system(size: PlugTokens.TypeSize.label, weight: .medium))
                 .foregroundStyle(PlugTokens.Color.brandGreen).accessibilityHidden(true)
         }
         .foregroundStyle(PlugTokens.Color.ink900)
@@ -453,7 +460,7 @@ struct InboxItemView: View {
         case .declined:
             PlugNotice(title: "You declined", message: "Declining is free. It never counts against you.")
         case .expired:
-            PlugNotice(title: "Reply time passed", message: "The time to reply ran out before you answered.")
+            PlugNotice(title: "Missed", message: "The time to reply ran out before you answered.")
         case .selected: selected(item)
         case .confirmed:
             if let reservation = item.reservation { booking(reservation, confirmed: true) }
@@ -511,7 +518,7 @@ struct InboxItemView: View {
             .buttonStyle(PlugButtonStyle(kind: .primary))
             .disabled(model.isWorking || latest <= now)
             .accessibilityIdentifier("offer-send")
-            caption("They see your price, time and note. Contact details are shared only after they confirm.")
+            caption("They see your price, time and note. Leave out phone numbers, emails and links. Contact happens after the booking is confirmed.")
         }
         .plugCard()
     }
@@ -557,7 +564,7 @@ struct InboxItemView: View {
             Button("Decline without a reason") { Task { await model.decline(item, reason: nil) } }
             Button("Keep it", role: .cancel) { }
         } message: {
-            Text("A reason is optional. It helps matching and is never shown to the person who asked.")
+            Text("A reason is optional. It is never shown to the person who asked.")
         }
     }
 
@@ -566,7 +573,7 @@ struct InboxItemView: View {
     private func sentOffer(_ offer: ServiceOffer, title: String, line: String?) -> some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
             Text(title).plugText(.title2)
-            Text(money(offer.priceCents, offer.currency)).plugDisplay(40, weight: 500).monospacedDigit()
+            Text(money(offer.priceCents, offer.currency)).plugDisplay(PlugTokens.TypeSize.hero, weight: 500).monospacedDigit()
             VStack(spacing: 0) {
                 PlugDivider()
                 valueRow("Start", clock(offer.availableAt))
@@ -594,7 +601,7 @@ struct InboxItemView: View {
             }
             VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                 Text("Booking reference").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
-                Text(reservation.bookingRef).plugDisplay(40, weight: 500).monospaced().kerning(4)
+                Text(reservation.bookingRef).plugDisplay(PlugTokens.TypeSize.hero, weight: 500).monospaced().kerning(4)
                     .accessibilityLabel(reservation.bookingRef.map(String.init).joined(separator: " "))
             }
             .accessibilityElement(children: .combine)

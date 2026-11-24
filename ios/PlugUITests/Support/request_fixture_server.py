@@ -8,14 +8,17 @@ The words of the ask choose the state: "clarify", "progress", "empty", "restrict
 "cached", and "line"/"busy" for a place question. Anything else is a service request.
 "book" gives live, selectable offers (contract 0.7.x): choosing one makes a pending
 reservation that the provider confirms after two polls, or releases with "release", or lets
-time out with "timeout". A provider whose skill description says "inbox" gets matched
-requests in their inbox; any other provider's inbox is empty. An optional first argument
+time out with "timeout"; "cancel" keeps it pending so the asker can cancel it. A provider
+whose skill description says "inbox" gets matched requests in every MatchStatus; any other
+provider's inbox is empty. "states" in the description also makes the first three inbox loads
+slow, rate limited and failing, in that order, for the loading and error screenshots. An optional first argument
 sets the port, so two worktrees can each run their own server.
 """
 import json
 import re
 import sys
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -55,6 +58,7 @@ class Handler(BaseHTTPRequestHandler):
     asks = {}
     providers = {}
     inbox_modes = {}
+    inbox_faults = {}
     inboxes = {}
     counter = 0
     lock = threading.Lock()
@@ -95,7 +99,7 @@ class Handler(BaseHTTPRequestHandler):
         record["booking_polls"] += 1
         mode = record["mode"]
         name = "reservation-pending"
-        if record["booking_polls"] > 2:
+        if record["booking_polls"] > 2 and "cancel" not in mode:
             name = "reservation-released" if "release" in mode else "not-confirmed" if "timeout" in mode else "confirmed"
         result = shifted(fixture("requests.get", name), record["delta"])
         result.update(request_id=identifier, text=record["request"]["text"])
@@ -113,7 +117,19 @@ class Handler(BaseHTTPRequestHandler):
                 chosen.update(match_id="mat_ui-selected", status="selected")
                 chosen["reservation"].update(status="pending", confirm_by=stamp(datetime.now(timezone.utc) + timedelta(minutes=10)))
                 chosen["reservation"].pop("confirmed_at", None)
-                items.insert(1, chosen)
+                now = datetime.now(timezone.utc)
+                # A second open request, then one item for each settled state.
+                second = dict(items[0], match_id="mat_ui-open2", request_id="req_ui-open2")
+                missed = dict(items[0], match_id="mat_ui-missed", request_id="req_ui-missed", status="expired",
+                              notified_at=stamp(now - timedelta(hours=2)), respond_by=stamp(now - timedelta(hours=2) + timedelta(minutes=5)),
+                              needed_by=stamp(now - timedelta(hours=1)))
+                not_chosen = shifted(fixture("providers.reservation", "released"), delta)
+                not_chosen.update(match_id="mat_ui-notchosen", request_id="req_ui-notchosen")
+                closed = shifted(fixture("providers.reservation", "confirmed"), delta)
+                closed.update(match_id="mat_ui-closed", request_id="req_ui-closed", status="closed")
+                closed["reservation"].pop("confirmed_at", None)
+                closed["reservation"].update(status="canceled", ended_at=closed["reservation"]["created_at"])
+                items = [items[0], second, chosen, items[1], missed, not_chosen, closed]
             Handler.inboxes[self.caller()] = items
         return Handler.inboxes[self.caller()]
 
@@ -216,6 +232,8 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/v1/providers/skills/propose":
             if "inbox" in body.get("description", "").lower():
                 Handler.inbox_modes[self.caller()] = True
+                if "states" in body.get("description", "").lower():
+                    Handler.inbox_faults[self.caller()] = ["slow", "rate", "error"]
             if body.get("description") == "Wig install":
                 return self.respond({"error": {"code": "temporarily_unavailable", "message": "Suggestions unavailable", "request_id": "req_ios-fixture"}}, 503)
             return self.respond(fixture("providers.propose", "success"))
@@ -270,6 +288,9 @@ class Handler(BaseHTTPRequestHandler):
         if path.endswith("/cancel"):
             result = fixture("requests.get", "canceled")
             result.update(request_id=identifier, text=record["request"]["text"])
+            reservation = record["request"].get("reservation")
+            if reservation and reservation["status"] == "pending":
+                result["reservation"] = dict(reservation, status="canceled", ended_at=stamp(datetime.now(timezone.utc)))
             record["request"] = result
             return self.respond(result)
         self.respond({}, 404)
@@ -291,6 +312,14 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/v1/providers/me/inbox":
             if self.caller() not in Handler.providers:
                 return self.respond(fixture("providers.inbox", "not-a-provider"), 404)
+            faults = Handler.inbox_faults.get(self.caller())
+            fault = faults.pop(0) if faults else None
+            if fault == "slow":
+                time.sleep(4)
+            elif fault == "rate":
+                return self.respond(fixture("providers.inbox", "rate-limited"), 429)
+            elif fault == "error":
+                return self.respond(fixture("providers.inbox", "transient-error"), 500)
             return self.respond({"items": self.inbox(), "notifications_per_hour": 4})
         if path.startswith("/v1/asks/"):
             ask_id = path.split("/")[3]

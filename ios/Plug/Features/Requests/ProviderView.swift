@@ -9,8 +9,9 @@ struct ProviderOnboardingView: View {
     let service: RequestServing
     @ObservedObject var location: RequestLocationModel
     var current: ProviderProfile? = nil
-    /// True only once the inbox route answered: then delivery is real and the copy says so.
-    var inboxAvailable = false
+    /// True once the inbox route answered, false once it said the inbox is off (404), nil while
+    /// unknown. Unknown says nothing about delivery rather than guess.
+    var inboxAvailable: Bool? = nil
     let onSaved: (ProviderProfile) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -52,8 +53,10 @@ struct ProviderOnboardingView: View {
                         .plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
                         .fixedSize(horizontal: false, vertical: true)
                     // Honest about what is not live yet: matching uses these settings, delivery does not exist.
-                    caption(inboxAvailable ? "Requests that match these settings arrive in your Inbox."
-                            : "Your settings are saved for matching. Inbox delivery and booking are not available yet.")
+                    if let inboxAvailable {
+                        caption(inboxAvailable ? "Requests that match these settings arrive in your Inbox."
+                                : "Your settings are saved for matching. Inbox delivery and booking are not available yet.")
+                    }
                     describeStep.marketCard()
                     if !proposed.isEmpty || !unmatched.isEmpty || !ownSkills.isEmpty { skillsStep }
                     if hasSkills {
@@ -88,8 +91,9 @@ struct ProviderOnboardingView: View {
                             .buttonStyle(FlowActionStyle(primary: true))
                             .disabled(isWorking || photoLoading || location.location == nil || slots.isEmpty || (needsLicence && !licenceValid))
                             .accessibilityIdentifier("provider-save")
-                        caption(inboxAvailable ? "Private test. You can reply to matching requests from your Inbox."
-                                : "Private test. Your settings are saved for matching. Inbox delivery and booking are not available yet.")
+                        caption(inboxAvailable.map { $0 ? "Private test. You can reply to matching requests from your Inbox."
+                                : "Private test. Your settings are saved for matching. Inbox delivery and booking are not available yet." }
+                                ?? "Private test. Your settings are saved for matching.")
                     }
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)

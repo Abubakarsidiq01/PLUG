@@ -33,7 +33,7 @@ struct AskView: View {
     private let service: RequestServing
     private let onProviderChange: (ProviderProfile) -> Void
     /// The one disclosure left from the preview: shown only where example (seed) offers appear.
-    static let exampleNote = "Example offers for preview. Booking isn’t available yet."
+    static let exampleNote = "Example offers can't be booked."
     @State private var tileTaps = 0
     /// Know before you go, or one category's example asks. A sheet sends its ask itself; nothing
     /// is put in the home field for the person to notice.
@@ -633,9 +633,7 @@ struct AskView: View {
         case .chooseOffer, .showResult:
             if request.isRecovering, !model.offers.isEmpty {
                 PlugNotice(title: request.reservation?.status == .timedOut ? "They didn't confirm in time" : "They couldn't confirm",
-                           message: request.reservation?.status == .timedOut
-                               ? "The time to confirm ran out. Here are your other offers."
-                               : "They couldn't confirm. Here are your other offers.",
+                           message: "Here are your other offers.",
                            detail: "Nothing was booked. Choose another offer below.")
                     .accessibilityIdentifier("booking-recovery")
             }
@@ -644,8 +642,13 @@ struct AskView: View {
                 nobody("No current offers", "Refresh to check whether this request is still open.", request.progress.contacted)
             }
         case .showNoResult:
-            nobody(request.noResultReason == .notConfirmed ? "Not confirmed" : "No offers",
-                   request.noResultReason?.explanation ?? "No current offers are available.", request.progress.contacted)
+            if request.noResultReason == .notConfirmed {
+                // Not an Unknown answer: a provider was chosen and did not confirm.
+                PlugNotice(title: "Not confirmed", message: ServiceRequest.NoResultReason.notConfirmed.explanation)
+                    .accessibilityIdentifier("booking-not-confirmed")
+            } else {
+                nobody("No offers", request.noResultReason?.explanation ?? "No current offers are available.", request.progress.contacted)
+            }
             if request.noResultReason == .noCoverage { offerTheGap(request) }
         case .none:
             if request.reservation?.status == .canceled {
@@ -673,7 +676,7 @@ struct AskView: View {
                 .accessibilityAddTraits(.isHeader)
             VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
                 Text("Booking reference").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
-                Text(reservation.bookingRef).plugDisplay(40, weight: 500).monospaced().kerning(4)
+                Text(reservation.bookingRef).plugDisplay(PlugTokens.TypeSize.hero, weight: 500).monospaced().kerning(4)
                     .accessibilityLabel(reservation.bookingRef.map(String.init).joined(separator: " "))
             }
             .accessibilityElement(children: .combine)
@@ -842,7 +845,7 @@ struct AskView: View {
 
     private func nobody(_ title: String, _ detail: String, _ notified: Int, subject: String? = nil) -> some View {
         PlugNotice(title: title, unknown: true, subject: subject, message: detail,
-                   detail: notified == 0 ? "Nobody was notified" : "\(notified) people notified")
+                   detail: notified == 0 ? "Nobody was notified" : notified == 1 ? "1 person notified" : "\(notified) people notified")
             .accessibilityIdentifier("request-unknown")
     }
 
@@ -863,15 +866,15 @@ struct AskView: View {
 
     @ViewBuilder private var actions: some View {
         if let request = model.request, request.status.canCancel {
-            Button(request.status == .confirmed ? "Cancel booking" : request.status == .userSelected ? "Cancel request" : "Stop asking") {
+            Button(request.status == .confirmed || request.status == .userSelected ? "Cancel request" : "Stop asking") {
                 if request.status == .confirmed { confirmingCancel = true } else { Task { await model.cancel() } }
             }
                 .buttonStyle(FlowActionStyle(destructive: true))
                 .disabled(model.isWorking)
                 .accessibilityIdentifier("request-cancel")
-                .confirmationDialog("Cancel this booking?", isPresented: $confirmingCancel, titleVisibility: .visible) {
-                    Button("Cancel booking", role: .destructive) { Task { await model.cancel() } }
-                    Button("Keep booking", role: .cancel) { }
+                .confirmationDialog("Cancel this request?", isPresented: $confirmingCancel, titleVisibility: .visible) {
+                    Button("Cancel request", role: .destructive) { Task { await model.cancel() } }
+                    Button("Keep request", role: .cancel) { }
                 } message: {
                     Text("The provider will see that it is canceled.")
                 }
@@ -918,7 +921,8 @@ private enum Example {
 /// is ever filled in on the phone.
 func scoreText(_ score: ProviderScore) -> String? {
     switch score.state {
-    case .new: return score.completedJobs == 0 ? "New provider" : "New provider, \(score.completedJobs) jobs"
+    case .new: return score.completedJobs == 0 ? "New provider"
+        : "New provider, \(score.completedJobs) \(score.completedJobs == 1 ? "job" : "jobs")"
     case .scored:
         guard let value = score.value else { return nil }
         return "Score \(value) from \(score.completedJobs) jobs"
@@ -1067,6 +1071,15 @@ private struct OfferDetailView: View {
                     }
                     facts
                     explanation
+                    // Contract: shown to the asker as plain text. Untrusted, so never markup or a link.
+                    if let note = offer.note {
+                        VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                            Text("Their note").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
+                            Text(verbatim: note).plugText(.body).fixedSize(horizontal: false, vertical: true)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("offer-note")
+                    }
                     chooseSection
                     if let about = offer.business?.about {
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {

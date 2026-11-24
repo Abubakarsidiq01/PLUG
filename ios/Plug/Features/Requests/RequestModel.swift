@@ -151,12 +151,16 @@ final class RequestModel: ObservableObject {
         } catch let api as APIError where api.code == "conflict" {
             // Someone else's choice, an expired offer or a changed request: show the server's state.
             guard revision == token else { return }
-            selectAttempt = nil
+            // Still being handled: keep the key so a retry replays the first choice, never a second one.
+            if api.fieldCode != "request_in_progress" { selectAttempt = nil }
             isWorking = false
             await refresh()
             guard errorMessage == nil else { return }
-            errorMessage = api.fieldCode == "already_selected" ? "An offer was already chosen for this request. This is its current state."
-                : "That offer can't be chosen any more. These are the current offers."
+            switch api.fieldCode {
+            case "already_selected": errorMessage = "An offer was already chosen for this request. This is its current state."
+            case "request_in_progress": errorMessage = "Your choice is still being sent. Wait, then try again."
+            default: errorMessage = "That offer can't be chosen any more. These are the current offers."
+            }
             isCached = false
             return
         } catch { fail(error, token: token) }
