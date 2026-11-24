@@ -1,0 +1,12 @@
+accepted | inbox-item-open | Dynamic Type font sizes are partially unsupported | 48 'Sent to you' 
+accepted | inbox-item-open | Dynamic Type font sizes are partially unsupported | 48 '4:17 PM' 
+accepted | inbox-item-open | Dynamic Type font sizes are unsupported | 48 'Ask' 
+accepted | inbox-item-open | Dynamic Type font sizes are partially unsupported | 48 'Distance' 
+accepted | inbox-item-open | Dynamic Type font sizes are unsupported | 48 'Activity' 
+accepted | inbox-item-open | Dynamic Type font sizes are unsupported | 48 'Profile' 
+accepted | inbox-item-open | Dynamic Type font sizes are unsupported | 48 'Inbox' 
+accepted | inbox-item-open | Dynamic Type font sizes are partially unsupported | 48 '0.56 mi from your base' 
+accepted | inbox-item-open | Dynamic Type font sizes are partially unsupported | 48 'Haircut' 
+FAIL | inbox-item-open | Contrast failed | 9 '4:47 PM' 
+accepted | inbox-item-open | Potentially inaccessible text | -
+accepted | inbox-item-open | Potentially inaccessible text | -

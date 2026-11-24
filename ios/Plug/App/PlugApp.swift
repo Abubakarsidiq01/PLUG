@@ -117,6 +117,7 @@ struct RootView: View {
             .plugTab("Ask")
             if environment.requestsEnabled, let provider {
                 InboxView(service: requests, profile: provider) { self.provider = $0 }
+                    .id(session.account.userId)
                     .plugTab("Inbox")
             }
             ActivityView { select("Ask") }

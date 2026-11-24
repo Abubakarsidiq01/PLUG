@@ -1,0 +1,5 @@
+accepted | inbox-list | Dynamic Type font sizes are unsupported | 48 'Ask' 
+accepted | inbox-list | Dynamic Type font sizes are partially unsupported | 48 'Inbox' 
+accepted | inbox-list | Dynamic Type font sizes are unsupported | 48 'Activity' 
+accepted | inbox-list | Dynamic Type font sizes are unsupported | 48 'Profile' 
+accepted | inbox-list | Dynamic Type font sizes are unsupported | 48 'Inbox' 

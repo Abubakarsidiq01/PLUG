@@ -19,6 +19,8 @@ final class RequestModel: ObservableObject {
     @Published private(set) var isCached = false
     @Published private(set) var refreshedAt: Date?
     @Published private(set) var retryAfter: Date?
+    /// The server answered select with 404: its provider_inbox flag is off, so choosing is hidden.
+    @Published private(set) var bookingUnavailable = false
     private let service: RequestServing
     private let now: () -> Date
     private let sleep: (Int) async throws -> Void
@@ -27,8 +29,13 @@ final class RequestModel: ObservableObject {
     /// A retry resends the same body under the same key, so a slow network cannot create two asks.
     private var createAttempt: (body: AskBody, key: String)?
     private var answerAttempt: (id: String, value: String, key: String)?
+    /// One key per choice: a retry of the same offer after a lost response replays, never double-selects.
+    private var selectAttempt: (offerId: String, key: String)?
     private var active = true
     static let placePollSeconds = 5
+    /// A ranked request can still gain offers from later waves: a gentle check, only while young.
+    static let rankedPollSeconds = 15
+    static let rankedRefreshWindow: TimeInterval = 10 * 60
 
     init(service: RequestServing, now: @escaping () -> Date = Date.init,
          sleep: @escaping (Int) async throws -> Void = { try await Task.sleep(for: .seconds($0)) }) {
@@ -125,6 +132,41 @@ final class RequestModel: ObservableObject {
         finish(token)
     }
 
+    /// Asks the offer's provider to confirm. Nothing is booked here: the server moves the request
+    /// to user_selected with a pending reservation, and only the provider can confirm it.
+    func select(_ offer: ServiceOffer) async {
+        guard !isWorking, canRetry, !bookingUnavailable, let request, request.status == .ranked,
+              offer.source != .seed, offers.contains(where: { $0.offerId == offer.offerId }) else { return }
+        if selectAttempt?.offerId != offer.offerId { selectAttempt = (offer.offerId, UUID().uuidString) }
+        guard let attempt = selectAttempt else { return }
+        let token = begin()
+        do {
+            let result = try await service.select(request.requestId, offerId: attempt.offerId, key: attempt.key)
+            guard revision == token else { return }
+            selectAttempt = nil
+            try await accept(result, token: token)
+        } catch let api as APIError where api.code == "not_found" {
+            guard revision == token else { return }
+            bookingUnavailable = true
+        } catch let api as APIError where api.code == "conflict" {
+            // Someone else's choice, an expired offer or a changed request: show the server's state.
+            guard revision == token else { return }
+            // Still being handled: keep the key so a retry replays the first choice, never a second one.
+            if api.fieldCode != "request_in_progress" { selectAttempt = nil }
+            isWorking = false
+            await refresh()
+            guard errorMessage == nil else { return }
+            switch api.fieldCode {
+            case "already_selected": errorMessage = "An offer was already chosen for this request. This is its current state."
+            case "request_in_progress": errorMessage = "Your choice is still being sent. Wait, then try again."
+            default: errorMessage = "That offer can't be chosen any more. These are the current offers."
+            }
+            isCached = false
+            return
+        } catch { fail(error, token: token) }
+        finish(token)
+    }
+
     /// Cancellation supersedes a GET already in flight. A late GET cannot replace the
     /// authoritative cancellation response, even if the transport ignores cancellation.
     func cancel() async {
@@ -152,6 +194,7 @@ final class RequestModel: ObservableObject {
         refreshedAt = nil
         createAttempt = nil
         answerAttempt = nil
+        selectAttempt = nil
     }
 
     func setActive(_ active: Bool) {
@@ -202,8 +245,12 @@ final class RequestModel: ObservableObject {
     private func schedulePolling() {
         guard active, !isWorking, errorMessage == nil else { return }
         let interval: Int
-        if request?.nextAction == .waitForOffers, let serverInterval = request?.pollAfterSeconds {
+        if let request, [.waitForOffers, .awaitSupplierConfirmation].contains(request.nextAction),
+           let serverInterval = request.pollAfterSeconds {
             interval = serverInterval
+        } else if let request, request.nextAction == .chooseOffer,
+                  now().timeIntervalSince(request.createdAt) < Self.rankedRefreshWindow {
+            interval = Self.rankedPollSeconds
         } else if request == nil, placeQuestion?.status == .asking {
             // Place questions carry no poll interval; check at the same cadence as requests.
             interval = Self.placePollSeconds

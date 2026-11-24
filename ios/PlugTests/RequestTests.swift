@@ -440,6 +440,403 @@ final class RequestTests: XCTestCase {
         XCTAssertEqual(list.offers.count, 20)
     }
 
+    // MARK: P3.S7 booking (contract 0.7.0 select and reservation)
+
+    func testReservationFixturesValidateAndMalformedReservationsFailClosed() throws {
+        XCTAssertEqual(try resource("requests.get", "reservation-pending").validated().reservation?.status, .pending)
+        XCTAssertTrue(try resource("requests.get", "reservation-released").validated().isRecovering)
+        XCTAssertEqual(try resource("requests.get", "confirmed").validated().reservation?.bookingRef, "K7QM")
+        XCTAssertEqual(try resource("requests.get", "not-confirmed").validated().reservation?.status, .timedOut)
+        XCTAssertEqual(try resource("requests.select", "success").validated().nextAction, .awaitSupplierConfirmation)
+        func mutated(_ name: String, _ change: (inout [String: Any]) -> Void) throws -> ServiceRequest {
+            var json = try object("requests.get", name)
+            var reservation = (json["reservation"] as? [String: Any]) ?? [:]
+            change(&reservation)
+            json["reservation"] = reservation
+            return try decode(json)
+        }
+        let pendingReservation = try XCTUnwrap(object("requests.get", "reservation-pending")["reservation"] as? [String: Any])
+        let bad: [ServiceRequest] = [
+            try mutated("reservation-pending") { $0["status"] = "confirmed" },          // status pair, and no confirmed_at
+            try mutated("reservation-pending") { $0["confirmed_at"] = "2026-10-01T20:03:41Z" },
+            try mutated("reservation-pending") { $0["booking_ref"] = "K0OI" },
+            try mutated("reservation-pending") { $0["confirm_by"] = "2026-10-01T19:00:00Z" },
+            try mutated("reservation-released") { $0.removeValue(forKey: "ended_at") },
+            try mutated("reservation-released") { $0["status"] = "pending"; $0.removeValue(forKey: "ended_at") },
+            try mutated("confirmed") { $0["status"] = "pending"; $0.removeValue(forKey: "confirmed_at") },
+            try mutated("not-confirmed") { $0["status"] = "pending"; $0.removeValue(forKey: "ended_at") },
+            try mutated("submitted") { $0 = pendingReservation }
+        ]
+        for request in bad { XCTAssertThrowsError(try request.validated()) }
+        var missing = try object("requests.get", "reservation-pending")
+        missing.removeValue(forKey: "reservation")
+        XCTAssertThrowsError(try decode(missing).validated())
+    }
+
+    func testSelectRetriesSameOfferWithSameKeyAndShowsPendingReservation() async throws {
+        let service = StubRequests()
+        let ranked = try resource("requests.get", "success")
+        let pending = try resource("requests.get", "reservation-pending")
+        let offers = try PlugJSON.decoder.decode(ServiceOfferList.self, from: fixture("requests.offers", "sms-and-app"))
+        service.onCreate = { _, _ in ranked }
+        service.onOffers = { _ in offers }
+        var keys: [String] = []
+        service.onSelect = { _, offerId, key in
+            keys.append(key)
+            XCTAssertEqual(offerId, offers.offers[0].offerId)
+            if keys.count == 1 { throw URLError(.networkConnectionLost) }
+            return pending
+        }
+        let model = RequestModel(service: service)
+        model.setActive(false)
+        model.text = "Barber"
+        await model.submit(location: location)
+        await model.select(offers.offers[0])
+        XCTAssertEqual(model.request?.status, .ranked)
+        XCTAssertNotNil(model.errorMessage)
+        await model.select(offers.offers[0])
+        XCTAssertEqual(keys.count, 2)
+        XCTAssertEqual(keys[0], keys[1])
+        XCTAssertEqual(model.request?.status, .userSelected)
+        XCTAssertEqual(model.request?.reservation?.bookingRef, "K7QM")
+        XCTAssertNotEqual(model.request?.status, .confirmed) // Only a provider event confirms.
+    }
+
+    func testSelectionConflictReloadsServerStateAndSeedOffersAreNeverSelected() async throws {
+        let service = StubRequests()
+        let ranked = try resource("requests.get", "success")
+        let seed = try offerList()
+        let offers = try PlugJSON.decoder.decode(ServiceOfferList.self, from: fixture("requests.offers", "sms-and-app"))
+        var served = seed
+        service.onCreate = { _, _ in ranked }
+        service.onOffers = { _ in served }
+        var selections = 0
+        service.onSelect = { _, _, _ in
+            selections += 1
+            throw APIError(status: 409, body: try self.fixture("requests.select", "offer-unavailable"), requestID: nil)
+        }
+        var reloads = 0
+        service.onGet = { _ in reloads += 1; return ranked }
+        let model = RequestModel(service: service)
+        model.setActive(false)
+        model.text = "Barber"
+        await model.submit(location: location)
+        await model.select(seed.offers[0])
+        XCTAssertEqual(selections, 0)
+        served = offers
+        await model.refresh()
+        reloads = 0
+        await model.select(offers.offers[0])
+        XCTAssertEqual(selections, 1)
+        XCTAssertEqual(reloads, 1)
+        XCTAssertEqual(model.request?.status, .ranked)
+        XCTAssertNotNil(model.errorMessage)
+        XCTAssertFalse(model.isWorking)
+    }
+
+    func testSelectStillInProgressKeepsTheKeySoARetryReplays() async throws {
+        let service = StubRequests()
+        let ranked = try resource("requests.get", "success")
+        let offers = try PlugJSON.decoder.decode(ServiceOfferList.self, from: fixture("requests.offers", "sms-and-app"))
+        let pending = try resource("requests.select", "success")
+        service.onCreate = { _, _ in ranked }
+        service.onOffers = { _ in offers }
+        service.onGet = { _ in ranked }
+        let inProgress = Data(#"{"error":{"code":"conflict","message":"Still working.","request_id":"req_x","details":[{"field":"Idempotency-Key","code":"request_in_progress"}]}}"#.utf8)
+        var keys: [String] = []
+        service.onSelect = { _, _, key in
+            keys.append(key)
+            if keys.count == 1 { throw APIError(status: 409, body: inProgress, requestID: nil) }
+            return pending
+        }
+        let model = RequestModel(service: service)
+        model.setActive(false)
+        model.text = "Barber"
+        await model.submit(location: location)
+        let chosen = try XCTUnwrap(offers.offers.first { $0.offerId == pending.reservation?.offerId })
+        await model.select(chosen)
+        XCTAssertEqual(model.errorMessage, "Your choice is still being sent. Wait, then try again.")
+        await model.select(chosen)
+        XCTAssertEqual(keys.count, 2)
+        XCTAssertEqual(keys[0], keys[1], "A retry after request_in_progress replays the same choice")
+        XCTAssertEqual(model.request?.status, .userSelected)
+    }
+
+    func testSelectNotFoundMeansBookingIsOffAndNothingChanges() async throws {
+        let service = StubRequests()
+        let ranked = try resource("requests.get", "success")
+        let offers = try PlugJSON.decoder.decode(ServiceOfferList.self, from: fixture("requests.offers", "sms-and-app"))
+        service.onCreate = { _, _ in ranked }
+        service.onOffers = { _ in offers }
+        service.onSelect = { _, _, _ in throw APIError(status: 404, body: Data(), requestID: nil) }
+        let model = RequestModel(service: service)
+        model.setActive(false)
+        model.text = "Barber"
+        await model.submit(location: location)
+        await model.select(offers.offers[1])
+        XCTAssertTrue(model.bookingUnavailable)
+        XCTAssertEqual(model.request, ranked)
+        XCTAssertNil(model.errorMessage)
+    }
+
+    func testPollingContinuesWhileAwaitingSupplierConfirmation() async throws {
+        let service = StubRequests()
+        let pending = try resource("requests.get", "reservation-pending")
+        service.onCreate = { _, _ in pending }
+        service.onOffers = { _ in try self.offerList() }
+        var interval: Int?
+        let model = RequestModel(service: service, sleep: { value in interval = value; throw CancellationError() })
+        model.text = "Barber"
+        await model.submit(location: location)
+        while interval == nil { await Task.yield() }
+        XCTAssertEqual(interval, pending.pollAfterSeconds)
+        model.setActive(false)
+    }
+
+    func testYoungRankedRequestIsCheckedGentlyThenLeftAlone() async throws {
+        let ranked = try resource("requests.get", "success")
+        for (age, expected) in [(TimeInterval(60), Optional(RequestModel.rankedPollSeconds)), (11 * 60, nil)] {
+            let service = StubRequests()
+            service.onCreate = { _, _ in ranked }
+            service.onOffers = { _ in try self.offerList() }
+            var interval: Int?
+            let model = RequestModel(service: service, now: { ranked.createdAt.addingTimeInterval(age) },
+                                     sleep: { value in interval = value; throw CancellationError() })
+            model.text = "Barber"
+            await model.submit(location: location)
+            for _ in 0..<50 where interval == nil { await Task.yield() }
+            XCTAssertEqual(interval, expected)
+            model.setActive(false)
+        }
+    }
+
+    func testSelectServicePostsOfferWithIdempotencyKey() async throws {
+        let data = try fixture("requests.select", "success")
+        TestTransport.handler = { request in
+            XCTAssertEqual(request.httpMethod, "POST")
+            XCTAssertEqual(request.url?.path, "/v1/requests/req_01J9Z6Q3V8M2K4P7R5T1W0XY3B/select")
+            XCTAssertEqual(request.value(forHTTPHeaderField: "Idempotency-Key"), "select-key-0000001")
+            return (try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 200,
+                httpVersion: nil, headerFields: ["Content-Type": "application/json"])), data)
+        }
+        let service = try await liveService()
+        let result = try await service.select("req_01J9Z6Q3V8M2K4P7R5T1W0XY3B", offerId: "off_01JA3P0SMS4K7QM2V8X1Z5B9C3",
+                                              key: "select-key-0000001")
+        XCTAssertEqual(result.reservation?.status, .pending)
+    }
+
+    // MARK: P3.S16 provider inbox
+
+    func testEveryInboxFixtureDecodesAndValidates() throws {
+        var checked = 0
+        for folder in ["providers.inbox", "providers.decline", "providers.reservation", "requests.send-offer"] {
+            let directory = try XCTUnwrap(Bundle(for: Self.self).resourceURL?.appendingPathComponent(folder))
+            for url in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) where url.pathExtension == "json" {
+                let data = try Data(contentsOf: url)
+                let json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+                if json["error"] != nil { continue }
+                switch folder {
+                case "providers.inbox": _ = try PlugJSON.decoder.decode(ProviderInbox.self, from: data).validated()
+                case "requests.send-offer":
+                    let offer = try PlugJSON.decoder.decode(ServiceOffer.self, from: data)
+                    XCTAssertTrue(offer.isValid && offer.source == .portal)
+                default: XCTAssertTrue(try PlugJSON.decoder.decode(InboxItem.self, from: data).isValid, url.lastPathComponent)
+                }
+                checked += 1
+            }
+        }
+        XCTAssertEqual(checked, 7)
+    }
+
+    func testMalformedInboxItemsFailClosed() throws {
+        let inbox = try object("providers.inbox", "success")
+        let item = try XCTUnwrap((inbox["items"] as? [[String: Any]])?.first)
+        let selected = try object("providers.reservation", "confirmed")
+        let cases: [[String: Any]] = [
+            item.merging(["distance_m": 950]) { $1 },
+            item.merging(["skill_tags": []]) { $1 },
+            item.merging(["budget_cents": 100]) { $1 },
+            item.merging(["status": "offered"]) { $1 },               // offered with no offer
+            selected.merging(["status": "selected"]) { $1 },          // selected with a confirmed reservation
+            item.merging(["respond_by": item["notified_at"] as Any]) { $1 }
+        ]
+        for json in cases {
+            let decoded = try PlugJSON.decoder.decode(InboxItem.self, from: JSONSerialization.data(withJSONObject: json))
+            XCTAssertFalse(decoded.isValid)
+        }
+    }
+
+    func testInboxNotFoundMeansInboxIsOff() async throws {
+        let data = try fixture("providers.inbox", "not-a-provider")
+        TestTransport.handler = { request in
+            XCTAssertEqual(request.url?.path, "/v1/providers/me/inbox")
+            return (try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 404,
+                httpVersion: nil, headerFields: ["Content-Type": "application/json"])), data)
+        }
+        let service = try await liveService()
+        let inbox = try await service.inbox()
+        XCTAssertNil(inbox)
+        let stub = StubRequests()
+        stub.onInbox = { nil }
+        let model = InboxModel(service: stub)
+        await model.load()
+        XCTAssertEqual(model.availability, .unavailable)
+        XCTAssertTrue(model.items.isEmpty)
+    }
+
+    func testComposerChecksMirrorTheServer() throws {
+        let item = try PlugJSON.decoder.decode(ProviderInbox.self, from: fixture("providers.inbox", "success")).items[0]
+        let now = item.notifiedAt
+        var draft = OfferDraft(price: "28", start: now.addingTimeInterval(600))
+        XCTAssertTrue(draft.errors(for: item, now: now).isEmpty)
+        XCTAssertEqual(draft.body()?.priceCents, 2800)
+        draft.price = "28.50"
+        XCTAssertEqual(draft.priceCents, 2850)
+        for price in ["", "abc", "4", "28.555", "-5"] {
+            draft.price = price
+            XCTAssertNotNil(draft.errors(for: item, now: now)[.price], price)
+        }
+        draft.price = "36"
+        XCTAssertNotNil(draft.errors(for: item, now: now)[.price]) // over the $35 budget
+        draft.price = "30"
+        draft.start = now.addingTimeInterval(-3600)
+        XCTAssertNotNil(draft.errors(for: item, now: now)[.start])
+        draft.start = try XCTUnwrap(item.neededBy).addingTimeInterval(60)
+        XCTAssertNotNil(draft.errors(for: item, now: now)[.start])
+        let noDeadline = try PlugJSON.decoder.decode(ProviderInbox.self, from: fixture("providers.inbox", "success")).items[1]
+        draft.start = now.addingTimeInterval(8 * 24 * 3600)
+        XCTAssertNotNil(draft.errors(for: noDeadline, now: now)[.start])
+        draft.start = now.addingTimeInterval(600)
+        draft.note = String(repeating: "n", count: 141)
+        XCTAssertNotNil(draft.errors(for: item, now: now)[.note])
+        draft.note = "   "
+        XCTAssertNil(draft.body()?.note)
+    }
+
+    func testOfferRetryReusesKeyAndServerErrorsBecomeInlineErrors() async throws {
+        let service = StubRequests()
+        let inbox = try PlugJSON.decoder.decode(ProviderInbox.self, from: fixture("providers.inbox", "success"))
+        let offer = try PlugJSON.decoder.decode(ServiceOffer.self, from: fixture("requests.send-offer", "success"))
+        service.onInbox = { inbox }
+        var keys: [String] = []
+        service.onSendOffer = { requestId, _, key in
+            keys.append(key)
+            XCTAssertEqual(requestId, inbox.items[0].requestId)
+            switch keys.count {
+            case 1: throw URLError(.networkConnectionLost)
+            case 2: throw APIError(status: 400, body: try self.fixture("requests.send-offer", "contact-in-note"), requestID: nil)
+            default: return offer
+            }
+        }
+        let model = InboxModel(service: service)
+        await model.load()
+        let body = ProviderOfferCreate(priceCents: 2800, availableAt: Date().addingTimeInterval(600), note: "Call me")
+        let first = await model.send(inbox.items[0], body: body)
+        XCTAssertFalse(first)
+        XCTAssertNotNil(model.errorMessage)
+        let second = await model.send(inbox.items[0], body: body)
+        XCTAssertFalse(second)
+        XCTAssertEqual(keys[0], keys[1])
+        XCTAssertNotNil(model.fieldErrors[.note])
+        let third = await model.send(inbox.items[0], body: ProviderOfferCreate(priceCents: 2800, availableAt: body.availableAt))
+        XCTAssertTrue(third)
+        XCTAssertNotEqual(keys[2], keys[1])
+    }
+
+    func testOfferStillInProgressKeepsKeyAndGoneOrSignedOutFailsClosed() async throws {
+        let service = StubRequests()
+        let inbox = try PlugJSON.decoder.decode(ProviderInbox.self, from: fixture("providers.inbox", "success"))
+        var loads = 0
+        service.onInbox = { loads += 1; return inbox }
+        let inProgress = Data(#"{"error":{"code":"conflict","message":"Still working.","request_id":"req_x","details":[{"field":"Idempotency-Key","code":"request_in_progress"}]}}"#.utf8)
+        var keys: [String] = []
+        service.onSendOffer = { _, _, key in
+            keys.append(key)
+            switch keys.count {
+            case 1: throw APIError(status: 409, body: inProgress, requestID: nil)
+            case 2: throw APIError(status: 404, body: try self.fixture("requests.send-offer", "never-matched"), requestID: nil)
+            default: throw APIError(status: 401, body: try self.fixture("requests.send-offer", "auth-error"), requestID: nil)
+            }
+        }
+        let model = InboxModel(service: service)
+        await model.load()
+        let body = ProviderOfferCreate(priceCents: 2800, availableAt: Date().addingTimeInterval(600))
+        let first = await model.send(inbox.items[0], body: body)
+        XCTAssertFalse(first)
+        XCTAssertEqual(loads, 1, "An offer still being handled is not a closed request")
+        let second = await model.send(inbox.items[0], body: body)
+        XCTAssertFalse(second)
+        XCTAssertEqual(keys[0], keys[1], "A retry after request_in_progress replays the same offer")
+        XCTAssertEqual(loads, 2, "A 404 reloads the inbox so the screen shows the server's state")
+        XCTAssertEqual(model.errorMessage, "This request is no longer in your inbox.")
+        _ = await model.send(inbox.items[0], body: body)
+        XCTAssertTrue(model.items.isEmpty, "A signed-out caller sees nothing of the inbox")
+        XCTAssertEqual(model.availability, .unknown)
+    }
+
+    func testDeclineOrConfirmOnAClosedRequestShowsTheServersState() async throws {
+        let service = StubRequests()
+        let inbox = try PlugJSON.decoder.decode(ProviderInbox.self, from: fixture("providers.inbox", "success"))
+        var loads = 0
+        service.onInbox = { loads += 1; return inbox }
+        service.onDecline = { _, _ in
+            throw APIError(status: 409, body: try self.fixture("providers.decline", "request-closed"), requestID: nil)
+        }
+        service.onAnswerReservation = { _, _ in
+            throw APIError(status: 429, body: try self.fixture("providers.reservation", "rate-limited"), requestID: nil)
+        }
+        let model = InboxModel(service: service)
+        await model.load()
+        await model.decline(inbox.items[0], reason: nil)
+        XCTAssertEqual(loads, 2)
+        XCTAssertEqual(model.errorMessage, "This request has closed. This is where it stands now.")
+        XCTAssertEqual(model.item(inbox.items[0].matchId)?.status, .open, "Only the server moves a match")
+        await model.answer(inbox.items[0], .confirm)
+        XCTAssertEqual(model.errorMessage, "Too many tries. Wait, then try again.")
+    }
+
+    func testDeclineAndReservationAnswersReplaceTheItemWithTheServers() async throws {
+        let service = StubRequests()
+        let inbox = try PlugJSON.decoder.decode(ProviderInbox.self, from: fixture("providers.inbox", "success"))
+        service.onInbox = { inbox }
+        let declined = try PlugJSON.decoder.decode(InboxItem.self, from: fixture("providers.decline", "success"))
+        var reason: DeclineReason?
+        service.onDecline = { _, value in reason = value; return declined }
+        let model = InboxModel(service: service)
+        await model.load()
+        await model.decline(inbox.items[0], reason: .tooFar)
+        XCTAssertEqual(reason, .tooFar)
+        XCTAssertEqual(model.item(inbox.items[0].matchId)?.status, .declined)
+        service.onAnswerReservation = { _, _ in
+            throw APIError(status: 409, body: try self.fixture("providers.reservation", "reservation-closed"), requestID: nil)
+        }
+        await model.answer(declined, .confirm)
+        XCTAssertNotNil(model.errorMessage)
+        XCTAssertNotEqual(model.item(declined.matchId)?.status, .confirmed)
+    }
+
+    func testDeclineBodyCarriesOnlyTheOptionalReason() async throws {
+        let data = try fixture("providers.decline", "success")
+        var bodies: [String] = []
+        TestTransport.handler = { request in
+            XCTAssertEqual(request.url?.path, "/v1/providers/me/inbox/mat_01JA3P2B6D0F4H8K2M6P0R4T8V/decline")
+            var body = request.httpBody ?? Data()
+            if body.isEmpty, let stream = request.httpBodyStream {
+                stream.open(); defer { stream.close() }
+                var buffer = [UInt8](repeating: 0, count: 256)
+                let count = stream.read(&buffer, maxLength: 256)
+                body = Data(buffer.prefix(max(count, 0)))
+            }
+            bodies.append(String(decoding: body, as: UTF8.self))
+            return (try XCTUnwrap(HTTPURLResponse(url: XCTUnwrap(request.url), statusCode: 200,
+                httpVersion: nil, headerFields: ["Content-Type": "application/json"])), data)
+        }
+        let service = try await liveService()
+        _ = try await service.decline("mat_01JA3P2B6D0F4H8K2M6P0R4T8V", reason: .notMySkill)
+        _ = try await service.decline("mat_01JA3P2B6D0F4H8K2M6P0R4T8V", reason: nil)
+        XCTAssertEqual(bodies, ["{\"reason\":\"not_my_skill\"}", "{}"])
+    }
+
     private func liveService(userId: String? = nil) async throws -> RequestService {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [TestTransport.self]
@@ -496,4 +893,21 @@ private final class StubRequests: RequestServing {
     func proposeSkills(_ description: String) async throws -> SkillProposal { SkillProposal(skills: [], unmatched: []) }
     func setProvider(_ setup: ProviderSetup) async throws -> ProviderProfile { throw URLError(.notConnectedToInternet) }
     func providerProfile() async throws -> ProviderProfile? { nil }
+
+    var onSelect: ((String, String, String) async throws -> ServiceRequest)?
+    var onInbox: (() async throws -> ProviderInbox?)?
+    var onSendOffer: ((String, ProviderOfferCreate, String) async throws -> ServiceOffer)?
+    var onDecline: ((String, DeclineReason?) async throws -> InboxItem)?
+    var onAnswerReservation: ((String, ReservationAnswer) async throws -> InboxItem)?
+    func select(_ id: String, offerId: String, key: String) async throws -> ServiceRequest {
+        try await XCTUnwrap(onSelect)(id, offerId, key)
+    }
+    func inbox() async throws -> ProviderInbox? { try await XCTUnwrap(onInbox)() }
+    func decline(_ matchId: String, reason: DeclineReason?) async throws -> InboxItem { try await XCTUnwrap(onDecline)(matchId, reason) }
+    func sendOffer(_ requestId: String, _ body: ProviderOfferCreate, key: String) async throws -> ServiceOffer {
+        try await XCTUnwrap(onSendOffer)(requestId, body, key)
+    }
+    func answerReservation(_ matchId: String, _ answer: ReservationAnswer) async throws -> InboxItem {
+        try await XCTUnwrap(onAnswerReservation)(matchId, answer)
+    }
 }

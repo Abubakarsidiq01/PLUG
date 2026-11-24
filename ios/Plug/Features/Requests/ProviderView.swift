@@ -9,6 +9,9 @@ struct ProviderOnboardingView: View {
     let service: RequestServing
     @ObservedObject var location: RequestLocationModel
     var current: ProviderProfile? = nil
+    /// True once the inbox route answered, false once it said the inbox is off (404), nil while
+    /// unknown. Unknown says nothing about delivery rather than guess.
+    var inboxAvailable: Bool? = nil
     let onSaved: (ProviderProfile) -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -50,7 +53,10 @@ struct ProviderOnboardingView: View {
                         .plugText(.display).foregroundStyle(PlugTokens.Color.ink900)
                         .fixedSize(horizontal: false, vertical: true)
                     // Honest about what is not live yet: matching uses these settings, delivery does not exist.
-                    caption("Your settings are saved for matching. Inbox delivery and booking are not available yet.")
+                    if let inboxAvailable {
+                        caption(inboxAvailable ? "Requests that match these settings arrive in your Inbox."
+                                : "Your settings are saved for matching. Inbox delivery and booking are not available yet.")
+                    }
                     describeStep.marketCard()
                     if !proposed.isEmpty || !unmatched.isEmpty || !ownSkills.isEmpty { skillsStep }
                     if hasSkills {
@@ -85,7 +91,9 @@ struct ProviderOnboardingView: View {
                             .buttonStyle(FlowActionStyle(primary: true))
                             .disabled(isWorking || photoLoading || location.location == nil || slots.isEmpty || (needsLicence && !licenceValid))
                             .accessibilityIdentifier("provider-save")
-                        caption("Private test. Your settings are saved for matching. Inbox delivery and booking are not available yet.")
+                        caption(inboxAvailable.map { $0 ? "Private test. You can reply to matching requests from your Inbox."
+                                : "Private test. Your settings are saved for matching. Inbox delivery and booking are not available yet." }
+                                ?? "Private test. Your settings are saved for matching.")
                     }
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)
@@ -517,80 +525,6 @@ extension AvailabilityWindow.Days {
     }
 }
 
-/// The provider's Inbox (manual v4 §2.3). It shows only when this account has a provider
-/// profile. Until requests are delivered to providers in the app, it says so plainly
-/// instead of showing invented requests.
-struct InboxView: View {
-    let service: RequestServing
-    let profile: ProviderProfile
-    let onChange: (ProviderProfile) -> Void
-    @StateObject private var location = RequestLocationModel()
-    @State private var editing = false
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                        PageTitle(title: "Inbox")
-                        Label(profile.accepting ? "Your provider profile is saved." : "Your provider profile is paused.",
-                              systemImage: profile.accepting ? "checkmark.circle.fill" : "pause.circle.fill")
-                            .plugText(.body).fontWeight(.semibold).foregroundStyle(PlugTokens.Color.ink900)
-                    }
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
-                        IllustrationTile(name: "IllInbox", size: 88)
-                        Text("No requests here yet")
-                            .plugText(.title)
-                        Text("Your skills and hours are saved. Receiving and replying to requests here is coming in a future update.")
-                            .plugText(.body).foregroundStyle(PlugTokens.Color.ink600)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .foregroundStyle(PlugTokens.Color.ink900)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityElement(children: .contain)
-                    .accessibilityIdentifier("inbox-empty")
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                        BusinessIdentity(name: profile.business?.name ?? "Your business", business: profile.business, score: profile.score)
-                        if let about = profile.business?.about { Text(about).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600) }
-                        if let links = profile.business?.links { BusinessLinks(links: links) }
-                        Text("What you offer").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
-                        PlugFlowLayout {
-                            ForEach(profile.skills) { skill in
-                                SkillKey(title: skill.display, fill: PlugTokens.Color.sunk)
-                            }
-                            ForEach(profile.customSkills ?? [], id: \.self) { label in
-                                SkillKey(title: label, fill: PlugTokens.Color.card)
-                                    .accessibilityLabel("\(label), your own skill")
-                            }
-                        }
-                        FlowMetrics(items: [("Travel area", distance(profile.travelRadiusM), "location"),
-                                            ("Licence", profile.licenceOnFile ? "On file" : "None given", "doc.text")], compact: true)
-                        VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                            Text("Your hours").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
-                            Text(profile.availability.map(\.summary).joined(separator: "\n")).plugText(.body)
-                        }
-                        Button("Edit business & services") { editing = true }
-                            .buttonStyle(FlowActionStyle(primary: true))
-                            .accessibilityIdentifier("provider-edit")
-                    }
-                    .marketCard()
-                }
-                .foregroundStyle(PlugTokens.Color.ink900)
-                .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading).frame(maxWidth: .infinity)
-                .padding(.horizontal, PlugTokens.Space.s6).padding(.vertical, PlugTokens.Space.s4)
-            }
-            .background(PlugTokens.Color.paper)
-            .toolbar(.hidden, for: .navigationBar)
-            .sheet(isPresented: $editing) {
-                ProviderOnboardingView(service: service, location: location, current: profile) { saved in
-                    editing = false
-                    onChange(saved)
-                }
-            }
-        }
-    }
-}
-
 extension AvailabilityWindow {
     /// "Every day, 12 PM to 5 PM" in the person's own clock style, from the server's HH:mm.
     var summary: String { "\(days.title), \(Self.clock(from)) to \(Self.clock(to))" }
@@ -615,7 +549,7 @@ private struct BusinessLinkDraft: Identifiable {
 
 /// A skill shown, not chosen: a small tag that does not press. Listed skills sit on sand; skills
 /// in the provider's own words carry a hairline instead.
-private struct SkillKey: View {
+struct SkillKey: View {
     let title: String
     let fill: Color
     var body: some View {

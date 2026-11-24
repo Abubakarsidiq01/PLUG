@@ -34,6 +34,8 @@ struct ServiceRequest: Decodable, Equatable {
     let createdAt: Date
     let updatedAt: Date
     let expiresAt: Date
+    /// Contract 0.7.0: present once an offer was chosen, then always the latest reservation.
+    var reservation: Reservation? = nil
 
     enum Status: String, Decodable {
         case draft, submitted, routed, awaitingResponses = "awaiting_responses", ranked
@@ -110,6 +112,7 @@ struct ServiceRequest: Decodable, Equatable {
               pollAfterSeconds.map({ (1...30).contains($0) }) ?? true,
               constraints.category != nil || status == .draft || status == .canceled || noResultReason == .clarificationUnanswered
         else { throw APIError.contractViolation(requestID: nil) }
+        guard reservation.map(\.isValid) ?? true, reservationMatchesStatus else { throw APIError.contractViolation(requestID: nil) }
         if let clarification {
             guard ["category", "ask"].contains(clarification.field), !clarification.question.isEmpty,
                   (1...8).contains(clarification.options.count),
@@ -118,6 +121,49 @@ struct ServiceRequest: Decodable, Equatable {
             else { throw APIError.contractViolation(requestID: nil) }
         }
         return self
+    }
+
+    /// Only the pairs the contract allows; anything else is a contract violation, never a state.
+    private var reservationMatchesStatus: Bool {
+        let ended: [Reservation.Status] = [.released, .timedOut]
+        switch status {
+        case .userSelected: return reservation?.status == .pending
+        case .confirmed, .completed: return reservation?.status == .confirmed
+        case .ranked: return reservation.map { ended.contains($0.status) } ?? true
+        case .expired:
+            guard noResultReason == .notConfirmed else { return reservation == nil }
+            return reservation.map { ended.contains($0.status) } ?? false
+        case .canceled: return reservation.map { $0.status == .canceled } ?? true
+        case .draft, .submitted, .routed, .awaitingResponses, .blocked: return reservation == nil
+        }
+    }
+
+    /// The provider released the reservation or let it lapse, and other live offers remain.
+    var isRecovering: Bool {
+        status == .ranked && [.released, .timedOut].contains(reservation?.status)
+    }
+}
+
+/// The asker's choice, waiting for the provider (manual §19.6). Only a provider event confirms it.
+struct Reservation: Decodable, Equatable {
+    enum Status: String, Decodable { case pending, confirmed, released, timedOut = "timed_out", canceled }
+    let reservationId: String
+    let offerId: String
+    let status: Status
+    /// Four characters without 0, O, 1 or I, quoted by both sides. Not a secret.
+    let bookingRef: String
+    let confirmBy: Date
+    var confirmedAt: Date? = nil
+    var endedAt: Date? = nil
+    let createdAt: Date
+
+    var isValid: Bool {
+        reservationId.range(of: "^rsv_[A-Za-z0-9-]{1,60}$", options: .regularExpression) != nil
+            && offerId.range(of: "^off_[A-Za-z0-9-]{1,60}$", options: .regularExpression) != nil
+            && bookingRef.range(of: "^[2-9A-HJ-NP-Z]{4}$", options: .regularExpression) != nil
+            && confirmBy > createdAt
+            && (confirmedAt != nil) == (status == .confirmed)
+            && (endedAt != nil) == [.released, .timedOut, .canceled].contains(status)
     }
 }
 
@@ -338,5 +384,133 @@ struct BusinessLink: Codable, Equatable, Identifiable {
         guard let value = URL(string: url), value.scheme == "https", value.host != nil,
               value.user == nil, value.password == nil else { return nil }
         return value
+    }
+}
+
+// MARK: - The provider inbox (contract 0.7.0, P3.S10 to P3.S12)
+
+struct ProviderInbox: Decodable, Equatable {
+    let items: [InboxItem]
+    let notificationsPerHour: Int
+    func validated() throws -> Self {
+        guard items.count <= 50, (1...10).contains(notificationsPerHour), Set(items.map(\.matchId)).count == items.count,
+              items.allSatisfy(\.isValid) else { throw APIError.contractViolation(requestID: nil) }
+        return self
+    }
+}
+
+/// One matched request as the provider sees it: never the asker's words, place or identity.
+struct InboxItem: Decodable, Equatable, Identifiable {
+    enum Status: String, Decodable {
+        case open, offered, declined, expired, selected, confirmed, notChosen = "not_chosen", closed
+    }
+    let matchId: String
+    let requestId: String
+    let status: Status
+    /// Untrusted display text (0.7.2): rendered as plain text only.
+    let serviceName: String
+    let skillTags: [String]
+    let budgetCents: Int?
+    let currency: String
+    let neededBy: Date?
+    let distanceM: Int
+    let respondBy: Date
+    let notifiedAt: Date
+    var offer: ServiceOffer? = nil
+    var reservation: Reservation? = nil
+    var id: String { matchId }
+
+    var isValid: Bool {
+        guard matchId.range(of: "^mat_[A-Za-z0-9-]{1,60}$", options: .regularExpression) != nil,
+              requestId.range(of: "^req_[A-Za-z0-9-]{1,60}$", options: .regularExpression) != nil,
+              (1...80).contains(serviceName.count), (1...5).contains(skillTags.count),
+              skillTags.allSatisfy(ServiceRequest.isServiceIdentifier), currency == "USD",
+              budgetCents.map({ (500...500_000).contains($0) }) ?? true,
+              (0...80_000).contains(distanceM), distanceM % 100 == 0, respondBy > notifiedAt,
+              offer.map({ $0.isValid && $0.source == .portal }) ?? true,
+              reservation.map(\.isValid) ?? true,
+              reservation == nil || reservation?.offerId == offer?.offerId else { return false }
+        switch status {
+        case .open, .declined, .expired: return offer == nil && reservation == nil
+        case .offered: return offer != nil && reservation == nil
+        case .selected: return offer != nil && reservation?.status == .pending
+        case .confirmed: return offer != nil && reservation?.status == .confirmed
+        case .notChosen, .closed: return true
+        }
+    }
+}
+
+enum DeclineReason: String, Encodable, CaseIterable, Identifiable {
+    case busy, tooFar = "too_far", price, notMySkill = "not_my_skill", other
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .busy: return "I'm busy then"
+        case .tooFar: return "Too far"
+        case .price: return "The budget doesn't work"
+        case .notMySkill: return "Not something I do"
+        case .other: return "Something else"
+        }
+    }
+}
+
+enum ReservationAnswer: String, Encodable { case confirm, release }
+
+/// An in-app offer. Expiry, label and observed time are the server's.
+struct ProviderOfferCreate: Encodable, Equatable {
+    let priceCents: Int
+    var currency = "USD"
+    let availableAt: Date
+    var note: String? = nil
+}
+
+/// The composer's input and its checks, which mirror the server's (contract ProviderOfferCreate).
+/// The server still decides; these only save a round trip and say what to fix.
+struct OfferDraft: Equatable {
+    var price = ""
+    var start: Date
+    var note = ""
+    static let noteLimit = 140
+
+    enum Field: Hashable { case price, start, note }
+
+    var priceCents: Int? {
+        let text = price.trimmingCharacters(in: .whitespaces).replacingOccurrences(of: "$", with: "")
+        guard text.range(of: "^[0-9]{1,4}(\\.[0-9]{1,2})?$", options: .regularExpression) != nil,
+              let value = Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")) else { return nil }
+        return NSDecimalNumber(decimal: value * 100).intValue
+    }
+    var trimmedNote: String? {
+        let value = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.isEmpty ? nil : value
+    }
+    /// The latest start the server accepts: the asker's needed-by time, and never more than 7 days out.
+    static func latestStart(neededBy: Date?, now: Date) -> Date {
+        min(neededBy ?? .distantFuture, now.addingTimeInterval(7 * 24 * 3600))
+    }
+
+    func errors(for item: InboxItem, now: Date) -> [Field: String] {
+        var errors: [Field: String] = [:]
+        if let cents = priceCents {
+            if !(500...50_000).contains(cents) { errors[.price] = "Offers can be from $5 to $500." }
+            else if let budget = item.budgetCents, cents > budget {
+                errors[.price] = "Their budget is \(money(budget, item.currency)). Offer that or less."
+            }
+        } else {
+            errors[.price] = "Enter a price in dollars, for example 30."
+        }
+        let latest = Self.latestStart(neededBy: item.neededBy, now: now)
+        if start < now.addingTimeInterval(-60) { errors[.start] = "Choose a start time that is not in the past." }
+        else if start > latest {
+            let beforeNeeded = item.neededBy.map { $0 < now.addingTimeInterval(7 * 24 * 3600) } ?? false
+            errors[.start] = beforeNeeded ? "Choose a time before they need it." : "Choose a time in the next 7 days."
+        }
+        if note.count > Self.noteLimit { errors[.note] = "Keep the note to \(Self.noteLimit) characters." }
+        return errors
+    }
+
+    func body() -> ProviderOfferCreate? {
+        guard let cents = priceCents else { return nil }
+        return ProviderOfferCreate(priceCents: cents, availableAt: start, note: trimmedNote)
     }
 }
