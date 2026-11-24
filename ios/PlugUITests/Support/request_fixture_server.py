@@ -6,8 +6,15 @@ Point RequestScreenshotTests at http://127.0.0.1:18084.
 Data comes from the shared contract fixtures; test-only state selection stays outside the app.
 The words of the ask choose the state: "clarify", "progress", "empty", "restricted",
 "cached", and "line"/"busy" for a place question. Anything else is a service request.
+"book" gives live, selectable offers (contract 0.7.x): choosing one makes a pending
+reservation that the provider confirms after two polls, or releases with "release", or lets
+time out with "timeout". A provider whose skill description says "inbox" gets matched
+requests in their inbox; any other provider's inbox is empty. An optional first argument
+sets the port, so two worktrees can each run their own server.
 """
 import json
+import re
+import sys
 import threading
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -25,12 +32,30 @@ def stamp(value):
     return value.isoformat().replace("+00:00", "Z")
 
 
+# The shared fixtures are written around this moment; "book" and inbox states move every
+# time in them by the same amount, so deadlines are live and their order is kept.
+ANCHOR = datetime(2026, 10, 1, 20, 0, tzinfo=timezone.utc)
+DATE_TIME = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$")
+
+
+def shifted(value, delta):
+    if isinstance(value, dict):
+        return {key: shifted(item, delta) for key, item in value.items()}
+    if isinstance(value, list):
+        return [shifted(item, delta) for item in value]
+    if isinstance(value, str) and DATE_TIME.match(value):
+        return stamp(datetime.fromisoformat(value.replace("Z", "+00:00")) + delta)
+    return value
+
+
 class Handler(BaseHTTPRequestHandler):
     # Two simulators may share this server, so each guest gets its own token and provider
     # profile, and identifiers come from one locked counter.
     requests = {}
     asks = {}
     providers = {}
+    inbox_modes = {}
+    inboxes = {}
     counter = 0
     lock = threading.Lock()
 
@@ -57,10 +82,64 @@ class Handler(BaseHTTPRequestHandler):
 
     def new_request(self, text, state):
         identifier = f"req_ui-{Handler.next_id()}"
+        delta = datetime.now(timezone.utc) - ANCHOR
         request = fixture("requests.get", state)
+        if "book" in text.lower():
+            request = shifted(request, delta)
         request.update(request_id=identifier, text=text)
-        Handler.requests[identifier] = {"request": request, "polls": 0, "mode": text.lower()}
+        Handler.requests[identifier] = {"request": request, "polls": 0, "mode": text.lower(), "delta": delta}
         return request
+
+    def booking_state(self, identifier, record):
+        """The request after an offer was chosen; the provider answers after two polls."""
+        record["booking_polls"] += 1
+        mode = record["mode"]
+        name = "reservation-pending"
+        if record["booking_polls"] > 2:
+            name = "reservation-released" if "release" in mode else "not-confirmed" if "timeout" in mode else "confirmed"
+        result = shifted(fixture("requests.get", name), record["delta"])
+        result.update(request_id=identifier, text=record["request"]["text"])
+        result["reservation"]["offer_id"] = record["chosen"]
+        return result
+
+    def inbox(self):
+        if self.caller() not in Handler.inboxes:
+            delta = datetime.now(timezone.utc) - ANCHOR
+            items = []
+            if Handler.inbox_modes.get(self.caller()):
+                items = shifted(fixture("providers.inbox", "success")["items"], delta)
+                # An offer this provider already sent was chosen and waits for their confirmation.
+                chosen = shifted(fixture("providers.reservation", "confirmed"), delta)
+                chosen.update(match_id="mat_ui-selected", status="selected")
+                chosen["reservation"].update(status="pending", confirm_by=stamp(datetime.now(timezone.utc) + timedelta(minutes=10)))
+                chosen["reservation"].pop("confirmed_at", None)
+                items.insert(1, chosen)
+            Handler.inboxes[self.caller()] = items
+        return Handler.inboxes[self.caller()]
+
+    def inbox_item(self, match_id):
+        return next((item for item in self.inbox() if item["match_id"] == match_id), None)
+
+    def send_offer(self, request_id, body):
+        item = next((item for item in self.inbox() if item["request_id"] == request_id and item["status"] == "open"), None)
+        if item is None:
+            return self.respond(fixture("requests.send-offer", "never-matched"), 404)
+        note = body.get("note")
+        if note and re.search(r"@|https?:|www\.|\d{3}[ -.]?\d{3}[ -.]?\d{4}", note):
+            return self.respond(fixture("requests.send-offer", "contact-in-note"), 400)
+        if item["budget_cents"] is not None and body["price_cents"] > item["budget_cents"]:
+            return self.respond(fixture("requests.send-offer", "over-budget"), 400)
+        now = datetime.now(timezone.utc)
+        start = datetime.fromisoformat(body["available_at"].replace("Z", "+00:00"))
+        offer = fixture("requests.send-offer", "success")
+        offer.update(price_cents=body["price_cents"], available_at=body["available_at"],
+                     observed_at=stamp(now), expires_at=stamp(max(start, now) + timedelta(minutes=15)))
+        if note:
+            offer["note"] = note
+        else:
+            offer.pop("note", None)
+        item.update(status="offered", offer=offer)
+        return self.respond(offer, 201)
 
     def service_ask(self, ask_id, request):
         return {"ask_id": ask_id, "ask_type": "service_request", "request": request,
@@ -135,6 +214,8 @@ class Handler(BaseHTTPRequestHandler):
             record["result"] = result
             return self.respond(result)
         if path == "/v1/providers/skills/propose":
+            if "inbox" in body.get("description", "").lower():
+                Handler.inbox_modes[self.caller()] = True
             if body.get("description") == "Wig install":
                 return self.respond({"error": {"code": "temporarily_unavailable", "message": "Suggestions unavailable", "request_id": "req_ios-fixture"}}, 503)
             return self.respond(fixture("providers.propose", "success"))
@@ -149,8 +230,43 @@ class Handler(BaseHTTPRequestHandler):
             profile["business"] = body.get("business", {})
             Handler.providers[self.caller()] = profile
             return self.respond(profile)
+        if path.startswith("/v1/providers/me/inbox/"):
+            if self.caller() not in Handler.providers:
+                return self.respond(fixture("providers.inbox", "not-a-provider"), 404)
+            item = self.inbox_item(path.split("/")[5])
+            if item is None:
+                return self.respond(fixture("providers.decline", "not-found"), 404)
+            now = stamp(datetime.now(timezone.utc))
+            if path.endswith("/decline"):
+                if item["status"] not in ("open", "declined"):
+                    return self.respond(fixture("providers.decline", "request-closed"), 409)
+                item["status"] = "declined"
+                return self.respond(item)
+            if path.endswith("/reservation"):
+                if item["status"] != "selected":
+                    return self.respond(fixture("providers.reservation", "no-reservation"), 409)
+                if body["decision"] == "confirm":
+                    item["status"] = "confirmed"
+                    item["reservation"].update(status="confirmed", confirmed_at=now)
+                else:
+                    item["status"] = "not_chosen"
+                    item["reservation"].update(status="released", ended_at=now)
+                return self.respond(item)
         identifier = path.split("/")[3]
+        if path.endswith("/offers"):
+            return self.send_offer(identifier, body)
         record = self.requests[identifier]
+        if path.endswith("/select"):
+            if record["request"]["status"] == "user_selected":
+                return self.respond(fixture("requests.select", "already-selected"), 409)
+            if record["request"]["status"] != "ranked":
+                return self.respond(fixture("requests.select", "not-selectable"), 409)
+            record.update(chosen=body["offer_id"], booking_polls=0)
+            result = shifted(fixture("requests.select", "success"), record["delta"])
+            result.update(request_id=identifier, text=record["request"]["text"])
+            result["reservation"]["offer_id"] = body["offer_id"]
+            record["request"] = result
+            return self.respond(result)
         if path.endswith("/cancel"):
             result = fixture("requests.get", "canceled")
             result.update(request_id=identifier, text=record["request"]["text"])
@@ -172,6 +288,10 @@ class Handler(BaseHTTPRequestHandler):
             if profile is None:
                 return self.respond(fixture("providers.me", "not-a-provider"), 404)
             return self.respond(profile)
+        if path == "/v1/providers/me/inbox":
+            if self.caller() not in Handler.providers:
+                return self.respond(fixture("providers.inbox", "not-a-provider"), 404)
+            return self.respond({"items": self.inbox(), "notifications_per_hour": 4})
         if path.startswith("/v1/asks/"):
             ask_id = path.split("/")[3]
             record = Handler.asks[ask_id]
@@ -183,12 +303,22 @@ class Handler(BaseHTTPRequestHandler):
         identifier = path.split("/")[3]
         record = self.requests[identifier]
         if path.endswith("/offers"):
+            if "book" in record["mode"]:
+                result = shifted(fixture("requests.offers", "sms-and-app"), record["delta"])
+                if record["request"].get("reservation", {}).get("status") in ("released", "timed_out"):
+                    result["offers"] = [offer for offer in result["offers"] if offer["offer_id"] != record["chosen"]]
+                result["request_id"] = identifier
+                return self.respond(result)
             result = fixture("requests.offers", "business-profile" if "business" in record["mode"] else "success")
             if "sorting" in record["mode"]:
                 result["offers"].reverse()
             result["request_id"] = identifier
             return self.respond(result)
         if record["request"]["status"] in ("draft", "canceled", "expired"):
+            return self.respond(record["request"])
+        if record.get("chosen"):
+            if record["request"]["status"] == "user_selected":
+                record["request"] = self.booking_state(identifier, record)
             return self.respond(record["request"])
         record["polls"] += 1
         mode = record["mode"]
@@ -203,10 +333,12 @@ class Handler(BaseHTTPRequestHandler):
         if "cached" in mode:
             state = "success"
         result = fixture("requests.get", state)
+        if "book" in mode:
+            result = shifted(result, record["delta"])
         result.update(request_id=identifier, text=record["request"]["text"])
         record["request"] = result
         self.respond(result)
 
 
 if __name__ == "__main__":
-    ThreadingHTTPServer(("127.0.0.1", 18084), Handler).serve_forever()
+    ThreadingHTTPServer(("127.0.0.1", int(sys.argv[1]) if len(sys.argv) > 1 else 18084), Handler).serve_forever()

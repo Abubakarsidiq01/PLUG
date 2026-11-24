@@ -694,6 +694,58 @@ final class RequestTests: XCTestCase {
         XCTAssertNotEqual(keys[2], keys[1])
     }
 
+    func testOfferStillInProgressKeepsKeyAndGoneOrSignedOutFailsClosed() async throws {
+        let service = StubRequests()
+        let inbox = try PlugJSON.decoder.decode(ProviderInbox.self, from: fixture("providers.inbox", "success"))
+        var loads = 0
+        service.onInbox = { loads += 1; return inbox }
+        let inProgress = Data(#"{"error":{"code":"conflict","message":"Still working.","request_id":"req_x","details":[{"field":"Idempotency-Key","code":"request_in_progress"}]}}"#.utf8)
+        var keys: [String] = []
+        service.onSendOffer = { _, _, key in
+            keys.append(key)
+            switch keys.count {
+            case 1: throw APIError(status: 409, body: inProgress, requestID: nil)
+            case 2: throw APIError(status: 404, body: try self.fixture("requests.send-offer", "never-matched"), requestID: nil)
+            default: throw APIError(status: 401, body: try self.fixture("requests.send-offer", "auth-error"), requestID: nil)
+            }
+        }
+        let model = InboxModel(service: service)
+        await model.load()
+        let body = ProviderOfferCreate(priceCents: 2800, availableAt: Date().addingTimeInterval(600))
+        let first = await model.send(inbox.items[0], body: body)
+        XCTAssertFalse(first)
+        XCTAssertEqual(loads, 1, "An offer still being handled is not a closed request")
+        let second = await model.send(inbox.items[0], body: body)
+        XCTAssertFalse(second)
+        XCTAssertEqual(keys[0], keys[1], "A retry after request_in_progress replays the same offer")
+        XCTAssertEqual(loads, 2, "A 404 reloads the inbox so the screen shows the server's state")
+        XCTAssertEqual(model.errorMessage, "This request is no longer in your inbox.")
+        _ = await model.send(inbox.items[0], body: body)
+        XCTAssertTrue(model.items.isEmpty, "A signed-out caller sees nothing of the inbox")
+        XCTAssertEqual(model.availability, .unknown)
+    }
+
+    func testDeclineOrConfirmOnAClosedRequestShowsTheServersState() async throws {
+        let service = StubRequests()
+        let inbox = try PlugJSON.decoder.decode(ProviderInbox.self, from: fixture("providers.inbox", "success"))
+        var loads = 0
+        service.onInbox = { loads += 1; return inbox }
+        service.onDecline = { _, _ in
+            throw APIError(status: 409, body: try self.fixture("providers.decline", "request-closed"), requestID: nil)
+        }
+        service.onAnswerReservation = { _, _ in
+            throw APIError(status: 429, body: try self.fixture("providers.reservation", "rate-limited"), requestID: nil)
+        }
+        let model = InboxModel(service: service)
+        await model.load()
+        await model.decline(inbox.items[0], reason: nil)
+        XCTAssertEqual(loads, 2)
+        XCTAssertEqual(model.errorMessage, "This request has closed. This is where it stands now.")
+        XCTAssertEqual(model.item(inbox.items[0].matchId)?.status, .open, "Only the server moves a match")
+        await model.answer(inbox.items[0], .confirm)
+        XCTAssertEqual(model.errorMessage, "Too many tries. Wait a minute and try again.")
+    }
+
     func testDeclineAndReservationAnswersReplaceTheItemWithTheServers() async throws {
         let service = StubRequests()
         let inbox = try PlugJSON.decoder.decode(ProviderInbox.self, from: fixture("providers.inbox", "success"))

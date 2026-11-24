@@ -261,6 +261,131 @@ final class RequestScreenshotTests: XCTestCase {
         }
     }
 
+    /// P3.S7: choosing a live offer asks its provider to confirm. "Booked" appears only once the
+    /// server says the provider confirmed.
+    func testChoosingAnOfferWaitsForTheProviderThenConfirms() throws {
+        let app = launch(largest: false)
+        enterGuest(app)
+        try choose(app, text: "book barber", name: "confirm")
+        XCTAssertTrue(app.descendants(matching: .any)["booking-confirmed"].waitForExistence(timeout: 45))
+        capture("booking-confirmed-default")
+    }
+
+    /// P3.S7 alternate-offer recovery: the provider released it, and the other offer is offered again.
+    func testReleasedReservationReturnsToTheOtherOffers() throws {
+        let app = launch(largest: false)
+        enterGuest(app)
+        try choose(app, text: "book barber release", name: "release")
+        XCTAssertTrue(app.descendants(matching: .any)["booking-recovery"].waitForExistence(timeout: 45))
+        XCTAssertTrue(app.buttons["View details"].firstMatch.exists)
+        capture("booking-recovery-default")
+    }
+
+    /// P3.S7: the time to confirm ran out and no other offer was left. Nothing is booked.
+    func testUnconfirmedReservationEndsWithNothingBooked() throws {
+        let app = launch(largest: false)
+        enterGuest(app)
+        try choose(app, text: "book barber timeout", name: "timeout")
+        XCTAssertTrue(app.staticTexts["Not confirmed"].waitForExistence(timeout: 45))
+        capture("booking-not-confirmed-default")
+    }
+
+    /// Figure A2, P3.S16: a matched request, the offer composer, the offer-sent state, and the
+    /// confirmation the provider owes once the asker chose their offer.
+    func testProviderInboxSendsAnOfferAndConfirmsABooking() throws {
+        let app = launch(largest: false)
+        enterGuest(app)
+        let offer = app.buttons["offer-service"]
+        reveal(offer, in: app)
+        offer.tap()
+        let describe = app.descendants(matching: .any).matching(identifier: "provider-description").firstMatch
+        XCTAssertTrue(describe.waitForExistence(timeout: 20))
+        describe.tap()
+        describe.typeText("Haircuts and fades, inbox test")
+        dismissKeyboard(app)
+        let find = app.buttons["Find my skills"]
+        reveal(find, in: app)
+        find.tap()
+        XCTAssertTrue(app.buttons["Braids"].waitForExistence(timeout: 20))
+        let base = app.buttons["Use my approximate location"]
+        reveal(base, in: app)
+        base.tap()
+        let located = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS 'Current approximate location'")).firstMatch
+        allowLocation(unless: { located.exists })
+        for _ in 0..<2 where !located.waitForExistence(timeout: 20) {
+            reveal(base, in: app)
+            base.tap()
+        }
+        XCTAssertTrue(located.waitForExistence(timeout: 20))
+        let save = app.buttons["provider-save"]
+        reveal(save, in: app)
+        save.tap()
+        let inbox = app.buttons["navigation-inbox"]
+        XCTAssertTrue(inbox.waitForExistence(timeout: 20))
+        inbox.tap()
+
+        let open = app.buttons["inbox-item-open"]
+        XCTAssertTrue(open.waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["inbox-item-declined"].exists)
+        capture("inbox-list-default")
+        open.tap()
+        let price = app.textFields["Your price in dollars"]
+        XCTAssertTrue(price.waitForExistence(timeout: 20))
+        // Over their $35 budget: the composer says so before anything is sent.
+        let send = app.buttons["offer-send"]
+        price.tap()
+        price.typeText("40")
+        dismissKeyboard(app)
+        reveal(send, in: app)
+        send.tap()
+        let overBudget = app.staticTexts["Their budget is $35. Offer that or less."]
+        XCTAssertTrue(overBudget.waitForExistence(timeout: 10))
+        reveal(overBudget, in: app, upward: false)
+        capture("inbox-composer-error-default")
+        reveal(price, in: app, upward: false)
+        price.tap()
+        price.typeText(XCUIKeyboardKey.delete.rawValue + XCUIKeyboardKey.delete.rawValue + "30")
+        XCTAssertEqual(price.value as? String, "30")
+        dismissKeyboard(app)
+        reveal(send, in: app)
+        send.tap()
+        let sent = app.descendants(matching: .any)["inbox-offer-sent"]
+        XCTAssertTrue(sent.waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Offer sent"].firstMatch.exists)
+        capture("inbox-offer-sent-default")
+        swipeBack(app)
+
+        let chosen = app.buttons["inbox-item-selected"]
+        XCTAssertTrue(chosen.waitForExistence(timeout: 20))
+        reveal(chosen, in: app)
+        chosen.tap()
+        let confirm = app.buttons["inbox-confirm"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 20))
+        reveal(confirm, in: app)
+        capture("inbox-chosen-default")
+        confirm.tap()
+        XCTAssertTrue(app.staticTexts["You confirmed"].waitForExistence(timeout: 20))
+        capture("inbox-confirmed-default")
+    }
+
+    /// Opens the first offer once the request is ranked, chooses it, and waits for the pending reservation.
+    private func choose(_ app: XCUIApplication, text: String, name: String) throws {
+        try submit(app, text: text)
+        let details = app.buttons["View details"].firstMatch
+        XCTAssertTrue(details.waitForExistence(timeout: 20))
+        reveal(details, in: app)
+        details.tap()
+        let choose = app.buttons["offer-choose"]
+        XCTAssertTrue(choose.waitForExistence(timeout: 30))
+        for _ in 0..<8 where !choose.isHittable { app.swipeUp() }
+        capture("offer-choose-\(name)-default")
+        choose.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["booking-pending"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.descendants(matching: .any)["booking-ref"].exists)
+        capture("booking-pending-\(name)-default")
+    }
+
     private func walk(largest: Bool) throws {
         let suffix = largest ? "largest" : "default"
         let app = launch(largest: largest)
@@ -409,7 +534,8 @@ final class RequestScreenshotTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-plug-ui-test-reset"]
         if largest { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
-        app.launchEnvironment["PLUG_API_URL"] = "http://127.0.0.1:18084"
+        // TEST_RUNNER_PLUG_FIXTURE_URL lets a second checkout use its own fixture server port.
+        app.launchEnvironment["PLUG_API_URL"] = ProcessInfo.processInfo.environment["PLUG_FIXTURE_URL"] ?? "http://127.0.0.1:18084"
         app.launchEnvironment["PLUG_REQUESTS_V2_ENABLED"] = "YES"
         app.launch()
         return app

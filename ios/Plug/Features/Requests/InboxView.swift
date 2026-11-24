@@ -40,8 +40,11 @@ final class InboxModel: ObservableObject {
                 availability = .unavailable
             }
             errorMessage = nil
+        } catch let api as APIError where api.code == "not_found" {
+            // inbox() already maps its 404 to nil; this only keeps message(for:) from reloading again.
+            errorMessage = "We could not load your inbox."
         } catch {
-            errorMessage = message(for: error, action: "load your inbox")
+            errorMessage = await message(for: error, action: "load your inbox")
         }
     }
 
@@ -72,13 +75,19 @@ final class InboxModel: ObservableObject {
             case "contact_in_note": fieldErrors[.note] = "Leave out phone numbers, emails and links. Contact happens after they confirm."
             default: errorMessage = "Check the price, time and note, then send again. Nothing was sent."
             }
+        } catch let api as APIError where api.code == "conflict" && api.fieldCode == "request_in_progress" {
+            // The first send is still being handled: keep the key so a retry replays it.
+            errorMessage = "Your offer is still being sent. Wait a moment, then send again safely."
         } catch let api as APIError where api.code == "conflict" {
             offerAttempt = nil
             await reload()
-            errorMessage = api.fieldCode == "already_offered" ? "You already sent an offer for this request."
-                : "This request has closed. This is where it stands now."
+            switch api.fieldCode {
+            case "already_offered": errorMessage = "You already sent an offer for this request."
+            case "request_closed": errorMessage = "This request has closed. This is where it stands now."
+            default: errorMessage = "We could not confirm whether your offer was sent. This is where it stands now."
+            }
         } catch {
-            errorMessage = message(for: error, action: "confirm whether your offer was sent. Send again safely")
+            errorMessage = await message(for: error, action: "confirm whether your offer was sent. Send again safely")
         }
         return false
     }
@@ -105,16 +114,25 @@ final class InboxModel: ObservableObject {
                 ? "This booking can no longer be answered. This is where it stands now."
                 : "This request has closed. This is where it stands now."
         } catch {
-            errorMessage = message(for: error, action: "confirm your answer. Try again")
+            errorMessage = await message(for: error, action: "confirm your answer. Try again")
         }
     }
 
-    private func message(for error: Error, action: String) -> String {
+    /// Fails closed: a signed-out caller sees nothing of the inbox, and a match that is gone
+    /// (or an inbox switched off, both 404) is reloaded so the screen shows the server's state.
+    private func message(for error: Error, action: String) async -> String {
         if let api = error as? APIError {
             switch api.code {
             case "rate_limited": return "Too many tries. Wait a minute and try again."
-            case "unauthenticated": return "Your session ended. Sign in again to continue."
+            case "unauthenticated":
+                items = []
+                notificationsPerHour = nil
+                availability = .unknown
+                return "Your session ended. Sign in again to continue."
             case "forbidden": return "Your provider account can't do this right now."
+            case "not_found":
+                await reload()
+                return "This request is no longer in your inbox."
             default: break
             }
         }
@@ -218,6 +236,7 @@ struct InboxView: View {
                 caption("PLUG sends you at most \(cap) requests an hour.")
             }
         }
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("inbox-list")
     }
 
@@ -559,6 +578,7 @@ struct InboxItemView: View {
             if let line { caption(line) }
         }
         .plugCard()
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier("inbox-offer-sent")
     }
 

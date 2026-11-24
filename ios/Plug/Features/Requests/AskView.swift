@@ -632,7 +632,10 @@ struct AskView: View {
             if let reservation = request.reservation { bookingCard(reservation) }
         case .chooseOffer, .showResult:
             if request.isRecovering, !model.offers.isEmpty {
-                PlugNotice(title: "They couldn't confirm", message: "They couldn't confirm. Here are your other offers.",
+                PlugNotice(title: request.reservation?.status == .timedOut ? "They didn't confirm in time" : "They couldn't confirm",
+                           message: request.reservation?.status == .timedOut
+                               ? "The time to confirm ran out. Here are your other offers."
+                               : "They couldn't confirm. Here are your other offers.",
                            detail: "Nothing was booked. Choose another offer below.")
                     .accessibilityIdentifier("booking-recovery")
             }
@@ -696,6 +699,7 @@ struct AskView: View {
             }
         }
         .plugCard()
+        .accessibilityElement(children: .contain)
         .accessibilityIdentifier(confirmed ? "booking-confirmed" : "booking-pending")
     }
 

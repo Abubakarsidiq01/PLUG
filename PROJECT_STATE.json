@@ -1,17 +1,17 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-11-23T23:00:00+00:00",
-  "updated_by": "person_one (P3.S15 in-app fan-out policy and caps, contract 0.7.4)",
+  "updated_at": "2026-11-24T12:00:00+00:00",
+  "updated_by": "person_one (P3.S16 iOS provider inbox and P3.S7 iOS booking states, contract 0.7.4)",
   "completed_phases": [
     "P0",
     "P1",
     "P2"
   ],
   "current_phase": "P3",
-  "current_step": "P3.S15",
-  "current_step_title": "In-app fan-out policy and caps (the in-app part of P3.S4): best six first, expansion only by policy, a combined ceiling of 14.",
-  "manual_section": "27.4 / 19A.3 (SupplierMatcher)",
+  "current_step": "P3.S16",
+  "current_step_title": "SwiftUI provider inbox, offer composer and offer-sent states (Figure A2), with the asker booking states of P3.S7.",
+  "manual_section": "27.4 / 20 / A2",
   "readme": "docs/phases/P3-ONE.md",
   "owner": "person_one",
   "blocked_on": null,
@@ -149,6 +149,20 @@
     "provider_inbox": "off (Phase 3 in-app inbox, offers and reservations)"
   },
   "next_actions": [
+    {
+      "id": "P3.S16",
+      "owner": "person_one",
+      "manual_section": "27.4 / 20 / A2",
+      "task": "Build the SwiftUI provider inbox, offer composer and offer-sent states from Figure A2 (contract 0.7.4, routes from P3.S10 to P3.S12 already on main). 2026-11-24 progress (branch p3.s16-one-ios-inbox-booking, local commits only, not pushed): ios/Plug/Features/Requests/InboxView.swift adds InboxModel and the Inbox tab: GET /v1/providers/me/inbox lists items in two groups (open and selected under 'Needs your answer', the rest under 'Earlier') with the MatchStatus as a tag, budget, needed-by, distance and a respond_by countdown; a 404 (no provider profile, or provider_inbox off) shows the honest 'not available yet' empty state; loading, empty, error and pull-to-refresh states. Request detail shows only what InboxItem carries (never the asker's words, place or identity; service_name rendered as plain text). Decline with an optional MatchDecline reason (busy, too_far, price, not_my_skill, other). The offer composer sends ProviderOfferCreate (price 500..50000 cents and not over the budget, available_at from now to min(needed_by, now + 7 days), optional note 1..140) under one Idempotency-Key per offer; server 400 over_budget, outside_window and contact_in_note become inline field errors; 409 already_offered and request_closed reload the inbox and say so; 409 request_in_progress keeps the key so a retry replays; 404 reloads; 401 clears the inbox; 403 and 429 show plain messages. Offer-sent, chosen (confirm or release with the booking reference and a confirm_by countdown), confirmed, not chosen, missed and closed states. RequestModels.swift adds ProviderInbox, InboxItem, DeclineReason, ReservationAnswer, ProviderOfferCreate and OfferDraft (the composer checks); RequestService.swift adds inbox, decline, sendOffer and answerReservation. Tests: PlugTests/RequestTests.swift decodes every inbox, decline, reservation and send-offer fixture, rejects malformed items, and covers composer checks, idempotent retry, inline server errors, request_in_progress, 404, 401, 409 and 429; the UI fixture server (ios/PlugUITests/Support/request_fixture_server.py, now with an optional port argument) serves the inbox, decline, offer and reservation routes, and testProviderInboxSendsAnOfferAndConfirmsABooking walks list, over-budget error, offer sent, chosen and confirmed. Not done: no push notification or deep link into a match (P3-apns); no live-backend or physical-device run; the §16.8 design gate and the owner's screenshot review have not been run by the owner; some copy is drafted (see the report for the list to confirm).",
+      "acceptance": "Drafted from P3-ONE.md and contract 0.7.4, to be confirmed by the owner: with provider_inbox on, the Inbox lists the caller's matched requests with each MatchStatus (open, offered, declined, expired, selected, confirmed, not_chosen, closed) and never the asker's text, place or identity; with it off (404) the Inbox says delivery is not available and shows no invented requests; a provider can decline an open request with or without one of the five MatchDecline reasons; the offer composer refuses a price outside $5 to $500 or over the budget, a start in the past, after needed_by or more than 7 days out, and a note over 140 characters, and shows the server's over_budget, outside_window and contact_in_note as inline errors and already_offered and request_closed as a reloaded state; a sent offer shows the offer-sent state; a chosen offer can be confirmed or released before confirm_by; 401 clears the inbox, 404 reloads it and 429 asks to wait; the iOS unit tests and the provider inbox UI test pass on a simulator."
+    },
+    {
+      "id": "P3.S7",
+      "owner": "person_one",
+      "manual_section": "27.4 / 20 / A2",
+      "task": "Implement the iOS Offer Detail, pending reservation, confirmed, timeout, expired and alternate-offer recovery states, plus the ranked-offers refresh (contract 0.7.4, POST /v1/requests/{request_id}/select from P3.S6 already on main). 2026-11-24 progress (same branch as P3.S16, local commits only): RequestModel.select posts OfferSelection under one Idempotency-Key per chosen offer (a retry replays); 409 already_selected, offer_unavailable and not_selectable reload the request and offers and say so; 404 (provider_inbox off) hides choosing and says booking is not available; 401, 403 consent_required and 429 go through the existing failure path. Polling follows poll_after_seconds while awaiting supplier confirmation and checks a ranked request every 15 seconds for its first 10 minutes so later fan-out waves appear. AskView: Offer Detail gains 'Choose this offer' for live sms and portal offers (never seed), the pending reservation card (booking reference, confirm-by time, 'Nothing is booked until they confirm'), the confirmed card ('Booked' only when the server says confirmed), recovery after release or timeout with the other offers ('They couldn't confirm' or 'They didn't confirm in time'), 'Not confirmed' when nothing was left (no_result_reason not_confirmed), and the canceled-booking state. ServiceRequest validation accepts only the status and reservation pairs the contract allows. The trust score shows 'New provider' below 3 completed jobs, never a zero. Tests: reservation fixtures validate and malformed ones fail closed; select retry, conflict reload, seed offers never selectable, 404, polling while awaiting confirmation and the young ranked refresh; UI tests testChoosingAnOfferWaitsForTheProviderThenConfirms, testReleasedReservationReturnsToTheOtherOffers and testUnconfirmedReservationEndsWithNothingBooked against the fixture server ('book' asks). Not done: no live-backend or physical-device run; no asker-side countdown to confirm_by (the time is shown); the pending card depends on GET offers still listing the chosen offer for price and start time (it shows the reference and confirm-by time without it); the owner's design gate and copy review are open.",
+      "acceptance": "Drafted from P3-ONE.md and contract 0.7.4, to be confirmed by the owner: on a ranked request the asker sees the server's ranked offers and they refresh while the request is young; Offer Detail shows price, time, distance, truth label and the trust score ('New provider' below 3 completed jobs, never 0) and lets the asker choose a live sms or app offer, never a seed offer; choosing shows the pending reservation with its booking reference and confirm-by time and says nothing is booked; a confirmation shows the confirmed booking; a release or timeout with other live offers shows the recovery message and the remaining offers to choose again; a timeout with none left shows Not confirmed; an expired request shows its no-result reason; a 409 selection race reloads and shows the server's state; 401, 404 and 429 are handled without inventing a state; the iOS unit tests and the booking UI tests pass on a simulator."
+    },
     {
       "id": "P3.S15",
       "owner": "person_one",
@@ -341,7 +355,8 @@
     "P3.S14: reinstating a provider leaves accepting false; nothing tells them to turn it back on yet (iOS shows accepting from GET /v1/providers/me).",
     "P3.S12/P3.S13: a decline is still accepted after respond_by while the request is open, but it now counts as silence for responsiveness (owner rule: silence is no reply by respond_by). The inbox still shows it as declined.",
     "P3.S14: the matching re-check under the candidate lock (standing and accepting) has no deterministic race test; it is covered by reading and by the suspended-is-not-matched test.",
-    "P3.S15: the combined ceiling of 14 counts only request_matches today. SMS outreach (P3.S4 SMS, P3.S9) must count its contacts in MatchService.contacted() and record wave, or SMS and in-app together can exceed 14. web/src/generated/api.ts still types AdminMatchHistory.cap as 16 until the web lane regenerates it."
+    "P3.S15: the combined ceiling of 14 counts only request_matches today. SMS outreach (P3.S4 SMS, P3.S9) must count its contacts in MatchService.contacted() and record wave, or SMS and in-app together can exceed 14. web/src/generated/api.ts still types AdminMatchHistory.cap as 16 until the web lane regenerates it.",
+    "P3.S16/P3.S7 iOS: the inbox and booking screens are tested only against the synthetic fixture server; they have not run against a live backend or on a physical device, and part of their copy is drafted and waits for the owner's review."
   ],
   "environments": {
     "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
