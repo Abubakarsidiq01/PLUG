@@ -23,6 +23,10 @@ xcodebuild test -project ios/Plug.xcodeproj -scheme Plug \
   CODE_SIGN_IDENTITY="-" CODE_SIGN_STYLE=Manual DEVELOPMENT_TEAM="" PROVISIONING_PROFILE_SPECIFIER=""
 ```
 
+For everyday runs use `sh tools/ios-test.sh [unit|ui|all] [Target/Class[/test]]` instead: it
+reuses one booted simulator named `plug-test` and one DerivedData per checkout, so a warm unit
+rerun takes seconds, and `ui` starts and stops the fixture server on a free port itself.
+
 Signing matters for the tests, not just for running: an unsigned build has no entitlement,
 the Keychain refuses every call, and `KeychainStoreTests` can only skip.
 
