@@ -298,6 +298,7 @@
   ],
   "do_not_touch": [],
   "open_risks": [
+    "Know before you go (PR #64): place search text and the approximate coordinates of a nearby search go to Apple MapKit on the phone, before any ask is sent. The privacy notice must disclose this before launch; the legal documents were not edited.",
     "Bruno audit exception (approved by the owner 2026-11-17, review 2026-12-01): GHSA-fc5q-39xc-vjpf picomatch ReDoS has no patched release. tools/bruno/audit-gate.cjs allows only this ID. It is not reachable: Bruno uses jscodeshift's core API, and picomatch is loaded only by jscodeshift's CLI Runner. Remove when picomatch ships a patched release.",
     "Own-words skills (ADR-011) are matched by simple keywords and are not reviewed; a provider can describe a lawful skill vaguely or misleadingly. The restricted-intent policy and listed-skill rule guard them, but popular labels should be reviewed and promoted into skills.yaml through vocabulary_gaps.",
     "Scope is open to any lawful service and any public place; the restricted-intent policy is now the only refusal path. It is rule-based, has 46 labelled vectors plus backend tests, and has not been red-teamed by a second person (Person Two P2.S11).",

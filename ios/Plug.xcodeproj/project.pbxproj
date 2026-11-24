@@ -44,6 +44,7 @@
 		D20000000000000000001003 /* Features/Requests/RequestModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000003 /* Features/Requests/RequestModel.swift */; };
 		D20000000000000000001004 /* Features/Requests/RequestLocationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000004 /* Features/Requests/RequestLocationModel.swift */; };
 		D20000000000000000001005 /* Features/Requests/AskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000005 /* Features/Requests/AskView.swift */; };
+		D20000000000000000001099 /* Features/Requests/KnowBeforeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000099 /* Features/Requests/KnowBeforeView.swift */; };
 		D20000000000000000001006 /* Features/Requests/ProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000006 /* Features/Requests/ProviderView.swift */; };
 		D30000000000000000001001 /* RequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000001 /* RequestTests.swift */; };
 		D30000000000000000001002 /* ../../fixtures/requests.create in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000002 /* ../../fixtures/requests.create */; };
@@ -122,6 +123,7 @@
 		D20000000000000000000003 /* Features/Requests/RequestModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/RequestModel.swift; sourceTree = "<group>"; };
 		D20000000000000000000004 /* Features/Requests/RequestLocationModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/RequestLocationModel.swift; sourceTree = "<group>"; };
 		D20000000000000000000005 /* Features/Requests/AskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/AskView.swift; sourceTree = "<group>"; };
+		D20000000000000000000099 /* Features/Requests/KnowBeforeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/KnowBeforeView.swift; sourceTree = "<group>"; };
 		D20000000000000000000006 /* Features/Requests/ProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/ProviderView.swift; sourceTree = "<group>"; };
 		D30000000000000000000001 /* RequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestTests.swift; sourceTree = "<group>"; };
 		D30000000000000000000002 /* ../../fixtures/requests.create */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.create; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 			isa = PBXGroup;
 			children = (
 				D20000000000000000000005 /* Features/Requests/AskView.swift */,
+				D20000000000000000000099 /* Features/Requests/KnowBeforeView.swift */,
 				D20000000000000000000006 /* Features/Requests/ProviderView.swift */,
 				D20000000000000000000004 /* Features/Requests/RequestLocationModel.swift */,
 				D20000000000000000000003 /* Features/Requests/RequestModel.swift */,
@@ -450,6 +453,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D20000000000000000001005 /* Features/Requests/AskView.swift in Sources */,
+				D20000000000000000001099 /* Features/Requests/KnowBeforeView.swift in Sources */,
 				D20000000000000000001006 /* Features/Requests/ProviderView.swift in Sources */,
 				D20000000000000000001004 /* Features/Requests/RequestLocationModel.swift in Sources */,
 				D20000000000000000001003 /* Features/Requests/RequestModel.swift in Sources */,

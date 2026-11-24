@@ -20,15 +20,35 @@ final class RequestScreenshotTests: XCTestCase {
             reveal(example, in: app)
             if largest { app.swipeUp() }
             capture("visual-examples-\(suffix)", onlyIfChanged: true)
+            // A tile opens its example asks in a sheet; nothing is put in the home field.
             example.tap()
-            let field = app.textFields["request-text"]
+            let field = app.descendants(matching: .any).matching(identifier: "example-ask-text").firstMatch
+            XCTAssertTrue(field.waitForExistence(timeout: 20))
             XCTAssertEqual(field.value as? String, "Someone to do knotless braids, $120 max")
+            capture("visual-example-sheet-\(suffix)")
+            app.buttons["sheet-close"].tap()
             XCTAssertFalse(app.navigationBars["Your ask"].exists)
-            dismissKeyboard(app)
+            XCTAssertNotEqual(app.textFields["request-text"].value as? String, "Someone to do knotless braids, $120 max")
             let place = app.buttons["ask-example-place"]
             reveal(place, in: app)
             place.tap()
-            XCTAssertEqual(field.value as? String, "How long is the line at Walmart right now?")
+            XCTAssertTrue(app.descendants(matching: .any)["kbg-search"].waitForExistence(timeout: 20))
+            capture("visual-know-before-\(suffix)")
+            if largest { app.buttons["sheet-close"].tap(); continue }
+            // A typed place, one question, and the sheet's own send reach the answer screen.
+            let search = app.descendants(matching: .any).matching(identifier: "kbg-search").firstMatch
+            search.tap()
+            search.typeText("Walmart on Ben White")
+            app.buttons["kbg-typed-place"].tap()
+            app.buttons["kbg-topic-line"].tap()
+            let preview = app.descendants(matching: .any).matching(identifier: "kbg-preview").firstMatch
+            XCTAssertTrue(preview.waitForExistence(timeout: 5))
+            XCTAssertTrue(preview.label.contains("How long is the line at Walmart on Ben White right now?"))
+            capture("visual-know-before-question-\(suffix)")
+            app.buttons["kbg-send"].tap()
+            let answer = app.navigationBars["Your ask"]
+            allowLocation(unless: { answer.exists })
+            XCTAssertTrue(answer.waitForExistence(timeout: 30))
         }
     }
 

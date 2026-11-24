@@ -34,6 +34,14 @@ struct AskView: View {
     /// The one disclosure left from the preview: shown only where example (seed) offers appear.
     static let exampleNote = "Example offers for preview. Booking isn’t available yet."
     @State private var tileTaps = 0
+    /// Know before you go, or one category's example asks. A sheet sends its ask itself; nothing
+    /// is put in the home field for the person to notice.
+    @State private var sheet: AskSheet?
+    @State private var pendingAsk: String?
+    private enum AskSheet: Identifiable {
+        case knowBefore, examples(title: String, asks: [String])
+        var id: String { if case .examples(let title, _) = self { return title }; return "know-before" }
+    }
 
     init(service: RequestServing, onProviderChange: @escaping (ProviderProfile) -> Void = { _ in }) {
         self.service = service
@@ -70,6 +78,14 @@ struct AskView: View {
                 Task { await model.submit(location: located) }
             }
             .onChange(of: voice.transcript) { _, words in if !words.isEmpty { model.text = words } }
+            .sheet(item: $sheet, onDismiss: sendPendingAsk) { shown in
+                switch shown {
+                case .knowBefore:
+                    KnowBeforeSheet(location: location) { pendingAsk = $0 }
+                case .examples(let title, let asks):
+                    ExampleAskSheet(title: title, asks: asks) { pendingAsk = $0 }
+                }
+            }
             .sheet(isPresented: $offeringService) {
                 ProviderOnboardingView(service: service, location: location) { profile in
                     offeringService = false
@@ -220,11 +236,11 @@ struct AskView: View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s8) {
             if !stillAsking {
                 VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    // (title, illustration, example it fills, test identifier). Each only fills the field.
-                    let categories = [("Hair & beauty", "IllHairBeauty", Example.services[1], "ask-example-barber"),
-                                      ("Home help", "IllHomeHelp", Example.services[2], "ask-example-home"),
-                                      ("Tech", "IllTech", "I need help repairing my laptop", "ask-example-tech"),
-                                      ("Places", "IllPlaces", Example.places[0], "ask-example-places")]
+                    // (title, illustration, its example asks, test identifier). No asks: Know before you go.
+                    let categories = [("Hair & beauty", "IllHairBeauty", Example.hairBeauty, "ask-example-barber"),
+                                      ("Home help", "IllHomeHelp", Example.homeHelp, "ask-example-home"),
+                                      ("Tech", "IllTech", Example.tech, "ask-example-tech"),
+                                      ("Places", "IllPlaces", [], "ask-example-places")]
                     // The frame hugs the serif's cap height; the audit sampled clipped descenders as low contrast.
                     Text("Start with an example").plugText(.title2).foregroundStyle(PlugTokens.Color.ink900)
                         .padding(.vertical, 3).accessibilityAddTraits(.isHeader)
@@ -244,9 +260,9 @@ struct AskView: View {
                 PlugDivider()
                 if !stillAsking {
                     featureRow(art: "IllKnowBefore", title: "Know before you go",
-                               line: "Ask people near a place how busy it is right now.", id: "ask-example-place",
-                               hint: "Fills a question about a place. Nothing is sent yet.") {
-                        fillExample(Example.places[0])
+                               line: "Pick a place, choose what to check, and ask people there.", id: "ask-example-place",
+                               hint: "Opens a place search. Nothing is sent until you ask.") {
+                        sheet = .knowBefore
                     }
                     PlugDivider()
                 }
@@ -261,20 +277,22 @@ struct AskView: View {
         .foregroundStyle(PlugTokens.Color.ink900)
     }
 
-    /// (title, illustration, example it fills, identifier): an illustration on a sand tile with
-    /// its label below, like a service catalogue. The tile whose example is in the field has a
-    /// brass ring. A press settles to 0.97 with a light tap.
-    private func categoryTile(_ category: (String, String, String, String)) -> some View {
-        let chosen = model.text == category.2
-        let shape = RoundedRectangle(cornerRadius: PlugShape.illustration + 3, style: .continuous)
+    /// (title, illustration, example asks, identifier): an illustration on a sand tile with its
+    /// label below, like a service catalogue. A tap opens that category's asks in a sheet; a press
+    /// settles to 0.97 with a light tap.
+    private func categoryTile(_ category: (String, String, [String], String)) -> some View {
+        let open = {
+            guard !model.isWorking else { return }
+            tileTaps += 1
+            voice.stop()
+            sheet = category.2.isEmpty ? .knowBefore : .examples(title: category.0, asks: category.2)
+        }
         // The label sits outside the button and repeats its name, so the accessibility audit
         // reads the text against the cream, not against the art above it.
         return VStack(spacing: PlugTokens.Space.s2) {
-            Button { tileTaps += 1; fillExample(category.2) } label: {
+            Button(action: open) {
                 IllustrationTile(name: category.1)
                     .padding(3)
-                    .overlay(shape.strokeBorder(PlugTokens.Color.brandBrass, lineWidth: 2).opacity(chosen ? 1 : 0))
-                    .animation(.plug(reduceMotion: reduceMotion), value: chosen)
                     .contentShape(Rectangle())
             }
             .buttonStyle(PlugPressStyle(scale: 0.97))
@@ -282,13 +300,12 @@ struct AskView: View {
             .disabled(model.isWorking)
             .accessibilityLabel(category.0)
             .accessibilityIdentifier(category.3)
-            .accessibilityAddTraits(chosen ? .isSelected : [])
-            .accessibilityHint("Fills an example request. Nothing is sent yet.")
+            .accessibilityHint("Opens example asks. Nothing is sent until you ask.")
             Text(category.0).plugText(.label)
                 .foregroundStyle(PlugTokens.Color.ink900)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
-                .onTapGesture { if !model.isWorking { fillExample(category.2) } }
+                .onTapGesture(perform: open)
                 .accessibilityHidden(true)
         }
         .frame(maxWidth: .infinity)
@@ -329,11 +346,14 @@ struct AskView: View {
         .padding(.vertical, PlugTokens.Space.s4)
     }
 
-    private func fillExample(_ text: String) {
+    /// A sheet's ask goes out once the sheet has gone, through the same path as the home field:
+    /// the same checks, the same approximate-location request and notice.
+    private func sendPendingAsk() {
+        guard let text = pendingAsk else { return }
+        pendingAsk = nil
         voice.stop()
         model.text = text
-        textFocused = true
-        showValidation = false
+        ask()
     }
 
     private var stillAsking: Bool { model.hasActiveAsk }
@@ -398,7 +418,8 @@ struct AskView: View {
         voice.stop()
         textFocused = false
         guard model.textError == nil else { return }
-        if let located = location.location {
+        // A fix taken earlier (in Know before you go, or a past ask) is renewed once it is stale.
+        if let located = location.location, !location.isStale() {
             Task { await model.submit(location: located) }
         } else {
             askWhenLocated = true
@@ -428,7 +449,7 @@ struct AskView: View {
             }
         } else {
             caption(location.isWorking ? "Finding your approximate location…"
-                    : "PLUG uses your approximate location when you ask, never before.")
+                    : "PLUG sends your approximate location only when you ask.")
         }
     }
 
@@ -797,11 +818,15 @@ struct AskView: View {
     }
 }
 
-/// Examples, grouped by the two things PLUG does. They only fill the field.
+/// Ready-made asks for each category tile, from skills in contracts/skills.yaml. The first is
+/// the one shown in the sheet's box when it opens.
 private enum Example {
-    static let services = ["Barber under $35 in the next hour", "Someone to do knotless braids, $120 max",
-                           "Fix a leaking sink today"]
-    static let places = ["How long is the line at Walmart right now?", "Is the DMV busy right now?"]
+    static let hairBeauty = ["Someone to do knotless braids, $120 max", "Barber under $35 in the next hour",
+                             "Nails done this afternoon", "Brows shaped today"]
+    static let homeHelp = ["Fix a leaking sink today", "Mount a TV this weekend",
+                           "Assemble a bed frame tomorrow", "House cleaning on Saturday morning"]
+    static let tech = ["I need help repairing my laptop", "Fix a cracked phone screen today",
+                       "Replace my phone battery this week"]
 }
 
 /// The server's score wording, or nil when it sent a scored state without a value: no number
