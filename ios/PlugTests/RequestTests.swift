@@ -72,7 +72,7 @@ final class RequestTests: XCTestCase {
         XCTAssertEqual(KnowBefore.placeName("Main Street Cafe", street: "Main Street"), "Main Street Cafe")
         XCTAssertEqual(KnowBefore.question(.line, place: place), "How long is the line at H-E-B on South Congress Avenue right now?")
         XCTAssertEqual(KnowBefore.question(.busy, place: " Walmart "), "How busy is Walmart right now?")
-        XCTAssertEqual(KnowBefore.question(.open, place: "the DMV"), "Is the DMV open right now?")
+        XCTAssertEqual(KnowBefore.question(.open, place: "the DMV"), "Is it open right now at the DMV?")
         XCTAssertEqual(KnowBefore.question(.parking, place: "Zilker Park"), "Is parking easy at Zilker Park right now?")
         XCTAssertEqual(KnowBefore.question(.other, place: "Jo's", other: "Is there seating outside?"), "At Jo's: Is there seating outside?")
         XCTAssertNil(KnowBefore.question(.other, place: "Jo's", other: "  "))
@@ -87,6 +87,26 @@ final class RequestTests: XCTestCase {
             model.text = try XCTUnwrap(KnowBefore.question(topic, place: String(repeating: "p", count: 400)))
             XCTAssertNil(model.textError)
         }
+        // A family emoji is one character but five unicode scalars; the limits count scalars like the send check.
+        let family = "\u{1F468}\u{200D}\u{1F469}\u{200D}\u{1F467}"
+        XCTAssertEqual(family.count, 1)
+        XCTAssertEqual(family.unicodeScalars.count, 5)
+        XCTAssertEqual(KnowBefore.limited(family + family, to: 5), family)
+        XCTAssertEqual(KnowBefore.limited(String(repeating: family, count: 200), to: 500).unicodeScalars.count, 500)
+        let emoji = try XCTUnwrap(KnowBefore.question(.other, place: String(repeating: family, count: 400),
+                                                      other: String(repeating: family, count: 400)))
+        // Only the length is checked: the send check rejects the joiner (U+200D) as a control character.
+        XCTAssertLessThanOrEqual(emoji.unicodeScalars.count, 500)
+    }
+
+    func testNearbyPlacesDropAnythingFartherThanTenKilometres() {
+        func place(_ name: String, _ metres: Double?) -> NearbyPlace {
+            NearbyPlace(name: name, label: name, category: nil, street: nil, metres: metres)
+        }
+        let kept = PlaceSearch.nearbyOnly([place("near", 400), place("edge", 10_000), place("far", 10_001),
+                                           place("other city", 1_200_000), place("no distance", nil)])
+        XCTAssertEqual(kept.map(\.name), ["near", "edge"])
+        XCTAssertEqual(PlaceSearch.maxMetres, 10_000)
     }
 
     func testAskingPlaceQuestionPollsWithoutInventingAnswers() async throws {

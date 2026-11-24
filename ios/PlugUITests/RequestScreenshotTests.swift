@@ -44,6 +44,8 @@ final class RequestScreenshotTests: XCTestCase {
             reveal(place, in: app)
             place.tap()
             XCTAssertTrue(app.descendants(matching: .any)["kbg-search"].waitForExistence(timeout: 20))
+            // The sheet finds the device location on open, so the first run may ask for permission.
+            allowLocation(unless: { app.buttons["kbg-place-0"].exists || app.buttons["kbg-use-location"].exists })
             capture("visual-know-before-\(suffix)")
             if largest { app.buttons["sheet-close"].tap(); continue }
             // A typed place, one question, and the sheet's own send reach the answer screen.
@@ -122,6 +124,8 @@ final class RequestScreenshotTests: XCTestCase {
         XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
         // Offers fade up one after another; audit once they have landed, not mid-fade.
         RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        // The "Ask sent" toast sits over the band for about two seconds; audit the screen under it.
+        XCTAssertTrue(app.staticTexts["Ask sent"].waitForNonExistence(timeout: 10))
         try audit("results")
         let details = app.buttons["View details"].firstMatch
         reveal(details, in: app)
@@ -400,19 +404,27 @@ final class RequestScreenshotTests: XCTestCase {
             if loading.waitForExistence(timeout: 3) { capture("inbox-loading-\(suffix)") }
             XCTAssertTrue(app.buttons["inbox-item-open"].firstMatch.waitForExistence(timeout: 20))
             let limited = app.staticTexts["Too many tries. Wait, then try again."]
-            // Coming back to the app reloads the Inbox; the fixture server answers that with 429.
-            for _ in 0..<2 where !limited.exists {
-                XCUIDevice.shared.press(.home)
-                app.activate()
-                _ = limited.waitForExistence(timeout: 8)
+            // Coming back to the app reloads the Inbox: the server answers 429, then 500, then the list.
+            // Reloading this way, not with Try again, because the per-second countdowns can keep a
+            // synthesized tap waiting for the app to settle.
+            func reload(until element: XCUIElement) {
+                for _ in 0..<2 where !element.exists {
+                    XCUIDevice.shared.press(.home)
+                    app.activate()
+                    _ = element.waitForExistence(timeout: 8)
+                }
             }
+            reload(until: limited)
             XCTAssertTrue(limited.waitForExistence(timeout: 20))
+            XCTAssertTrue(app.buttons["Try again"].exists)
             capture("inbox-rate-limited-\(suffix)")
-            app.buttons["Try again"].tap()
             let failed = app.staticTexts["We could not load your inbox."]
+            reload(until: failed)
             XCTAssertTrue(failed.waitForExistence(timeout: 20))
             capture("inbox-error-\(suffix)")
-            app.buttons["Try again"].tap()
+            XCUIDevice.shared.press(.home)
+            app.activate()
+            XCTAssertTrue(failed.waitForNonExistence(timeout: 20))
             let open = app.buttons["inbox-item-open"].firstMatch
             XCTAssertTrue(open.waitForExistence(timeout: 20))
             app.swipeDown()

@@ -40,9 +40,11 @@ final class LiveBackendTests: XCTestCase {
 
     private static func isReachable(_ baseURL: URL) async -> Bool {
         var request = URLRequest(url: baseURL.appending(path: "health"))
-        request.timeoutInterval = 2
+        // One second at most: with nothing listening the probe must skip, not stall the suite.
+        request.timeoutInterval = 1
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.timeoutIntervalForRequest = 2
+        configuration.timeoutIntervalForRequest = 1
+        configuration.timeoutIntervalForResource = 1
         guard let (_, response) = try? await URLSession(configuration: configuration).data(for: request),
               let http = response as? HTTPURLResponse else { return false }
         return http.statusCode == 200

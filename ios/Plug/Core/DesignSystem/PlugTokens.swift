@@ -402,11 +402,15 @@ private struct PlugPressBody: View {
     }
 }
 
-/// One trailing navigation-bar action drawn flat: a 44pt symbol with no background. On iOS 26
-/// the bar's shared glass circle is turned off for it.
+/// One navigation-bar action drawn flat, with no background: a 44pt symbol, or with `showsTitle`
+/// the label as plain words, never the round glass button iOS 26 puts behind toolbar items. On
+/// iOS 26 the bar's shared glass circle is turned off for it.
 struct FlatToolbarButton: ViewModifier {
-    let systemImage: String
+    var systemImage: String? = nil
     let label: String
+    var showsTitle = false
+    var placement: ToolbarItemPlacement = .topBarTrailing
+    var id: String? = nil
     var disabled = false
     var color: Color = PlugTokens.Color.ink900
     let action: () -> Void
@@ -417,30 +421,40 @@ struct FlatToolbarButton: ViewModifier {
         #if compiler(>=6.2)
         if #available(iOS 26, *) {
             content.toolbar {
-                ToolbarItem(placement: .topBarTrailing) { button }
+                ToolbarItem(placement: placement) { button }
                     .sharedBackgroundVisibility(.hidden)
             }
         } else {
             content.toolbar {
-                ToolbarItem(placement: .topBarTrailing) { button }
+                ToolbarItem(placement: placement) { button }
             }
         }
         #else
         content.toolbar {
-            ToolbarItem(placement: .topBarTrailing) { button }
+            ToolbarItem(placement: placement) { button }
         }
         #endif
     }
 
     private var button: some View {
         Button(action: action) {
-            Image(systemName: systemImage).font(.system(size: min(glyph, PlugTokens.Layout.iconMax), weight: .regular))
+            if showsTitle {
+                Text(label).plugText(.action).lineLimit(1)
+                // The bar proposes a narrow width; the label keeps its own so it never wraps.
+                .fixedSize()
                 .foregroundStyle(color.opacity(disabled ? 0.5 : 1))
-                .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
+                .frame(minHeight: PlugTokens.minTouchTarget)
                 .contentShape(Rectangle())
+            } else {
+                Image(systemName: systemImage ?? "").font(.system(size: min(glyph, PlugTokens.Layout.iconMax), weight: .regular))
+                    .foregroundStyle(color.opacity(disabled ? 0.5 : 1))
+                    .frame(width: PlugTokens.minTouchTarget, height: PlugTokens.minTouchTarget)
+                    .contentShape(Rectangle())
+            }
         }
         .buttonStyle(.plain)
         .accessibilityLabel(label)
+        .accessibilityIdentifier(id ?? "")
         .disabled(disabled)
     }
 }
