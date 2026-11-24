@@ -455,6 +455,7 @@ final class RequestTests: XCTestCase {
             json["reservation"] = reservation
             return try decode(json)
         }
+        let pendingReservation = try XCTUnwrap(object("requests.get", "reservation-pending")["reservation"] as? [String: Any])
         let bad: [ServiceRequest] = [
             try mutated("reservation-pending") { $0["status"] = "confirmed" },          // status pair, and no confirmed_at
             try mutated("reservation-pending") { $0["confirmed_at"] = "2026-10-01T20:03:41Z" },
@@ -464,7 +465,7 @@ final class RequestTests: XCTestCase {
             try mutated("reservation-released") { $0["status"] = "pending"; $0.removeValue(forKey: "ended_at") },
             try mutated("confirmed") { $0["status"] = "pending"; $0.removeValue(forKey: "confirmed_at") },
             try mutated("not-confirmed") { $0["status"] = "pending"; $0.removeValue(forKey: "ended_at") },
-            try mutated("submitted") { $0 = try! self.object("requests.get", "reservation-pending")["reservation"] as! [String: Any] }
+            try mutated("submitted") { $0 = pendingReservation }
         ]
         for request in bad { XCTAssertThrowsError(try request.validated()) }
         var missing = try object("requests.get", "reservation-pending")
