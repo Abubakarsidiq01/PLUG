@@ -14,6 +14,13 @@ protocol RequestServing {
     func proposeSkills(_ description: String) async throws -> SkillProposal
     func setProvider(_ setup: ProviderSetup) async throws -> ProviderProfile
     func providerProfile() async throws -> ProviderProfile?
+    // Contract 0.7.0 booking and the provider inbox. Every one of these is 404 while the
+    // server's provider_inbox flag is off.
+    func select(_ id: String, offerId: String, key: String) async throws -> ServiceRequest
+    func inbox() async throws -> ProviderInbox?
+    func decline(_ matchId: String, reason: DeclineReason?) async throws -> InboxItem
+    func sendOffer(_ requestId: String, _ body: ProviderOfferCreate, key: String) async throws -> ServiceOffer
+    func answerReservation(_ matchId: String, _ answer: ReservationAnswer) async throws -> InboxItem
 }
 
 @MainActor
@@ -110,5 +117,57 @@ struct RequestService: RequestServing {
         endpoint.maximumResponseBytes = 98_304
         do { return try await owned(endpoint, as: ProviderProfile.self) }
         catch let error as APIError where error.code == "not_found" { return nil }
+    }
+
+    func select(_ id: String, offerId: String, key: String) async throws -> ServiceRequest {
+        struct Selection: Encodable { let offerId: String }
+        guard offerId.range(of: "^off_[A-Za-z0-9-]{1,60}$", options: .regularExpression) != nil else {
+            throw APIError.contractViolation(requestID: nil)
+        }
+        var endpoint = try Endpoint.post(try path(id) + "/select", body: Selection(offerId: offerId), accessToken: await token())
+        endpoint.idempotencyKey = key
+        let result = try await owned(endpoint, as: ServiceRequest.self).validated()
+        guard result.requestId == id, result.reservation?.offerId == offerId else { throw APIError.contractViolation(requestID: nil) }
+        return result
+    }
+    private func matchPath(_ id: String) throws -> String {
+        guard id.range(of: "^mat_[A-Za-z0-9-]{1,60}$", options: .regularExpression) != nil else {
+            throw APIError.contractViolation(requestID: nil)
+        }
+        return "v1/providers/me/inbox/\(id)"
+    }
+    /// Nil when the inbox is not there for this caller: no provider profile, or the server's
+    /// provider_inbox flag is off. Both answer 404, and the app then says inbox delivery is not on.
+    func inbox() async throws -> ProviderInbox? {
+        var endpoint = Endpoint.get("v1/providers/me/inbox", accessToken: try await token())
+        // Fifty items, each with an offer that may carry a business photo.
+        endpoint.maximumResponseBytes = 4_194_304
+        do { return try await owned(endpoint, as: ProviderInbox.self).validated() }
+        catch let error as APIError where error.code == "not_found" { return nil }
+    }
+    func decline(_ matchId: String, reason: DeclineReason?) async throws -> InboxItem {
+        struct Body: Encodable { let reason: DeclineReason? }
+        var endpoint = try Endpoint.post(try matchPath(matchId) + "/decline", body: Body(reason: reason), accessToken: await token())
+        endpoint.maximumResponseBytes = 98_304
+        return try await item(endpoint, matchId: matchId)
+    }
+    func sendOffer(_ requestId: String, _ body: ProviderOfferCreate, key: String) async throws -> ServiceOffer {
+        var endpoint = try Endpoint.post(try path(requestId) + "/offers", body: body, accessToken: await token())
+        endpoint.idempotencyKey = key
+        endpoint.maximumResponseBytes = 98_304
+        let offer = try await owned(endpoint, as: ServiceOffer.self)
+        guard offer.isValid, offer.source == .portal else { throw APIError.contractViolation(requestID: nil) }
+        return offer
+    }
+    func answerReservation(_ matchId: String, _ answer: ReservationAnswer) async throws -> InboxItem {
+        struct Body: Encodable { let decision: ReservationAnswer }
+        var endpoint = try Endpoint.post(try matchPath(matchId) + "/reservation", body: Body(decision: answer), accessToken: await token())
+        endpoint.maximumResponseBytes = 98_304
+        return try await item(endpoint, matchId: matchId)
+    }
+    private func item(_ endpoint: Endpoint, matchId: String) async throws -> InboxItem {
+        let item = try await owned(endpoint, as: InboxItem.self)
+        guard item.isValid, item.matchId == matchId else { throw APIError.contractViolation(requestID: nil) }
+        return item
     }
 }

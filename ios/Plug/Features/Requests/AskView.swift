@@ -19,6 +19,7 @@ struct AskView: View {
     @State private var offerOrder = OfferOrder.suggested
     @State private var selectedOffer: ServiceOffer?
     @State private var toast: String?
+    @State private var confirmingCancel = false
     private enum OfferOrder: String, CaseIterable { case suggested = "For you", price = "Lowest price", distance = "Closest" }
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .body) private var clearGlyph: CGFloat = PlugTokens.Layout.iconSmall
@@ -458,13 +459,22 @@ struct AskView: View {
     private var answerScreen: some View {
         answerChrome(answerScroll)
             .sheet(item: $selectedOffer) { offer in
-                OfferDetailView(offer: offer, cached: model.isCached)
+                OfferDetailView(offer: offer, cached: model.isCached,
+                                choice: model.request?.status == .ranked && offer.source != .seed
+                                    ? (model.bookingUnavailable ? .unavailable : .available) : .none,
+                                choosing: model.isWorking, error: model.errorMessage) {
+                    Task { await model.select(offer) }
+                }
                     // Full height: at the medium detent the sheet edge cut through text, which the
                     // accessibility audit reports as clipped.
                     .presentationDetents([.large])
                     .presentationDragIndicator(.visible)
                     .presentationBackground(PlugTokens.Color.paper)
                     .presentationCornerRadius(PlugShape.sheet)
+            }
+            // Chosen: the sheet gives way to the pending reservation the server returned.
+            .onChange(of: model.request?.status) { _, status in
+                if status != .ranked { selectedOffer = nil }
             }
     }
 
@@ -549,6 +559,9 @@ struct AskView: View {
         if model.askQuestion == nil, let request = model.request, request.nextAction == .waitForOffers {
             return "Asking \(request.constraints.serviceName?.lowercased() ?? "providers") nearby"
         }
+        if model.askQuestion == nil, model.request?.nextAction == .awaitSupplierConfirmation {
+            return "Waiting for the provider to confirm"
+        }
         if let place = model.placeQuestion, place.status == .asking {
             return "Asking people near \(place.placeName ?? "this place")"
         }
@@ -613,17 +626,77 @@ struct AskView: View {
             if let question = request.clarification { questionCard(question) }
         case .waitForOffers:
             offerList(request)
-        case .chooseOffer, .showResult, .awaitSupplierConfirmation:
+        case .awaitSupplierConfirmation:
+            if let reservation = request.reservation { bookingCard(reservation) }
+        case .showResult where request.reservation?.status == .confirmed:
+            if let reservation = request.reservation { bookingCard(reservation) }
+        case .chooseOffer, .showResult:
+            if request.isRecovering, !model.offers.isEmpty {
+                PlugNotice(title: "They couldn't confirm", message: "They couldn't confirm. Here are your other offers.",
+                           detail: "Nothing was booked. Choose another offer below.")
+                    .accessibilityIdentifier("booking-recovery")
+            }
             offerList(request)
             if model.offers.isEmpty, !model.isWorking {
                 nobody("No current offers", "Refresh to check whether this request is still open.", request.progress.contacted)
             }
         case .showNoResult:
-            nobody("No offers", request.noResultReason?.explanation ?? "No current offers are available.", request.progress.contacted)
+            nobody(request.noResultReason == .notConfirmed ? "Not confirmed" : "No offers",
+                   request.noResultReason?.explanation ?? "No current offers are available.", request.progress.contacted)
             if request.noResultReason == .noCoverage { offerTheGap(request) }
         case .none:
-            PlugNotice(title: "You stopped asking", message: "This request is closed. Nobody else will be contacted.")
+            if request.reservation?.status == .canceled {
+                PlugNotice(title: "You canceled this request", message: "Nothing is booked, and nobody else will be contacted.")
+            } else {
+                PlugNotice(title: "You stopped asking", message: "This request is closed. Nobody else will be contacted.")
+            }
         }
+    }
+
+    /// The reservation, pending or confirmed. "Booked" appears only when the server says confirmed.
+    private func bookingCard(_ reservation: Reservation) -> some View {
+        let offer = model.offers.first { $0.offerId == reservation.offerId }
+        let name = offer?.businessName ?? "the provider"
+        let confirmed = reservation.status == .confirmed
+        return VStack(alignment: .leading, spacing: PlugTokens.Space.s4) {
+            if confirmed {
+                Label("Confirmed by the provider", systemImage: "checkmark.circle.fill")
+                    .plugText(.title3).foregroundStyle(PlugTokens.Color.brandGreen)
+            } else {
+                Overline("Waiting for confirmation")
+            }
+            Text(confirmed ? "Booked with \(name)" : "Waiting for \(name) to confirm")
+                .plugText(.display).fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s1) {
+                Text("Booking reference").plugText(.label).foregroundStyle(PlugTokens.Color.ink600)
+                Text(reservation.bookingRef).plugDisplay(40, weight: 500).monospaced().kerning(4)
+                    .accessibilityLabel(reservation.bookingRef.map(String.init).joined(separator: " "))
+            }
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("booking-ref")
+            VStack(spacing: 0) {
+                PlugDivider()
+                if let offer {
+                    valueRow("Price", money(offer.priceCents, offer.currency))
+                    valueRow("Starts", offer.availableAt.formatted(date: .omitted, time: .shortened))
+                    if let place = offer.place { valueRow("Where", place.address) }
+                }
+                if confirmed, let at = reservation.confirmedAt {
+                    valueRow("Confirmed at", at.formatted(date: .omitted, time: .shortened), last: true)
+                } else {
+                    valueRow("They confirm by", reservation.confirmBy.formatted(date: .omitted, time: .shortened), last: true)
+                }
+            }
+            Text(confirmed ? "Both of you can quote this reference." : "Nothing is booked until they confirm.")
+                .plugText(.body).fontWeight(confirmed ? .regular : .medium)
+                .fixedSize(horizontal: false, vertical: true)
+            if !confirmed {
+                caption("If they can't make it, you can choose from your other offers.")
+            }
+        }
+        .plugCard()
+        .accessibilityIdentifier(confirmed ? "booking-confirmed" : "booking-pending")
     }
 
     private var orderedOffers: [ServiceOffer] {
@@ -786,10 +859,18 @@ struct AskView: View {
 
     @ViewBuilder private var actions: some View {
         if let request = model.request, request.status.canCancel {
-            Button("Stop asking") { Task { await model.cancel() } }
+            Button(request.status == .confirmed ? "Cancel booking" : request.status == .userSelected ? "Cancel request" : "Stop asking") {
+                if request.status == .confirmed { confirmingCancel = true } else { Task { await model.cancel() } }
+            }
                 .buttonStyle(FlowActionStyle(destructive: true))
                 .disabled(model.isWorking)
                 .accessibilityIdentifier("request-cancel")
+                .confirmationDialog("Cancel this booking?", isPresented: $confirmingCancel, titleVisibility: .visible) {
+                    Button("Cancel booking", role: .destructive) { Task { await model.cancel() } }
+                    Button("Keep booking", role: .cancel) { }
+                } message: {
+                    Text("The provider will see that it is canceled.")
+                }
         } else if model.placeQuestion?.status != .asking {
             // While the one question is open, answering it is the task; starting over is secondary.
             Button("Ask something else") { model.startAgain(); showValidation = false }
@@ -940,10 +1021,16 @@ struct WebAnswerCard: View {
     }
 }
 
-/// The offer in full, as a sheet over the results. Only what the app already does: no booking.
+/// The offer in full, as a sheet over the results. Choosing asks the provider to confirm; it
+/// never books by itself.
 private struct OfferDetailView: View {
+    enum Choice { case none, available, unavailable }
     let offer: ServiceOffer
     let cached: Bool
+    var choice: Choice = .none
+    var choosing = false
+    var error: String? = nil
+    var onChoose: () -> Void = {}
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var typeSize
 
@@ -976,6 +1063,7 @@ private struct OfferDetailView: View {
                     }
                     facts
                     explanation
+                    chooseSection
                     if let about = offer.business?.about {
                         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
                             BusinessIdentity(name: offer.businessName, business: offer.business, score: offer.providerScore)
@@ -994,9 +1082,6 @@ private struct OfferDetailView: View {
                         DetailsButton { OfferDetails(offer: offer) }
                         Spacer()
                     }
-                    if offer.source != .seed {
-                        caption("Booking opens when providers can confirm offers.")
-                    }
                 }
                 .foregroundStyle(PlugTokens.Color.ink900)
                 .padding(.horizontal, PlugTokens.Space.s6)
@@ -1014,6 +1099,38 @@ private struct OfferDetailView: View {
             }
         }
         .tint(PlugTokens.Color.ink900)
+    }
+
+    private var live: Bool { !cached && offer.expiresAt > Date() }
+
+    @ViewBuilder private var chooseSection: some View {
+        switch choice {
+        case .available where live:
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+                Button { onChoose() } label: {
+                    ZStack {
+                        Text("Choose this offer").opacity(choosing ? 0 : 1)
+                        if choosing {
+                            HStack(spacing: PlugTokens.Space.s2) {
+                                ProgressView().tint(PlugTokens.Color.paper).controlSize(.small)
+                                Text("Asking them to confirm")
+                            }
+                        }
+                    }
+                }
+                .buttonStyle(PlugButtonStyle(kind: .primary))
+                .disabled(choosing)
+                .accessibilityIdentifier("offer-choose")
+                .accessibilityHint("Asks the provider to confirm. Nothing is booked until they do.")
+                caption("We ask them to confirm. Nothing is booked until they do.")
+                if let error { PlugNotice(message: error, tone: .alert) }
+            }
+        case .unavailable:
+            caption("Booking isn’t available yet. Nothing was booked.")
+                .accessibilityIdentifier("offer-booking-unavailable")
+        default:
+            EmptyView()
+        }
     }
 
     private var priceText: some View {
@@ -1396,7 +1513,7 @@ struct RequestDetails: View {
         switch request.nextAction {
         case .answerClarification: return "Answer the question on your ask so PLUG knows who to ask."
         case .waitForOffers: return "People nearby who offer this see your ask and can send an offer. Offers show up on your ask."
-        case .chooseOffer: return "Compare the offers by price, time and distance. Booking opens when providers can confirm offers, so nothing is booked yet."
+        case .chooseOffer: return "Compare the offers by price, time and distance. Nothing is booked until a provider confirms."
         case .awaitSupplierConfirmation: return "The provider has been asked to confirm. Nothing is booked until they do."
         case .showResult: return "This request is finished."
         case .showNoResult: return request.noResultReason?.explanation ?? "No current offers are available."
@@ -1479,7 +1596,7 @@ private struct OfferDetails: View {
             detailSection("How choosing works") {
                 Text(offer.source == .seed
                      ? "This is an example offer for preview. Nothing is booked."
-                     : "Compare price, earliest time and distance across offers. Booking opens when providers can confirm offers, so nothing is booked from here yet.")
+                     : "Choosing an offer asks the provider to confirm it. Nothing is booked until they do. If they can't, your other offers stay open.")
                     .plugText(.body).fixedSize(horizontal: false, vertical: true)
             }
         }

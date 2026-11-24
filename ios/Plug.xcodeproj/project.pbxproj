@@ -46,6 +46,7 @@
 		D20000000000000000001005 /* Features/Requests/AskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000005 /* Features/Requests/AskView.swift */; };
 		D20000000000000000001099 /* Features/Requests/KnowBeforeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000099 /* Features/Requests/KnowBeforeView.swift */; };
 		D20000000000000000001006 /* Features/Requests/ProviderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000006 /* Features/Requests/ProviderView.swift */; };
+		D20000000000000000001007 /* Features/Requests/InboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D20000000000000000000007 /* Features/Requests/InboxView.swift */; };
 		D30000000000000000001001 /* RequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000001 /* RequestTests.swift */; };
 		D30000000000000000001002 /* ../../fixtures/requests.create in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000002 /* ../../fixtures/requests.create */; };
 		D30000000000000000001003 /* ../../fixtures/requests.get in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000003 /* ../../fixtures/requests.get */; };
@@ -58,6 +59,11 @@
 		D30000000000000000001010 /* ../../fixtures/providers.propose in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000010 /* ../../fixtures/providers.propose */; };
 		D30000000000000000001011 /* ../../fixtures/providers.skills in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000011 /* ../../fixtures/providers.skills */; };
 		D30000000000000000001012 /* ../../fixtures/providers.me in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000012 /* ../../fixtures/providers.me */; };
+		D30000000000000000001017 /* ../../fixtures/requests.send-offer in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000017 /* ../../fixtures/requests.send-offer */; };
+		D30000000000000000001016 /* ../../fixtures/requests.select in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000016 /* ../../fixtures/requests.select */; };
+		D30000000000000000001015 /* ../../fixtures/providers.reservation in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000015 /* ../../fixtures/providers.reservation */; };
+		D30000000000000000001014 /* ../../fixtures/providers.decline in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000014 /* ../../fixtures/providers.decline */; };
+		D30000000000000000001013 /* ../../fixtures/providers.inbox in Resources */ = {isa = PBXBuildFile; fileRef = D30000000000000000000013 /* ../../fixtures/providers.inbox */; };
 		D40000000000000000000101 /* RequestScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40000000000000000000001 /* RequestScreenshotTests.swift */; };
 		E12CEBECEADA3ECFCA6E1DD9 /* Tokens.swift (generated) in Sources */ = {isa = PBXBuildFile; fileRef = 7BD30A4E31CEEF24554C5319 /* Tokens.swift (generated) */; };
 		F0A1B2C3D4E5F60718293A4C /* Newsreader[opsz,wght].ttf in Resources */ = {isa = PBXBuildFile; fileRef = F0A1B2C3D4E5F60718293A4B /* Newsreader[opsz,wght].ttf */; };
@@ -125,6 +131,7 @@
 		D20000000000000000000005 /* Features/Requests/AskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/AskView.swift; sourceTree = "<group>"; };
 		D20000000000000000000099 /* Features/Requests/KnowBeforeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/KnowBeforeView.swift; sourceTree = "<group>"; };
 		D20000000000000000000006 /* Features/Requests/ProviderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/ProviderView.swift; sourceTree = "<group>"; };
+		D20000000000000000000007 /* Features/Requests/InboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Requests/InboxView.swift; sourceTree = "<group>"; };
 		D30000000000000000000001 /* RequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestTests.swift; sourceTree = "<group>"; };
 		D30000000000000000000002 /* ../../fixtures/requests.create */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.create; sourceTree = "<group>"; };
 		D30000000000000000000003 /* ../../fixtures/requests.get */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.get; sourceTree = "<group>"; };
@@ -137,6 +144,11 @@
 		D30000000000000000000010 /* ../../fixtures/providers.propose */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/providers.propose; sourceTree = "<group>"; };
 		D30000000000000000000011 /* ../../fixtures/providers.skills */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/providers.skills; sourceTree = "<group>"; };
 		D30000000000000000000012 /* ../../fixtures/providers.me */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/providers.me; sourceTree = "<group>"; };
+		D30000000000000000000017 /* ../../fixtures/requests.send-offer */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.send-offer; sourceTree = "<group>"; };
+		D30000000000000000000016 /* ../../fixtures/requests.select */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/requests.select; sourceTree = "<group>"; };
+		D30000000000000000000015 /* ../../fixtures/providers.reservation */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/providers.reservation; sourceTree = "<group>"; };
+		D30000000000000000000014 /* ../../fixtures/providers.decline */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/providers.decline; sourceTree = "<group>"; };
+		D30000000000000000000013 /* ../../fixtures/providers.inbox */ = {isa = PBXFileReference; lastKnownFileType = folder; path = ../../fixtures/providers.inbox; sourceTree = "<group>"; };
 		D40000000000000000000001 /* RequestScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RequestScreenshotTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -186,6 +198,7 @@
 				D20000000000000000000005 /* Features/Requests/AskView.swift */,
 				D20000000000000000000099 /* Features/Requests/KnowBeforeView.swift */,
 				D20000000000000000000006 /* Features/Requests/ProviderView.swift */,
+				D20000000000000000000007 /* Features/Requests/InboxView.swift */,
 				D20000000000000000000004 /* Features/Requests/RequestLocationModel.swift */,
 				D20000000000000000000003 /* Features/Requests/RequestModel.swift */,
 				D20000000000000000000002 /* Features/Requests/RequestService.swift */,
@@ -225,6 +238,11 @@
 				D30000000000000000000010 /* ../../fixtures/providers.propose */,
 				D30000000000000000000011 /* ../../fixtures/providers.skills */,
 				D30000000000000000000012 /* ../../fixtures/providers.me */,
+				D30000000000000000000017 /* ../../fixtures/requests.send-offer */,
+				D30000000000000000000016 /* ../../fixtures/requests.select */,
+				D30000000000000000000015 /* ../../fixtures/providers.reservation */,
+				D30000000000000000000014 /* ../../fixtures/providers.decline */,
+				D30000000000000000000013 /* ../../fixtures/providers.inbox */,
 				D30000000000000000000005 /* ../../fixtures/requests.cancel */,
 				D30000000000000000000004 /* ../../fixtures/requests.clarify */,
 				D30000000000000000000003 /* ../../fixtures/requests.get */,
@@ -430,6 +448,11 @@
 				D30000000000000000001010 /* ../../fixtures/providers.propose in Resources */,
 				D30000000000000000001011 /* ../../fixtures/providers.skills in Resources */,
 				D30000000000000000001012 /* ../../fixtures/providers.me in Resources */,
+				D30000000000000000001017 /* ../../fixtures/requests.send-offer in Resources */,
+				D30000000000000000001016 /* ../../fixtures/requests.select in Resources */,
+				D30000000000000000001015 /* ../../fixtures/providers.reservation in Resources */,
+				D30000000000000000001014 /* ../../fixtures/providers.decline in Resources */,
+				D30000000000000000001013 /* ../../fixtures/providers.inbox in Resources */,
 				D30000000000000000001005 /* ../../fixtures/requests.cancel in Resources */,
 				D30000000000000000001004 /* ../../fixtures/requests.clarify in Resources */,
 				D30000000000000000001003 /* ../../fixtures/requests.get in Resources */,
@@ -455,6 +478,7 @@
 				D20000000000000000001005 /* Features/Requests/AskView.swift in Sources */,
 				D20000000000000000001099 /* Features/Requests/KnowBeforeView.swift in Sources */,
 				D20000000000000000001006 /* Features/Requests/ProviderView.swift in Sources */,
+				D20000000000000000001007 /* Features/Requests/InboxView.swift in Sources */,
 				D20000000000000000001004 /* Features/Requests/RequestLocationModel.swift in Sources */,
 				D20000000000000000001003 /* Features/Requests/RequestModel.swift in Sources */,
 				D20000000000000000001002 /* Features/Requests/RequestService.swift in Sources */,
