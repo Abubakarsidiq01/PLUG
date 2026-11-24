@@ -77,6 +77,10 @@ struct AskView: View {
                 askWhenLocated = false
                 Task { await model.submit(location: located) }
             }
+            // A failed or denied fix ends the wait, so a later fix never sends an ask nobody tapped.
+            .onChange(of: location.errorMessage) { _, error in if error != nil { askWhenLocated = false } }
+            // Know before you go finds the location on open; that fix must not send the home ask.
+            .onChange(of: sheet?.id) { _, id in if id == "know-before" { askWhenLocated = false } }
             .onChange(of: voice.transcript) { _, words in if !words.isEmpty { model.text = words } }
             .sheet(item: $sheet, onDismiss: sendPendingAsk) { shown in
                 switch shown {
@@ -427,8 +431,9 @@ struct AskView: View {
         }
     }
 
-    /// The approximate location is taken only when the person asks. If it is denied or
-    /// unavailable, typing an address keeps the product usable (§12.2 permission denied).
+    /// The approximate location is taken to list places near you and, when the person sends an
+    /// ask, to reach people nearby. If it is denied or unavailable, typing an address keeps the
+    /// product usable (§12.2 permission denied).
     @ViewBuilder private var locationNote: some View {
         if let label = location.label, location.location != nil {
             Label("Asking near: \(label)", systemImage: "location.fill")
@@ -540,7 +545,7 @@ struct AskView: View {
             progressCard
         }
         .padding(.horizontal, PlugTokens.Space.s6)
-        .padding(.top, PlugTokens.Space.s2)
+        .padding(.top, PlugTokens.Space.s4)
         .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading)
         .frame(maxWidth: .infinity)
     }
@@ -824,9 +829,9 @@ private enum Example {
     static let hairBeauty = ["Someone to do knotless braids, $120 max", "Barber under $35 in the next hour",
                              "Nails done this afternoon", "Brows shaped today"]
     static let homeHelp = ["Fix a leaking sink today", "Mount a TV this weekend",
-                           "Assemble a bed frame tomorrow", "House cleaning on Saturday morning"]
+                           "Build a bed frame tomorrow", "House cleaning on Saturday morning"]
     static let tech = ["I need help repairing my laptop", "Fix a cracked phone screen today",
-                       "Replace my phone battery this week"]
+                       "Phone battery replacement this week"]
 }
 
 /// The server's score wording, or nil when it sent a scored state without a value: no number

@@ -23,16 +23,21 @@ enum KnowBefore {
     static let maxPlace = 120
     static let maxOther = 360
 
+    /// Cuts by unicode scalars, as the send check counts, so an emoji cannot slip past the limit.
+    static func limited(_ text: String, to limit: Int) -> String {
+        String(String.UnicodeScalarView(text.unicodeScalars.prefix(limit)))
+    }
+
     static func question(_ topic: Topic, place: String, other: String = "") -> String? {
-        let place = String(place.trimmingCharacters(in: .whitespacesAndNewlines).prefix(maxPlace))
+        let place = limited(place.trimmingCharacters(in: .whitespacesAndNewlines), to: maxPlace)
         guard !place.isEmpty else { return nil }
         switch topic {
         case .busy: return "How busy is \(place) right now?"
         case .line: return "How long is the line at \(place) right now?"
-        case .open: return "Is \(place) open right now?"
+        case .open: return "Is it open right now at \(place)?"
         case .parking: return "Is parking easy at \(place) right now?"
         case .other:
-            let words = String(other.trimmingCharacters(in: .whitespacesAndNewlines).prefix(maxOther))
+            let words = limited(other.trimmingCharacters(in: .whitespacesAndNewlines), to: maxOther)
             return words.isEmpty ? nil : "At \(place): \(words)"
         }
     }
@@ -41,8 +46,8 @@ enum KnowBefore {
     static func placeName(_ name: String, street: String?) -> String {
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let street = street?.trimmingCharacters(in: .whitespacesAndNewlines), !street.isEmpty,
-              !name.localizedCaseInsensitiveContains(street) else { return String(name.prefix(maxPlace)) }
-        return String("\(name) on \(street)".prefix(maxPlace))
+              !name.localizedCaseInsensitiveContains(street) else { return limited(name, to: maxPlace) }
+        return limited("\(name) on \(street)", to: maxPlace)
     }
 }
 
@@ -75,6 +80,13 @@ final class PlaceSearch: ObservableObject {
         categories.first { $0.0 == category }?.1
     }
 
+    /// Places farther than this from the centre are dropped: Apple Maps treats the region as a hint.
+    nonisolated static let maxMetres: Double = 10_000
+    /// Only places known to be within reach; one with no distance cannot be shown as nearby.
+    nonisolated static func nearbyOnly(_ places: [NearbyPlace], within limit: Double = maxMetres) -> [NearbyPlace] {
+        places.filter { ($0.metres ?? .greatestFiniteMagnitude) <= limit }
+    }
+
     func load(_ query: String, near: RequestLocation?, only: MKPointOfInterestCategory? = nil) async {
         generation += 1
         let current = generation
@@ -87,6 +99,7 @@ final class PlaceSearch: ObservableObject {
             request.resultTypes = .pointOfInterest
             if let centre {
                 request.region = MKCoordinateRegion(center: centre.coordinate, latitudinalMeters: 10_000, longitudinalMeters: 10_000)
+                if #available(iOS 18, *) { request.regionPriority = .required }
             }
             search = MKLocalSearch(request: request)
         } else if let centre {
@@ -96,13 +109,15 @@ final class PlaceSearch: ObservableObject {
         } else {
             places = []
             failed = false
+            // A newer search with nothing to look up still ends the spinner an older one started.
+            isSearching = false
             return
         }
         isSearching = true
         do {
             let items = try await search.start().mapItems
             guard current == generation else { return }
-            places = items.compactMap { item in
+            let found: [NearbyPlace] = items.compactMap { item in
                 guard let name = item.name, !name.isEmpty else { return nil }
                 let street = item.placemark.thoroughfare
                 return NearbyPlace(name: name, label: KnowBefore.placeName(name, street: street),
@@ -110,6 +125,7 @@ final class PlaceSearch: ObservableObject {
                                    street: street,
                                    metres: centre.flatMap { centre in item.placemark.location.map { $0.distance(from: centre) } })
             }
+            places = (centre == nil ? found : Self.nearbyOnly(found))
             .sorted { ($0.metres ?? .greatestFiniteMagnitude) < ($1.metres ?? .greatestFiniteMagnitude) }
             .prefix(20).map { $0 }
             failed = false
@@ -137,28 +153,19 @@ struct KnowBeforeSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                        Text("Where are you going?").plugText(.display)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
-                        Text(KnowBeforeCopy.howItWorks).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    searchField
-                    if !trimmedQuery.isEmpty { typedPlace }
-                    nearby
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                    Text("Where are you going?").plugText(.display)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                    Text(KnowBeforeCopy.howItWorks).plugText(.bodySmall).foregroundStyle(PlugTokens.Color.ink600)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .foregroundStyle(PlugTokens.Color.ink900)
-                .padding(.horizontal, PlugTokens.Space.s6)
-                .padding(.top, PlugTokens.Space.s2)
-                .padding(.bottom, PlugTokens.Space.s8)
-                .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading)
-                .frame(maxWidth: .infinity)
+                searchField
+                if !trimmedQuery.isEmpty { typedPlace }
+                nearby
             }
-            .scrollDismissesKeyboard(.interactively)
-            .background(PlugTokens.Color.paper)
+            .knowBeforePage()
             .knowBeforeChrome("Know before you go") { dismiss() }
             .navigationDestination(item: $place) { chosen in
                 KnowBeforeQuestion(place: chosen) { question in onSend(question); dismiss() }
@@ -167,16 +174,29 @@ struct KnowBeforeSheet: View {
                 // A short pause so each typed letter is not its own Apple Maps search.
                 if !trimmedQuery.isEmpty { try? await Task.sleep(for: .milliseconds(300)) }
                 guard !Task.isCancelled else { return }
-                await search.load(query, near: location.location, only: kind)
+                await search.load(query, near: near, only: kind)
             }
         }
         .tint(PlugTokens.Color.ink900)
         .knowBeforePresentation()
+        .task {
+            // Find the person's own area on open; a typed address, even one not checked yet, is kept.
+            if !location.isWorking, location.address.isEmpty, location.location == nil || location.isStale() {
+                location.useDeviceLocation()
+            }
+        }
     }
 
     private var trimmedQuery: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
+    /// A device fix older than ten minutes is treated as no location, so the list is not of somewhere else.
+    private var near: RequestLocation? { location.isStale() ? nil : location.location }
+    /// The list's heading: the typed address's name when the Ask screen set one, else "Near you".
+    private var nearTitle: String {
+        if location.location != nil, location.fixedAt == nil, let label = location.label, !label.isEmpty { return "Near \(label)" }
+        return "Near you"
+    }
     private var searchKey: String {
-        "\(trimmedQuery)|\(kind?.rawValue ?? "all")|\(location.location.map { "\($0.latitude),\($0.longitude)" } ?? "-")"
+        "\(trimmedQuery)|\(kind?.rawValue ?? "all")|\(near.map { "\($0.latitude),\($0.longitude)" } ?? "-")"
     }
 
     private var searchField: some View {
@@ -197,7 +217,7 @@ struct KnowBeforeSheet: View {
                     .accessibilityLabel("Search a place, or type its name")
                     .accessibilityIdentifier("kbg-search")
                     .onChange(of: query) { _, value in
-                        if value.count > KnowBefore.maxPlace { query = String(value.prefix(KnowBefore.maxPlace)) }
+                        if value.unicodeScalars.count > KnowBefore.maxPlace { query = KnowBefore.limited(value, to: KnowBefore.maxPlace) }
                     }
             }
             if !query.isEmpty {
@@ -242,11 +262,14 @@ struct KnowBeforeSheet: View {
     @ViewBuilder private var nearby: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
             HStack(alignment: .firstTextBaseline) {
-                Overline(trimmedQuery.isEmpty ? "Near you" : "From Apple Maps")
+                Overline(trimmedQuery.isEmpty ? nearTitle : "From Apple Maps")
                 Spacer()
-                if search.isSearching { ProgressView().controlSize(.small).tint(PlugTokens.Color.ink600) }
+                if search.isSearching || location.isWorking { ProgressView().controlSize(.small).tint(PlugTokens.Color.ink600) }
             }
-            if location.location == nil && trimmedQuery.isEmpty {
+            if near == nil && !trimmedQuery.isEmpty {
+                caption("These results are not limited to your area.")
+            }
+            if near == nil && trimmedQuery.isEmpty {
                 locationPrompt
             } else {
                 if trimmedQuery.isEmpty { filters }
@@ -265,6 +288,7 @@ struct KnowBeforeSheet: View {
                         PlugDivider()
                     }
                 }
+                if trimmedQuery.isEmpty { caption("Places and distances from Apple Maps.") }
             }
         }
         .animation(.plugSheet(reduceMotion: reduceMotion), value: search.places.count)
@@ -288,21 +312,22 @@ struct KnowBeforeSheet: View {
         .padding(.horizontal, -PlugTokens.Space.s6)
     }
 
-    /// Nearby places need the approximate location the ask itself uses; it is asked for only on
-    /// a tap, the same permission, and the search field works without it.
+    /// Nearby places need the approximate location the ask itself uses. The sheet asks for it on
+    /// open, the same permission; the button is the retry, and the search field works without it.
     @ViewBuilder private var locationPrompt: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            if let error = location.errorMessage {
-                caption(error.contains("off") ? "Location is off. Search by name above, or type the place name."
-                        : "Your location is unavailable. Search by name above, or type the place name.")
+            if location.isWorking {
+                caption("Finding places near you\u{2026}")
             } else {
-                caption("Search by name above, or list places near your approximate location. PLUG sends nothing until you ask.")
-                Button(location.isWorking ? "Finding places near you\u{2026}" : "Show places near me") {
-                    location.useDeviceLocation()
+                if location.errorMessage != nil {
+                    caption(location.accessOff ? "Location is off. Search by name above, or type the place name."
+                            : "Your location is unavailable. Search by name above, or type the place name.")
+                } else {
+                    caption("Search by name above, or list places near your approximate location. PLUG sends nothing until you ask.")
                 }
-                .buttonStyle(PlugButtonStyle(kind: .secondary, fullWidth: false))
-                .disabled(location.isWorking)
-                .accessibilityIdentifier("kbg-use-location")
+                Button("Show places near me") { location.useDeviceLocation() }
+                    .buttonStyle(PlugButtonStyle(kind: .secondary, fullWidth: false))
+                    .accessibilityIdentifier("kbg-use-location")
             }
         }
         .padding(.top, PlugTokens.Space.s1)
@@ -315,7 +340,7 @@ struct KnowBeforeSheet: View {
                     Text(item.name).plugText(.title2).fixedSize(horizontal: false, vertical: true)
                     let facts = [item.category, item.metres.map { distance(Int($0)) }, item.street].compactMap { $0 }
                     if !facts.isEmpty {
-                        Text(facts.joined(separator: " \u{00B7} ")).plugText(.bodySmall)
+                        Text(facts.joined(separator: ", ")).plugText(.bodySmall)
                             .foregroundStyle(PlugTokens.Color.ink600).fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -345,60 +370,47 @@ private struct KnowBeforeQuestion: View {
     @State private var other = ""
     @FocusState private var otherFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dismiss) private var back
 
     private var question: String? { topic.flatMap { KnowBefore.question($0, place: place, other: other) } }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                    Overline(place)
-                    Text("What do you want to know?").plugText(.display)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityAddTraits(.isHeader)
-                }
-                VStack(spacing: PlugTokens.Space.s3) {
-                    ForEach(KnowBefore.Topic.allCases) { choice in
-                        ChoiceRow(title: choice.title, selected: topic == choice) {
-                            withAnimation(.plugSheet(reduceMotion: reduceMotion)) { topic = choice }
-                            otherFocused = choice == .other
-                        }
-                        .accessibilityIdentifier("kbg-topic-\(choice.rawValue)")
+        VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                Overline(place)
+                Text("What do you want to know?").plugText(.display)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+            }
+            VStack(spacing: PlugTokens.Space.s3) {
+                ForEach(KnowBefore.Topic.allCases) { choice in
+                    ChoiceRow(title: choice.title, selected: topic == choice) {
+                        withAnimation(.plugSheet(reduceMotion: reduceMotion)) { topic = choice }
+                        otherFocused = choice == .other
                     }
-                }
-                if topic == .other {
-                    AskTextBox(text: $other, limit: KnowBefore.maxOther, placeholder: "What do you want to check there?",
-                               focus: $otherFocused, label: "Your question", id: "kbg-other-text")
-                        .transition(.opacity)
-                }
-                QuestionPreview(question: question, empty: "Choose one above to see your question.")
-                    .accessibilityIdentifier("kbg-preview")
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                    Button { if let question { onSend(question) } } label: { Text("Ask people nearby") }
-                        .buttonStyle(PlugButtonStyle(kind: .primary))
-                        .disabled(question == nil)
-                        .accessibilityIdentifier("kbg-send")
-                    caption(KnowBeforeCopy.howItWorks)
-                    caption(KnowBeforeCopy.location)
+                    .accessibilityIdentifier("kbg-topic-\(choice.rawValue)")
                 }
             }
-            .foregroundStyle(PlugTokens.Color.ink900)
-            .padding(.horizontal, PlugTokens.Space.s6)
-            .padding(.top, PlugTokens.Space.s2)
-            .padding(.bottom, PlugTokens.Space.s8)
-            .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading)
-            .frame(maxWidth: .infinity)
+            if topic == .other {
+                AskTextBox(text: $other, limit: KnowBefore.maxOther, placeholder: "What do you want to check there?",
+                           focus: $otherFocused, label: "Your question", id: "kbg-other-text")
+                    .transition(.opacity)
+            }
+            QuestionPreview(question: question, empty: "Choose one above to see your question.")
+                .accessibilityIdentifier("kbg-preview")
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+                Button { if let question { onSend(question) } } label: { Text("Ask people nearby") }
+                    .buttonStyle(PlugButtonStyle(kind: .primary))
+                    .disabled(question == nil)
+                    .accessibilityIdentifier("kbg-send")
+                caption(KnowBeforeCopy.howItWorks)
+                caption(KnowBeforeCopy.location)
+            }
         }
-        .scrollDismissesKeyboard(.interactively)
-        .background(PlugTokens.Color.paper)
+        .knowBeforePage()
         .navigationTitle("Your question")
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        // A plain text Back, not the system's round glass one; the sheet still swipes down.
-        .navigationBarBackButtonHidden(true)
-        .modifier(SheetBarButton(title: "Back", back: true, id: "kbg-back") { back() })
         .sensoryFeedback(.selection, trigger: topic)
     }
 }
@@ -426,41 +438,32 @@ struct ExampleAskSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
-                        Text("Start from an example").plugText(.display)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityAddTraits(.isHeader)
-                        Text("Tap one, change any words, then ask people nearby.").plugText(.bodySmall)
-                            .foregroundStyle(PlugTokens.Color.ink600)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    VStack(spacing: PlugTokens.Space.s3) {
-                        ForEach(Array(asks.enumerated()), id: \.offset) { index, ask in
-                            ChoiceRow(title: ask, selected: text == ask) { text = ask }
-                                .accessibilityIdentifier("example-ask-\(index)")
-                        }
-                    }
-                    AskTextBox(text: $text, limit: 500, placeholder: "Tell us what you need\u{2026}",
-                               focus: $focused, label: "Your ask", id: "example-ask-text")
-                    VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-                        Button { if let ready { onSend(ready); dismiss() } } label: { Text("Ask people nearby") }
-                            .buttonStyle(PlugButtonStyle(kind: .primary))
-                            .disabled(ready == nil)
-                            .accessibilityIdentifier("example-ask-send")
-                        caption(KnowBeforeCopy.location)
+            VStack(alignment: .leading, spacing: PlugTokens.Space.s6) {
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
+                    Text("Start from an example").plugText(.display)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
+                    Text("Tap one, change any words, then ask people nearby.").plugText(.bodySmall)
+                        .foregroundStyle(PlugTokens.Color.ink600)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                VStack(spacing: PlugTokens.Space.s3) {
+                    ForEach(Array(asks.enumerated()), id: \.offset) { index, ask in
+                        ChoiceRow(title: ask, selected: text == ask) { text = ask }
+                            .accessibilityIdentifier("example-ask-\(index)")
                     }
                 }
-                .foregroundStyle(PlugTokens.Color.ink900)
-                .padding(.horizontal, PlugTokens.Space.s6)
-                .padding(.top, PlugTokens.Space.s2)
-                .padding(.bottom, PlugTokens.Space.s8)
-                .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading)
-                .frame(maxWidth: .infinity)
+                AskTextBox(text: $text, limit: 500, placeholder: "Tell us what you need\u{2026}",
+                           focus: $focused, label: "Your ask", id: "example-ask-text")
+                VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
+                    Button { if let ready { onSend(ready); dismiss() } } label: { Text("Ask people nearby") }
+                        .buttonStyle(PlugButtonStyle(kind: .primary))
+                        .disabled(ready == nil)
+                        .accessibilityIdentifier("example-ask-send")
+                    caption(KnowBeforeCopy.location)
+                }
             }
-            .scrollDismissesKeyboard(.interactively)
-            .background(PlugTokens.Color.paper)
+            .knowBeforePage()
             .knowBeforeChrome(title) { dismiss() }
         }
         .tint(PlugTokens.Color.ink900)
@@ -479,7 +482,7 @@ private struct ChoiceRow: View {
     let title: String
     let selected: Bool
     let action: () -> Void
-    @ScaledMetric(relativeTo: .body) private var glyph: CGFloat = 20
+    @ScaledMetric(relativeTo: .body) private var glyph: CGFloat = PlugTokens.Layout.icon
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: PlugShape.control, style: .continuous)
@@ -556,14 +559,14 @@ private struct AskTextBox: View {
                     .accessibilityLabel(label)
                     .accessibilityIdentifier(id)
                     .onChange(of: text) { _, value in
-                        if value.count > limit { text = String(value.prefix(limit)) }
+                        if value.unicodeScalars.count > limit { text = KnowBefore.limited(value, to: limit) }
                     }
             }
             .padding(PlugTokens.Space.s4)
             .background(PlugTokens.Color.sunk, in: shape)
             .overlay(shape.strokeBorder(focus.wrappedValue ? PlugTokens.Color.brandGreen : .clear, lineWidth: PlugShape.focusRule))
-            if text.count > limit - 60 {
-                caption("\(text.count) of \(limit) characters")
+            if text.unicodeScalars.count > limit - 60 {
+                caption("\(text.unicodeScalars.count) of \(limit) characters")
             }
         }
     }
@@ -575,7 +578,22 @@ private extension View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .modifier(SheetBarButton(title: "Close", id: "sheet-close", action: close))
+            .modifier(FlatToolbarButton(label: "Close", showsTitle: true, placement: .topBarLeading,
+                                        id: "sheet-close", action: close))
+    }
+
+    /// The sheets' shared page: one readable column on paper that scrolls the keyboard away.
+    func knowBeforePage() -> some View {
+        ScrollView {
+            self.foregroundStyle(PlugTokens.Color.ink900)
+                .padding(.horizontal, PlugTokens.Space.s6)
+                .padding(.top, PlugTokens.Space.s2)
+                .padding(.bottom, PlugTokens.Space.s8)
+                .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading)
+                .frame(maxWidth: .infinity)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .background(PlugTokens.Color.paper)
     }
 
     func knowBeforePresentation() -> some View {
@@ -583,48 +601,5 @@ private extension View {
             .presentationDragIndicator(.visible)
             .presentationBackground(PlugTokens.Color.paper)
             .presentationCornerRadius(PlugShape.sheet)
-    }
-}
-
-/// A bar action as plain espresso text, never the round glass button iOS 26 puts behind toolbar
-/// items. CI builds with Xcode 16 (iOS 18 SDK), which has no sharedBackgroundVisibility.
-private struct SheetBarButton: ViewModifier {
-    let title: String
-    var back = false
-    let id: String
-    let action: () -> Void
-    @ScaledMetric(relativeTo: .body) private var glyph: CGFloat = 16
-
-    @ViewBuilder func body(content: Content) -> some View {
-        #if compiler(>=6.2)
-        if #available(iOS 26, *) {
-            content.toolbar { ToolbarItem(placement: .topBarLeading) { button }.sharedBackgroundVisibility(.hidden) }
-        } else {
-            content.toolbar { ToolbarItem(placement: .topBarLeading) { button } }
-        }
-        #else
-        content.toolbar { ToolbarItem(placement: .topBarLeading) { button } }
-        #endif
-    }
-
-    private var button: some View {
-        Button(action: action) {
-            HStack(spacing: PlugTokens.Space.s1) {
-                if back {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: min(glyph, PlugTokens.Layout.iconMax), weight: .semibold))
-                        .accessibilityHidden(true)
-                }
-                Text(title).plugText(.action).lineLimit(1)
-            }
-            // The bar proposes a narrow width; the label keeps its own so it never wraps.
-            .fixedSize()
-            .foregroundStyle(PlugTokens.Color.ink900)
-            .frame(minHeight: PlugTokens.minTouchTarget)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(title)
-        .accessibilityIdentifier(id)
     }
 }

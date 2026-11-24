@@ -11,6 +11,8 @@ final class RequestLocationModel: NSObject, ObservableObject, @preconcurrency CL
     @Published private(set) var location: RequestLocation?
     @Published private(set) var label: String?
     @Published private(set) var errorMessage: String?
+    /// True when the error is that location access is off, so screens pick their copy by case.
+    @Published private(set) var accessOff = false
     @Published private(set) var isWorking = false
     /// When the current device fix was taken; nil for a typed address, which does not go stale.
     private(set) var fixedAt: Date?
@@ -70,6 +72,7 @@ final class RequestLocationModel: NSObject, ObservableObject, @preconcurrency CL
         geocoder.cancelGeocode()
         location = nil
         errorMessage = nil
+        accessOff = false
         isWorking = true
         switch manager.authorizationStatus {
         case .notDetermined: manager.requestWhenInUseAuthorization()
@@ -107,6 +110,7 @@ final class RequestLocationModel: NSObject, ObservableObject, @preconcurrency CL
     private func denied() {
         deviceGeneration = nil
         isWorking = false
+        accessOff = true
         errorMessage = "Location access is off. You can still search by entering an address below."
     }
 }

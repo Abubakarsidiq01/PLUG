@@ -9,7 +9,7 @@
     "P2"
   ],
   "current_phase": "P3",
-  "current_step": "P3.S15",
+  "current_step": "P3-ui-know-before-fixes",
   "current_step_title": "In-app fan-out policy and caps (the in-app part of P3.S4): best six first, expansion only by policy, a combined ceiling of 14.",
   "manual_section": "27.4 / 19A.3 (SupplierMatcher)",
   "readme": "docs/phases/P3-ONE.md",
@@ -149,6 +149,13 @@
     "provider_inbox": "off (Phase 3 in-app inbox, offers and reservations)"
   },
   "next_actions": [
+    {
+      "id": "P3-ui-know-before-fixes",
+      "owner": "person_one",
+      "manual_section": "16 / 20",
+      "task": "Six review fixes to merged PR #64 (Know before you go). 1. The Near you place list treats a device fix older than 10 minutes as no location (RequestLocationModel.isStale()). 2. A newer search with nothing to look up ends the spinner an older pending search started, so the empty or No match caption can show. 3. Three ready-made asks reworded to match the server's keyword fallback: Build a bed frame tomorrow (furniture_assembly), Phone battery replacement this week (phone_repair), Is it open right now at <place>? (place question rule). 4. .claude/worktrees/ added to the owner's uncommitted .gitignore edit in the main checkout only (not in this change). 5. The sheets' repeated page layout is one private knowBeforePage() helper and the sheet bar buttons reuse FlatToolbarButton (new optional showsTitle, placement and id inputs). 6. The sheet's length limits count and cut unicode scalars like the send check, with a family-emoji test. 7. Owner request 2026-11-24: the sheet detects the device location on open (keeping a typed address, listed as Near <address>), drops Apple Maps results farther than 10 km from the centre (regionPriority required on iOS 18+), and says when a name search is not limited to the area. 8. PR #66 review fixes: a failed or denied fix and the sheet's auto-detect clear the pending home ask, so no ask is sent that nobody tapped; the location purpose string names the place list; the question step keeps the system back button and edge swipe; place facts are comma-separated; the nearby list credits Apple Maps; the location-off copy is picked by RequestLocationModel.accessOff; the results band has Space.s4 top padding and the audit waits for the Ask sent toast to clear.",
+      "acceptance": "A stale location (older than 10 minutes) shows no Near you list; clearing a pending search stops the spinner and shows No match when nothing matched; the three reworded ready-made asks match the server's keyword fallback; the sheet's length limit counts unicode scalars like the send check, with a family-emoji test; the repeated layout and toolbar code is shared; opening the sheet with no location or a stale fix detects the device location without a tap, a typed address is kept, and no listed place is farther than 10 km from the centre; a failed or denied location fix never later sends a home ask on its own; iOS unit tests pass on a simulator."
+    },
     {
       "id": "P3.S15",
       "owner": "person_one",
@@ -348,7 +355,9 @@
     "P3.S14: reinstating a provider leaves accepting false; nothing tells them to turn it back on yet (iOS shows accepting from GET /v1/providers/me).",
     "P3.S12/P3.S13: a decline is still accepted after respond_by while the request is open, but it now counts as silence for responsiveness (owner rule: silence is no reply by respond_by). The inbox still shows it as declined.",
     "P3.S14: the matching re-check under the candidate lock (standing and accepting) has no deterministic race test; it is covered by reading and by the suspended-is-not-matched test.",
-    "P3.S15: the combined ceiling of 14 counts only request_matches today. SMS outreach (P3.S4 SMS, P3.S9) must count its contacts in MatchService.contacted() and record wave, or SMS and in-app together can exceed 14. web/src/generated/api.ts still types AdminMatchHistory.cap as 16 until the web lane regenerates it."
+    "P3.S15: the combined ceiling of 14 counts only request_matches today. SMS outreach (P3.S4 SMS, P3.S9) must count its contacts in MatchService.contacted() and record wave, or SMS and in-app together can exceed 14. web/src/generated/api.ts still types AdminMatchHistory.cap as 16 until the web lane regenerates it.",
+    "P3-ui-know-before-fixes: the Know before you go parking question (\"Is parking easy at <place> right now?\") matches neither the server's place rule nor a skill, so when the Claude classifier fails it comes back unclear (the one question offers the place option); not reworded in this change.",
+    "P3-ui-know-before-fixes: the send check (RequestModel.textError) rejects the zero-width joiner U+200D as a control character, so any ask containing a joined emoji such as a family emoji cannot be sent."
   ],
   "environments": {
     "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",

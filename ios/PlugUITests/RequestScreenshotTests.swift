@@ -44,6 +44,8 @@ final class RequestScreenshotTests: XCTestCase {
             reveal(place, in: app)
             place.tap()
             XCTAssertTrue(app.descendants(matching: .any)["kbg-search"].waitForExistence(timeout: 20))
+            // The sheet finds the device location on open, so the first run may ask for permission.
+            allowLocation(unless: { app.buttons["kbg-place-0"].exists || app.buttons["kbg-use-location"].exists })
             capture("visual-know-before-\(suffix)")
             if largest { app.buttons["sheet-close"].tap(); continue }
             // A typed place, one question, and the sheet's own send reach the answer screen.
@@ -139,6 +141,8 @@ final class RequestScreenshotTests: XCTestCase {
         XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
         // Offers fade up one after another; audit once they have landed, not mid-fade.
         RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        // The "Ask sent" toast sits over the band for about two seconds; audit the screen under it.
+        XCTAssertTrue(app.staticTexts["Ask sent"].waitForNonExistence(timeout: 10))
         try audit("results")
         let details = app.buttons["View details"].firstMatch
         reveal(details, in: app)
