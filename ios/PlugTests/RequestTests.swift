@@ -58,6 +58,37 @@ final class RequestTests: XCTestCase {
         XCTAssertThrowsError(try result.validated())
     }
 
+    func testDeviceFixGoesStaleAfterTenMinutesButATypedAddressDoesNot() {
+        let now = Date()
+        XCTAssertFalse(RequestLocationModel.isStale(fixedAt: nil, now: now))
+        XCTAssertFalse(RequestLocationModel.isStale(fixedAt: now.addingTimeInterval(-9 * 60), now: now))
+        XCTAssertTrue(RequestLocationModel.isStale(fixedAt: now.addingTimeInterval(-11 * 60), now: now))
+        XCTAssertFalse(RequestLocationModel().isStale())
+    }
+
+    func testKnowBeforeQuestionsAreExactAndStayWithinTheAskLimit() throws {
+        let place = KnowBefore.placeName("H-E-B", street: "South Congress Avenue")
+        XCTAssertEqual(place, "H-E-B on South Congress Avenue")
+        XCTAssertEqual(KnowBefore.placeName("Main Street Cafe", street: "Main Street"), "Main Street Cafe")
+        XCTAssertEqual(KnowBefore.question(.line, place: place), "How long is the line at H-E-B on South Congress Avenue right now?")
+        XCTAssertEqual(KnowBefore.question(.busy, place: " Walmart "), "How busy is Walmart right now?")
+        XCTAssertEqual(KnowBefore.question(.open, place: "the DMV"), "Is the DMV open right now?")
+        XCTAssertEqual(KnowBefore.question(.parking, place: "Zilker Park"), "Is parking easy at Zilker Park right now?")
+        XCTAssertEqual(KnowBefore.question(.other, place: "Jo's", other: "Is there seating outside?"), "At Jo's: Is there seating outside?")
+        XCTAssertNil(KnowBefore.question(.other, place: "Jo's", other: "  "))
+        XCTAssertNil(KnowBefore.question(.busy, place: "  "))
+        // The longest place and free text together still pass the composer's own check.
+        let longest = try XCTUnwrap(KnowBefore.question(.other, place: String(repeating: "p", count: 400),
+                                                        other: String(repeating: "q", count: 900)))
+        let model = RequestModel(service: StubRequests())
+        model.text = longest
+        XCTAssertNil(model.textError)
+        for topic in KnowBefore.Topic.allCases where topic != .other {
+            model.text = try XCTUnwrap(KnowBefore.question(topic, place: String(repeating: "p", count: 400)))
+            XCTAssertNil(model.textError)
+        }
+    }
+
     func testAskingPlaceQuestionPollsWithoutInventingAnswers() async throws {
         let service = StubRequests()
         var json = try object("asks.create", "place-question")
