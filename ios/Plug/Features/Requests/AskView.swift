@@ -77,6 +77,10 @@ struct AskView: View {
                 askWhenLocated = false
                 Task { await model.submit(location: located) }
             }
+            // A failed or denied fix ends the wait, so a later fix never sends an ask nobody tapped.
+            .onChange(of: location.errorMessage) { _, error in if error != nil { askWhenLocated = false } }
+            // Know before you go finds the location on open; that fix must not send the home ask.
+            .onChange(of: sheet?.id) { _, id in if id == "know-before" { askWhenLocated = false } }
             .onChange(of: voice.transcript) { _, words in if !words.isEmpty { model.text = words } }
             .sheet(item: $sheet, onDismiss: sendPendingAsk) { shown in
                 switch shown {
@@ -427,8 +431,9 @@ struct AskView: View {
         }
     }
 
-    /// The approximate location is taken only when the person asks. If it is denied or
-    /// unavailable, typing an address keeps the product usable (§12.2 permission denied).
+    /// The approximate location is taken to list places near you and, when the person sends an
+    /// ask, to reach people nearby. If it is denied or unavailable, typing an address keeps the
+    /// product usable (§12.2 permission denied).
     @ViewBuilder private var locationNote: some View {
         if let label = location.label, location.location != nil {
             Label("Asking near: \(label)", systemImage: "location.fill")
@@ -540,7 +545,7 @@ struct AskView: View {
             progressCard
         }
         .padding(.horizontal, PlugTokens.Space.s6)
-        .padding(.top, PlugTokens.Space.s2)
+        .padding(.top, PlugTokens.Space.s4)
         .frame(maxWidth: PlugTokens.Layout.measure, alignment: .leading)
         .frame(maxWidth: .infinity)
     }

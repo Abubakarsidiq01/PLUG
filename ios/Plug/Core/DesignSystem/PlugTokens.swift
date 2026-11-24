@@ -403,8 +403,8 @@ private struct PlugPressBody: View {
 }
 
 /// One navigation-bar action drawn flat, with no background: a 44pt symbol, or with `showsTitle`
-/// the label as plain words after an optional symbol, never the round glass button iOS 26 puts
-/// behind toolbar items. On iOS 26 the bar's shared glass circle is turned off for it.
+/// the label as plain words, never the round glass button iOS 26 puts behind toolbar items. On
+/// iOS 26 the bar's shared glass circle is turned off for it.
 struct FlatToolbarButton: ViewModifier {
     var systemImage: String? = nil
     let label: String
@@ -415,7 +415,6 @@ struct FlatToolbarButton: ViewModifier {
     var color: Color = PlugTokens.Color.ink900
     let action: () -> Void
     @ScaledMetric(relativeTo: .body) private var glyph: CGFloat = PlugTokens.TypeSize.title3
-    @ScaledMetric(relativeTo: .body) private var titleGlyph: CGFloat = 16
 
     @ViewBuilder func body(content: Content) -> some View {
         // CI builds with Xcode 16 (iOS 18 SDK), which has no sharedBackgroundVisibility.
@@ -440,14 +439,7 @@ struct FlatToolbarButton: ViewModifier {
     private var button: some View {
         Button(action: action) {
             if showsTitle {
-                HStack(spacing: PlugTokens.Space.s1) {
-                    if let systemImage {
-                        Image(systemName: systemImage)
-                            .font(.system(size: min(titleGlyph, PlugTokens.Layout.iconMax), weight: .semibold))
-                            .accessibilityHidden(true)
-                    }
-                    Text(label).plugText(.action).lineLimit(1)
-                }
+                Text(label).plugText(.action).lineLimit(1)
                 // The bar proposes a narrow width; the label keeps its own so it never wraps.
                 .fixedSize()
                 .foregroundStyle(color.opacity(disabled ? 0.5 : 1))

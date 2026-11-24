@@ -130,6 +130,8 @@ final class RequestScreenshotTests: XCTestCase {
         XCTAssertTrue(app.buttons["View details"].firstMatch.waitForExistence(timeout: 20))
         // Offers fade up one after another; audit once they have landed, not mid-fade.
         RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        // The "Ask sent" toast sits over the band for about two seconds; audit the screen under it.
+        XCTAssertTrue(app.staticTexts["Ask sent"].waitForNonExistence(timeout: 10))
         try audit("results")
         let details = app.buttons["View details"].firstMatch
         reveal(details, in: app)

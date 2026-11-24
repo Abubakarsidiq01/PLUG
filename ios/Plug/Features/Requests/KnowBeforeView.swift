@@ -288,6 +288,7 @@ struct KnowBeforeSheet: View {
                         PlugDivider()
                     }
                 }
+                if trimmedQuery.isEmpty { caption("Places and distances from Apple Maps.") }
             }
         }
         .animation(.plugSheet(reduceMotion: reduceMotion), value: search.places.count)
@@ -318,8 +319,8 @@ struct KnowBeforeSheet: View {
             if location.isWorking {
                 caption("Finding places near you\u{2026}")
             } else {
-                if let error = location.errorMessage {
-                    caption(error.contains("off") ? "Location is off. Search by name above, or type the place name."
+                if location.errorMessage != nil {
+                    caption(location.accessOff ? "Location is off. Search by name above, or type the place name."
                             : "Your location is unavailable. Search by name above, or type the place name.")
                 } else {
                     caption("Search by name above, or list places near your approximate location. PLUG sends nothing until you ask.")
@@ -339,7 +340,7 @@ struct KnowBeforeSheet: View {
                     Text(item.name).plugText(.title2).fixedSize(horizontal: false, vertical: true)
                     let facts = [item.category, item.metres.map { distance(Int($0)) }, item.street].compactMap { $0 }
                     if !facts.isEmpty {
-                        Text(facts.joined(separator: " \u{00B7} ")).plugText(.bodySmall)
+                        Text(facts.joined(separator: ", ")).plugText(.bodySmall)
                             .foregroundStyle(PlugTokens.Color.ink600).fixedSize(horizontal: false, vertical: true)
                     }
                 }
@@ -369,7 +370,6 @@ private struct KnowBeforeQuestion: View {
     @State private var other = ""
     @FocusState private var otherFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dismiss) private var back
 
     private var question: String? { topic.flatMap { KnowBefore.question($0, place: place, other: other) } }
 
@@ -411,10 +411,6 @@ private struct KnowBeforeQuestion: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbarBackground(PlugTokens.Color.paper, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        // A plain text Back, not the system's round glass one; the sheet still swipes down.
-        .navigationBarBackButtonHidden(true)
-        .modifier(FlatToolbarButton(systemImage: "chevron.left", label: "Back", showsTitle: true,
-                                    placement: .topBarLeading, id: "kbg-back") { back() })
         .sensoryFeedback(.selection, trigger: topic)
     }
 }
@@ -486,7 +482,7 @@ private struct ChoiceRow: View {
     let title: String
     let selected: Bool
     let action: () -> Void
-    @ScaledMetric(relativeTo: .body) private var glyph: CGFloat = 20
+    @ScaledMetric(relativeTo: .body) private var glyph: CGFloat = PlugTokens.Layout.icon
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: PlugShape.control, style: .continuous)

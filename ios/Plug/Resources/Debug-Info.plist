@@ -21,7 +21,7 @@
 		<true/>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>PLUG uses your approximate location when you ask, to reach people nearby. You can type an address instead.</string>
+	<string>PLUG uses your approximate location to list places near you and, when you send an ask, to reach people nearby.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>PLUG listens only while Voice is on, to write your ask. You can type instead.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
