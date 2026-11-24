@@ -25,11 +25,24 @@ import org.springframework.jdbc.core.JdbcTemplate;
 ///     on a neutral 50 and 0.5, never 0 (manual v4 §12C.3, P3.S14).
 ///  A suspended provider is never matched (P3.S14).
 ///  3. Cap: the best few are notified; there is a hard ceiling that is never lifted, and no provider
-///     is notified more than NOTIFICATIONS_PER_HOUR times in any hour.
+///     is notified more than NOTIFICATIONS_PER_HOUR times in any hour (a capped provider is skipped
+///     and the next candidate is used).
+///  4. Expand (P3.S15, owner decision 2026-11-23, manual v4 SupplierMatcher): the best 6 at t0 (the
+///     request's creation), 4 more at t+120s and 4 more at t+240s, each only while the request has
+///     fewer than ENOUGH_OFFERS live offers; no new wave from t+300s; at most ABSOLUTE_CAP contacts per
+///     request. A wave the worker misses is not caught up later. Every contact keeps its own reply
+///     window (respond_by = notified_at + 5 minutes), which may run past t+300s. Only with the
+///     provider inbox on: without it nobody can answer in-app, so Phase 2's single wave stands.
 /// Notified providers are recorded in request_matches; Phase 3's inbox delivers to them.
 public class MatchService {
     static final int INITIAL_FANOUT = 6;
-    static final int ABSOLUTE_CAP = 16;
+    static final int EXPANSION_STEP = 4;
+    /// Per request, in-app and SMS together (owner decision 2026-11-23, contract 0.7.4).
+    static final int ABSOLUTE_CAP = 14;
+    static final Duration WAVE_INTERVAL = Duration.ofSeconds(120);
+    static final Duration FANOUT_STOP = Duration.ofSeconds(300);
+    /// Fewer live offers than this and the request still needs offers (manual: "fewer than 2 replies").
+    static final int ENOUGH_OFFERS = 2;
     /// A provider is notified at most this many times an hour (contract 0.7.0); a match over it is not made.
     static final int NOTIFICATIONS_PER_HOUR = 4;
     /// An as-soon-as-possible ask is served within this window.
@@ -44,18 +57,52 @@ public class MatchService {
 
     private final JdbcTemplate jdbc;
     private final Clock clock;
+    private final boolean expansion;
 
-    public MatchService(JdbcTemplate jdbc, Clock clock) {
+    public MatchService(JdbcTemplate jdbc, Clock clock, boolean expansion) {
         this.jdbc = jdbc;
         this.clock = clock;
+        this.expansion = expansion;
     }
 
-    /// Notifies the best matching providers once per request. Returns how many were notified.
-    public int notify(Resource request) {
+    /// Wave 1: notifies the best matching providers when the request is routed. Returns how many.
+    public int notify(Resource request) { return notify(request, 1); }
+
+    /// Waves 2 and 3, run by the worker under the request's lock. Returns how many were notified.
+    public int expand(Resource request) {
+        int wave = dueWave(request.createdAt(), clock.instant());
+        if (!expansion || wave == 0 || request.progress().offersReady() >= ENOUGH_OFFERS) return 0;
+        if (jdbc.queryForObject("SELECT count(*) FROM request_matches WHERE request_id=? AND wave=?", Integer.class,
+                request.requestId(), wave) > 0) return 0;
+        return notify(request, wave);
+    }
+
+    /// True while a later wave may still contact someone, so a request whose contacts all declined
+    /// waits for it instead of ending as no_offers.
+    public boolean wavesPending(Resource request) {
+        if (!expansion || !clock.instant().isBefore(request.createdAt().plus(FANOUT_STOP))) return false;
+        int contacted = contacted(request.requestId());
+        return contacted > 0 && contacted < ABSOLUTE_CAP && jdbc.queryForObject(
+                "SELECT count(*) FROM request_matches WHERE request_id=? AND wave=3", Integer.class, request.requestId()) == 0;
+    }
+
+    /// The expansion wave whose slot holds now: 2 from t+120s, 3 from t+240s, none before or from t+300s.
+    static int dueWave(Instant createdAt, Instant now) {
+        Duration elapsed = Duration.between(createdAt, now);
+        if (elapsed.compareTo(WAVE_INTERVAL) < 0 || elapsed.compareTo(FANOUT_STOP) >= 0) return 0;
+        return (int) elapsed.dividedBy(WAVE_INTERVAL) + 1;
+    }
+
+    /// Everyone contacted for the request, the one counter the ceiling is checked against.
+    /// shortcut: only in-app contacts exist; SMS outreach (P3.S4 SMS, P3.S9) must add its rows here.
+    private int contacted(String requestId) {
+        return jdbc.queryForObject("SELECT count(*) FROM request_matches WHERE request_id=?", Integer.class, requestId);
+    }
+
+    private int notify(Resource request, int wave) {
         Constraints c = request.constraints();
         if (c.skillTags().isEmpty()) return 0;
-        int already = jdbc.queryForObject("SELECT count(*) FROM request_matches WHERE request_id=?", Integer.class,
-                request.requestId());
+        int already = contacted(request.requestId());
         if (already >= ABSOLUTE_CAP) return 0;
         String requester = jdbc.queryForObject("SELECT user_id FROM requests WHERE id=?", String.class, request.requestId());
         Instant start = clock.instant();
@@ -102,12 +149,12 @@ public class MatchService {
                 .filter(candidate -> stillEligible.contains(candidate.userId()))
                 .filter(candidate -> jdbc.queryForObject("SELECT count(*) FROM request_matches WHERE provider_id=? AND notified_at>?",
                         Integer.class, candidate.userId(), hourAgo) < NOTIFICATIONS_PER_HOUR)
-                .limit(Math.min(INITIAL_FANOUT, ABSOLUTE_CAP - already))
+                .limit(Math.min(wave == 1 ? INITIAL_FANOUT : EXPANSION_STEP, ABSOLUTE_CAP - already))
                 .toList();
         Timestamp now = Timestamp.from(clock.instant());
         for (Candidate candidate : chosen) {
-            jdbc.update("INSERT INTO request_matches(request_id,provider_id,distance_m,rank_score,notified_at) VALUES(?,?,?,?,?)",
-                    request.requestId(), candidate.userId(), candidate.distanceM(), Math.round(candidate.rank() * 100) / 100.0, now);
+            jdbc.update("INSERT INTO request_matches(request_id,provider_id,distance_m,rank_score,notified_at,wave) VALUES(?,?,?,?,?,?)",
+                    request.requestId(), candidate.userId(), candidate.distanceM(), Math.round(candidate.rank() * 100) / 100.0, now, wave);
         }
         return chosen.size();
     }
