@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """Loopback-only synthetic UI-state server. Never a production backend or G2 live evidence.
 
-Run: python3 ios/PlugUITests/Support/request_fixture_server.py
-Point RequestScreenshotTests at http://127.0.0.1:18084.
+Run: python3 ios/PlugUITests/Support/request_fixture_server.py [port]
+Point RequestScreenshotTests at http://127.0.0.1:18084 (or TEST_RUNNER_PLUG_FIXTURE_URL for another port).
 Data comes from the shared contract fixtures; test-only state selection stays outside the app.
 The words of the ask choose the state: "clarify", "progress", "empty", "restricted",
 "cached", and "line"/"busy" for a place question. Anything else is a service request.
 """
 import json
+import sys
 import threading
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -209,4 +210,4 @@ class Handler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
-    ThreadingHTTPServer(("127.0.0.1", 18084), Handler).serve_forever()
+    ThreadingHTTPServer(("127.0.0.1", int(sys.argv[1]) if len(sys.argv) > 1 else 18084), Handler).serve_forever()
