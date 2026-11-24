@@ -80,6 +80,13 @@ final class PlaceSearch: ObservableObject {
         categories.first { $0.0 == category }?.1
     }
 
+    /// Places farther than this from the centre are dropped: Apple Maps treats the region as a hint.
+    nonisolated static let maxMetres: Double = 10_000
+    /// Only places known to be within reach; one with no distance cannot be shown as nearby.
+    nonisolated static func nearbyOnly(_ places: [NearbyPlace], within limit: Double = maxMetres) -> [NearbyPlace] {
+        places.filter { ($0.metres ?? .greatestFiniteMagnitude) <= limit }
+    }
+
     func load(_ query: String, near: RequestLocation?, only: MKPointOfInterestCategory? = nil) async {
         generation += 1
         let current = generation
@@ -92,6 +99,7 @@ final class PlaceSearch: ObservableObject {
             request.resultTypes = .pointOfInterest
             if let centre {
                 request.region = MKCoordinateRegion(center: centre.coordinate, latitudinalMeters: 10_000, longitudinalMeters: 10_000)
+                if #available(iOS 18, *) { request.regionPriority = .required }
             }
             search = MKLocalSearch(request: request)
         } else if let centre {
@@ -109,7 +117,7 @@ final class PlaceSearch: ObservableObject {
         do {
             let items = try await search.start().mapItems
             guard current == generation else { return }
-            places = items.compactMap { item in
+            let found: [NearbyPlace] = items.compactMap { item in
                 guard let name = item.name, !name.isEmpty else { return nil }
                 let street = item.placemark.thoroughfare
                 return NearbyPlace(name: name, label: KnowBefore.placeName(name, street: street),
@@ -117,6 +125,7 @@ final class PlaceSearch: ObservableObject {
                                    street: street,
                                    metres: centre.flatMap { centre in item.placemark.location.map { $0.distance(from: centre) } })
             }
+            places = (centre == nil ? found : Self.nearbyOnly(found))
             .sorted { ($0.metres ?? .greatestFiniteMagnitude) < ($1.metres ?? .greatestFiniteMagnitude) }
             .prefix(20).map { $0 }
             failed = false
@@ -170,11 +179,22 @@ struct KnowBeforeSheet: View {
         }
         .tint(PlugTokens.Color.ink900)
         .knowBeforePresentation()
+        .task {
+            // Find the person's own area on open; a typed address, even one not checked yet, is kept.
+            if !location.isWorking, location.address.isEmpty, location.location == nil || location.isStale() {
+                location.useDeviceLocation()
+            }
+        }
     }
 
     private var trimmedQuery: String { query.trimmingCharacters(in: .whitespacesAndNewlines) }
     /// A device fix older than ten minutes is treated as no location, so the list is not of somewhere else.
     private var near: RequestLocation? { location.isStale() ? nil : location.location }
+    /// The list's heading: the typed address's name when the Ask screen set one, else "Near you".
+    private var nearTitle: String {
+        if location.location != nil, location.fixedAt == nil, let label = location.label, !label.isEmpty { return "Near \(label)" }
+        return "Near you"
+    }
     private var searchKey: String {
         "\(trimmedQuery)|\(kind?.rawValue ?? "all")|\(near.map { "\($0.latitude),\($0.longitude)" } ?? "-")"
     }
@@ -242,9 +262,12 @@ struct KnowBeforeSheet: View {
     @ViewBuilder private var nearby: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s2) {
             HStack(alignment: .firstTextBaseline) {
-                Overline(trimmedQuery.isEmpty ? "Near you" : "From Apple Maps")
+                Overline(trimmedQuery.isEmpty ? nearTitle : "From Apple Maps")
                 Spacer()
-                if search.isSearching { ProgressView().controlSize(.small).tint(PlugTokens.Color.ink600) }
+                if search.isSearching || location.isWorking { ProgressView().controlSize(.small).tint(PlugTokens.Color.ink600) }
+            }
+            if near == nil && !trimmedQuery.isEmpty {
+                caption("These results are not limited to your area.")
             }
             if near == nil && trimmedQuery.isEmpty {
                 locationPrompt
@@ -288,21 +311,22 @@ struct KnowBeforeSheet: View {
         .padding(.horizontal, -PlugTokens.Space.s6)
     }
 
-    /// Nearby places need the approximate location the ask itself uses; it is asked for only on
-    /// a tap, the same permission, and the search field works without it.
+    /// Nearby places need the approximate location the ask itself uses. The sheet asks for it on
+    /// open, the same permission; the button is the retry, and the search field works without it.
     @ViewBuilder private var locationPrompt: some View {
         VStack(alignment: .leading, spacing: PlugTokens.Space.s3) {
-            if let error = location.errorMessage {
-                caption(error.contains("off") ? "Location is off. Search by name above, or type the place name."
-                        : "Your location is unavailable. Search by name above, or type the place name.")
+            if location.isWorking {
+                caption("Finding places near you\u{2026}")
             } else {
-                caption("Search by name above, or list places near your approximate location. PLUG sends nothing until you ask.")
-                Button(location.isWorking ? "Finding places near you\u{2026}" : "Show places near me") {
-                    location.useDeviceLocation()
+                if let error = location.errorMessage {
+                    caption(error.contains("off") ? "Location is off. Search by name above, or type the place name."
+                            : "Your location is unavailable. Search by name above, or type the place name.")
+                } else {
+                    caption("Search by name above, or list places near your approximate location. PLUG sends nothing until you ask.")
                 }
-                .buttonStyle(PlugButtonStyle(kind: .secondary, fullWidth: false))
-                .disabled(location.isWorking)
-                .accessibilityIdentifier("kbg-use-location")
+                Button("Show places near me") { location.useDeviceLocation() }
+                    .buttonStyle(PlugButtonStyle(kind: .secondary, fullWidth: false))
+                    .accessibilityIdentifier("kbg-use-location")
             }
         }
         .padding(.top, PlugTokens.Space.s1)

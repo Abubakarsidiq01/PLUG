@@ -99,6 +99,16 @@ final class RequestTests: XCTestCase {
         XCTAssertLessThanOrEqual(emoji.unicodeScalars.count, 500)
     }
 
+    func testNearbyPlacesDropAnythingFartherThanTenKilometres() {
+        func place(_ name: String, _ metres: Double?) -> NearbyPlace {
+            NearbyPlace(name: name, label: name, category: nil, street: nil, metres: metres)
+        }
+        let kept = PlaceSearch.nearbyOnly([place("near", 400), place("edge", 10_000), place("far", 10_001),
+                                           place("other city", 1_200_000), place("no distance", nil)])
+        XCTAssertEqual(kept.map(\.name), ["near", "edge"])
+        XCTAssertEqual(PlaceSearch.maxMetres, 10_000)
+    }
+
     func testAskingPlaceQuestionPollsWithoutInventingAnswers() async throws {
         let service = StubRequests()
         var json = try object("asks.create", "place-question")
