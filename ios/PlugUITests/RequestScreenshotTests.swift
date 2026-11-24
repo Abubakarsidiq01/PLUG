@@ -1,11 +1,22 @@
+import CoreLocation
 import XCTest
+
+extension XCTestCase {
+    /// A fresh simulator has no location, so the location-based steps would wait and fail.
+    /// Every UI test sets the same fixed place before launching; a physical device keeps its own.
+    func simulateFixtureLocation() {
+        #if targetEnvironment(simulator)
+        XCUIDevice.shared.location = XCUILocation(location: CLLocation(latitude: 32.528, longitude: -92.714))
+        #endif
+    }
+}
 
 /// Synthetic fixture-server screenshots exercise real SwiftUI and HTTP decoding. They
 /// are explicitly separate from the connected backend and physical-device G2 evidence.
 /// The walk follows manual v4 Figures A1 to A3: ask, working, offers, unknown, the web
 /// answer, and offering a service from the same account.
 final class RequestScreenshotTests: XCTestCase {
-    override func setUp() { super.setUp(); continueAfterFailure = false }
+    override func setUp() { super.setUp(); continueAfterFailure = false; simulateFixtureLocation() }
 
     func testRequestStatesDefaultText() throws { try walk(largest: false) }
     func testRequestStatesLargestText() throws { try walk(largest: true) }
@@ -413,7 +424,8 @@ final class RequestScreenshotTests: XCTestCase {
         let app = XCUIApplication()
         app.launchArguments = ["-plug-ui-test-reset"]
         if largest { app.launchArguments += ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"] }
-        app.launchEnvironment["PLUG_API_URL"] = "http://127.0.0.1:18084"
+        // TEST_RUNNER_PLUG_FIXTURE_URL lets a second checkout use its own fixture server port.
+        app.launchEnvironment["PLUG_API_URL"] = ProcessInfo.processInfo.environment["PLUG_FIXTURE_URL"] ?? "http://127.0.0.1:18084"
         app.launchEnvironment["PLUG_REQUESTS_V2_ENABLED"] = "YES"
         app.launch()
         return app
