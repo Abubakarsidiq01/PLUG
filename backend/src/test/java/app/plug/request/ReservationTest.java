@@ -517,6 +517,25 @@ class ReservationTest {
         assertThat(reservationStatus(s.requestId())).isEqualTo("released");
     }
 
+    /// Contract 0.7.6 (item 12), timeout path: the pending reservation outlives the request's own deadline.
+    /// no_coverage is unreachable here: an offer exists, so its seed work or match row counts as contacted.
+    @Test void timeoutAfterTheRequestOwnExpiryWithAnotherLiveOfferExpiresAsNoOffersNotNotConfirmed() throws Exception {
+        var s = scene();
+        Instant confirmBy = instant(selectOk(s), "/reservation/confirm_by");
+        jdbc.update("UPDATE requests SET expires_at=? WHERE id=?", Timestamp.from(START.plusSeconds(1)), s.requestId());
+        CLOCK.now = START.plusSeconds(2);
+        service.workOnce();
+        assertThat(reservationStatus(s.requestId())).isEqualTo("pending");
+        CLOCK.now = confirmBy;
+        service.workOnce();
+        assertThat(reservationStatus(s.requestId())).isEqualTo("timed_out");
+        assertThat(jdbc.queryForObject("SELECT status FROM requests WHERE id=?", String.class, s.requestId())).isEqualTo("expired");
+        var resource = resource(s.owner(), s.requestId());
+        assertThat(resource.path("status").asText()).isEqualTo("expired");
+        assertThat(resource.path("no_result_reason").asText()).isEqualTo("no_offers");
+        assertThat(resource.at("/reservation/status").asText()).isEqualTo("timed_out");
+    }
+
     // ---- 9. completion -------------------------------------------------------------------
 
     Instant confirmedScene(Scene s) throws Exception {
