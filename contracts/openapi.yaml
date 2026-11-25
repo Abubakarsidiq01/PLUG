@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.7.5
+  version: 0.7.6
   description: >
     Phase 0 to Phase 3 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
@@ -1090,7 +1090,10 @@ paths:
 
         Selection races. Two selections of the same request (double tap, two devices) are
         serialised by the lock: the same offer again with the same Idempotency-Key replays the
-        first response; any other attempt is 409 with `details[0].code` = `already_selected`.
+        first response; the same Idempotency-Key with a different body is 409 with
+        `details[0].code` = `idempotency_key_reused`; a new key on a request that is already
+        `user_selected`, `confirmed` or `completed` is 409 with `details[0].code` =
+        `already_selected`.
         An offer whose `expires_at` has passed, or that is not one of this request's live
         offers, is 409 `offer_unavailable`; the client reloads the offers. Someone else's
         request is 404.
@@ -2086,7 +2089,11 @@ components:
         client. user_selected -> ranked (0.7.0) happens only when the provider releases the
         reservation or confirm_by passes while other live offers remain; with none left the
         request expires with no_result_reason not_confirmed (0.7.1, decided: user_selected ->
-        expired happens only this way, never from the request's own expires_at). confirmed -> completed is made by
+        expired happens only this way, never from the request's own expires_at). 0.7.6: when a
+        release or a timeout returns the request to ranked after its own expires_at has passed,
+        it then expires under the normal deadline rule with no_result_reason no_offers (no_coverage
+        if nobody was contacted); not_confirmed applies only when no live offer is left at the
+        release or timeout. confirmed -> completed is made by
         the server 3 hours after the reserved slot starts unless the request was canceled;
         Phase 5 adds disputes and ratings on top of it.
         A blocked request is refused with 422 at creation and is never returned to a client.
@@ -2832,7 +2839,9 @@ components:
         from the moment an offer is selected. Only a provider event confirms it: an SMS
         CONFIRM reply or the in-app confirm. If the provider releases it, or `confirm_by`
         passes, it ends and the request returns to `ranked` when other live offers remain,
-        otherwise to `expired` with no_result_reason `not_confirmed`.
+        otherwise to `expired` with no_result_reason `not_confirmed`. 0.7.6: a request returned
+        to `ranked` after its own `expires_at` then expires with no_result_reason `no_offers`
+        (`no_coverage` if nobody was contacted), not `not_confirmed`.
       type: object
       additionalProperties: false
       required: [reservation_id, offer_id, status, booking_ref, confirm_by, created_at]
