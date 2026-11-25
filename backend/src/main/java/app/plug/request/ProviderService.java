@@ -47,9 +47,7 @@ public class ProviderService {
     /// Plain words onto the vocabulary. Nothing is saved except the vocabulary gap backlog.
     public SkillProposal propose(PlugPrincipal caller, String description) {
         requests.requireCaller(caller);
-        if (!requests.limiter.tryConsume("propose:" + caller.userId(), 30, requests.window.length())) {
-            throw ApiException.rateLimited(requests.window.retryAfterSeconds());
-        }
+        requests.limit(requests.limiter, "propose:" + caller.userId(), 30);
         // "I sell weed" is not a skill. The same policy that guards asks guards offers.
         policy.refusal(description).ifPresent(rule -> requests.refuse(caller, rule));
         var vocabulary = intent.vocabulary();
@@ -167,9 +165,7 @@ public class ProviderService {
     /// first, so a non-owner session cannot make unlimited 403 calls, and before any id lookup.
     void requireOwner(PlugPrincipal caller, String bucket, int limit) {
         if (caller == null) throw ApiException.unauthenticated("Sign in to continue.");
-        if (!adminLimiter.tryConsume(bucket + ":" + caller.userId(), limit, requests.window.length())) {
-            throw ApiException.rateLimited(requests.window.retryAfterSeconds());
-        }
+        requests.limit(adminLimiter, bucket + ":" + caller.userId(), limit);
         if (jdbc.queryForObject("SELECT count(*) FROM staff_accounts WHERE user_id=? AND role='owner' AND status='active'",
                 Integer.class, caller.userId()) == 0) {
             throw ApiException.forbidden("This operation is not allowed.");

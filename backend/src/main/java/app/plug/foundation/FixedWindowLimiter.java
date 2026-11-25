@@ -49,6 +49,17 @@ public final class FixedWindowLimiter {
         return true;
     }
 
+    // Whole seconds (rounded up, at least 1) left in this key's live window, for Retry-After.
+    // With no live bucket (none yet, expired, or refused because the table is full) a retry
+    // can only be sure of a fresh window after the full length.
+    public synchronized long secondsUntilReset(String key, Duration window) {
+        long now = System.nanoTime();
+        Window current = windows.get(key);
+        long left = current != null && now - current.started < current.windowNanos
+                ? current.windowNanos - (now - current.started) : window.toNanos();
+        return Math.max(1, (left + 999_999_999L) / 1_000_000_000L);
+    }
+
     // Called when the thing being limited is finished with — a verified code, for example —
     // so a legitimate caller does not carry a spent budget into their next attempt.
     public synchronized void forget(String key) {

@@ -28,9 +28,7 @@ public class ReservationService {
     /// Program team (P3-apns); until one is configured nothing is stored and the inbox works by pull.
     public void registerDevice(PlugPrincipal caller) {
         requests.requireCaller(caller);
-        if (!requests.limiter.tryConsume("devices:" + caller.userId(), 10, requests.window.length())) {
-            throw ApiException.rateLimited(requests.window.retryAfterSeconds());
-        }
+        requests.limit(requests.limiter, "devices:" + caller.userId(), 10);
         throw ApiException.dependencyUnavailable("Notifications are not available yet. Your inbox still updates when you open it.", 3600);
     }
     public RequestPayloads.Offer sendOffer(PlugPrincipal caller, String requestId, String key, RequestPayloads.OfferCreate offer) {
