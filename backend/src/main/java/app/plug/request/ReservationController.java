@@ -2,6 +2,7 @@ package app.plug.request;
 
 import app.plug.foundation.ApiException;
 import app.plug.security.PlugPrincipal;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.text.Normalizer;
 import java.util.List;
@@ -42,7 +43,8 @@ public class ReservationController {
     @PostMapping("/v1/requests/{id}/select")
     RequestPayloads.Resource select(@AuthenticationPrincipal PlugPrincipal caller, @PathVariable String id,
             @RequestHeader(value = "Idempotency-Key", required = false) String key,
-            @RequestBody(required = false) JsonNode body) {
+            @RequestBody(required = false) RedactedBody selection) {
+        JsonNode body = selection == null ? null : selection.json;
         if (key == null || !key.matches("[A-Za-z0-9_-]{16,128}")) {
             throw ApiException.validation("Idempotency-Key", "invalid", "Provide a valid idempotency key.");
         }
@@ -56,7 +58,8 @@ public class ReservationController {
     @PostMapping("/v1/requests/{id}/offers")
     ResponseEntity<RequestPayloads.Offer> sendOffer(@AuthenticationPrincipal PlugPrincipal caller, @PathVariable String id,
             @RequestHeader(value = "Idempotency-Key", required = false) String key,
-            @RequestBody(required = false) JsonNode body) {
+            @RequestBody(required = false) RedactedBody offer) {
+        JsonNode body = offer == null ? null : offer.json;
         if (key == null || !key.matches("[A-Za-z0-9_-]{16,128}")) {
             throw ApiException.validation("Idempotency-Key", "invalid", "Provide a valid idempotency key.");
         }
@@ -101,7 +104,8 @@ public class ReservationController {
         return service.inbox(caller);
     }
     @PostMapping("/v1/me/devices")
-    void registerDevice(@AuthenticationPrincipal PlugPrincipal caller, @RequestBody(required = false) JsonNode body) {
+    void registerDevice(@AuthenticationPrincipal PlugPrincipal caller, @RequestBody(required = false) RedactedBody device) {
+        JsonNode body = device == null ? null : device.json;
         // DeviceRegistration: exactly apns_token (lowercase hex, 64 to 200) and environment.
         JsonNode token = body == null || !body.isObject() || body.size() != 2 ? null : body.get("apns_token");
         if (token == null || !token.isTextual() || !token.asText().matches("[0-9a-f]{64,200}")) {
@@ -115,7 +119,8 @@ public class ReservationController {
     }
     @PostMapping("/v1/providers/me/inbox/{matchId}/decline")
     RequestPayloads.InboxItem decline(@AuthenticationPrincipal PlugPrincipal caller, @PathVariable String matchId,
-            @RequestBody(required = false) JsonNode body) {
+            @RequestBody(required = false) RedactedBody decline) {
+        JsonNode body = decline == null ? null : decline.json;
         // MatchDecline: no body, or an object with at most reason, one of the listed values.
         if (body != null && (!body.isObject() || body.size() > (body.has("reason") ? 1 : 0))) {
             throw ApiException.validation("body", "invalid", "Send only a reason.");
@@ -128,12 +133,21 @@ public class ReservationController {
     }
     @PostMapping("/v1/providers/me/inbox/{matchId}/reservation")
     RequestPayloads.InboxItem answer(@AuthenticationPrincipal PlugPrincipal caller, @PathVariable String matchId,
-            @RequestBody(required = false) JsonNode body) {
+            @RequestBody(required = false) RedactedBody reservation) {
+        JsonNode body = reservation == null ? null : reservation.json;
         // ReservationDecision: exactly one field, decision, confirm or release.
         JsonNode decision = body == null || !body.isObject() || body.size() != 1 ? null : body.get("decision");
         if (decision == null || !decision.isTextual() || !List.of("confirm", "release").contains(decision.asText())) {
             throw ApiException.validation("decision", "invalid", "Choose confirm or release.");
         }
         return service.answer(caller, matchId, decision.asText());
+    }
+
+    /// Spring MVC logs a decoded body through toString at DEBUG level; the offer note and the device
+    /// token must not reach the log (the same pattern as AdminProviderController.StandingBody).
+    static final class RedactedBody {
+        final JsonNode json;
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING) RedactedBody(JsonNode json) { this.json = json; }
+        @Override public String toString() { return "RequestBody[redacted]"; }
     }
 }

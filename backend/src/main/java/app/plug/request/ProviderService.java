@@ -1,6 +1,7 @@
 package app.plug.request;
 
 import app.plug.foundation.ApiException;
+import app.plug.foundation.FixedWindowLimiter;
 import app.plug.request.ProviderPayloads.AvailabilityWindow;
 import app.plug.request.ProviderPayloads.ProviderProfile;
 import app.plug.request.ProviderPayloads.ProviderSetup;
@@ -27,6 +28,8 @@ public class ProviderService {
     private final IntentAdapter intent;
     private final RestrictedIntentPolicy policy;
     private final RequestService requests;
+    // Its own key space, as StaffAccounts has: a flood of user keys in the shared limiter cannot lock staff out.
+    final FixedWindowLimiter adminLimiter = new FixedWindowLimiter(4096);
 
     private final CustomSkills customSkills;
 
@@ -160,9 +163,13 @@ public class ProviderService {
 
     /// Contract 0.7.0 listProviders and setProviderStanding are for an owner only: SecurityConfiguration
     /// already requires the admin scope and a completed second factor; the role is checked here, against
-    /// the staff account, as StaffAccounts checks it for staff management.
-    void requireOwner(PlugPrincipal caller) {
+    /// the staff account, as StaffAccounts checks it for staff management. The per-staff limit runs
+    /// first, so a non-owner session cannot make unlimited 403 calls, and before any id lookup.
+    void requireOwner(PlugPrincipal caller, String bucket, int limit) {
         if (caller == null) throw ApiException.unauthenticated("Sign in to continue.");
+        if (!adminLimiter.tryConsume(bucket + ":" + caller.userId(), limit, requests.window.length())) {
+            throw ApiException.rateLimited(requests.window.retryAfterSeconds());
+        }
         if (jdbc.queryForObject("SELECT count(*) FROM staff_accounts WHERE user_id=? AND role='owner' AND status='active'",
                 Integer.class, caller.userId()) == 0) {
             throw ApiException.forbidden("This operation is not allowed.");

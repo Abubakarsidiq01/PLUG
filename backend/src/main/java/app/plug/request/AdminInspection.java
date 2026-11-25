@@ -28,7 +28,10 @@ public class AdminInspection {
     public record Classification(String askId, Instant createdAt,
             @JsonInclude(JsonInclude.Include.ALWAYS) String askType, String state, List<String> skillTags) {}
     public record Refusal(String rule, Instant occurredAt) {}
-    public record Page<T>(List<T> items, @JsonInclude(JsonInclude.Include.ALWAYS) String nextCursor) {}
+    // The cursor encodes a row's time and id; Spring web DEBUG logs the returned value through toString.
+    public record Page<T>(List<T> items, @JsonInclude(JsonInclude.Include.ALWAYS) String nextCursor) {
+        @Override public String toString() { return "Page[redacted]"; }
+    }
 
     static final int DEFAULT_LIMIT = 50;
     static final int MAX_LIMIT = 100;

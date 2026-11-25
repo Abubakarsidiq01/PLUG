@@ -45,9 +45,14 @@ public final class ProviderPayloads {
     public record ProviderProfile(String userId, List<SkillTag> skills, int travelRadiusM, List<AvailabilityWindow> availability,
             String timeZone, boolean accepting, boolean licenceOnFile, RequestPayloads.ProviderScore score,
             TrustScore.Breakdown scoreBreakdown, String standing, Instant createdAt, BusinessProfile business,
-            List<String> customSkills) {}
+            List<String> customSkills) {
+        // Spring MVC logs a written body through toString at DEBUG level; the account id must not reach the log.
+        @Override public String toString() { return "ProviderProfile[redacted]"; }
+    }
     /// Contract 0.7.0 AdminProvider: the staff view, never the base location or licence reference.
     public record AdminProvider(String userId, String displayName, List<SkillTag> skills, List<String> customSkills,
             int travelRadiusM, boolean accepting, boolean licenceOnFile, String standing, RequestPayloads.ProviderScore score,
-            TrustScore.Breakdown scoreBreakdown, Instant createdAt) {}
+            TrustScore.Breakdown scoreBreakdown, Instant createdAt) {
+        @Override public String toString() { return "AdminProvider[redacted]"; }
+    }
 }

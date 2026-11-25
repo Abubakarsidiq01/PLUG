@@ -11,6 +11,20 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.7.5 — 2026-11-24 — additive — P3.S8
+Approval: the owner alone; frozen when the owner approves and merges the pull request. No new
+route, field, enum value or error code: a declared response only.
+
+P3.S8: 429 RateLimited declared on getOwnProviderProfile (GET /v1/providers/me),
+listProviders, setProviderStanding and the admin matches route (listRequestMatches, not built
+yet); GET /v1/providers/me was already limited by the per-address read budget; the admin
+provider routes gain a per-staff limit (30 reads, 10 standing changes per window).
+
+Fixtures: providers.me, admin.matches, admin.providers.list and admin.providers.standing rate-limited.json added.
+Tests: `tests/contracts/fixture-manifest.json` is 0.7.5.
+Migration note: none.
+Rollback: none needed; the limit is server-side and the 429 shape is the shared RateLimited.
+
 ### 0.7.4 — 2026-11-23 — clarification — P3.S15
 Approval: the owner alone; frozen when the owner approves and merges the pull request. No new
 route, field, enum value or error code: one const and one bound tightened, descriptions only.
