@@ -264,10 +264,8 @@ class PhaseThreeRouteSecurityTest {
             for (String secret : secrets) {
                 assertThat(logged).as("a sensitive value reached the log").doesNotContain(secret);
             }
-            // DispatcherServlet DEBUG prints the request path, which carries the provider id (a recorded
-            // residual: path ids); only that one path occurrence is set aside, the id must appear nowhere else.
-            assertThat(logged.replace("POST \"/v1/admin/providers/" + userId(second) + "/standing\"", "POST \"{path}\""))
-                    .as("a sensitive value reached the log").doesNotContain(userId(second));
+            // The path carries the provider id; DispatcherServlet stays at INFO even with org.springframework.web at DEBUG.
+            assertThat(logged).as("a sensitive value reached the log").doesNotContain(userId(second));
             // Redaction must not remove the ability to trace a request.
             assertThat(logged).contains("request_id=").doesNotContain("request_id=null");
         } finally {

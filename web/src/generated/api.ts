@@ -761,6 +761,8 @@ export interface paths {
          *     Selection races. Two selections of the same request (double tap, two devices) are serialised by the lock: the same offer again with the same Idempotency-Key replays the first response; any other attempt is 409 with `details[0].code` = `already_selected`. An offer whose `expires_at` has passed, or that is not one of this request's live offers, is 409 `offer_unavailable`; the client reloads the offers. Someone else's request is 404.
          *
          *     0.7.1: gated by the `provider_inbox` flag, like the inbox routes, although it also serves seed and sms offers. With the flag off the route returns 404.
+         *
+         *     0.7.2: the caller must hold the guest or member scope and have accepted the current consent version, otherwise 403 forbidden with `details[0].code` = consent_required. A body that is not application/json is 415.
          */
         post: operations["selectOffer"];
         delete?: never;
@@ -855,6 +857,8 @@ export interface paths {
         /**
          * Register or refresh this device's push token for provider notifications
          * @description P3.S10. Upserts by token, so a retry or a relaunch is harmless. The token is stored against the caller's session and removed when that session ends. Provider match alerts use the payload in ProviderMatchNotification and are capped per provider per hour. Push needs an Apple Developer Program team; until one is configured this route is 503 dependency_unavailable and the inbox still works by pull.
+         *
+         *     0.7.2: gated by the `provider_inbox` flag, like the inbox routes; with the flag off the route returns 404. A caller without the guest or member scope is 403.
          */
         post: operations["registerDevice"];
         delete?: never;
@@ -1225,7 +1229,7 @@ export interface components {
         };
         /** @description The constraints the server will execute, after explicit values, validated extraction and defaults are combined. A null is a stated default, not a missing value: the client shows "Any price" or "As soon as possible", never a guess. */
         RequestConstraints: {
-            /** @description Human-readable service ("Shoe repair"), safe to display. Null exactly when category is null. */
+            /** @description Human-readable service ("Shoe repair"). Untrusted display text (it can come from the asker's words or a model's reading of them): render as plain text, never markup. Null exactly when category is null. */
             service_name: string | null;
             /** @description Every vocabulary tag the ask resolved to, primary first (category is the first). Matching uses all of them. Empty exactly when category is null. */
             skill_tags: components["schemas"]["Category"][];
@@ -1306,7 +1310,7 @@ export interface components {
             available_at: string;
             /**
              * Format: date-time
-             * @description When the offer stops being valid. Always later than available_at. Set by the server; the lifetime for sms and portal offers is not yet decided (CHANGELOG 0.7.1, open question).
+             * @description When the offer stops being valid. Always later than available_at. Set by the server. 0.7.2, decided by the owner on 2026-11-17: a portal (in-app) offer expires at available_at plus 15 minutes. The same rule applies to sms offers too unless it is changed before P3.S5.
              */
             expires_at: string;
             /**
@@ -1711,11 +1715,12 @@ export interface components {
             /** @description The cap this provider is notified under, so the app can explain it. */
             notifications_per_hour: number;
         };
-        /** @description One matched request as the provider sees it. Never the asker's words, location or identity: the service, the asker's budget, when it is needed and how far it is from the provider's own base, rounded to 100 m. */
+        /** @description One matched request as the provider sees it. Never the asker's raw text, location or identity: the service label, the asker's budget, when it is needed and how far it is from the provider's own base, rounded to 100 m. The service label is untrusted display text (see service_name). */
         InboxItem: {
             match_id: string;
             request_id: string;
             status: components["schemas"]["MatchStatus"];
+            /** @description 0.7.2. Untrusted display text: it can be written from the asker's words or a model's reading of them. Clients render it as plain text, never as markup or a link. */
             service_name: string;
             skill_tags: components["schemas"]["Category"][];
             /** @description Null when the asker set no budget. */
@@ -1726,7 +1731,7 @@ export interface components {
             distance_m: number;
             /**
              * Format: date-time
-             * @description notified_at plus 5 minutes, the outreach reply window (0.7.1, decided by the owner on 2026-11-16). After this the match is expired and silence is recorded.
+             * @description notified_at plus 5 minutes, the outreach reply window (0.7.1, decided by the owner on 2026-11-16). After this the match is expired and silence is recorded. Every contact keeps the full 5 minutes from its own notified_at, even when that runs past the t+300s fan-out stop (0.7.4): a wave-3 contact at t+240s may answer until t+540s.
              */
             respond_by: string;
             /** Format: date-time */
@@ -2012,7 +2017,7 @@ export interface components {
             channel: "sms" | "app";
             /** @description A supplier for sms, a provider's user id for app. */
             recipient_id: string;
-            /** @description 1 is the first six; 2 and 3 are the expansion steps of four. */
+            /** @description 1 is the best six at t0 (when the request was created); 2 and 3 are the expansion steps of four at t+120s and t+240s, each only while the request has fewer than 2 live offers. No new wave starts from t+300s (0.7.4, decided by the owner on 2026-11-23). */
             wave: number;
             rank_score?: number;
             distance_m?: number;
@@ -2030,10 +2035,10 @@ export interface components {
             status: components["schemas"]["RequestStatus"];
             contacted: number;
             /**
-             * @description The combined ceiling across SMS and in-app.
+             * @description The combined ceiling across SMS and in-app per request, 6 + 4 + 4 (0.7.4, decided by the owner on 2026-11-23). A provider skipped by the hourly cap is not counted.
              * @constant
              */
-            cap: 16;
+            cap: 14;
             matches: components["schemas"]["AdminMatch"][];
         };
         /** @description Twilio's inbound message parameters. Only these are read; Twilio may send more, and all of them are covered by the signature, so unknown parameters are accepted and ignored rather than refused. */
@@ -2469,6 +2474,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["MatchStateConflict"];
             413: components["responses"]["ValidationFailed"];
+            415: components["responses"]["ValidationFailed"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
@@ -2711,6 +2717,7 @@ export interface operations {
             };
             401: components["responses"]["Unauthenticated"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -3415,6 +3422,7 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["SelectionConflict"];
             413: components["responses"]["ValidationFailed"];
+            415: components["responses"]["ValidationFailed"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
@@ -3552,6 +3560,9 @@ export interface operations {
             };
             400: components["responses"]["ValidationFailed"];
             401: components["responses"]["Unauthenticated"];
+            403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            413: components["responses"]["ValidationFailed"];
             429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["DependencyUnavailable"];
@@ -3957,6 +3968,7 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -3989,6 +4001,7 @@ export interface operations {
             400: components["responses"]["ValidationFailed"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -4024,6 +4037,7 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };

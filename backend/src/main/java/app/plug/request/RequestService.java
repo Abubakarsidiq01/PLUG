@@ -66,6 +66,12 @@ public class RequestService {
         this.window = window;
         this.scores = new TrustScore(jdbc, this.clock);
     }
+    // Retry-After is the time left on this caller's bucket, not the whole window.
+    void limit(FixedWindowLimiter bucket, String key, int maximum) {
+        if (!bucket.tryConsume(key, maximum, window.length())) {
+            throw ApiException.rateLimited((int) bucket.secondsUntilReset(key, window.length()));
+        }
+    }
     public Resource create(PlugPrincipal caller, String key, Create input) {
         requireCaller(caller);
         requireConsent(caller);
@@ -98,7 +104,7 @@ public class RequestService {
             requireConsent(caller);
             T prior = replay(caller, operation, key, input, type);
             if (prior != null) return prior;
-            if (!limiter.tryConsume(caller.userId(), 10, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
+            limit(limiter, caller.userId(), 10);
             return null;
         });
     }
@@ -109,7 +115,7 @@ public class RequestService {
         if (refusal.isPresent()) refuse(caller, refusal.get());
     }
     void refuse(PlugPrincipal caller, String rule) {
-        if (!limiter.tryConsume(caller.userId(), 10, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
+        limit(limiter, caller.userId(), 10);
         jdbc.update("INSERT INTO audit_events(actor_id,actor_role,action,resource,resource_id,reason,request_id)"
                 + " VALUES(?,?,'request.restricted','request','none',?,?)",
                 caller.userId(), "customer", "restricted_intent:" + rule, MDC.get("request_id"));
@@ -197,9 +203,7 @@ public class RequestService {
             Resource replay = replay(caller, "select:" + id, key, selection, Resource.class);
             if (replay != null) return replay;
             // Before the ownership check, so probing other people's ids spends the caller's budget.
-            if (!limiter.tryConsume("select:" + caller.userId(), 10, window.length())) {
-                throw ApiException.rateLimited(window.retryAfterSeconds());
-            }
+            limit(limiter, "select:" + caller.userId(), 10);
             lockOwned(caller, id);
             expire(id);
             String state = status(id);
@@ -239,7 +243,7 @@ public class RequestService {
         if (provider == null || matchId == null || matchId.length() > 64 || !matchId.matches("mat_[A-Za-z0-9-]+")) {
             throw ApiException.notFound("Match not found.");
         }
-        if (!limiter.tryConsume("reservation:" + provider, 30, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
+        limit(limiter, "reservation:" + provider, 30);
         return transaction.execute(ignored -> {
             requireActiveStanding(provider);
             var match = jdbc.queryForList("SELECT request_id FROM request_matches WHERE match_id=? AND provider_id=?",
@@ -292,9 +296,7 @@ public class RequestService {
             Offer replay = replay(caller, "offer:" + id, key, input, Offer.class);
             if (replay != null) return replay;
             // Before the match lookup, so probing request ids spends the caller's budget.
-            if (!limiter.tryConsume("offer:" + caller.userId(), 10, window.length())) {
-                throw ApiException.rateLimited(window.retryAfterSeconds());
-            }
+            limit(limiter, "offer:" + caller.userId(), 10);
             requireActiveStanding(caller.userId());
             List<String> matched = id.length() > 64 || !id.matches("req_[A-Za-z0-9-]+") ? List.of()
                     : jdbc.queryForList("SELECT m.match_id FROM request_matches m JOIN requests r ON r.id=m.request_id"
@@ -344,7 +346,7 @@ public class RequestService {
     RequestPayloads.InboxItem decline(PlugPrincipal caller, String matchId, String reason) {
         requireCaller(caller);
         // Before the match lookup, so probing match ids spends the caller's budget.
-        if (!limiter.tryConsume("decline:" + caller.userId(), 30, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
+        limit(limiter, "decline:" + caller.userId(), 30);
         if (matchId == null || matchId.length() > 64 || !matchId.matches("mat_[A-Za-z0-9-]+")) throw ApiException.notFound("Match not found.");
         return transaction.execute(ignored -> {
             lockAccount(caller);
@@ -406,7 +408,7 @@ public class RequestService {
     /// most 50. Only the caller's own matches; a caller with no provider profile is 404.
     RequestPayloads.ProviderInbox inbox(PlugPrincipal caller) {
         requireCaller(caller);
-        if (!limiter.tryConsume("inbox:" + caller.userId(), 30, window.length())) throw ApiException.rateLimited(window.retryAfterSeconds());
+        limit(limiter, "inbox:" + caller.userId(), 30);
         Instant now = clock.instant();
         return transaction.execute(ignored -> {
             // The same account check as answerReservation: 401 for an inactive account.

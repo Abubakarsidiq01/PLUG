@@ -1,5 +1,6 @@
 package app.plug.foundation;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,5 +50,17 @@ class FixedWindowLimiterTest {
         assertFalse(limiter.tryConsume("challenge", 1, Duration.ofMinutes(10)));
         limiter.forget("challenge");
         assertTrue(limiter.tryConsume("challenge", 1, Duration.ofMinutes(10)));
+    }
+
+    @Test
+    void retryAfterIsTheTimeLeftOnTheKeysBucketOrTheWholeWindowWithoutOne() {
+        var limiter = new FixedWindowLimiter(16);
+        var window = Duration.ofSeconds(60);
+        assertEquals(60, limiter.secondsUntilReset("fresh", window));
+        assertTrue(limiter.tryConsume("used", 1, window));
+        long left = limiter.secondsUntilReset("used", window);
+        assertTrue(left >= 1 && left <= 60);
+        // Sub-second windows still round up to one whole second.
+        assertEquals(1, limiter.secondsUntilReset("unknown", Duration.ofMillis(10)));
     }
 }

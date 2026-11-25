@@ -42,6 +42,9 @@ management:
 logging:
   level:
     root: INFO
+    # At DEBUG these print request paths (match, request and usr_ ids) and request/response bodies; raising org.springframework.web must not expose them.
+    org.springframework.web.servlet.DispatcherServlet: INFO
+    org.springframework.web.servlet.mvc.method.annotation: INFO
 plug:
   environment: ${PLUG_ENVIRONMENT:local}
   requests-per-minute: 60
