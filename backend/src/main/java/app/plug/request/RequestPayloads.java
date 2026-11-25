@@ -72,15 +72,21 @@ public final class RequestPayloads {
     }
     /// Contract 0.7.0 Reservation; null confirmed_at and ended_at are omitted.
     public record Reservation(String reservationId, String offerId, String status, String bookingRef,
-            Instant confirmBy, Instant confirmedAt, Instant endedAt, Instant createdAt) {}
+            Instant confirmBy, Instant confirmedAt, Instant endedAt, Instant createdAt) {
+        @Override public String toString() { return "Reservation[redacted]"; }
+    }
     public record Selection(String offerId) {}
     /// Contract 0.7.1 InboxItem: budget_cents and needed_by are always present, null when unset.
     @JsonInclude(JsonInclude.Include.ALWAYS)
     public record InboxItem(String matchId, String requestId, String status, String serviceName, List<String> skillTags,
             Integer budgetCents, String currency, Instant neededBy, int distanceM, Instant respondBy, Instant notifiedAt,
             @JsonInclude(JsonInclude.Include.NON_NULL) Offer offer,
-            @JsonInclude(JsonInclude.Include.NON_NULL) Reservation reservation) {}
-    public record ProviderInbox(List<InboxItem> items, int notificationsPerHour) {}
+            @JsonInclude(JsonInclude.Include.NON_NULL) Reservation reservation) {
+        @Override public String toString() { return "InboxItem[redacted]"; }
+    }
+    public record ProviderInbox(List<InboxItem> items, int notificationsPerHour) {
+        @Override public String toString() { return "ProviderInbox[redacted]"; }
+    }
     public record Place(String placeId, String name, String address, int distanceM) {}
     /** Manual v4 §12C: fewer than three completed jobs is "new", never a zero. */
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -94,7 +100,9 @@ public final class RequestPayloads {
     /// no public place; it equals place.distance_m when there is one. note is portal only.
     public record Offer(String offerId, Place place, int distanceM, String note, String serviceName, int priceCents,
             String currency, Instant availableAt, Instant expiresAt, Instant observedAt, String truthLabel, String source,
-            ProviderScore providerScore, ProviderPayloads.BusinessProfile business) {}
+            ProviderScore providerScore, ProviderPayloads.BusinessProfile business) {
+        @Override public String toString() { return "Offer[redacted]"; }
+    }
     /// Contract 0.7.1 ProviderOfferCreate, after the controller validated its shape.
     public record OfferCreate(int priceCents, String currency, Instant availableAt, String note) {
         @Override public String toString() { return "OfferCreate[redacted]"; }

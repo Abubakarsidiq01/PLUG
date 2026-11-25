@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.7.4",
+  "contract_version": "0.7.5",
   "status": "proposed",
   "clock": "2026-10-01T20:00:10Z",
   "responses": [
@@ -927,6 +927,13 @@
       "path": "/v1/providers/skills",
       "status": 500,
       "error_code": "internal_error"
+    },
+    {
+      "file": "fixtures/providers.me/rate-limited.json",
+      "method": "get",
+      "path": "/v1/providers/me",
+      "status": 429,
+      "error_code": "rate_limited"
     },
     {
       "file": "fixtures/providers.me/transient-error.json",
@@ -2152,6 +2159,13 @@
       "error_code": "forbidden"
     },
     {
+      "file": "fixtures/admin.matches/rate-limited.json",
+      "method": "get",
+      "path": "/v1/admin/requests/{request_id}/matches",
+      "status": 429,
+      "error_code": "rate_limited"
+    },
+    {
       "file": "fixtures/admin.matches/transient-error.json",
       "method": "get",
       "path": "/v1/admin/requests/{request_id}/matches",
@@ -2185,6 +2199,13 @@
       "path": "/v1/admin/providers",
       "status": 403,
       "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.providers.list/rate-limited.json",
+      "method": "get",
+      "path": "/v1/admin/providers",
+      "status": 429,
+      "error_code": "rate_limited"
     },
     {
       "file": "fixtures/admin.providers.list/transient-error.json",
@@ -2226,6 +2247,13 @@
       "path": "/v1/admin/providers/{user_id}/standing",
       "status": 403,
       "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.providers.standing/rate-limited.json",
+      "method": "post",
+      "path": "/v1/admin/providers/{user_id}/standing",
+      "status": 429,
+      "error_code": "rate_limited"
     },
     {
       "file": "fixtures/admin.providers.standing/transient-error.json",

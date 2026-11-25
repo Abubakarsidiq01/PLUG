@@ -2,6 +2,7 @@ package app.plug.request;
 
 import app.plug.foundation.ApiException;
 import app.plug.security.PlugPrincipal;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -27,15 +28,16 @@ public class AdminProviderController {
     @GetMapping("/v1/admin/providers")
     ResponseEntity<AdminInspection.Page<ProviderPayloads.AdminProvider>> list(@AuthenticationPrincipal PlugPrincipal caller,
             @RequestParam(required = false) String cursor, @RequestParam(required = false) String limit) {
-        providers.requireOwner(caller);
+        providers.requireOwner(caller, "admin-providers", 30);
         return ResponseEntity.ok().cacheControl(CacheControl.noStore())
                 .body(providers.list(caller, cursor, AdminInspection.limit(limit)));
     }
 
     @PostMapping("/v1/admin/providers/{userId}/standing")
     ResponseEntity<ProviderPayloads.AdminProvider> standing(@AuthenticationPrincipal PlugPrincipal caller,
-            @PathVariable String userId, @RequestBody(required = false) JsonNode body) {
-        providers.requireOwner(caller);
+            @PathVariable String userId, @RequestBody(required = false) StandingBody decision) {
+        providers.requireOwner(caller, "admin-standing", 10);
+        JsonNode body = decision == null ? null : decision.json;
         // ProviderStandingDecision: exactly standing (active or suspended) and a reason of 3 to 300 characters.
         if (body == null || !body.isObject()) throw ApiException.validation("body", "invalid", "Send a standing and a reason.");
         body.fieldNames().forEachRemaining(field -> {
@@ -54,5 +56,12 @@ public class AdminProviderController {
         if (length < 3 || length > 300) throw ApiException.validation("reason", "invalid", "Give a reason of 3 to 300 characters.");
         return ResponseEntity.ok().cacheControl(CacheControl.noStore())
                 .body(providers.setStanding(caller, userId, standing.asText(), text));
+    }
+
+    /// Spring MVC logs a decoded body through toString at DEBUG level; the reason must not reach the log.
+    static final class StandingBody {
+        final JsonNode json;
+        @JsonCreator(mode = JsonCreator.Mode.DELEGATING) StandingBody(JsonNode json) { this.json = json; }
+        @Override public String toString() { return "ProviderStandingDecision[redacted]"; }
     }
 }
