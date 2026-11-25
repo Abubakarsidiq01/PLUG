@@ -52,11 +52,12 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
         // Both entry points share one creation budget, so switching endpoints cannot double it.
         boolean creation = requestsV2 && (path.equals("/v1/requests") || path.equals("/v1/asks"))
                 && request.getMethod().equals("POST");
-        if (!limiter.tryConsume(request.getRemoteAddr() + (creation ? ":create" : ":read"),
-                creation ? 30 : limit, window.length())) {
-            response.setHeader("Retry-After", String.valueOf(window.retryAfterSeconds()));
+        String key = request.getRemoteAddr() + (creation ? ":create" : ":read");
+        if (!limiter.tryConsume(key, creation ? 30 : limit, window.length())) {
+            int retryAfter = (int) limiter.secondsUntilReset(key, window.length());
+            response.setHeader("Retry-After", String.valueOf(retryAfter));
             HttpErrors.write(request, response, 429, "rate_limited", "Too many requests. Try again shortly.",
-                    List.of(), window.retryAfterSeconds());
+                    List.of(), retryAfter);
             return;
         }
         if (!request.getMethod().equals("POST")) {

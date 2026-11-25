@@ -5,6 +5,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockFilterChain;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class RateLimitTest {
     @Test
@@ -30,6 +31,12 @@ class RateLimitTest {
             var response = new MockHttpServletResponse();
             filter.doFilter(request, response, new MockFilterChain());
             assertEquals(i == 2 ? 429 : 200, response.getStatus());
+            if (i == 2) {
+                // Retry-After is the time left on this bucket, never more than the window.
+                int retryAfter = Integer.parseInt(response.getHeader("Retry-After"));
+                assertTrue(retryAfter >= 1 && retryAfter <= RateWindow.MINUTE.retryAfterSeconds());
+                assertTrue(response.getContentAsString().contains("\"retry_after_seconds\":" + retryAfter));
+            }
         }
     }
 }
