@@ -503,6 +503,20 @@ class ReservationTest {
         assertThat(reservationStatus(s.requestId())).isEqualTo("released");
     }
 
+    /// Contract 0.7.6 (item 12): back in ranked past its own deadline, the request expires as no_offers.
+    @Test void releaseAfterTheRequestOwnExpiryWithAnotherLiveOfferExpiresAsNoOffersNotNotConfirmed() throws Exception {
+        var s = scene();
+        selectOk(s);
+        jdbc.update("UPDATE requests SET expires_at=? WHERE id=?", Timestamp.from(START.plusSeconds(1)), s.requestId());
+        CLOCK.now = START.plusSeconds(2);
+        reservations.decide(s.provider(), s.matchId(), "release");
+        assertThat(jdbc.queryForObject("SELECT status FROM requests WHERE id=?", String.class, s.requestId())).isEqualTo("ranked");
+        var resource = resource(s.owner(), s.requestId());
+        assertThat(resource.path("status").asText()).isEqualTo("expired");
+        assertThat(resource.path("no_result_reason").asText()).isEqualTo("no_offers");
+        assertThat(reservationStatus(s.requestId())).isEqualTo("released");
+    }
+
     // ---- 9. completion -------------------------------------------------------------------
 
     Instant confirmedScene(Scene s) throws Exception {

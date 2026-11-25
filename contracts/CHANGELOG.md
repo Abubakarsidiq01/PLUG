@@ -11,6 +11,30 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.7.6 — 2026-11-24 — clarification — P3.S6
+Approval: the owner alone; frozen when the owner approves and merges the pull request. No new
+route, field, enum value or error code: descriptions only, reworded to match existing, tested code.
+
+**Decided by the owner on 2026-11-24 (0.7.1 open questions 11, 12, 14 and 16):**
+- Select replay (question 11): the same Idempotency-Key and the same offer replays the first
+  response; the same key with a different body is 409 `idempotency_key_reused` (as the
+  Idempotency-Key parameter already said); a new key on a request that is already `user_selected`,
+  `confirmed` or `completed` is 409 `already_selected`.
+- Return to ranked after the request's own expiry (question 12): when a release or a timeout
+  returns a request to `ranked` after its own `expires_at` has passed, it then expires under
+  the normal deadline rule with no_result_reason `no_offers` (`no_coverage` if nobody was
+  contacted); `not_confirmed` applies only when no live offer is left at the release or
+  timeout. Pinned by a new ReservationTest case.
+- Question 14 closed unchanged: offers are never deleted, so `Reservation.offer_id` is always set.
+- Question 16 closed unchanged: contract and code already agree on `reservation_closed`.
+- Still open until SMS is funded: question 3 (sms `Offer.expires_at`) and question 4 (SMS
+  terms page and support contact).
+
+Fixtures: none.
+Tests: `tests/contracts/fixture-manifest.json` is 0.7.6.
+Migration note: none.
+Rollback: none needed; no behaviour changes.
+
 ### 0.7.5 — 2026-11-24 — additive — P3.S8
 Approval: the owner alone; frozen when the owner approves and merges the pull request. No new
 route, field, enum value or error code: a declared response only.
