@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: PLUG API
-  version: 0.7.6
+  version: 0.7.7
   description: >
     Phase 0 to Phase 3 contract shared by the PLUG iOS app and the modular-monolith backend.
     Source of truth for method, route, auth, request, response, enums and errors
@@ -1289,6 +1289,9 @@ paths:
         hour per network address and 3 per day per phone number, both answered 202 once
         exceeded, without sending. A wrong consent version is 400 `unsupported_version`.
         While SMS delivery is off the route is 503.
+
+
+        0.7.7: gated by the `supplier_messaging` flag; with the flag off the route returns 404.
       parameters:
         - $ref: '#/components/parameters/RequestIdHeader'
         - $ref: '#/components/parameters/IdempotencyKeyHeader'
@@ -1306,6 +1309,7 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/SupplierOptInReceipt' }
         '400': { $ref: '#/components/responses/ValidationFailed' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/IdempotencyConflict' }
         '413': { $ref: '#/components/responses/ValidationFailed' }
         '429': { $ref: '#/components/responses/RateLimited' }
@@ -1391,6 +1395,9 @@ paths:
       description: >
         P3-TWO.S2. Admin scope plus a completed second factor; never cached; every read
         audited. Phone numbers appear only masked to their last two digits.
+
+
+        0.7.7: gated by the `supplier_messaging` flag; with the flag off the route returns 404.
       security:
         - plugSession: []
       parameters:
@@ -1412,6 +1419,8 @@ paths:
         '400': { $ref: '#/components/responses/ValidationFailed' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
     post:
       operationId: createSupplier
@@ -1421,6 +1430,9 @@ paths:
         record the web form does and queues the same opt-in text: staff can never mark
         consent as given. A phone that is already a supplier is 409 `supplier_exists`.
         Audited with the staff member and reason.
+
+
+        0.7.7: gated by the `supplier_messaging` flag; with the flag off the route returns 404.
       security:
         - plugSession: []
       parameters:
@@ -1442,7 +1454,9 @@ paths:
         '400': { $ref: '#/components/responses/ValidationFailed' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
         '409': { $ref: '#/components/responses/SupplierConflict' }
+        '429': { $ref: '#/components/responses/RateLimited' }
         '503': { $ref: '#/components/responses/DependencyUnavailable' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/admin/suppliers/{supplier_id}:
@@ -1465,6 +1479,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
     post:
       operationId: updateSupplierProfile
@@ -1492,6 +1507,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/admin/suppliers/{supplier_id}/verification:
     parameters:
@@ -1523,6 +1539,7 @@ paths:
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/admin/messages:
     get:
@@ -1566,6 +1583,8 @@ paths:
     get:
       operationId: listOptOuts
       summary: Every suppressed number (STOP, PAUSE or carrier), masked
+      description: >
+        0.7.7: gated by the `supplier_messaging` flag; with the flag off the route returns 404.
       security:
         - plugSession: []
       parameters:
@@ -1583,6 +1602,8 @@ paths:
         '400': { $ref: '#/components/responses/ValidationFailed' }
         '401': { $ref: '#/components/responses/Unauthenticated' }
         '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '429': { $ref: '#/components/responses/RateLimited' }
         '500': { $ref: '#/components/responses/InternalError' }
   /v1/admin/requests/{request_id}/matches:
     parameters:
@@ -3145,7 +3166,9 @@ components:
           maxItems: 10
           uniqueItems: true
           items: { $ref: '#/components/schemas/Category' }
-          description: Vocabulary tags only (400 unknown_skill). A requires_licence tag needs licence_ref.
+          description: >
+            Vocabulary tags only (400 unknown_skill). A requires_licence tag needs licence_ref
+            (400 licence_required).
         place: { $ref: '#/components/schemas/SupplierPlace' }
         service_radius_m:
           type: integer

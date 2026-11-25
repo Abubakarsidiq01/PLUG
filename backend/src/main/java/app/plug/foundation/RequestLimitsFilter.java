@@ -29,6 +29,8 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
     private final RateWindow window;
     @Value("${plug.requests-v2.enabled:false}")
     private boolean requestsV2;
+    @Value("${plug.supplier-messaging.enabled:false}")
+    private boolean supplierMessaging;
 
     public RequestLimitsFilter(@Value("${plug.requests-per-minute}") int limit, RateWindow window) {
         if (limit < 1) throw new IllegalArgumentException("The request limit must be positive.");
@@ -44,13 +46,15 @@ public class RequestLimitsFilter extends OncePerRequestFilter {
         String path = UrlPathHelper.defaultInstance.getPathWithinApplication(request);
         boolean v2Route = requestsV2 && (path.startsWith("/v1/requests/") || path.equals("/v1/asks")
                 || path.startsWith("/v1/asks/") || path.startsWith("/v1/providers/") || path.equals("/v1/me/devices"));
-        if (!path.equals("/v1/requests") && !v2Route) {
+        // P3.S2: the public supplier opt-in shares the per-address creation budget and the body cap.
+        boolean optIn = supplierMessaging && path.equals("/v1/suppliers/opt-in");
+        if (!path.equals("/v1/requests") && !v2Route && !optIn) {
             chain.doFilter(request, response);
             return;
         }
         // Do not trust caller-supplied forwarded addresses. The ingress adds its own rate limit in staging.
         // Both entry points share one creation budget, so switching endpoints cannot double it.
-        boolean creation = requestsV2 && (path.equals("/v1/requests") || path.equals("/v1/asks"))
+        boolean creation = (requestsV2 && (path.equals("/v1/requests") || path.equals("/v1/asks")) || optIn)
                 && request.getMethod().equals("POST");
         String key = request.getRemoteAddr() + (creation ? ":create" : ":read");
         if (!limiter.tryConsume(key, creation ? 30 : limit, window.length())) {

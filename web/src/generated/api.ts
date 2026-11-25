@@ -881,6 +881,8 @@ export interface paths {
          * @description P3.S2. Called by the public web form (manual §21.4), never by the app. Creates or refreshes a supplier in `pending_verification` with consent `pending_confirmation` and queues one opt-in text (template optin_confirm). Consent is `granted` only when that phone replies START, which proves the number belongs to the person who agreed; nothing else is ever sent before then.
          *
          *     The answer is the same 202 whether the number is new, pending, already opted in or suppressed, so the form cannot be used to learn who is on PLUG. A number that replied STOP is not texted again from a form: it must text START itself. Rate limits: 5 per hour per network address and 3 per day per phone number, both answered 202 once exceeded, without sending. A wrong consent version is 400 `unsupported_version`. While SMS delivery is off the route is 503.
+         *
+         *     0.7.7: gated by the `supplier_messaging` flag; with the flag off the route returns 404.
          */
         post: operations["supplierOptIn"];
         delete?: never;
@@ -943,12 +945,16 @@ export interface paths {
         /**
          * SMS suppliers with consent and verification state; numbers masked
          * @description P3-TWO.S2. Admin scope plus a completed second factor; never cached; every read audited. Phone numbers appear only masked to their last two digits.
+         *
+         *     0.7.7: gated by the `supplier_messaging` flag; with the flag off the route returns 404.
          */
         get: operations["listSuppliers"];
         put?: never;
         /**
          * Record a supplier onboarded by staff (an owner only); consent still comes by SMS
          * @description P3-TWO.S6. For a business onboarded in person or by phone. Writes the same pending record the web form does and queues the same opt-in text: staff can never mark consent as given. A phone that is already a supplier is 409 `supplier_exists`. Audited with the staff member and reason.
+         *
+         *     0.7.7: gated by the `supplier_messaging` flag; with the flag off the route returns 404.
          */
         post: operations["createSupplier"];
         delete?: never;
@@ -1035,7 +1041,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Every suppressed number (STOP, PAUSE or carrier), masked */
+        /**
+         * Every suppressed number (STOP, PAUSE or carrier), masked
+         * @description 0.7.7: gated by the `supplier_messaging` flag; with the flag off the route returns 404.
+         */
         get: operations["listOptOuts"];
         put?: never;
         post?: never;
@@ -1876,7 +1885,7 @@ export interface components {
         /** @description What staff record for an SMS supplier. place becomes a `plc_` Place shared with Phase 4: there is one place model. */
         SupplierProfile: {
             business_name: string;
-            /** @description Vocabulary tags only (400 unknown_skill). A requires_licence tag needs licence_ref. */
+            /** @description Vocabulary tags only (400 unknown_skill). A requires_licence tag needs licence_ref (400 licence_required). */
             skill_tags: components["schemas"]["Category"][];
             place: components["schemas"]["SupplierPlace"];
             /** @description How far from the place a request may be. The supplier's own answer, never a global default. */
@@ -3597,6 +3606,7 @@ export interface operations {
                 };
             };
             400: components["responses"]["ValidationFailed"];
+            404: components["responses"]["NotFound"];
             409: components["responses"]["IdempotencyConflict"];
             413: components["responses"]["ValidationFailed"];
             429: components["responses"]["RateLimited"];
@@ -3734,6 +3744,8 @@ export interface operations {
             400: components["responses"]["ValidationFailed"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -3768,7 +3780,9 @@ export interface operations {
             400: components["responses"]["ValidationFailed"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
             409: components["responses"]["SupplierConflict"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
             503: components["responses"]["DependencyUnavailable"];
         };
@@ -3800,6 +3814,7 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -3835,6 +3850,7 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -3870,6 +3886,7 @@ export interface operations {
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
             404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };
@@ -3937,6 +3954,8 @@ export interface operations {
             400: components["responses"]["ValidationFailed"];
             401: components["responses"]["Unauthenticated"];
             403: components["responses"]["Forbidden"];
+            404: components["responses"]["NotFound"];
+            429: components["responses"]["RateLimited"];
             500: components["responses"]["InternalError"];
         };
     };

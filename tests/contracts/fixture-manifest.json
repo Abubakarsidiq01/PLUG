@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.7.6",
+  "contract_version": "0.7.7",
   "status": "proposed",
   "clock": "2026-10-01T20:00:10Z",
   "responses": [
@@ -1842,6 +1842,13 @@
       "error_code": "rate_limited"
     },
     {
+      "file": "fixtures/suppliers.opt-in/not-found.json",
+      "method": "post",
+      "path": "/v1/suppliers/opt-in",
+      "status": 404,
+      "error_code": "not_found"
+    },
+    {
       "file": "fixtures/suppliers.opt-in/transient-error.json",
       "method": "post",
       "path": "/v1/suppliers/opt-in",
@@ -1881,6 +1888,20 @@
       "path": "/v1/admin/suppliers",
       "status": 403,
       "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.suppliers.list/not-found.json",
+      "method": "get",
+      "path": "/v1/admin/suppliers",
+      "status": 404,
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/admin.suppliers.list/rate-limited.json",
+      "method": "get",
+      "path": "/v1/admin/suppliers",
+      "status": 429,
+      "error_code": "rate_limited"
     },
     {
       "file": "fixtures/admin.suppliers.list/transient-error.json",
@@ -1930,6 +1951,20 @@
       "error_code": "forbidden"
     },
     {
+      "file": "fixtures/admin.suppliers.create/not-found.json",
+      "method": "post",
+      "path": "/v1/admin/suppliers",
+      "status": 404,
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/admin.suppliers.create/rate-limited.json",
+      "method": "post",
+      "path": "/v1/admin/suppliers",
+      "status": 429,
+      "error_code": "rate_limited"
+    },
+    {
       "file": "fixtures/admin.suppliers.create/transient-error.json",
       "method": "post",
       "path": "/v1/admin/suppliers",
@@ -1970,6 +2005,13 @@
       "path": "/v1/admin/suppliers/{supplier_id}",
       "status": 403,
       "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.suppliers.get/rate-limited.json",
+      "method": "get",
+      "path": "/v1/admin/suppliers/{supplier_id}",
+      "status": 429,
+      "error_code": "rate_limited"
     },
     {
       "file": "fixtures/admin.suppliers.get/transient-error.json",
@@ -2013,6 +2055,20 @@
       "error_code": "forbidden"
     },
     {
+      "file": "fixtures/admin.suppliers.update/licence-required.json",
+      "method": "post",
+      "path": "/v1/admin/suppliers/{supplier_id}",
+      "status": 400,
+      "error_code": "validation_failed"
+    },
+    {
+      "file": "fixtures/admin.suppliers.update/rate-limited.json",
+      "method": "post",
+      "path": "/v1/admin/suppliers/{supplier_id}",
+      "status": 429,
+      "error_code": "rate_limited"
+    },
+    {
       "file": "fixtures/admin.suppliers.update/transient-error.json",
       "method": "post",
       "path": "/v1/admin/suppliers/{supplier_id}",
@@ -2052,6 +2108,13 @@
       "path": "/v1/admin/suppliers/{supplier_id}/verification",
       "status": 403,
       "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.suppliers.verification/rate-limited.json",
+      "method": "post",
+      "path": "/v1/admin/suppliers/{supplier_id}/verification",
+      "status": 429,
+      "error_code": "rate_limited"
     },
     {
       "file": "fixtures/admin.suppliers.verification/transient-error.json",
@@ -2122,6 +2185,20 @@
       "path": "/v1/admin/opt-outs",
       "status": 403,
       "error_code": "forbidden"
+    },
+    {
+      "file": "fixtures/admin.opt-outs/not-found.json",
+      "method": "get",
+      "path": "/v1/admin/opt-outs",
+      "status": 404,
+      "error_code": "not_found"
+    },
+    {
+      "file": "fixtures/admin.opt-outs/rate-limited.json",
+      "method": "get",
+      "path": "/v1/admin/opt-outs",
+      "status": 429,
+      "error_code": "rate_limited"
     },
     {
       "file": "fixtures/admin.opt-outs/transient-error.json",

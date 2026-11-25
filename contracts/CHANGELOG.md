@@ -11,6 +11,26 @@ Migration note: <none | what must happen, in what order>
 Rollback: <what turning the flag off does>
 ```
 
+### 0.7.7 — 2026-11-24 — additive — P3.S2
+Approval: the owner alone (decision 2026-11-24); frozen when the owner approves and merges the
+pull request. No new route, field, enum value or error code: declared responses and one
+description only.
+
+P3.S2: 404 NotFound declared on supplierOptIn, listSuppliers, createSupplier and listOptOuts,
+which are gated by the `supplier_messaging` flag and return 404 while it is off (as
+registerDevice does for `provider_inbox`, 0.7.2). 429 RateLimited declared on listSuppliers,
+createSupplier, getSupplier, updateSupplierProfile, decideSupplierVerification and listOptOuts.
+SupplierProfile.skill_tags now names the existing error: a requires_licence tag without
+licence_ref is 400 `licence_required` on field licence_ref, as on the providers route.
+
+Fixtures: suppliers.opt-in, admin.suppliers.list, admin.suppliers.create and admin.opt-outs
+not-found.json added; admin.suppliers.list, admin.suppliers.create, admin.suppliers.get,
+admin.suppliers.update, admin.suppliers.verification and admin.opt-outs rate-limited.json added;
+admin.suppliers.update/licence-required.json added.
+Tests: `tests/contracts/fixture-manifest.json` is 0.7.7.
+Migration note: none.
+Rollback: none needed; with `supplier_messaging` off the routes stay 404.
+
 ### 0.7.6 — 2026-11-24 — clarification — P3.S6
 Approval: the owner alone; frozen when the owner approves and merges the pull request. No new
 route, field, enum value or error code: descriptions only, reworded to match existing, tested code.

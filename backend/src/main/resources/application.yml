@@ -59,6 +59,13 @@ plug:
   provider-inbox:
     # P3.S6: selection and reservation routes exist only with requests-v2 and this on.
     enabled: ${PLUG_PROVIDER_INBOX_ENABLED:false}
+  supplier-messaging:
+    # P3.S2 supplier_messaging (contract 0.7.7). Off: every supplier route, public and admin, is 404.
+    enabled: ${PLUG_SUPPLIER_MESSAGING_ENABLED:false}
+    # off | simulator | twilio. off answers the two routes that queue a text with 503.
+    delivery: ${PLUG_SUPPLIER_MESSAGING_DELIVERY:off}
+    # AES-256-GCM key for stored supplier numbers, 32 bytes in base64. Required only while enabled.
+    phone-key: ${PLUG_SUPPLIER_PHONE_KEY:}
   sms:
     account-sid: ${PLUG_SMS_ACCOUNT_SID:}
     auth-token: ${PLUG_SMS_AUTH_TOKEN:}

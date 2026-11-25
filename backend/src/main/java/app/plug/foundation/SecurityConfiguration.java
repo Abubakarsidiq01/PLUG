@@ -72,6 +72,9 @@ public class SecurityConfiguration {
                 // address and challenge. The session it issues is the only way into /v1/admin.
                 .requestMatchers(HttpMethod.POST, "/v1/staff/login", "/v1/staff/login/verify", "/v1/staff/invites/accept")
                     .permitAll()
+                // P3.S2 public supplier opt-in (contract 0.7.7). No session by design; with supplier_messaging
+                // off there is no handler, so it is 404. The admin supplier routes fall under /v1/admin below.
+                .requestMatchers(HttpMethod.POST, "/v1/suppliers/opt-in").permitAll()
                 .requestMatchers(HttpMethod.POST, "/v1/auth/logout", "/v1/me/consent").authenticated()
                 .requestMatchers(HttpMethod.GET, "/v1/me").authenticated()
                 // Listing and remotely revoking sessions is an account-security capability.
