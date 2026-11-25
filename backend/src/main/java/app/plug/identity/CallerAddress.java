@@ -10,7 +10,7 @@ import jakarta.servlet.http.HttpServletRequest;
 // can write any X-Forwarded-For it likes, and trusting one turns every per-address limit into
 // a suggestion. The one exception is a proxy listed in plug.identity.trusted-proxies (the
 // staff console's server, ADR-013), whose own last hop is believed.
-final class CallerAddress {
+public final class CallerAddress {
     private CallerAddress() {}
 
     // Proxies allowed to say whose request they are passing on (plug.identity.trusted-proxies),
@@ -21,7 +21,7 @@ final class CallerAddress {
         trustedProxies = java.util.Set.copyOf(proxies);
     }
 
-    static String prefixOf(HttpServletRequest request) {
+    public static String prefixOf(HttpServletRequest request) {
         String address = request.getRemoteAddr();
         // Only a listed proxy's X-Forwarded-For counts, and only its last entry: the address
         // that proxy itself saw. Anything earlier in the header came from the caller.

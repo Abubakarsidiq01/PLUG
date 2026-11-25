@@ -1,16 +1,16 @@
 {
   "schema_version": "plug-state/1",
   "product": "PLUG",
-  "updated_at": "2026-11-24T12:00:00+00:00",
-  "updated_by": "person_one (P3.S6 owner decisions 11 and 12, contract 0.7.6; 2026-11-24 replan: SMS on a local simulator, local alerts instead of APNs, backend and iOS only)",
+  "updated_at": "2026-11-25T12:00:00+00:00",
+  "updated_by": "person_one (P3.S2 supplier onboarding 2026-11-25, branch p3.s2-one-supplier-onboarding, not merged; contract 0.7.7)",
   "completed_phases": [
     "P0",
     "P1",
     "P2"
   ],
   "current_phase": "P3",
-  "current_step": "P3.S8",
-  "current_step_title": "Rolling security for landed Phase 3 routes",
+  "current_step": "P3.S2",
+  "current_step_title": "Audited supplier onboarding with recorded consent",
   "manual_section": "27.4 / 25",
   "readme": "docs/phases/P3-ONE.md",
   "owner": "person_one",
@@ -122,20 +122,20 @@
     "POST /v1/providers/me/inbox/{match_id}/decline": "frozen@0.7.0 (merged in PR #46); implemented in P3.S12 behind provider_inbox; 0.7.3 (branch p3.s13-one-trust-score, merged in PR #62): no schema change; v1 score rules documented, examples and fixtures corrected",
     "POST /v1/providers/me/inbox/{match_id}/reservation": "frozen@0.7.0 (merged in PR #46); 0.7.1 merged in PR #54: respond_by = notified_at + 5 minutes, a decision at or after confirm_by or on a canceled reservation is reservation_closed; implemented in P3.S6 part 2 behind provider_inbox; 0.7.3 (branch p3.s13-one-trust-score, merged in PR #62): no schema change; v1 score rules documented, examples and fixtures corrected",
     "POST /v1/me/devices": "frozen@0.7.0 (merged in PR #46); 0.7.2 (branch p3.s11-both-contract-0.7.2, merged in PR #59): 403, 404 (provider_inbox off) and 413 listed; fixtures/me.devices added",
-    "POST /v1/suppliers/opt-in": "frozen@0.7.0 (merged in PR #46)",
+    "POST /v1/suppliers/opt-in": "frozen@0.7.0 (merged in PR #46); 0.7.7 (owner decision 2026-11-24, P3.S2, branch p3.s2-one-supplier-onboarding, not merged): 404 (supplier_messaging off) listed",
     "POST /v1/webhooks/twilio/inbound": "frozen@0.7.0 (merged in PR #46)",
     "POST /v1/webhooks/twilio/status": "frozen@0.7.0 (merged in PR #46)",
-    "GET /v1/admin/suppliers": "frozen@0.7.0 (merged in PR #46)",
-    "POST /v1/admin/suppliers": "frozen@0.7.0 (merged in PR #46)",
-    "GET /v1/admin/suppliers/{supplier_id}": "frozen@0.7.0 (merged in PR #46)",
-    "POST /v1/admin/suppliers/{supplier_id}": "frozen@0.7.0 (merged in PR #46)",
-    "POST /v1/admin/suppliers/{supplier_id}/verification": "frozen@0.7.0 (merged in PR #46)",
+    "GET /v1/admin/suppliers": "frozen@0.7.0 (merged in PR #46); 0.7.7 (owner decision 2026-11-24, P3.S2, branch p3.s2-one-supplier-onboarding, not merged): 404 (supplier_messaging off) and 429 RateLimited listed",
+    "POST /v1/admin/suppliers": "frozen@0.7.0 (merged in PR #46); 0.7.7 (owner decision 2026-11-24, P3.S2, branch p3.s2-one-supplier-onboarding, not merged): 404 (supplier_messaging off) and 429 RateLimited listed",
+    "GET /v1/admin/suppliers/{supplier_id}": "frozen@0.7.0 (merged in PR #46); 0.7.7 (owner decision 2026-11-24, P3.S2, branch p3.s2-one-supplier-onboarding, not merged): 429 RateLimited listed",
+    "POST /v1/admin/suppliers/{supplier_id}": "frozen@0.7.0 (merged in PR #46); 0.7.7 (owner decision 2026-11-24, P3.S2, branch p3.s2-one-supplier-onboarding, not merged): 429 RateLimited listed; SupplierProfile.skill_tags names 400 licence_required",
+    "POST /v1/admin/suppliers/{supplier_id}/verification": "frozen@0.7.0 (merged in PR #46); 0.7.7 (owner decision 2026-11-24, P3.S2, branch p3.s2-one-supplier-onboarding, not merged): 429 RateLimited listed",
     "GET /v1/admin/messages": "frozen@0.7.0 (merged in PR #46)",
-    "GET /v1/admin/opt-outs": "frozen@0.7.0 (merged in PR #46)",
+    "GET /v1/admin/opt-outs": "frozen@0.7.0 (merged in PR #46); 0.7.7 (owner decision 2026-11-24, P3.S2, branch p3.s2-one-supplier-onboarding, not merged): 404 (supplier_messaging off) and 429 RateLimited listed",
     "GET /v1/admin/requests/{request_id}/matches": "frozen@0.7.0 (merged in PR #46); 0.7.4 (branch p3.s15-one-fanout-caps, merged in PR #65): cap const 14, contacted maximum 14, wave times described; route not built (P3-TWO.S9); 0.7.5 (P3.S8, branch p3.s8-one-rolling-security, merged in PR #69): 429 RateLimited declared",
     "GET /v1/admin/providers": "frozen@0.7.0 (merged in PR #46); 0.7.3 (branch p3.s13-one-trust-score, merged in PR #62): no schema change; v1 score rules documented, examples and fixtures corrected; implemented in P3.S13/P3.S14; 0.7.5 (P3.S8, branch p3.s8-one-rolling-security, merged in PR #69): 429 RateLimited declared",
     "POST /v1/admin/providers/{user_id}/standing": "frozen@0.7.0 (merged in PR #46); 0.7.3 (branch p3.s13-one-trust-score, merged in PR #62): no schema change; v1 score rules documented, examples and fixtures corrected; implemented in P3.S13/P3.S14; 0.7.5 (P3.S8, branch p3.s8-one-rolling-security, merged in PR #69): 429 RateLimited declared",
-    "contracts/openapi.yaml": "0.7.6 (owner decision 2026-11-24, branch p3.s6-one-contract-0.7.6, not merged): wording only, selectOffer replay rule and the return-to-ranked expiry rule; previous 0.7.5 (P3.S8, PR #69): 429 RateLimited on GET /v1/providers/me, GET /v1/admin/providers, POST /v1/admin/providers/{user_id}/standing, GET /v1/admin/requests/{request_id}/matches",
+    "contracts/openapi.yaml": "0.7.7 (owner decision 2026-11-24, P3.S2, branch p3.s2-one-supplier-onboarding, not merged): no new route, field, enum value or error code; 404 (supplier_messaging off) on the opt-in, supplier list, supplier create and opt-out routes, 429 RateLimited on the six admin supplier and opt-out routes, licence_required named on SupplierProfile.skill_tags; previous 0.7.6 (PR #71): wording only, selectOffer replay rule and the return-to-ranked expiry rule; previous 0.7.5 (P3.S8, PR #69): 429 RateLimited on GET /v1/providers/me, GET /v1/admin/providers, POST /v1/admin/providers/{user_id}/standing, GET /v1/admin/requests/{request_id}/matches",
     "contracts/messages": "frozen@0.7.0 (merged in PR #46; templates.v1, grammar.v1, cases.v1). Wording is still Person One's draft: Person Two's rewrite (P3-TWO.S1) is a contract pull request with both approvals, needed before any SMS step"
   },
   "feature_flags": {
@@ -151,18 +151,18 @@
   },
   "next_actions": [
     {
+      "id": "P3.S2",
+      "owner": "person_one",
+      "manual_section": "27.4 / 19",
+      "task": "Implement audited supplier onboarding state with explicit, recorded messaging consent. Backend API only, no web UI (owner decision 2026-11-24: web and Person Two's lane are skipped for now). Build the supplier routes contract 0.7.x already defines: POST /v1/suppliers/opt-in, GET /v1/admin/suppliers, POST /v1/admin/suppliers, GET /v1/admin/suppliers/{supplier_id}, POST /v1/admin/suppliers/{supplier_id}, POST /v1/admin/suppliers/{supplier_id}/verification and GET /v1/admin/opt-outs. The supplier BOLA class of P3.S8-rolling lands with this step. supplier_messaging stays off outside local and tests. 2026-11-24 progress (branch p3.s2-one-supplier-onboarding, not merged): migration V15 (suppliers, supplier_consent_events, sms_outbox, supplier_idempotency; places no longer seed-only); SupplierPhones stores a number only as a domain-separated HMAC (identity pepper) plus an AES-256-GCM copy, shown masked; the 7 supplier routes run behind plug.supplier-messaging.enabled (off: 404); delivery off answers opt-in and staff create with 503; nothing is sent, one optin_confirm row is only queued; consent is only ever written as pending_confirmation (sources web_form and staff_entry); every staff write and read is audited; per-staff limits (30 reads, 10 writes) run before the owner check; opt-in limits 5 an hour per address prefix and 3 a day per number. Tests: SupplierOptInTest, SupplierMessagingSwitchTest, SupplierDeliveryOffTest, AdminSupplierTest (database) and SupplierPhonesTest (unit). Not done: sending (P3.S9), START/STOP/PAUSE handling (P3.S5), the SMS simulator and webhooks (P3.S3).",
+      "acceptance": "Drafted from P3-ONE.md, to be confirmed by the owner: every supplier onboarding state change is audited and messaging consent is explicit and recorded; the supplier routes return 401 without a session and 429 past the limit, and another caller's supplier resource id is 404; log inspection shows no supplier phone number, no token and no unnecessary PII; copy to be confirmed by the owner."
+    },
+    {
       "id": "P3.S8-rolling",
       "owner": "person_one",
       "manual_section": "27.4 / 25 / 19.4",
       "task": "Protect every Phase 3 route with server-side authorization and rate limits as each step lands, and keep phone numbers and consumer identifiers out of logs. BOLA: the provider match_id and admin classes are tested as P3.S6 and P3.S10 land; the supplier class waits with P3.S2, so the G1 carried 'external member BOLA' item stays open. 2026-11-24 progress (branch p3.s8-one-rolling-security): audit of landed Phase 3 routes; every one needs a session; per-user limits exist on select, offers, inbox, decline, reservation and devices; GET /v1/providers/me is limited by the per-address read budget; the admin provider routes had no limit and gain a per-staff limit (30 list reads, 10 standing changes per window) that runs before the owner check, so a non-owner staff session cannot make unlimited 403 calls; Spring web DEBUG request and response bodies on Phase 3 routes are redacted (offer note, device token, standing reason, provider ids, booking reference); contract 0.7.5 declares 429 on getProviderMe, listProviders, setProviderStanding and the admin matches route (owner decision 2026-11-24). Tests: PhaseThreeRouteSecurityTest (device 429, provider profile 401 and 429, admin list and standing 429, and a full Phase 3 scene at DEBUG whose log holds no token, ask text, note, standing reason, coordinate, booking reference or account id). Admin routes answer a non-owner 403 before any id lookup, so the admin BOLA case is 403, and an unknown provider id is 404. Not done: the supplier BOLA class waits for P3.S2; Phase 2 routes (asks, requests v2 reads, admin inspection) keep the per-address limit only; the limiter is in-process memory. 2026-11-24 follow-up (branch p3.s8-one-residuals): DEBUG path and body loggers pinned to INFO; Retry-After is the time left on the bucket. 2026-11-24 follow-up 2 (branch p3.s8-one-residuals-2): the per-address limit's Retry-After is the time left on the bucket; staging refuses to start with the DispatcherServlet or MVC body logger at DEBUG or TRACE; ReservationTest pins the timeout path of contract 0.7.6 item 12. 2026-11-24 follow-up 2 also: staging refuses to start when the DispatcherServlet, the two MVC body processors or Tomcat's Http11InputBuffer logger is at DEBUG (effective level), and the check cannot be skipped by lazy initialisation.",
       "acceptance": "Drafted from P3-ONE.md section 4, to be confirmed by both: for each landed step, every new route returns 401 without a session and 429 past the limit, another caller's provider or admin resource id returns 404, and message and API log inspection shows no secrets, no tokens and no unnecessary PII."
-    },
-    {
-      "id": "P3.S2",
-      "owner": "person_one",
-      "manual_section": "27.4 / 19",
-      "task": "Implement audited supplier onboarding state with explicit, recorded messaging consent. Backend API only, no web UI (owner decision 2026-11-24: web and Person Two's lane are skipped for now). Build the supplier routes contract 0.7.x already defines: POST /v1/suppliers/opt-in, GET /v1/admin/suppliers, POST /v1/admin/suppliers, GET /v1/admin/suppliers/{supplier_id}, POST /v1/admin/suppliers/{supplier_id}, POST /v1/admin/suppliers/{supplier_id}/verification and GET /v1/admin/opt-outs. The supplier BOLA class of P3.S8-rolling lands with this step. supplier_messaging stays off outside local and tests.",
-      "acceptance": "Drafted from P3-ONE.md, to be confirmed by the owner: every supplier onboarding state change is audited and messaging consent is explicit and recorded; the supplier routes return 401 without a session and 429 past the limit, and another caller's supplier resource id is 404; log inspection shows no supplier phone number, no token and no unnecessary PII; copy to be confirmed by the owner."
     },
     {
       "id": "P3.S3",
@@ -354,7 +354,11 @@
     "P3-ui-know-before-fixes: the send check (RequestModel.textError) rejects the zero-width joiner U+200D as a control character, so any ask containing a joined emoji such as a family emoji cannot be sent.",
     "P3.S16/P3.S7 iOS: the inbox and booking screens are tested only against the synthetic fixture server; they have not run against a live backend or on a physical device, and part of their copy is drafted and waits for the owner's review.",
     "P3.S8: admin provider limits are per staff user id in process memory (FixedWindowLimiter), like every other limit; Phase 2 routes rely on the per-address limit only, which runs before authentication, so unauthenticated calls spend an address's budget.",
-    "Owner decision 2026-11-24: SMS is built against a simulator, so nothing proves real carrier delivery, STOP handling by Twilio Advanced Opt-Out or real webhook timing until Twilio is funded; local alerts depend on iOS background refresh timing and do not wake the app instantly."
+    "Owner decision 2026-11-24: SMS is built against a simulator, so nothing proves real carrier delivery, STOP handling by Twilio Advanced Opt-Out or real webhook timing until Twilio is funded; local alerts depend on iOS background refresh timing and do not wake the app instantly.",
+    "Supplier opt-outs (GET /v1/admin/opt-outs) list only suppliers revoked or still paused, by their latest consent event, until P3.S3/P3.S5 add the suppression list.",
+    "The supplier opt-in and admin supplier rate limits are counted in one process's memory (FixedWindowLimiter), like the Phase 1 limits.",
+    "Nothing yet stops supplier_messaging (plug.supplier-messaging.enabled) being switched on in staging.",
+    "P3.S2: business_name is texted to the number the form names; links, domains, emails and digit runs are refused, but free text still reaches strangers' phones once P3.S9 sends."
   ],
   "environments": {
     "staging": "ephemeral — cloudflared Quick Tunnel started per checkpoint session, see ADR-004; no standing URL",
